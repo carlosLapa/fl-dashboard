@@ -12,8 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/users")
 public class UserResource {
-
-    // refaz tudo hoje!
+    
     @GetMapping
     public ResponseEntity<List<User>> findAll() {
         List<User> list = new ArrayList<>();
