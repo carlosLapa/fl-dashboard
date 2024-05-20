@@ -1,6 +1,6 @@
 package com.fl.dashboard.resources;
 
-import com.fl.dashboard.entities.User;
+import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +18,8 @@ public class UserResource {
     private UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> findAll() {
-        List<User> list = userService.findAll();
+    public ResponseEntity<List<UserDTO>> findAll() {
+        List<UserDTO> list = userService.findAll();
         return ResponseEntity.ok().body(list);
     }
 

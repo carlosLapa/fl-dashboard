@@ -1,6 +1,6 @@
 package com.fl.dashboard.resources;
 
-import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.services.ProjetoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +18,8 @@ public class ProjetoResource {
     private ProjetoService projetoService;
 
     @GetMapping
-    public ResponseEntity<List<Projeto>> findAll() {
-        List<Projeto> list = projetoService.findAll();
+    public ResponseEntity<List<ProjetoDTO>> findAll() {
+        List<ProjetoDTO> list = projetoService.findAll();
         return ResponseEntity.ok().body(list);
     }
 

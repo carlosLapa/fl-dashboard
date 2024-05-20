@@ -1,6 +1,6 @@
 package com.fl.dashboard.resources;
 
-import com.fl.dashboard.entities.Departamento;
+import com.fl.dashboard.dto.DepartamentoDTO;
 import com.fl.dashboard.services.DepartamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +18,8 @@ public class DepartamentoResource {
     private DepartamentoService departamentoService;
 
     @GetMapping
-    public ResponseEntity<List<Departamento>> findAll() {
-        List<Departamento> list = departamentoService.findAll();
+    public ResponseEntity<List<DepartamentoDTO>> findAll() {
+        List<DepartamentoDTO> list = departamentoService.findAll();
         return ResponseEntity.ok().body(list);
     }
 
