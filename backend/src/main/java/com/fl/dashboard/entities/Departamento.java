@@ -8,37 +8,33 @@ import lombok.ToString;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_user")
+@Table(name = "tb_departamento")
 @Getter
 @Setter
 @ToString
-public class User {
+public class Departamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String password;
+    private String designacao;
+    private String descricao;
 
-    public User() {
+    public Departamento() {
     }
 
-    public User(Long id, String firstName, String lastName, String email, String password) {
+    public Departamento(Long id, String designacao, String descricao) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
+        this.designacao = designacao;
+        this.descricao = descricao;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return Objects.equals(id, user.id);
+        Departamento that = (Departamento) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override
