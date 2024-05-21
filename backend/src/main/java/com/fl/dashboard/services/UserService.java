@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +32,28 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO insert(UserDTO dto) {
+    public UserDTO insert(UserDTO userDTO) {
         User entity = new User();
-        entity.setFirstName(dto.getFirstName());
-        entity.setLastName(dto.getLastName());
-        entity.setEmail(dto.getEmail());
-        entity.setPassword(dto.getPassword());
+        entity.setFirstName(userDTO.getFirstName());
+        entity.setLastName(userDTO.getLastName());
+        entity.setEmail(userDTO.getEmail());
+        entity.setPassword(userDTO.getPassword());
         entity = userRepository.save(entity);
         return new UserDTO(entity);
+    }
+
+    @Transactional
+    public UserDTO update(Long id, UserDTO userDTO) {
+        try {
+            User entity = userRepository.getReferenceById(id);
+            entity.setFirstName(userDTO.getFirstName());
+            entity.setLastName(userDTO.getLastName());
+            entity.setEmail(userDTO.getEmail());
+            entity.setPassword(userDTO.getPassword());
+            return new UserDTO(entity);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id: " + userDTO + " não foi encontrado");
+        }
     }
 
     /* Group employees by department
