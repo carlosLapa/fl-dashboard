@@ -30,6 +30,17 @@ public class UserService {
         return new UserDTO(entity);
     }
 
+    @Transactional
+    public UserDTO insert(UserDTO dto) {
+        User entity = new User();
+        entity.setFirstName(dto.getFirstName());
+        entity.setLastName(dto.getLastName());
+        entity.setEmail(dto.getEmail());
+        entity.setPassword(dto.getPassword());
+        entity = userRepository.save(entity);
+        return new UserDTO(entity);
+    }
+
     /* Group employees by department
     Map<Department, List<Employee>> byDept = employees.stream().collect(Collectors.groupingBy(Employee::getDepartment));
     */
