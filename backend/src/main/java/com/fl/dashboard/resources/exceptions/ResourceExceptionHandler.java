@@ -1,5 +1,6 @@
 package com.fl.dashboard.resources.exceptions;
 
+import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,13 @@ public class ResourceExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<CustomError> entityNotFound(ResourceNotFoundException e, HttpServletRequest httpServletRequest) {
         HttpStatus status = HttpStatus.NOT_FOUND;
+        CustomError err = new CustomError(Instant.now(), status.value(), e.getMessage(), httpServletRequest.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(DatabaseException.class)
+    public ResponseEntity<CustomError> entityNotFound(DatabaseException e, HttpServletRequest httpServletRequest) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         CustomError err = new CustomError(Instant.now(), status.value(), e.getMessage(), httpServletRequest.getRequestURI());
         return ResponseEntity.status(status).body(err);
     }
