@@ -17,6 +17,8 @@ public class ProjetoResource {
     @Autowired
     private ProjetoService projetoService;
 
+    // COLOCAR O VALID NO INSERT E UPDATE!!
+
     @GetMapping
     public ResponseEntity<List<ProjetoDTO>> findAll() {
         List<ProjetoDTO> list = projetoService.findAll();

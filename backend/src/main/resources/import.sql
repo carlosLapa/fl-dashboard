@@ -9,3 +9,5 @@ INSERT INTO tb_projeto (projeto_ano, designacao, entidade, prioridade, observaca
 INSERT INTO tb_departamento (designacao, descricao) VALUES ('Projeto', 'Departamento encarregue da concepção e elaboração de projetos de engenharia civil');
 
 INSERT INTO tb_especialidade (tipo, descricao) VALUES ('Engenharias', 'Elaboração de projetos estruturais');
+
+INSERT INTO tb_tarefa (descricao, prioridade) VALUES ('Elaborar relatório preliminar', 'Urgente/Elevada');

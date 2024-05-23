@@ -1,7 +1,6 @@
 package com.fl.dashboard.resources.exceptions;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Instant;
 
@@ -12,6 +11,9 @@ public class CustomError {
     private Integer status;
     private String error;
     private String path;
+
+    public CustomError() {
+    }
 
     public CustomError(Instant timestamp, Integer status, String error, String path) {
         this.timestamp = timestamp;

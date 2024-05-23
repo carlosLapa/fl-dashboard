@@ -2,6 +2,7 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +31,7 @@ public class UserResource {
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> insert(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> insert(@Valid @RequestBody UserDTO userDTO) {
         userDTO = userService.insert(userDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(userDTO.getId()).toUri();
@@ -38,7 +39,7 @@ public class UserResource {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+    public ResponseEntity<UserDTO> update(@Valid @PathVariable Long id, @RequestBody UserDTO userDTO) {
         userDTO = userService.update(id, userDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(userDTO.getId()).toUri();
