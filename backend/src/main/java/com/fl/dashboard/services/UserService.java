@@ -1,6 +1,7 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.UserUpdateDTO;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
@@ -43,7 +44,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO update(Long id, UserDTO userDTO) {
+    public UserDTO update(Long id, UserUpdateDTO userDTO) {
         try {
             User entity = userRepository.getReferenceById(id);
             copyDTOtoEntity(userDTO, entity);
