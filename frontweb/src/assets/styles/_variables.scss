@@ -1,0 +1,20 @@
+// Sass file for Bootstrap and Tailwind CSS overrides
+// Variable overrides
+$primary: #81a6f0;
+$danger: #DF5753;
+$secondary: #9E9E9E;
+$body-bg: #F2F2F2;
+$body-color: #263238;
+
+// Caso optes por utilizar o Tailwind
+// Import Tailwind CSS base styles
+//@import 'tailwindcss/base';
+
+// Import Tailwind CSS components
+//@import 'tailwindcss/components';
+
+// Import Tailwind CSS utilities
+//@import 'tailwindcss/utilities';
+
+// Import Bootstrap
+@import "~bootstrap/scss/bootstrap";
