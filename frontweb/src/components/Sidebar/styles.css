@@ -1,0 +1,15 @@
+.sidebar {
+  position: fixed;
+  top: 55px; /* Adjust this value based on the height of your navbar */
+  left: 0;
+  bottom: 0;
+  width: 175px; /* Adjust the width as needed */
+  padding: 15px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.content {
+  margin-left: 220px; /* Adjust based on the sidebar width */
+  padding: 20px;
+}

@@ -6,11 +6,13 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
-function NavScrollExample() {
+import './styles.css';
+
+function NavbarFL() {
   return (
     <Navbar expand="lg" className="bg-dark navbar-dark">
       <Container fluid>
-        <Navbar.Brand href="#" className="text-light me-5">
+        <Navbar.Brand href="#" className="text-light me-5 ms-3">
           Ferreira Lapa
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
@@ -20,8 +22,13 @@ function NavScrollExample() {
               <Form.Control
                 type="search"
                 placeholder="Search"
-                className="me-3"
+                className="me-3 search-textarea"
                 aria-label="Search"
+                style={{
+                  borderRadius: '5px',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.9rem',
+                }}
               />
               <Button variant="outline-light">Search</Button>
             </Form>
@@ -31,10 +38,10 @@ function NavScrollExample() {
               Home
             </Nav.Link>
             <Nav.Link href="#action2" className="text-light me-5">
-              Link
+              Portfolio
             </Nav.Link>
             <NavDropdown
-              title="Dropdown"
+              title="Dropdown exemplo"
               id="navbarScrollingDropdown"
               className="text-light me-5"
             >
@@ -50,11 +57,16 @@ function NavScrollExample() {
               </NavDropdown.Item>
             </NavDropdown>
             <Nav.Link className="me-3">
-              <img
-                src="https://via.placeholder.com/32"
-                alt="User Avatar"
-                className="rounded-circle"
-              />
+              <div
+                className="rounded-circle overflow-hidden"
+                style={{ width: '35px', height: '35px' }}
+              >
+                <img
+                  src="https://media.licdn.com/dms/image/C4E03AQGZRXblYdcgkA/profile-displayphoto-shrink_100_100/0/1517535613338?e=1723075200&v=beta&t=0aUIXB6ve48VSpaHfnlqvMGiuuXm6vMEckabcbnlJpI"
+                  alt="User Avatar"
+                  className="w-100 h-100"
+                />
+              </div>
             </Nav.Link>
           </Nav>
         </Navbar.Collapse>
@@ -63,4 +75,4 @@ function NavScrollExample() {
   );
 }
 
-export default NavScrollExample;
+export default NavbarFL;
