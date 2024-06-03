@@ -10,7 +10,7 @@ import './styles.css';
 
 function NavbarFL() {
   return (
-    <Navbar expand="lg" className="bg-dark navbar-dark">
+    <Navbar expand="lg" className="bg-dark navbar-dark custom-navbar">
       <Container fluid>
         <Navbar.Brand href="#" className="text-light me-5 ms-3 fl-brand">
           Ferreira Lapa

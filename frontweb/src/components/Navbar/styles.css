@@ -1,3 +1,7 @@
+.custom-navbar {
+  height: 80px; /* Adjust the value as needed */
+}
+
 .search-textarea {
   width: 300px;
   height: 40px;

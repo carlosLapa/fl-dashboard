@@ -6,7 +6,7 @@ function SidebarFL() {
   return (
     <div className="d-flex">
       <div className="sidebar bg-dark">
-        <Nav className="flex-column mt-4">
+        <Nav className="flex-column mt-5">
           <Nav.Link href="#action1" className="text-light mb-5">Colaboradores</Nav.Link>
           <Nav.Link href="#action2" className="text-light mb-5">Projetos</Nav.Link>
           <Nav.Link href="#action3" className="text-light mb-5">Propostas</Nav.Link>
