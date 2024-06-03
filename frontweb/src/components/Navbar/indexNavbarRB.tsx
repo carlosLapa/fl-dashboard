@@ -12,7 +12,7 @@ function NavbarFL() {
   return (
     <Navbar expand="lg" className="bg-dark navbar-dark">
       <Container fluid>
-        <Navbar.Brand href="#" className="text-light me-5 ms-3">
+        <Navbar.Brand href="#" className="text-light me-5 ms-3 fl-brand">
           Ferreira Lapa
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
