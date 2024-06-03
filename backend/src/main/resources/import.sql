@@ -1,5 +1,5 @@
-INSERT INTO tb_user (first_name, last_name, email, password) VALUES ('Carlos', 'Lapa', 'carlos@gmail.com', '1234');
-INSERT INTO tb_user (first_name, last_name, email, password) VALUES ('José', 'Lapa', 'jose@gmail.com', '1234');
+INSERT INTO tb_user (first_name, last_name, email, password, profile_image) VALUES ('Carlos', 'Lapa', 'carlos@gmail.com', '1234', NULL);
+INSERT INTO tb_user (first_name, last_name, email, password, profile_image) VALUES ('José', 'Lapa', 'jose@gmail.com', '1234', NULL);
 
 INSERT INTO tb_role (authority) VALUES ('ROLE_OPERATOR');
 INSERT INTO tb_role (authority) VALUES ('ROLE_ADMIN');

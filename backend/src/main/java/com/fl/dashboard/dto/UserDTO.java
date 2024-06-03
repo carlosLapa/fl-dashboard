@@ -29,16 +29,18 @@ public class UserDTO {
     @Email(message = "Introduza um email válido")
     private String email;
     private String password;
+    private byte[] profileImage;
 
     public UserDTO() {
     }
 
-    public UserDTO(Long id, String firstName, String lastName, String email, String password) {
+    public UserDTO(Long id, String firstName, String lastName, String email, String password, byte[] profileImage) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.profileImage = profileImage;
     }
 
     public UserDTO(User entity) {
@@ -47,5 +49,6 @@ public class UserDTO {
         lastName = entity.getLastName();
         email = entity.getEmail();
         password = entity.getPassword();
+        profileImage = entity.getProfileImage();
     }
 }

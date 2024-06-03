@@ -12,12 +12,18 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
+    private static final long MAX_FILE_SIZE = 5242880; // 5MB
 
     @Autowired
     private UserRepository userRepository;
@@ -48,9 +54,10 @@ public class UserService {
         try {
             User entity = userRepository.getReferenceById(id);
             copyDTOtoEntity(userDTO, entity);
+            entity = userRepository.save(entity);  // Ensure entity is saved after updating
             return new UserDTO(entity);
         } catch (EntityNotFoundException e) {
-            throw new ResourceNotFoundException("Id: " + userDTO + " não foi encontrado");
+            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
     }
 
@@ -66,14 +73,33 @@ public class UserService {
         }
     }
 
-    private void copyDTOtoEntity(UserDTO userDTO, User entity){
+    private void copyDTOtoEntity(UserDTO userDTO, User entity) {
         entity.setFirstName(userDTO.getFirstName());
         entity.setLastName(userDTO.getLastName());
         entity.setEmail(userDTO.getEmail());
         entity.setPassword(userDTO.getPassword());
+        entity.setProfileImage(userDTO.getProfileImage());
     }
 
-    /* Group employees by department
-    Map<Department, List<Employee>> byDept = employees.stream().collect(Collectors.groupingBy(Employee::getDepartment));
-    */
+    public void uploadUserImage(Long userId, MultipartFile imageFile) throws IOException {
+        validateImage(imageFile);
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setProfileImage(imageFile.getBytes());
+            userRepository.save(user);
+        } else {
+            throw new ResourceNotFoundException("Utilizador com o id: " + userId + " não encontrado");
+        }
+    }
+
+    private void validateImage(MultipartFile imageFile) {
+        if (!ALLOWED_CONTENT_TYPES.contains(imageFile.getContentType())) {
+            throw new IllegalArgumentException("Ficheiro inválido. São permitidos JPEG e PNG");
+        }
+        if (imageFile.getSize() > MAX_FILE_SIZE) {
+            throw new IllegalArgumentException("Tamanho do ficheiro excede o limite de 5MB.");
+        }
+    }
 }

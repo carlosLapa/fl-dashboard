@@ -6,10 +6,13 @@ import com.fl.dashboard.dto.UserUpdateDTO;
 import com.fl.dashboard.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -50,6 +53,16 @@ public class UserResource {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/upload-image")
+    public ResponseEntity<String> uploadUserImage(@PathVariable Long id, @RequestParam("image") MultipartFile imageFile) {
+        try {
+            userService.uploadUserImage(id, imageFile);
+            return new ResponseEntity<>("Imagem carregada com sucesso", HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>("Falha no carregamento da imagem", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
