@@ -13,9 +13,6 @@ function SidebarFL() {
           <Nav.Link href="#action4" className="text-light mb-5">Placeholder</Nav.Link>
         </Nav>
       </div>
-      <div className="content flex-grow-1">
-
-      </div>
     </div>
   );
 }

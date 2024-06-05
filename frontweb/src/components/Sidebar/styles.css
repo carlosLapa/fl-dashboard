@@ -3,7 +3,7 @@
   top: 55px; /* Adjust this value based on the height of your navbar */
   left: 0;
   bottom: 0;
-  width: 175px; /* Adjust the width as needed */
+  width: 12%; /* Adjust the width as needed */
   padding: 15px;
   overflow-x: hidden;
   overflow-y: auto;

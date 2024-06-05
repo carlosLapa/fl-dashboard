@@ -13,7 +13,7 @@ function NavbarFL() {
     <Navbar expand="lg" className="bg-dark navbar-dark custom-navbar">
       <Container fluid>
         <Navbar.Brand href="#" className="text-light me-5 ms-3 fl-brand">
-          Ferreira Lapa
+          <h3>Ferreira Lapa</h3>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="navbarScroll" />
         <Navbar.Collapse id="navbarScroll" className="justify-content-between">
@@ -28,7 +28,7 @@ function NavbarFL() {
                   borderRadius: '5px',
                   padding: '0.5rem 1rem',
                   fontSize: '0.9rem',
-                  width: '20rem',
+                  width: '25rem',
                 }}
               />
               <Button variant="outline-light">Search</Button>

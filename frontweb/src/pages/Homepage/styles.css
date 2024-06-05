@@ -1,0 +1,8 @@
+.main-view-container {
+    border: 1px solid blue;
+    min-height: 85vh;
+    padding: 10px;
+    margin-top: 2%;
+    margin-right: 5%;
+    margin-left: 15%;
+}

@@ -1,16 +1,17 @@
-import NavbarFL from 'components/Navbar/indexNavbarRB';
 import SidebarFL from 'components/Sidebar/indexSidebarRB';
 
-import './assets/styles/_variables.scss';
+import './styles.css';
+import UserTable from 'components/User';
 
 const Home = () => {
   return (
-    <div>
-      <NavbarFL />
-      <SidebarFL />
-      <div className="main-view-container">
-        <div className="main-card">
-            <h1>Conteúdo</h1>
+    <div className="d-flex">
+      <div>
+        <SidebarFL />
+      </div>
+      <div className="ms-4 flex-grow-1">
+        <div className="main-view-container">
+          <UserTable />
         </div>
       </div>
     </div>
