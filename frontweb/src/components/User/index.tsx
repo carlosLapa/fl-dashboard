@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import axios from 'axios';
 import { User } from '../../types/user';
+import { BASE_URL } from 'util/requests';
 
 const UserTable: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -9,13 +10,12 @@ const UserTable: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('/api/users');
+        const response = await axios.get(BASE_URL + '/users');
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users:', error);
       }
     };
-
     fetchUsers();
   }, []);
 
@@ -34,7 +34,6 @@ const UserTable: React.FC = () => {
         <tbody>
           {users.map((user) => (
             <tr key={user.id}>
-              <td>{user.id}</td>
               <td>{user.firstName}</td>
               <td>{user.lastName}</td>
               <td>{user.email}</td>
@@ -58,4 +57,3 @@ const UserTable: React.FC = () => {
 };
 
 export default UserTable;
-
