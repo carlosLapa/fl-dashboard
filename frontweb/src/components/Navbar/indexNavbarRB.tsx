@@ -22,12 +22,13 @@ function NavbarFL() {
               <Form.Control
                 type="search"
                 placeholder="Search"
-                className="me-3 search-textarea"
+                className="search-textarea"
                 aria-label="Search"
                 style={{
                   borderRadius: '5px',
                   padding: '0.5rem 1rem',
                   fontSize: '0.9rem',
+                  width: '20rem',
                 }}
               />
               <Button variant="outline-light">Search</Button>
@@ -46,14 +47,14 @@ function NavbarFL() {
               className="text-light me-5"
             >
               <NavDropdown.Item href="#action3" className="text-dark">
-                Action
+                Uma ação
               </NavDropdown.Item>
               <NavDropdown.Item href="#action4" className="text-dark">
-                Another action
+                Outra ação
               </NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item href="#action5" className="text-dark">
-                Something else here
+                Algo
               </NavDropdown.Item>
             </NavDropdown>
             <Nav.Link className="me-3">
