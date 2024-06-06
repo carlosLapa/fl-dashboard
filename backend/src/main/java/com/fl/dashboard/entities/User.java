@@ -27,7 +27,7 @@ public class User {
     private String password;
 
     @Lob
-    @Column(name = "profile_image", columnDefinition = "BLOB")
+    @Column(name = "profile_image", columnDefinition = "MEDIUMBLOB")
     private byte[] profileImage;
 
     public User() {

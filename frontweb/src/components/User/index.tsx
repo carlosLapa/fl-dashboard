@@ -46,7 +46,7 @@ const UserTable: React.FC = () => {
                   <img
                     src={`data:image/jpeg;base64,${user.profileImage}`}
                     alt={`${user.firstName} ${user.lastName}`}
-                    style={{ maxWidth: '80px', maxHeight: '80px'}}
+                    style={{ maxWidth: '80px', maxHeight: '80px' }}
                   />
                 ) : (
                   'No image available'
