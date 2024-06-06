@@ -19,6 +19,8 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
+    private String funcao;
+    private String cargo;
 
     @Column(unique = true)
     private String email;
@@ -31,10 +33,12 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String firstName, String lastName, String email, String password, byte[] profileImage) {
+    public User(Long id, String firstName, String lastName, String funcao, String cargo, String email, String password, byte[] profileImage) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.funcao = funcao;
+        this.cargo = cargo;
         this.email = email;
         this.password = password;
         this.profileImage = profileImage;

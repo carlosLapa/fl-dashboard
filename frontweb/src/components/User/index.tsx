@@ -27,6 +27,8 @@ const UserTable: React.FC = () => {
           <tr>
             <th>Nome</th>
             <th>Apelido</th>
+            <th>Função</th>
+            <th>Cargo</th>
             <th>Email</th>
             <th>Imagem de perfil</th>
           </tr>
@@ -36,13 +38,15 @@ const UserTable: React.FC = () => {
             <tr key={user.id}>
               <td>{user.firstName}</td>
               <td>{user.lastName}</td>
+              <td>{user.funcao}</td>
+              <td>{user.cargo}</td>
               <td>{user.email}</td>
               <td>
                 {user.profileImage ? (
                   <img
                     src={`data:image/jpeg;base64,${user.profileImage}`}
                     alt={`${user.firstName} ${user.lastName}`}
-                    style={{ maxWidth: '100px' }}
+                    style={{ maxWidth: '80px', maxHeight: '80px'}}
                   />
                 ) : (
                   'No image available'

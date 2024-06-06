@@ -23,9 +23,11 @@ public class UserDTO {
     @NotBlank(message = "Campo requerido")
     private String lastName;
 
+    private String funcao;
+    private String cargo;
+
     @Size(min = 3, max = 30, message = "Nome deve conter de 3 a 30 caracteres")
     @NotBlank(message = "Campo requerido")
-
     @Email(message = "Introduza um email válido")
     private String email;
     private String password;
@@ -34,10 +36,12 @@ public class UserDTO {
     public UserDTO() {
     }
 
-    public UserDTO(Long id, String firstName, String lastName, String email, String password, byte[] profileImage) {
+    public UserDTO(Long id, String firstName, String lastName, String funcao, String cargo, String email, String password, byte[] profileImage) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.funcao = funcao;
+        this.cargo = cargo;
         this.email = email;
         this.password = password;
         this.profileImage = profileImage;
@@ -47,6 +51,8 @@ public class UserDTO {
         id = entity.getId();
         firstName = entity.getFirstName();
         lastName = entity.getLastName();
+        funcao = entity.getFuncao();
+        cargo = entity.getCargo();
         email = entity.getEmail();
         password = entity.getPassword();
         profileImage = entity.getProfileImage();
