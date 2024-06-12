@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
-    private static final long MAX_FILE_SIZE = 5242880; // 5MB
+    private static final long MAX_FILE_SIZE = 2097152; // 2MB
 
     @Autowired
     private UserRepository userRepository;
@@ -74,10 +74,9 @@ public class UserService {
     }
 
     private void copyDTOtoEntity(UserDTO userDTO, User entity) {
-        entity.setFirstName(userDTO.getFirstName());
-        entity.setLastName(userDTO.getLastName());
-        entity.setCargo(userDTO.getCargo());
+        entity.setUsername(userDTO.getUsername());
         entity.setFuncao(userDTO.getFuncao());
+        entity.setCargo(userDTO.getCargo());
         entity.setEmail(userDTO.getEmail());
         entity.setPassword(userDTO.getPassword());
         entity.setProfileImage(userDTO.getProfileImage());
@@ -96,6 +95,7 @@ public class UserService {
         }
     }
 
+    // Colocar um pré-alerta, no FRONTEND, caso o ficheiro carregado - mas antes de mandar persistir - exceda o tamanho máximo
     private void validateImage(MultipartFile imageFile) {
         if (!ALLOWED_CONTENT_TYPES.contains(imageFile.getContentType())) {
             throw new IllegalArgumentException("Ficheiro inválido. São permitidos JPEG e PNG");

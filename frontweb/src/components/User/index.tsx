@@ -26,7 +26,6 @@ const UserTable: React.FC = () => {
         <thead>
           <tr>
             <th>Nome</th>
-            <th>Apelido</th>
             <th>Função</th>
             <th>Cargo</th>
             <th>Email</th>
@@ -36,8 +35,7 @@ const UserTable: React.FC = () => {
         <tbody>
           {users.map((user) => (
             <tr key={user.id}>
-              <td>{user.firstName}</td>
-              <td>{user.lastName}</td>
+              <td>{user.username}</td>
               <td>{user.funcao}</td>
               <td>{user.cargo}</td>
               <td>{user.email}</td>
@@ -45,7 +43,7 @@ const UserTable: React.FC = () => {
                 {user.profileImage ? (
                   <img
                     src={`data:image/jpeg;base64,${user.profileImage}`}
-                    alt={`${user.firstName} ${user.lastName}`}
+                    alt={`${user.username}`}
                     style={{ maxWidth: '80px', maxHeight: '80px' }}
                   />
                 ) : (

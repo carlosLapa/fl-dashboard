@@ -17,8 +17,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String firstName;
-    private String lastName;
+    private String username;
     private String funcao;
     private String cargo;
 
@@ -33,10 +32,9 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String firstName, String lastName, String funcao, String cargo, String email, String password, byte[] profileImage) {
+    public User(Long id, String username, String funcao, String cargo, String email, String password, byte[] profileImage) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.username = username;
         this.funcao = funcao;
         this.cargo = cargo;
         this.email = email;

@@ -22,8 +22,8 @@ public class Projeto {
     private String designacao;
     private String entidade;
     // private String especialidade; Lista da entidade Especialidade
-    //private String coordenacao;
-    //private String responsavel;
+    //private String coordenacao - buscar o nome ao User
+    //private String responsavel - buscar o nome ao User
     private String prioridade;
     private String observacao;
     private Date prazo;
