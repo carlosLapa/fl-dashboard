@@ -6,8 +6,8 @@ INSERT INTO tb_role (authority) VALUES ('ROLE_ADMIN');
 
 INSERT INTO tb_projeto (projeto_ano, designacao, entidade, prioridade, observacao, prazo) VALUES (2023, 'P-01 Lidl Alcântara', 'Lidl', 'Média', 'Falar com o responsável de loja', TIMESTAMP WITH TIME ZONE '2024-07-13T20:50:07.12345Z');
 
+INSERT INTO tb_tarefa (descricao, prioridade, prazo_estimado, prazo_real) VALUES ('Elaborar relatório preliminar', 'Urgente/Elevada', TIMESTAMP WITH TIME ZONE '2024-10-13T20:50:07.12345Z' , TIMESTAMP WITH TIME ZONE '2024-10-17T20:50:07.12345Z');
+
 INSERT INTO tb_departamento (designacao, descricao) VALUES ('Projeto', 'Departamento encarregue da concepção e elaboração de projetos de engenharia civil');
 
 INSERT INTO tb_especialidade (tipo, descricao) VALUES ('Engenharias', 'Elaboração de projetos estruturais');
-
-INSERT INTO tb_tarefa (descricao, prioridade) VALUES ('Elaborar relatório preliminar', 'Urgente/Elevada');
