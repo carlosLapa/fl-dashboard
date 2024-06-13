@@ -13,7 +13,7 @@ const UserTable: React.FC = () => {
         const response = await axios.get(BASE_URL + '/users');
         setUsers(response.data);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Erro ao carregar os utilizadores:', error);
       }
     };
     fetchUsers();
