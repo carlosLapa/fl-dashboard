@@ -1,18 +1,21 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@ToString
 public class ProjetoDTO {
 
     private Long id;
@@ -31,6 +34,8 @@ public class ProjetoDTO {
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
 
+    private List<UserDTO> users = new ArrayList<>();
+
     public ProjetoDTO() {
     }
 
@@ -45,12 +50,19 @@ public class ProjetoDTO {
     }
 
     public ProjetoDTO(Projeto entity){
-        id = entity.getId();
-        projetoAno = entity.getProjetoAno();
-        designacao = entity.getDesignacao();
-        entidade = entity.getEntidade();
-        prioridade = entity.getPrioridade();
-        observacao = entity.getObservacao();
-        prazo = entity.getPrazo();
+        this.id = entity.getId();
+        this.projetoAno = entity.getProjetoAno();
+        this.designacao = entity.getDesignacao();
+        this.entidade = entity.getEntidade();
+        this.prioridade = entity.getPrioridade();
+        this.observacao = entity.getObservacao();
+        this.prazo = entity.getPrazo();
+        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
     }
+
+    public ProjetoDTO(Projeto entity, Set<User> user) {
+        this(entity);
+        user.forEach(u -> this.users.add(new UserDTO(u)));
+    }
+
 }

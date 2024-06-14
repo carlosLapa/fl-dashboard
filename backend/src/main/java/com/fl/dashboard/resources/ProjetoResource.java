@@ -4,12 +4,13 @@ import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.services.ProjetoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping(value = "/projetos")
@@ -19,8 +20,8 @@ public class ProjetoResource {
     private ProjetoService projetoService;
 
     @GetMapping
-    public ResponseEntity<List<ProjetoDTO>> findAll() {
-        List<ProjetoDTO> list = projetoService.findAll();
+    public ResponseEntity<Page<ProjetoDTO>> findAll(Pageable pageable) {
+        Page<ProjetoDTO> list = projetoService.findAllPaged(pageable);
         return ResponseEntity.ok().body(list);
     }
 

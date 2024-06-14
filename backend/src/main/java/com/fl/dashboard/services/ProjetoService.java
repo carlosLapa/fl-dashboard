@@ -8,12 +8,11 @@ import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProjetoService {
@@ -22,16 +21,16 @@ public class ProjetoService {
     private ProjetoRepository projetoRepository;
 
     @Transactional(readOnly = true)
-    public List<ProjetoDTO> findAll() {
-        List<Projeto> list = projetoRepository.findAll();
-        return list.stream().map(ProjetoDTO::new).collect(Collectors.toList());
+    public Page<ProjetoDTO> findAllPaged(Pageable pageable) {
+        Page<Projeto> list = projetoRepository.findAll(pageable);
+        return list.map(ProjetoDTO::new);
     }
 
     @Transactional(readOnly = true)
     public ProjetoDTO findById(Long id) {
         Projeto entity = projetoRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Projeto com o id " + id + " não encontrado"));
-        return new ProjetoDTO(entity);
+        return new ProjetoDTO(entity, entity.getUsers());
     }
 
     @Transactional

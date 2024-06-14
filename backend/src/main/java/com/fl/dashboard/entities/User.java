@@ -3,15 +3,15 @@ package com.fl.dashboard.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_user")
 @Getter
 @Setter
-@ToString
 public class User {
 
     @Id
@@ -28,6 +28,9 @@ public class User {
     @Lob
     @Column(name = "profile_image", columnDefinition = "MEDIUMBLOB")
     private byte[] profileImage;
+
+    @ManyToMany(mappedBy = "users")
+    private Set<Projeto> projetos = new HashSet<>();
 
     public User() {
     }

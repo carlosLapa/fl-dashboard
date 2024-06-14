@@ -6,13 +6,14 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_projeto")
 @Getter
 @Setter
-@ToString
 public class Projeto {
 
     @Id
@@ -25,8 +26,18 @@ public class Projeto {
     //private String coordenacao - buscar o nome ao User
     //private String responsavel - buscar o nome ao User
     private String prioridade;
+
+    @Column(columnDefinition = "TEXT")
     private String observacao;
+
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
+
+    @ManyToMany
+    @JoinTable(name="tb_projeto_user",
+            joinColumns = @JoinColumn(name = "projeto_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
 
     public Projeto() {
     }
