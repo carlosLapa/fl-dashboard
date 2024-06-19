@@ -1,8 +1,13 @@
+.home-container {
+  border: 10px solid red;
+  margin-left: 12%;
+}
+
 .main-view-container {
-    border: 1px solid blue;
-    min-height: 85vh;
-    padding: 10px;
-    margin-top: 2%;
-    margin-right: 5%;
-    margin-left: 15%;
+  border: 1px solid blue;
+  min-height: 85vh;
+  padding: 10px;
+  margin-top: 2%;
+  margin-right: 5%;
+  margin-left: 5%;
 }

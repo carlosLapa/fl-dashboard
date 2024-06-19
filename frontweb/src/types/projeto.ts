@@ -1,3 +1,5 @@
+import { User } from './user';
+
 export type Projeto = {
   id: number;
   projetoAno: number;
@@ -6,4 +8,5 @@ export type Projeto = {
   prioridade: string;
   observacao: string;
   prazo: string;
+  users: User[];
 }

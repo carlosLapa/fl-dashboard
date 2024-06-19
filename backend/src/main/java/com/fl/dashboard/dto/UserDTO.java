@@ -52,4 +52,5 @@ public class UserDTO {
         password = entity.getPassword();
         profileImage = entity.getProfileImage();
     }
+
 }

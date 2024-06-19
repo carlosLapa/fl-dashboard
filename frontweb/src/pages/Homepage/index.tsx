@@ -1,18 +1,16 @@
 import SidebarFL from 'components/Sidebar/indexSidebarRB';
 
+
 import './styles.css';
-import UserTable from 'components/User';
 import ProjetoTable from 'components/Projeto';
+import UserTable from 'components/User';
 
 const Home = () => {
   return (
     <div className="d-flex">
-      <div>
-        <SidebarFL />
-      </div>
-      <div className="ms-4 flex-grow-1">
-        <div className="main-view-container">
-          <UserTable />
+      <div className="home-container flex-grow-1">
+        <div >
+          <SidebarFL />
         </div>
         <div className="main-view-container">
           <ProjetoTable />

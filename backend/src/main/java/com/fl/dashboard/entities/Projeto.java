@@ -33,7 +33,7 @@ public class Projeto {
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name="tb_projeto_user",
             joinColumns = @JoinColumn(name = "projeto_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))

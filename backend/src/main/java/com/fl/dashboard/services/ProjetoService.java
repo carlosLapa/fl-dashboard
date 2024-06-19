@@ -20,6 +20,7 @@ public class ProjetoService {
     @Autowired
     private ProjetoRepository projetoRepository;
 
+
     @Transactional(readOnly = true)
     public Page<ProjetoDTO> findAllPaged(Pageable pageable) {
         Page<Projeto> list = projetoRepository.findAll(pageable);
