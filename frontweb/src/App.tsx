@@ -1,16 +1,9 @@
-import NavbarFL from 'components/Navbar/indexNavbarRB';
-
 import './assets/styles/_variables.scss';
 import './App.css';
-import Home from 'pages/Homepage';
+import AppRoutes from 'AppRoutes';
 
 function App() {
-  return (
-    <>
-      <NavbarFL />
-      <Home />
-    </>
-  );
+  return <AppRoutes />;
 }
 
 export default App;
