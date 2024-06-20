@@ -4,6 +4,8 @@ import NavbarFL from 'components/Navbar/indexNavbarRB';
 import UserTable from 'components/User';
 import SidebarFL from 'components/Sidebar/indexSidebarRB';
 
+// Routes temporárias
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
