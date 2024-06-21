@@ -1,40 +1,15 @@
-import React, { useState, useEffect } from 'react';
+// ProjetoTable.tsx
+import React from 'react';
 import Table from 'react-bootstrap/Table';
-import axios from 'axios';
 import { Projeto } from '../../types/projeto';
-import { BASE_URL } from 'util/requests';
 
-const ProjetoTable: React.FC = () => {
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
+import './styles.css';
 
-  useEffect(() => {
-    const fetchProjetos = async () => {
-      try {
-        const response = await axios.get(BASE_URL + '/projetos');
-        const projetosData = response.data.content || [];
-  
-        if (Array.isArray(projetosData)) {
-          const projetosWithUsernames = projetosData.map((projeto) => ({
-            ...projeto,
-            users:
-              projeto.users?.map(
-                ({ id, username }: { id: number; username: string }) => ({
-                  id,
-                  username,
-                })
-              ) || [],
-          }));
-  
-          setProjetos(projetosWithUsernames);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar os projetos:', error);
-      }
-    };
-  
-    fetchProjetos();
-  }, []);
-  
+interface ProjetoTableProps {
+  projetos: Projeto[];
+}
+
+const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-PT', {
@@ -45,8 +20,7 @@ const ProjetoTable: React.FC = () => {
   };
 
   return (
-    <div className="container my-4">
-      <h2 className="text-center mb-4">Projetos</h2>
+    <div className="projeto-container">
       {projetos.length > 0 ? (
         <Table striped bordered hover>
           <thead>
@@ -79,7 +53,7 @@ const ProjetoTable: React.FC = () => {
           </tbody>
         </Table>
       ) : (
-        <p>No projects found.</p>
+        <p>Não foram encontrados projetos.</p>
       )}
     </div>
   );

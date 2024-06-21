@@ -1,12 +1,13 @@
 import './styles.css';
-import Projetos from 'pages/Projetos';
+
+// Servirá para o login 
 
 const Home = () => {
   return (
     <div className="d-flex">
       <div className="home-container flex-grow-1">
         <div className="home-central-view-container">
-          <Projetos />
+          <h1>Bem-vindo ao Painel de Gestão de Projetos</h1>
         </div>
       </div>
     </div>
@@ -14,8 +15,6 @@ const Home = () => {
 };
 
 export default Home;
-
-
 
 
 
