@@ -1,27 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Table from 'react-bootstrap/Table';
-import axios from 'axios';
 import { User } from '../../types/user';
-import { BASE_URL } from 'util/requests';
 
-const UserTable: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+import './styles.css';
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get(BASE_URL + '/users');
-        setUsers(response.data);
-      } catch (error) {
-        console.error('Erro ao carregar os utilizadores:', error);
-      }
-    };
-    fetchUsers();
-  }, []);
+interface UserTableProps {
+  users: User[];
+}
 
+const UserTable: React.FC<UserTableProps> = ({ users }) => {
   return (
-    <div className="container my-4">
-      <h2 className="text-center mb-4">Colaboradores</h2>
+    <div className="user-container">
       <Table striped bordered hover>
         <thead>
           <tr>

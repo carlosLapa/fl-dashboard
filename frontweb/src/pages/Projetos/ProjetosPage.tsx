@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Projeto } from '../../types/projeto';
-import { fetchProjetos } from '../../services/projetoService';
+import { getProjetos } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 
 const ProjetosPage: React.FC = () => {
@@ -10,7 +10,7 @@ const ProjetosPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const projetosData = await fetchProjetos();
+      const projetosData = await getProjetos();
       setProjetos(projetosData);
       setIsLoading(false);
     };
@@ -18,7 +18,7 @@ const ProjetosPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // isLoading temporário
+  // isLoading, desta forma, é temporário
 
   return (
     <div className="container my-4">

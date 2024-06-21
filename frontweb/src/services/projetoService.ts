@@ -1,10 +1,10 @@
 // projectService.ts
 import { Projeto } from '../types/projeto';
-import { fetchProjetosAPI } from '../api/projetoApi';
+import { getProjetosAPI } from '../api/requestsApi';
 
-export const fetchProjetos = async (): Promise<Projeto[]> => {
+export const getProjetos = async (): Promise<Projeto[]> => {
   try {
-    const projetosData = await fetchProjetosAPI();
+    const projetosData = await getProjetosAPI();
 
     if (Array.isArray(projetosData)) {
       const projetosWithUsernames = projetosData.map((projeto) => ({
