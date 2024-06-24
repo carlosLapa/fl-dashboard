@@ -4,10 +4,20 @@ import { User } from '../../types/user';
 
 import './styles.css';
 
+/*
+* defines an interface called UserTableProps that describes the shape of the props
+* that the UserTable component expects. 
+* In this case, it expects a single prop called users, which should be an array of User objects.
+*/
 interface UserTableProps {
   users: User[];
 }
 
+/**
+ * declares the UserTable component as a functional component using the React.FC type. 
+ * The component takes in props of type UserTableProps, 
+ * and the users prop is destructured from the props object.
+ */
 const UserTable: React.FC<UserTableProps> = ({ users }) => {
   return (
     <div className="user-container">
