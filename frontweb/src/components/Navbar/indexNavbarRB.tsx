@@ -7,6 +7,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
 import './styles.css';
+import { Link } from 'react-router-dom';
 
 function NavbarFL() {
   return (
@@ -35,9 +36,9 @@ function NavbarFL() {
             </Form>
           </div>
           <Nav className="my-2 my-lg-0" navbarScroll>
-            <Nav.Link href="#action1" className="text-light me-5">
+            <Link to="/" className="custom-navbar-link text-light me-5">
               Home
-            </Nav.Link>
+            </Link>
             <Nav.Link href="#action2" className="text-light me-5">
               Portfolio
             </Nav.Link>

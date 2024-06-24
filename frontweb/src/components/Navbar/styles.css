@@ -2,6 +2,12 @@
   height: 80px; /* Adjust the value as needed */
 }
 
+.custom-navbar-link {
+  text-decoration: none;
+  display: block; 
+  padding: 10px 15px;
+}
+
 .search-textarea {
   height: 40px;
   margin-right: 1rem;
