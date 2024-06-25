@@ -21,11 +21,11 @@ public class ProjetoDTO {
     private Long id;
     private Integer projetoAno;
 
-    @Size(min = 5, max = 50, message = "Designação deve conter de 5 a 50 caracteres")
+    @Size(min = 4, max = 50, message = "Designação deve conter de 5 a 50 caracteres")
     @NotBlank(message = "Campo requerido")
     private String designacao;
 
-    @Size(min = 5, max = 50, message = "Designação deve conter de 5 a 50 caracteres")
+    @Size(min = 4, max = 50, message = "Entidade deve conter de 4 a 50 caracteres")
     @NotBlank(message = "Campo requerido")
     private String entidade;
     private String prioridade;

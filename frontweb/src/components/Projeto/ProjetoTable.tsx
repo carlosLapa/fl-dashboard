@@ -1,15 +1,16 @@
-// ProjetoTable.tsx
 import React from 'react';
 import Table from 'react-bootstrap/Table';
 import { Projeto } from '../../types/projeto';
+import { User } from '../../types/user';
 
 import './styles.css';
 
 interface ProjetoTableProps {
   projetos: Projeto[];
+  users: User[];
 }
 
-const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
+const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos, users }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-PT', {
@@ -44,7 +45,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
                 <td>{projeto.observacao}</td>
                 <td>{formatDate(projeto.prazo)}</td>
                 <td>
-                  {projeto.users.map((user) => (
+                  {projeto.users?.map((user) => (
                     <div key={user.id}>{user.username}</div>
                   ))}
                 </td>
