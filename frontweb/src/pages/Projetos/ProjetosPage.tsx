@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Projeto } from '../../types/projeto';
-import { User } from '../../types/user';
-import { addProjeto, getProjetos, } from '../../services/projetoService';
-import { getUsersAPI } from '../../api/requestsApi';
-import ProjetoTable from '../../components/Projeto/ProjetoTable';
+import { Projeto, ProjetoFormData } from '../../types/projeto';
+import { addProjeto, getProjetos } from '../../services/projetoService';
+import ProjetoTable, { ProjetoTableProps } from '../../components/Projeto/ProjetoTable';
 import Button from 'react-bootstrap/Button';
 import AdicionarProjetoModal from 'components/Projeto/AdicionarProjetoModal';
 
 const ProjetosPage: React.FC = () => {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
 
@@ -17,17 +14,25 @@ const ProjetosPage: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       const projetosData = await getProjetos();
-      const usersData = await getUsersAPI();
       setProjetos(projetosData);
-      setUsers(usersData);
       setIsLoading(false);
     };
 
     fetchData();
   }, []);
 
-  const handleAddProjeto = async (projeto: Projeto) => {
+  const handleAddProjeto = async (formData: ProjetoFormData) => {
     try {
+      const projeto: Projeto = {
+        id: 0,
+        projetoAno: formData.projetoAno,
+        designacao: formData.designacao,
+        entidade: formData.entidade,
+        prioridade: formData.prioridade,
+        observacao: formData.observacao,
+        prazo: formData.prazo,
+      };
+
       await addProjeto(projeto);
       const updatedProjetos = await getProjetos();
       setProjetos(updatedProjetos);
@@ -45,7 +50,7 @@ const ProjetosPage: React.FC = () => {
       {isLoading ? (
         <p>A carregar...</p>
       ) : (
-        <ProjetoTable projetos={projetos} users={users} />
+        <ProjetoTable projetos={projetos} />
       )}
       <AdicionarProjetoModal
         show={showModal}

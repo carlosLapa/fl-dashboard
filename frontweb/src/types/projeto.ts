@@ -8,5 +8,14 @@ export type Projeto = {
   prioridade: string;
   observacao: string;
   prazo: string;
-  users: User[];
+  //users: User[];
+}
+
+export interface ProjetoFormData {
+  projetoAno: number;
+  designacao: string;
+  entidade: string;
+  prioridade: string;
+  observacao: string;
+  prazo: string;
 }

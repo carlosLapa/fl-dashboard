@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { Projeto } from '../../types/projeto';
-import { User } from '../../types/user';
-import { getUsersAPI } from '../../api/requestsApi';
+import {ProjetoFormData } from '../../types/projeto';
+
 
 interface ModalProps {
   show: boolean;
   onHide: () => void;
-  onSave: (projeto: Projeto) => void;
+  onSave: (formData: ProjetoFormData) => void;
 }
 
 const AdicionarProjetoModal: React.FC<ModalProps> = ({
@@ -17,27 +16,14 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
   onHide,
   onSave,
 }) => {
-  const [formData, setFormData] = useState<Projeto>({
-    id: 0,
+  const [formData, setFormData] = useState<ProjetoFormData>({
     projetoAno: 0,
     designacao: '',
     entidade: '',
     prioridade: '',
     observacao: '',
     prazo: '',
-    users: [],
   });
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const usersData = await getUsersAPI();
-      setUsers(usersData);
-    };
-
-    fetchUsers();
-  }, []);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -46,22 +32,13 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleUserSelect = (userId: number) => {
-    setSelectedUserIds((prevSelectedUserIds) => [
-      ...prevSelectedUserIds,
-      userId,
-    ]);
-  };
-
-  const handleUserDeselect = (userId: number) => {
-    setSelectedUserIds((prevSelectedUserIds) =>
-      prevSelectedUserIds.filter((id) => id !== userId)
-    );
-  };
-
   const handleSave = () => {
-    const updatedFormData = { ...formData, userIds: selectedUserIds };
-    onSave(updatedFormData);
+    if (formData.designacao.trim() === '' || formData.entidade.trim() === '') {
+      console.error('Designação e Entidade são campos obrigatórios');
+      return;
+    }
+
+    onSave(formData);
     onHide();
   };
 
@@ -130,25 +107,6 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
               value={formData.prazo}
               onChange={handleInputChange}
             />
-          </Form.Group>
-
-          <Form.Group controlId="formUsers">
-            <Form.Label>Colaboradores</Form.Label>
-            {users.map((user) => (
-              <Form.Check
-                key={user.id}
-                type="checkbox"
-                label={user.username}
-                checked={selectedUserIds.includes(user.id)}
-                onChange={() => {
-                  if (selectedUserIds.includes(user.id)) {
-                    handleUserDeselect(user.id);
-                  } else {
-                    handleUserSelect(user.id);
-                  }
-                }}
-              />
-            ))}
           </Form.Group>
         </Form>
       </Modal.Body>

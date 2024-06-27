@@ -29,9 +29,7 @@ export const addProjetoAPI = async (projeto: Projeto): Promise<void> => {
     await axios.post(`${BASE_URL}/projetos`, projeto);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 422) {
-      // The request was made, and the server responded with a 422 Unprocessable Entity status code
       console.error('Validation errors:', error.response.data);
-      // You can display the validation errors to the user here
     } else {
       console.error('Error adding project:', error);
     }
