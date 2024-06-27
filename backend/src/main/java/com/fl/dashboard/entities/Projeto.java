@@ -12,9 +12,13 @@ import java.util.Set;
 
 @Entity
 @Table(name = "tb_projeto")
-@Getter
-@Setter
 public class Projeto {
+
+    @ManyToMany
+    @JoinTable(name="tb_projeto_user",
+            joinColumns = @JoinColumn(name = "projeto_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,12 +37,6 @@ public class Projeto {
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name="tb_projeto_user",
-            joinColumns = @JoinColumn(name = "projeto_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<User> users = new HashSet<>();
-
     public Projeto() {
     }
 
@@ -49,6 +47,66 @@ public class Projeto {
         this.entidade = entidade;
         this.prioridade = prioridade;
         this.observacao = observacao;
+        this.prazo = prazo;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getProjetoAno() {
+        return projetoAno;
+    }
+
+    public void setProjetoAno(Integer projetoAno) {
+        this.projetoAno = projetoAno;
+    }
+
+    public String getDesignacao() {
+        return designacao;
+    }
+
+    public void setDesignacao(String designacao) {
+        this.designacao = designacao;
+    }
+
+    public String getEntidade() {
+        return entidade;
+    }
+
+    public void setEntidade(String entidade) {
+        this.entidade = entidade;
+    }
+
+    public String getPrioridade() {
+        return prioridade;
+    }
+
+    public void setPrioridade(String prioridade) {
+        this.prioridade = prioridade;
+    }
+
+    public String getObservacao() {
+        return observacao;
+    }
+
+    public void setObservacao(String observacao) {
+        this.observacao = observacao;
+    }
+
+    public Date getPrazo() {
+        return prazo;
+    }
+
+    public void setPrazo(Date prazo) {
         this.prazo = prazo;
     }
 

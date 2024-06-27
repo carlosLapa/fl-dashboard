@@ -1,5 +1,6 @@
 package com.fl.dashboard.dto;
 
+import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -7,6 +8,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -30,6 +35,8 @@ public class UserDTO {
     private String password;
     private byte[] profileImage;
 
+    private List<ProjetoDTO> projetos = new ArrayList<>();
+
     public UserDTO() {
     }
 
@@ -51,6 +58,11 @@ public class UserDTO {
         email = entity.getEmail();
         password = entity.getPassword();
         profileImage = entity.getProfileImage();
+    }
+
+    public UserDTO(User entity, Set<Projeto> projetos) {
+        this(entity);
+        projetos.forEach(proj -> this.projetos.add(new ProjetoDTO(proj)));
     }
 
 }

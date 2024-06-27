@@ -1,8 +1,11 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.ProjetoDTO;
+import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.ProjetoRepository;
+import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +22,9 @@ public class ProjetoService {
 
     @Autowired
     private ProjetoRepository projetoRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
     @Transactional(readOnly = true)
@@ -73,6 +79,12 @@ public class ProjetoService {
         entity.setPrazo(projetoDTO.getPrazo());
         entity.setPrioridade(projetoDTO.getPrioridade());
         entity.setObservacao(projetoDTO.getObservacao());
+
+        entity.getUsers().clear();
+        for (UserDTO userDTO : projetoDTO.getUsers()) {
+            User user = userRepository.getReferenceById(userDTO.getId());
+            entity.getUsers().add(user);
+        }
     }
 
 }

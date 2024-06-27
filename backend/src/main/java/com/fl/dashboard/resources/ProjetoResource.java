@@ -33,10 +33,10 @@ public class ProjetoResource {
 
     @PostMapping
     public ResponseEntity<ProjetoDTO> insert(@Valid @RequestBody ProjetoDTO dto) {
-        ProjetoDTO newDto = projetoService.insert(dto);
+        dto = projetoService.insert(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(newDto.getId()).toUri();
-        return ResponseEntity.created(uri).body(newDto);
+                .buildAndExpand(dto.getId()).toUri();
+        return ResponseEntity.created(uri).body(dto);
     }
 
     @PutMapping(value = "/{id}")

@@ -4,6 +4,7 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +35,7 @@ public class ProjetoDTO {
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
 
+    @NotEmpty(message = "Deve inserir os colaboradores afetos ao Projeto")
     private List<UserDTO> users = new ArrayList<>();
 
     public ProjetoDTO() {
@@ -60,9 +62,9 @@ public class ProjetoDTO {
         this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
     }
 
-    public ProjetoDTO(Projeto entity, Set<User> user) {
+    public ProjetoDTO(Projeto entity, Set<User> users) {
         this(entity);
-        user.forEach(u -> this.users.add(new UserDTO(u)));
+        users.forEach(u -> this.users.add(new UserDTO(u)));
     }
 
 }
