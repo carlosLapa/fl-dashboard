@@ -1,7 +1,7 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import { Projeto, ProjetoFormData } from 'types/projeto';
+import { ProjetoFormData } from 'types/projeto';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call

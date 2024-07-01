@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { addProjeto, getProjetos } from '../../services/projetoService';
-import ProjetoTable, {
-  ProjetoTableProps,
-} from '../../components/Projeto/ProjetoTable';
+import { getProjetos } from '../../services/projetoService';
+import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import Button from 'react-bootstrap/Button';
 import AdicionarProjetoModal from 'components/Projeto/AdicionarProjetoModal';
 import { addProjetoAPI } from 'api/requestsApi';
+
+import './styles.css';
 
 const ProjetosPage: React.FC = () => {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
@@ -37,9 +37,15 @@ const ProjetosPage: React.FC = () => {
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Projetos</h2>
-      <Button variant="primary" onClick={() => setShowModal(true)}>
-        Adicionar Projeto
-      </Button>
+      <div className="d-flex justify-content-end mb-4">
+        <Button
+          variant="primary"
+          onClick={() => setShowModal(true)}
+          className="add-project-btn"
+        >
+          Adicionar Projeto
+        </Button>
+      </div>
       {isLoading ? <p>A carregar...</p> : <ProjetoTable projetos={projetos} />}
       <AdicionarProjetoModal
         show={showModal}

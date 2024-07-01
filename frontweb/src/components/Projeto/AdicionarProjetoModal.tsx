@@ -28,7 +28,6 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
   });
 
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
