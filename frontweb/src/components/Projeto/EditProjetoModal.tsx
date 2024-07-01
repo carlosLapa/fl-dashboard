@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import { ProjetoFormData } from '../../types/projeto';
+// src/components/Projeto/EditProjetoModal.tsx
+import React, { useState, useEffect } from 'react';
+import { Modal, Form, Button } from 'react-bootstrap';
+import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { User } from 'types/user';
-import { getUsersAPI } from 'api/requestsApi';
+import { getUsersAPI } from '../../api/requestsApi';
 
-interface ModalProps {
+interface EditProjetoModalProps {
   show: boolean;
   onHide: () => void;
-  onSave: (formData: ProjetoFormData) => void;
+  projeto: Projeto | null;
+  onSave: (updatedProjeto: ProjetoFormData) => void;
 }
 
-const AdicionarProjetoModal: React.FC<ModalProps> = ({
+const EditProjetoModal: React.FC<EditProjetoModalProps> = ({
   show,
   onHide,
+  projeto,
   onSave,
 }) => {
   const [formData, setFormData] = useState<ProjetoFormData>({
@@ -38,6 +39,37 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
     fetchUsers();
   }, []);
 
+
+/**
+ * By converting the prazo property to a string format that can be recognized by the <Form.Control> component's value prop, 
+ * you ensured that the date value is displayed correctly in the editing modal. 
+ * Additionally, using the type="date" prop on the <Form.Control> component
+ * allows the user to easily select and modify the date value using a date picker or calendar interface.
+ */
+
+/**
+ * Adicionalmente temos que verificar que o ano do prazo, aquando a edição do projeto,
+ * nunca é anterior à data atual
+ */
+
+  useEffect(() => {
+    if (projeto) {
+      const formattedPrazo = projeto.prazo
+        ? new Date(projeto.prazo).toISOString().split('T')[0]
+        : '';
+
+      setFormData({
+        projetoAno: projeto.projetoAno,
+        designacao: projeto.designacao,
+        entidade: projeto.entidade,
+        prioridade: projeto.prioridade,
+        observacao: projeto.observacao,
+        prazo: formattedPrazo, // Use the formatted "prazo"
+        users: projeto.users,
+      });
+    }
+  }, [projeto]);
+
   const handleUserSelect = (user: User) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -59,13 +91,6 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
     setFormData({ ...formData, [name]: value });
   };
 
-  /**
-   * Adicionalmente temos que verificar que o ano do prazo, aquando a edição do projeto,
-   * nunca é anterior à data atual
-   * 
-   * Ver a largura máxima de cada column e como se adaptam à nova info inserida
-   */
-
   const handleSave = () => {
     if (formData.designacao.trim() === '' || formData.entidade.trim() === '') {
       console.error('Designação e Entidade são campos obrigatórios');
@@ -81,7 +106,7 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Registar novo Projeto</Modal.Title>
+        <Modal.Title>Editar Projeto</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -179,4 +204,4 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
   );
 };
 
-export default AdicionarProjetoModal;
+export default EditProjetoModal;

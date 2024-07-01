@@ -36,3 +36,19 @@ export const addProjetoAPI = async (data: ProjetoFormData): Promise<void> => {
     throw error;
   }
 };
+
+export const updateProjetoAPI = async (
+  id: number,
+  data: ProjetoFormData
+): Promise<void> => {
+  try {
+    await axios.put(`${BASE_URL}/projetos/${id}`, data);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 422) {
+      console.error('Validation errors:', error.response.data);
+    } else {
+      console.error('Error updating project:', error);
+    }
+    throw error;
+  }
+};

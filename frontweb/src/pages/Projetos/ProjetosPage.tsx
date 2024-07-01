@@ -4,7 +4,8 @@ import { getProjetos } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import Button from 'react-bootstrap/Button';
 import AdicionarProjetoModal from 'components/Projeto/AdicionarProjetoModal';
-import { addProjetoAPI } from 'api/requestsApi';
+import EditProjetoModal from 'components/Projeto/EditProjetoModal';
+import { addProjetoAPI, updateProjetoAPI } from 'api/requestsApi';
 
 import './styles.css';
 
@@ -12,6 +13,8 @@ const ProjetosPage: React.FC = () => {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [projetoToEdit, setProjetoToEdit] = useState<Projeto | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +37,23 @@ const ProjetosPage: React.FC = () => {
     }
   };
 
+  const handleEditProjeto = (projeto: Projeto) => {
+    setProjetoToEdit(projeto);
+    setShowEditModal(true);
+  };
+
+  const onSaveEditedProjeto = async (updatedProjeto: ProjetoFormData) => {
+    try {
+      if (projetoToEdit) {
+        await updateProjetoAPI(projetoToEdit.id, updatedProjeto);
+        const updatedProjetos = await getProjetos();
+        setProjetos(updatedProjetos);
+      }
+    } catch (error) {
+      console.error('Error updating project:', error);
+    }
+  };
+
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Projetos</h2>
@@ -46,11 +66,21 @@ const ProjetosPage: React.FC = () => {
           Adicionar Projeto
         </Button>
       </div>
-      {isLoading ? <p>A carregar...</p> : <ProjetoTable projetos={projetos} />}
+      {isLoading ? (
+        <p>A carregar...</p>
+      ) : (
+        <ProjetoTable projetos={projetos} onEditProjeto={handleEditProjeto} />
+      )}
       <AdicionarProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}
         onSave={handleAddProjeto}
+      />
+      <EditProjetoModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        projeto={projetoToEdit}
+        onSave={onSaveEditedProjeto}
       />
     </div>
   );

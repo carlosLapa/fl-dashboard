@@ -1,15 +1,19 @@
 import React from 'react';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
-import Table from 'react-bootstrap/Table';
+import { Table, Button } from 'react-bootstrap';
 
 import './styles.css';
 
 export interface ProjetoTableProps {
   projetos: Projeto[];
+  onEditProjeto: (projeto: Projeto) => void;
 }
 
-const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
+const ProjetoTable: React.FC<ProjetoTableProps> = ({
+  projetos,
+  onEditProjeto,
+}) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-PT', {
@@ -36,6 +40,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
               <th>Observação</th>
               <th>Prazo</th>
               <th>Colaboradores</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -48,6 +53,14 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
                 <td>{projeto.observacao}</td>
                 <td>{formatDate(projeto.prazo)}</td>
                 <td>{renderUserNames(projeto.users)}</td>
+                <td>
+                  <Button
+                    variant="primary"
+                    onClick={() => onEditProjeto(projeto)}
+                  >
+                    Editar
+                  </Button>
+                </td>
               </tr>
             ))}
           </tbody>
