@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import {ProjetoFormData } from '../../types/projeto';
-
+import { ProjetoFormData } from '../../types/projeto';
+import { User } from 'types/user';
+import { getUsersAPI } from 'api/requestsApi';
 
 interface ModalProps {
   show: boolean;
@@ -23,7 +24,34 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
     prioridade: '',
     observacao: '',
     prazo: '',
+    users: [],
   });
+
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const usersData = await getUsersAPI();
+      setUsers(usersData);
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleUserSelect = (user: User) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      users: [...prevFormData.users, user],
+    }));
+  };
+
+  const handleUserDeselect = (userId: number) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      users: prevFormData.users.filter((user) => user.id !== userId),
+    }));
+  };
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -38,6 +66,8 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
       return;
     }
 
+    console.log('Form Data:', formData);
+
     onSave(formData);
     onHide();
   };
@@ -45,7 +75,7 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Adicionar Projeto</Modal.Title>
+        <Modal.Title>Registar novo Projeto</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -107,6 +137,27 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
               value={formData.prazo}
               onChange={handleInputChange}
             />
+          </Form.Group>
+
+          <Form.Group controlId="formUsers">
+            <Form.Label>Colaboradores</Form.Label>
+            {users.map((user) => (
+              <Form.Check
+                key={user.id}
+                type="checkbox"
+                label={user.username}
+                checked={formData.users.some(
+                  (selectedUser) => selectedUser.id === user.id
+                )}
+                onChange={() =>
+                  formData.users.some(
+                    (selectedUser) => selectedUser.id === user.id
+                  )
+                    ? handleUserDeselect(user.id)
+                    : handleUserSelect(user)
+                }
+              />
+            ))}
           </Form.Group>
         </Form>
       </Modal.Body>

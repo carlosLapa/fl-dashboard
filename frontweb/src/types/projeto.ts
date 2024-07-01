@@ -1,4 +1,4 @@
-import { User } from "./user";
+import { User } from './user';
 
 export type Projeto = {
   id: number;
@@ -8,8 +8,8 @@ export type Projeto = {
   prioridade: string;
   observacao: string;
   prazo: string;
-  //users: User[];
-}
+  users: User[];
+};
 
 export interface ProjetoFormData {
   projetoAno: number;
@@ -18,4 +18,5 @@ export interface ProjetoFormData {
   prioridade: string;
   observacao: string;
   prazo: string;
+  users: User[];
 }

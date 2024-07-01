@@ -1,12 +1,12 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import { Projeto } from 'types/projeto';
+import { Projeto, ProjetoFormData } from 'types/projeto';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
- * to the specified endpoint. 
- * 
+ * to the specified endpoint.
+ *
  * Although in the getProjetosAPI function, it returns the content property of the response data,
  * in this case, to access the users property inside the data object or an empty array if the content property is falsy.
  */
@@ -24,9 +24,9 @@ export const getProjetosAPI = async () => {
   return response.data.content || [];
 };
 
-export const addProjetoAPI = async (projeto: Projeto): Promise<void> => {
+export const addProjetoAPI = async (data: ProjetoFormData): Promise<void> => {
   try {
-    await axios.post(`${BASE_URL}/projetos`, projeto);
+    await axios.post(`${BASE_URL}/projetos`, data);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 422) {
       console.error('Validation errors:', error.response.data);

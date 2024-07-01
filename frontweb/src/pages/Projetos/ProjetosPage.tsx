@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { addProjeto, getProjetos } from '../../services/projetoService';
-import ProjetoTable, { ProjetoTableProps } from '../../components/Projeto/ProjetoTable';
+import ProjetoTable, {
+  ProjetoTableProps,
+} from '../../components/Projeto/ProjetoTable';
 import Button from 'react-bootstrap/Button';
 import AdicionarProjetoModal from 'components/Projeto/AdicionarProjetoModal';
+import { addProjetoAPI } from 'api/requestsApi';
 
 const ProjetosPage: React.FC = () => {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
@@ -23,17 +26,7 @@ const ProjetosPage: React.FC = () => {
 
   const handleAddProjeto = async (formData: ProjetoFormData) => {
     try {
-      const projeto: Projeto = {
-        id: 0,
-        projetoAno: formData.projetoAno,
-        designacao: formData.designacao,
-        entidade: formData.entidade,
-        prioridade: formData.prioridade,
-        observacao: formData.observacao,
-        prazo: formData.prazo,
-      };
-
-      await addProjeto(projeto);
+      await addProjetoAPI(formData);
       const updatedProjetos = await getProjetos();
       setProjetos(updatedProjetos);
     } catch (error) {
@@ -47,11 +40,7 @@ const ProjetosPage: React.FC = () => {
       <Button variant="primary" onClick={() => setShowModal(true)}>
         Adicionar Projeto
       </Button>
-      {isLoading ? (
-        <p>A carregar...</p>
-      ) : (
-        <ProjetoTable projetos={projetos} />
-      )}
+      {isLoading ? <p>A carregar...</p> : <ProjetoTable projetos={projetos} />}
       <AdicionarProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}

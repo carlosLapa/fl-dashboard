@@ -1,5 +1,6 @@
 import React from 'react';
 import { Projeto } from '../../types/projeto';
+import { User } from '../../types/user';
 import Table from 'react-bootstrap/Table';
 
 import './styles.css';
@@ -18,6 +19,10 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
     });
   };
 
+  const renderUserNames = (users: User[]) => {
+    return users.map((user) => user.username).join(', ');
+  };
+
   return (
     <div className="projeto-container">
       {projetos.length > 0 ? (
@@ -30,6 +35,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
               <th>Prioridade</th>
               <th>Observação</th>
               <th>Prazo</th>
+              <th>Colaboradores</th>
             </tr>
           </thead>
           <tbody>
@@ -41,6 +47,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({ projetos }) => {
                 <td>{projeto.prioridade}</td>
                 <td>{projeto.observacao}</td>
                 <td>{formatDate(projeto.prazo)}</td>
+                <td>{renderUserNames(projeto.users)}</td>
               </tr>
             ))}
           </tbody>
