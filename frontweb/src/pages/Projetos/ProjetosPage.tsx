@@ -1,11 +1,11 @@
+// src/pages/Projetos/ProjetosPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { getProjetos } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import Button from 'react-bootstrap/Button';
-import AdicionarProjetoModal from 'components/Projeto/AdicionarProjetoModal';
-import EditProjetoModal from 'components/Projeto/EditProjetoModal';
 import { addProjetoAPI, updateProjetoAPI } from 'api/requestsApi';
+import ProjetoModal from 'components/Projeto/ProjetoModal';
 
 import './styles.css';
 
@@ -13,7 +13,6 @@ const ProjetosPage: React.FC = () => {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [projetoToEdit, setProjetoToEdit] = useState<Projeto | null>(null);
 
   useEffect(() => {
@@ -39,7 +38,7 @@ const ProjetosPage: React.FC = () => {
 
   const handleEditProjeto = (projeto: Projeto) => {
     setProjetoToEdit(projeto);
-    setShowEditModal(true);
+    setShowModal(true);
   };
 
   const onSaveEditedProjeto = async (updatedProjeto: ProjetoFormData) => {
@@ -71,16 +70,12 @@ const ProjetosPage: React.FC = () => {
       ) : (
         <ProjetoTable projetos={projetos} onEditProjeto={handleEditProjeto} />
       )}
-      <AdicionarProjetoModal
+      <ProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}
-        onSave={handleAddProjeto}
-      />
-      <EditProjetoModal
-        show={showEditModal}
-        onHide={() => setShowEditModal(false)}
         projeto={projetoToEdit}
-        onSave={onSaveEditedProjeto}
+        onSave={projetoToEdit ? onSaveEditedProjeto : handleAddProjeto}
+        isEditing={!!projetoToEdit}
       />
     </div>
   );
