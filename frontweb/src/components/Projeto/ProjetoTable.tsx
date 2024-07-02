@@ -1,9 +1,11 @@
 import React from 'react';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
-import { Table, Button } from 'react-bootstrap';
+import { Table } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
-import './styles.css';
+import './ProjetoTable.css';
 
 export interface ProjetoTableProps {
   projetos: Projeto[];
@@ -56,18 +58,16 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                 <td>{formatDate(projeto.prazo)}</td>
                 <td>{renderUserNames(projeto.users)}</td>
                 <td>
-                  <Button
-                    variant="primary"
+                  <FontAwesomeIcon
+                    icon={faPencilAlt}
                     onClick={() => onEditProjeto(projeto)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="danger"
+                    className="mr-2 edit-icon"
+                  />
+                  <FontAwesomeIcon
+                    icon={faTrashAlt}
                     onClick={() => onDeleteProjeto(projeto.id)}
-                  >
-                    Eliminar
-                  </Button>
+                    className="delete-icon"
+                  />
                 </td>
               </tr>
             ))}

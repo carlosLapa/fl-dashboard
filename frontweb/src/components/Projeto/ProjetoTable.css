@@ -1,0 +1,37 @@
+.projeto-container {
+  /*border: 2px solid red;*/
+  margin-left: 7%;
+  min-width: 102%;
+}
+
+/* estilos da tabela em si */
+.projeto-table {
+}
+
+.projeto-table th,
+.projeto-table td {
+}
+
+.projeto-table th {
+}
+
+.projeto-table td {
+}
+
+.edit-icon {
+  cursor: pointer;
+  margin-right: 12px;
+}
+
+.edit-icon:hover {
+  color: #007bff;
+}
+
+.delete-icon {
+  cursor: pointer;
+  color: rgb(223, 59, 59);
+}
+
+.delete-icon:hover {
+  color: rgb(255, 0, 0);
+}
