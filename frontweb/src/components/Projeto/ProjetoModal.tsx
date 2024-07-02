@@ -221,7 +221,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
           Cancelar
         </Button>
         <Button variant="primary" onClick={handleSave}>
-          {isEditing ? 'Salvar' : 'Registar'}
+          Registar
         </Button>
       </Modal.Footer>
     </Modal>
