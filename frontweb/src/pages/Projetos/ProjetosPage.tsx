@@ -4,8 +4,12 @@ import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { getProjetos } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import Button from 'react-bootstrap/Button';
-import { addProjetoAPI, updateProjetoAPI } from 'api/requestsApi';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
+import {
+  addProjetoAPI,
+  updateProjetoAPI,
+  deleteProjetoAPI,
+} from 'api/requestsApi';
 
 import './styles.css';
 
@@ -14,6 +18,7 @@ const ProjetosPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [projetoToEdit, setProjetoToEdit] = useState<Projeto | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,6 +44,13 @@ const ProjetosPage: React.FC = () => {
   const handleEditProjeto = (projeto: Projeto) => {
     setProjetoToEdit(projeto);
     setShowModal(true);
+    setIsEditing(true);
+  };
+
+  const handleAddNewProjeto = () => {
+    setProjetoToEdit(null);
+    setShowModal(true);
+    setIsEditing(false);
   };
 
   const onSaveEditedProjeto = async (updatedProjeto: ProjetoFormData) => {
@@ -53,13 +65,23 @@ const ProjetosPage: React.FC = () => {
     }
   };
 
+  const handleDeleteProjeto = async (projetoId: number) => {
+    try {
+      await deleteProjetoAPI(projetoId);
+      const updatedProjetos = await getProjetos();
+      setProjetos(updatedProjetos);
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    }
+  };
+
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Projetos</h2>
       <div className="d-flex justify-content-end mb-4">
         <Button
           variant="primary"
-          onClick={() => setShowModal(true)}
+          onClick={handleAddNewProjeto}
           className="add-project-btn"
         >
           Adicionar Projeto
@@ -68,14 +90,22 @@ const ProjetosPage: React.FC = () => {
       {isLoading ? (
         <p>A carregar...</p>
       ) : (
-        <ProjetoTable projetos={projetos} onEditProjeto={handleEditProjeto} />
+        <ProjetoTable
+          projetos={projetos}
+          onEditProjeto={handleEditProjeto}
+          onDeleteProjeto={handleDeleteProjeto}
+        />
       )}
       <ProjetoModal
         show={showModal}
-        onHide={() => setShowModal(false)}
+        onHide={() => {
+          setShowModal(false);
+          setProjetoToEdit(null);
+          setIsEditing(false);
+        }}
         projeto={projetoToEdit}
-        onSave={projetoToEdit ? onSaveEditedProjeto : handleAddProjeto}
-        isEditing={!!projetoToEdit}
+        onSave={isEditing ? onSaveEditedProjeto : handleAddProjeto}
+        isEditing={isEditing}
       />
     </div>
   );

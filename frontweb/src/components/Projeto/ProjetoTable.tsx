@@ -8,11 +8,13 @@ import './styles.css';
 export interface ProjetoTableProps {
   projetos: Projeto[];
   onEditProjeto: (projeto: Projeto) => void;
+  onDeleteProjeto: (projetoId: number) => void;
 }
 
 const ProjetoTable: React.FC<ProjetoTableProps> = ({
   projetos,
   onEditProjeto,
+  onDeleteProjeto,
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -59,6 +61,12 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                     onClick={() => onEditProjeto(projeto)}
                   >
                     Editar
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => onDeleteProjeto(projeto.id)}
+                  >
+                    Eliminar
                   </Button>
                 </td>
               </tr>

@@ -52,3 +52,12 @@ export const updateProjetoAPI = async (
     throw error;
   }
 };
+
+export const deleteProjetoAPI = async (id: number): Promise<void> => {
+  try {
+    await axios.delete(`${BASE_URL}/projetos/${id}`);
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
+  }
+};

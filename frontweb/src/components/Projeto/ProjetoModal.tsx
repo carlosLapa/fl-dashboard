@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { getUsersAPI } from '../../api/requestsApi';
 import { User } from 'types/user';
+import { getUsersAPI } from '../../api/requestsApi';
 
 /**
 The formData state is initialized with the appropriate values based on whether the modal is for creating a new project (isEditing is false)
@@ -32,13 +32,13 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   isEditing,
 }) => {
   const [formData, setFormData] = useState<ProjetoFormData>({
-    projetoAno: isEditing && projeto ? projeto.projetoAno : 0,
-    designacao: isEditing && projeto ? projeto.designacao : '',
-    entidade: isEditing && projeto ? projeto.entidade : '',
-    prioridade: isEditing && projeto ? projeto.prioridade : '',
-    observacao: isEditing && projeto ? projeto.observacao : '',
-    prazo: isEditing && projeto ? projeto.prazo : '',
-    users: isEditing && projeto ? projeto.users : [],
+    projetoAno: 0,
+    designacao: '',
+    entidade: '',
+    prioridade: '',
+    observacao: '',
+    prazo: '',
+    users: [],
   });
 
   const [users, setUsers] = useState<User[]>([]);
@@ -53,7 +53,21 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   }, []);
 
   useEffect(() => {
-    if (projeto) {
+    if (!isEditing) {
+      setFormData({
+        projetoAno: 0,
+        designacao: '',
+        entidade: '',
+        prioridade: '',
+        observacao: '',
+        prazo: '',
+        users: [],
+      });
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (isEditing && projeto) {
       const formattedPrazo = projeto.prazo
         ? new Date(projeto.prazo).toISOString().split('T')[0]
         : '';
@@ -76,7 +90,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         users: projeto.users,
       });
     }
-  }, [projeto]);
+  }, [projeto, isEditing]);
 
   const handleUserSelect = (user: User) => {
     setFormData((prevFormData) => ({
