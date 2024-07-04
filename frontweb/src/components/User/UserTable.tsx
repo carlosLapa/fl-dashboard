@@ -1,24 +1,22 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
 import { User } from '../../types/user';
-
-import './styles.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
+import './styles.css';
+
 interface UserTableProps {
   users: User[];
+  onEditUser: (user: User) => void;
+  onDeleteUser: (userId: number) => void;
 }
 
-const UserTable: React.FC<UserTableProps> = ({ users }) => {
-  function onEditUser(user: User): void {
-    throw new Error('Function not implemented.');
-  }
-
-  function onDeleteUser(id: number): void {
-    throw new Error('Function not implemented.');
-  }
-
+const UserTable: React.FC<UserTableProps> = ({
+  users,
+  onEditUser,
+  onDeleteUser,
+}) => {
   return (
     <div className="user-container">
       <Table striped bordered hover>
@@ -44,24 +42,28 @@ const UserTable: React.FC<UserTableProps> = ({ users }) => {
                   <img
                     src={`data:image/jpeg;base64,${user.profileImage}`}
                     alt={`${user.username}`}
-                    style={{ maxWidth: '90px', maxHeight: '90px', marginLeft: '25%' }}
+                    style={{
+                      maxWidth: '90px',
+                      maxHeight: '90px',
+                      marginLeft: '25%',
+                    }}
                   />
                 ) : (
                   'No image available'
                 )}
               </td>
               <td>
-                  <FontAwesomeIcon
-                    icon={faPencilAlt}
-                    onClick={() => onEditUser(user)}
-                    className="mr-2 edit-icon"
-                  />
-                  <FontAwesomeIcon
-                    icon={faTrashAlt}
-                    onClick={() => onDeleteUser(user.id)}
-                    className="delete-icon"
-                  />
-                </td>
+                <FontAwesomeIcon
+                  icon={faPencilAlt}
+                  onClick={() => onEditUser(user)}
+                  className="mr-2 edit-icon"
+                />
+                <FontAwesomeIcon
+                  icon={faTrashAlt}
+                  onClick={() => onDeleteUser(user.id)}
+                  className="delete-icon"
+                />
+              </td>
             </tr>
           ))}
         </tbody>

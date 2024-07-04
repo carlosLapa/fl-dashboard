@@ -3,13 +3,16 @@ import UserTable from 'components/User/UserTable';
 import { getUsers } from 'services/userService';
 import { User } from 'types/user';
 import Button from 'react-bootstrap/Button';
-import AddUserModal from 'components/User/AddUserModal';
+import UserModal from 'components/User/UserModal';
+import { deleteUserAPI } from 'api/requestsApi';
 
 import './styles.css';
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,8 +23,36 @@ const UsersPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleUserCreated = (newUser: User) => {
-    setUsers([...users, newUser]);
+  const handleUserSaved = (savedUser: User) => {
+    if (isEditing) {
+      setUsers(
+        users.map((user) => (user.id === savedUser.id ? savedUser : user))
+      );
+    } else {
+      setUsers([...users, savedUser]);
+    }
+  };
+
+  const handleAddUser = () => {
+    setUserToEdit(null);
+    setShowModal(true);
+    setIsEditing(false);
+  };
+
+  const handleEditUser = (user: User) => {
+    setUserToEdit(user);
+    setShowModal(true);
+    setIsEditing(true);
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      await deleteUserAPI(userId);
+      const updatedUsers = users.filter((user) => user.id !== userId);
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
   };
 
   return (
@@ -30,17 +61,23 @@ const UsersPage: React.FC = () => {
       <div className="d-flex justify-content-end mb-4">
         <Button
           variant="primary"
-          onClick={() => setShowModal(true)}
+          onClick={handleAddUser}
           className="add-user-btn"
         >
           Adicionar Utilizador
         </Button>
       </div>
-      <UserTable users={users} />
-      <AddUserModal
+      <UserTable
+        users={users}
+        onEditUser={handleEditUser}
+        onDeleteUser={handleDeleteUser}
+      />
+      <UserModal
         show={showModal}
         onHide={() => setShowModal(false)}
-        onUserCreated={handleUserCreated}
+        user={userToEdit}
+        onUserSaved={handleUserSaved}
+        isEditing={isEditing}
       />
     </div>
   );

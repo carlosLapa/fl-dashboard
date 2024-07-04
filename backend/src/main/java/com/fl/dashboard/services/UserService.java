@@ -5,6 +5,7 @@ import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -65,22 +66,25 @@ public class UserService {
         return new UserDTO(entity);
     }
 
+    @Transactional
     public UserDTO update(Long id, UserDTO userDTO, MultipartFile imageFile) {
-        User entity = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+        try {
+            User entity = userRepository.getReferenceById(id);
+            copyDTOtoEntity(userDTO, entity);
 
-        copyDTOtoEntity(userDTO, entity);
-
-        if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                entity.setProfileImage(imageFile.getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException("Error processing image file", e);
+            if (imageFile != null && !imageFile.isEmpty()) {
+                try {
+                    entity.setProfileImage(imageFile.getBytes());
+                } catch (IOException e) {
+                    throw new RuntimeException("Error processing image file", e);
+                }
             }
-        }
 
-        entity = userRepository.save(entity);
-        return new UserDTO(entity);
+            entity = userRepository.save(entity);
+            return new UserDTO(entity);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
+        }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

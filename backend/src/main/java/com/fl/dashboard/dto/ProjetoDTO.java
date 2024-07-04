@@ -35,7 +35,6 @@ public class ProjetoDTO {
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
 
-    @NotEmpty(message = "Deve inserir os colaboradores afetos ao Projeto")
     private List<UserDTO> users = new ArrayList<>();
 
     public ProjetoDTO() {
