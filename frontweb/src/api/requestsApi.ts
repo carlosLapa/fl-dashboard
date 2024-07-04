@@ -19,6 +19,15 @@ export const getUsersAPI = async () => {
   return await fetchFromAPI('users');
 };
 
+export const createUserAPI = async (formData: FormData) => {
+  const response = await axios.post(`${BASE_URL}/users`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
 export const getProjetosAPI = async () => {
   const response = await axios.get(BASE_URL + '/projetos');
   return response.data.content || [];

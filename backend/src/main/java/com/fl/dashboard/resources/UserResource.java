@@ -7,6 +7,7 @@ import com.fl.dashboard.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,9 +36,9 @@ public class UserResource {
         return ResponseEntity.ok().body(userDTO);
     }
 
-    @PostMapping
-    public ResponseEntity<UserDTO> insert(@Valid @RequestBody UserInsertDTO dto) {
-        UserDTO newDto = userService.insert(dto);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDTO> insert(@ModelAttribute UserDTO dto, @RequestParam(value = "image", required = false) MultipartFile imageFile) {
+        UserDTO newDto = userService.insert(dto, imageFile);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(newDto.getId()).toUri();
         return ResponseEntity.created(uri).body(newDto);
@@ -55,6 +56,7 @@ public class UserResource {
         return ResponseEntity.noContent().build();
     }
 
+    /*
     @PostMapping("/{id}/upload-image")
     public ResponseEntity<String> uploadUserImage(@PathVariable Long id, @RequestParam("image") MultipartFile imageFile) {
         try {
@@ -64,5 +66,6 @@ public class UserResource {
             return new ResponseEntity<>("Falha no carregamento da imagem", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    */
 
 }

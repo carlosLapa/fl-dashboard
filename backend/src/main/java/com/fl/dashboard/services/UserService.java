@@ -41,10 +41,29 @@ public class UserService {
         return new UserDTO(entity);
     }
 
+    /*
     @Transactional
     public UserDTO insert(UserDTO userDTO) {
         User entity = new User();
         copyDTOtoEntity(userDTO, entity);
+        entity = userRepository.save(entity);
+        return new UserDTO(entity);
+    }
+    */
+
+    @Transactional
+    public UserDTO insert(UserDTO userDTO, MultipartFile imageFile) {
+        User entity = new User();
+        copyDTOtoEntity(userDTO, entity);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                entity.setProfileImage(imageFile.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("Error processing image file", e);
+            }
+        }
+
         entity = userRepository.save(entity);
         return new UserDTO(entity);
     }
@@ -82,6 +101,7 @@ public class UserService {
         entity.setProfileImage(userDTO.getProfileImage());
     }
 
+    /*
     public void uploadUserImage(Long userId, MultipartFile imageFile) throws IOException {
         validateImage(imageFile);
 
@@ -94,6 +114,7 @@ public class UserService {
             throw new ResourceNotFoundException("Utilizador com o id: " + userId + " não encontrado");
         }
     }
+    */
 
     // Colocar um pré-alerta, no FRONTEND, caso o ficheiro carregado - mas antes de mandar persistir - exceda o tamanho máximo
     private void validateImage(MultipartFile imageFile) {
