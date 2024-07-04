@@ -1,19 +1,14 @@
 package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.UserDTO;
-import com.fl.dashboard.dto.UserInsertDTO;
-import com.fl.dashboard.dto.UserUpdateDTO;
 import com.fl.dashboard.services.UserService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -44,10 +39,10 @@ public class UserResource {
         return ResponseEntity.created(uri).body(newDto);
     }
 
-    @PutMapping(value = "/{id}")
-    public ResponseEntity<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO dto) {
-        UserDTO newDto = userService.update(id, dto);
-        return ResponseEntity.ok().body(newDto);
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDTO> update(@PathVariable Long id, @ModelAttribute UserDTO dto, @RequestParam(value = "image", required = false) MultipartFile imageFile) {
+        UserDTO updatedDto = userService.update(id, dto, imageFile);
+        return ResponseEntity.ok().body(updatedDto);
     }
 
     @DeleteMapping(value = "/{id}")

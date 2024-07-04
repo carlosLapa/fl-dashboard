@@ -1,12 +1,10 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.UserDTO;
-import com.fl.dashboard.dto.UserUpdateDTO;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -16,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,16 +65,22 @@ public class UserService {
         return new UserDTO(entity);
     }
 
-    @Transactional
-    public UserDTO update(Long id, UserUpdateDTO userDTO) {
-        try {
-            User entity = userRepository.getReferenceById(id);
-            copyDTOtoEntity(userDTO, entity);
-            entity = userRepository.save(entity);  // Ensure entity is saved after updating
-            return new UserDTO(entity);
-        } catch (EntityNotFoundException e) {
-            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
+    public UserDTO update(Long id, UserDTO userDTO, MultipartFile imageFile) {
+        User entity = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+
+        copyDTOtoEntity(userDTO, entity);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                entity.setProfileImage(imageFile.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("Error processing image file", e);
+            }
         }
+
+        entity = userRepository.save(entity);
+        return new UserDTO(entity);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
