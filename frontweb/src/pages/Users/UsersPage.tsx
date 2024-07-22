@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import UserTable from 'components/User/UserTable';
 import { getUsers } from 'services/userService';
+import { deleteUserAPI, getUserByIdAPI } from 'api/requestsApi';
 import { User } from 'types/user';
 import Button from 'react-bootstrap/Button';
-import UserModal from 'components/User/UserModal';
-import { deleteUserAPI } from 'api/requestsApi';
+import AddUserModal from 'components/User/AddUserModal';
+import EditUserModal from 'components/User/EditUserModal';
 
 import './styles.css';
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,26 +24,31 @@ const UsersPage: React.FC = () => {
     fetchData();
   }, []);
 
+  const handleAddUser = () => {
+    setShowAddModal(true);
+  };
+
+  const handleEditUser = async (userId: number) => {
+    try {
+      const fetchedUser = await getUserByIdAPI(userId);
+      if (fetchedUser) {
+        setUserToEdit(fetchedUser);
+        setShowEditModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      // Handle error as needed
+    }
+  };
+
   const handleUserSaved = (savedUser: User) => {
-    if (isEditing) {
+    if (userToEdit) {
       setUsers(
         users.map((user) => (user.id === savedUser.id ? savedUser : user))
       );
     } else {
       setUsers([...users, savedUser]);
     }
-  };
-
-  const handleAddUser = () => {
-    setUserToEdit(null);
-    setShowModal(true);
-    setIsEditing(false);
-  };
-
-  const handleEditUser = (user: User) => {
-    setUserToEdit(user);
-    setShowModal(true);
-    setIsEditing(true);
   };
 
   const handleDeleteUser = async (userId: number) => {
@@ -72,12 +78,19 @@ const UsersPage: React.FC = () => {
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUser}
       />
-      <UserModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
+      <AddUserModal
+        show={showAddModal}
+        onHide={() => setShowAddModal(false)}
+        onUserSaved={handleUserSaved}
+      />
+      <EditUserModal
+        show={showEditModal}
+        onHide={() => {
+          setShowEditModal(false);
+          setUserToEdit(null);
+        }}
         user={userToEdit}
         onUserSaved={handleUserSaved}
-        isEditing={isEditing}
       />
     </div>
   );

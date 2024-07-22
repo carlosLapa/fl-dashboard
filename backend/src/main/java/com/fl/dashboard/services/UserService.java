@@ -71,15 +71,16 @@ public class UserService {
         try {
             User entity = userRepository.getReferenceById(id);
             copyDTOtoEntity(userDTO, entity);
-
             if (imageFile != null && !imageFile.isEmpty()) {
                 try {
                     entity.setProfileImage(imageFile.getBytes());
                 } catch (IOException e) {
                     throw new RuntimeException("Error processing image file", e);
                 }
+            } else {
+                // If no new image file is provided, preserve the existing profileImage
+                entity.setProfileImage(entity.getProfileImage());
             }
-
             entity = userRepository.save(entity);
             return new UserDTO(entity);
         } catch (EntityNotFoundException e) {

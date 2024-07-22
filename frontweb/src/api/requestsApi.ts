@@ -2,7 +2,6 @@
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
 import { ProjetoFormData } from 'types/projeto';
-import { UserDTO } from 'types/user';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
@@ -29,6 +28,16 @@ export const createUserAPI = async (formData: FormData) => {
   return response.data;
 };
 
+export const getUserByIdAPI = async (userId: number) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    throw error;
+  }
+};
+
 export const updateUserAPI = async (id: number, formData: FormData) => {
   try {
     const response = await axios.put(`${BASE_URL}/users/${id}`, formData, {
@@ -46,7 +55,6 @@ export const updateUserAPI = async (id: number, formData: FormData) => {
     throw error;
   }
 };
-
 
 export const deleteUserAPI = async (id: number): Promise<void> => {
   try {

@@ -8,7 +8,7 @@ import './styles.css';
 
 interface UserTableProps {
   users: User[];
-  onEditUser: (user: User) => void;
+  onEditUser: (userId: number) => void;
   onDeleteUser: (userId: number) => void;
 }
 
@@ -49,14 +49,13 @@ const UserTable: React.FC<UserTableProps> = ({
                     }}
                   />
                 ) : (
-                  'No image available'
+                  <span>Sem imagem</span>
                 )}
               </td>
               <td>
                 <FontAwesomeIcon
                   icon={faPencilAlt}
-                  onClick={() => onEditUser(user)}
-                  className="mr-2 edit-icon"
+                  onClick={() => onEditUser(user.id)}                  className="mr-2 edit-icon"
                 />
                 <FontAwesomeIcon
                   icon={faTrashAlt}

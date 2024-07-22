@@ -1,22 +1,19 @@
+// AddUserModal.tsx
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { User } from 'types/user';
-import { createUserAPI, updateUserAPI } from 'api/requestsApi';
+import { createUserAPI } from 'api/requestsApi';
 
-interface UserModalProps {
+interface AddUserModalProps {
   show: boolean;
   onHide: () => void;
-  user?: User | null;
   onUserSaved: (savedUser: User) => void;
-  isEditing: boolean;
 }
 
-const UserModal: React.FC<UserModalProps> = ({
+const AddUserModal: React.FC<AddUserModalProps> = ({
   show,
   onHide,
-  user: userToEdit, 
   onUserSaved,
-  isEditing,
 }) => {
   const [formData, setFormData] = useState<User>({
     id: 0,
@@ -26,27 +23,12 @@ const UserModal: React.FC<UserModalProps> = ({
     email: '',
     password: '',
     profileImage: '',
-    //get: () => '', // Add a dummy 'get' property to satisfy the User type
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
 
   useEffect(() => {
-    if (isEditing && userToEdit) {
-      const formattedProfileImage = userToEdit.profileImage
-        ? `data:image/jpeg;base64,${userToEdit.profileImage}`
-        : '';
-
-      setFormData({
-        id: userToEdit.id,
-        username: userToEdit.username,
-        funcao: userToEdit.funcao,
-        cargo: userToEdit.cargo,
-        email: userToEdit.email,
-        password: userToEdit.password,
-        profileImage: formattedProfileImage || userToEdit.profileImage,
-        //get: () => '', // Add a dummy 'get' property to satisfy the User type
-      });
-    } else {
+    // Reset formData and profileImage when the modal is opened
+    if (show) {
       setFormData({
         id: 0,
         username: '',
@@ -54,24 +36,20 @@ const UserModal: React.FC<UserModalProps> = ({
         cargo: '',
         email: '',
         password: '',
-        profileImage: '', // Ver aqui!
-        //get: () => '', // Add a dummy 'get' property to satisfy the User type
+        profileImage: '',
       });
       setProfileImage(null);
     }
-  }, [isEditing, userToEdit]);
-
-  useEffect(() => {
-    return () => {
-      setProfileImage(null);
-    };
-  }, []);
+  }, [show]);
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +62,7 @@ const UserModal: React.FC<UserModalProps> = ({
 
     // Append all form data except profileImage
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'profileImage') {
+      if (key !== 'profileImage' && value !== undefined) {
         formDataObj.append(key, value.toString());
       }
     });
@@ -92,31 +70,21 @@ const UserModal: React.FC<UserModalProps> = ({
     // If a new profileImage is selected, append it to formDataObj
     if (profileImage) {
       formDataObj.append('image', profileImage);
-    } else if (formData.profileImage) {
-      // If no new profileImage is selected, append the existing profileImage
-      formDataObj.append('image', formData.profileImage);
     }
 
     try {
-      let savedUser;
-      if (isEditing) {
-        savedUser = await updateUserAPI(formData.id, formDataObj);
-      } else {
-        savedUser = await createUserAPI(formDataObj);
-      }
+      const savedUser = await createUserAPI(formDataObj);
       onUserSaved(savedUser);
       onHide();
     } catch (error) {
-      console.error('Error updating/creating user:', error);
+      console.error('Error creating user:', error);
     }
   };
 
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>
-          {isEditing ? 'Editar Utilizador' : 'Adicionar Utilizador'}
-        </Modal.Title>
+        <Modal.Title>Adicionar Utilizador</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -181,11 +149,11 @@ const UserModal: React.FC<UserModalProps> = ({
           Cancelar
         </Button>
         <Button variant="primary" onClick={handleSave}>
-          {isEditing ? 'Salvar' : 'Adicionar'}
+          Adicionar
         </Button>
       </Modal.Footer>
     </Modal>
   );
 };
 
-export default UserModal;
+export default AddUserModal;

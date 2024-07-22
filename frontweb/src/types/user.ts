@@ -1,5 +1,4 @@
 export type User = {
-  get(arg0: string): unknown;
   id: number;
   username: string;
   funcao: string;
