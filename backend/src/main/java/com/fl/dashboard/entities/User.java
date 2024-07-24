@@ -32,6 +32,9 @@ public class User {
     @ManyToMany(mappedBy = "users")
     private Set<Projeto> projetos = new HashSet<>();
 
+    @ManyToMany(mappedBy = "assignedUsers")
+    private Set<Tarefa> assignedTarefas;
+
     public User() {
     }
 

@@ -3,32 +3,46 @@ package com.fl.dashboard.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "tb_tarefa")
 @Getter
 @Setter
-@ToString
 public class Tarefa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String descricao;
+    private String status;
     private String prioridade; //ENUMS??
     private Date prazoEstimado;
     private Date prazoReal;
 
+    @ManyToOne
+    @JoinColumn(name = "projeto_id")
+    private Projeto projeto;
+
+    @ManyToMany
+    @JoinTable(
+            name = "tb_tarefa_users",
+            joinColumns = @JoinColumn(name = "tarefa_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> assignedUsers;
+
     public Tarefa() {
     }
 
-    public Tarefa(Long id, String descricao, String prioridade, Date prazoEstimado, Date prazoReal) {
+    public Tarefa(Long id, String descricao, String status, String prioridade, Date prazoEstimado, Date prazoReal) {
         this.id = id;
         this.descricao = descricao;
+        this.status = status;
         this.prioridade = prioridade;
         this.prazoEstimado = prazoEstimado;
         this.prazoReal = prazoReal;

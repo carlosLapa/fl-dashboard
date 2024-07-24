@@ -1,10 +1,10 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +37,8 @@ public class ProjetoDTO {
 
     private List<UserDTO> users = new ArrayList<>();
 
+    private List<TarefaDTO> tarefas;
+
     public ProjetoDTO() {
     }
 
@@ -50,7 +52,7 @@ public class ProjetoDTO {
         this.prazo = prazo;
     }
 
-    public ProjetoDTO(Projeto entity){
+    public ProjetoDTO(Projeto entity) {
         this.id = entity.getId();
         this.projetoAno = entity.getProjetoAno();
         this.designacao = entity.getDesignacao();
@@ -59,11 +61,21 @@ public class ProjetoDTO {
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
         this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
+        this.tarefas = initializeTarefas(entity.getTarefas());
     }
 
     public ProjetoDTO(Projeto entity, Set<User> users) {
         this(entity);
         users.forEach(u -> this.users.add(new UserDTO(u)));
+    }
+
+    private List<TarefaDTO> initializeTarefas(Set<Tarefa> tarefas) {
+        List<TarefaDTO> list = new ArrayList<>();
+        for (Tarefa tarefa : tarefas) {
+            TarefaDTO tarefaDTO = new TarefaDTO(tarefa, tarefa.getAssignedUsers(), tarefa.getProjeto());
+            list.add(tarefaDTO);
+        }
+        return list;
     }
 
 }

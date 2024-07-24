@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/tarefas")
 public class TarefaResource {
-
     @Autowired
     private TarefaService tarefaService;
 
@@ -28,6 +27,24 @@ public class TarefaResource {
     public ResponseEntity<TarefaDTO> findById(@PathVariable Long id) {
         TarefaDTO tarefaDTO = tarefaService.findById(id);
         return ResponseEntity.ok().body(tarefaDTO);
+    }
+
+    @GetMapping(value = "/users/{userId}")
+    public ResponseEntity<List<TarefaDTO>> findByUser(@PathVariable Long userId) {
+        List<TarefaDTO> list = tarefaService.getTarefasByUser(userId);
+        return ResponseEntity.ok().body(list);
+    }
+
+    @GetMapping(value = "/projetos/{projetoId}")
+    public ResponseEntity<List<TarefaDTO>> findByProjeto(@PathVariable Long projetoId) {
+        List<TarefaDTO> list = tarefaService.getTarefasByProjeto(projetoId);
+        return ResponseEntity.ok().body(list);
+    }
+
+    @GetMapping(value = "/with-projeto-and-users")
+    public ResponseEntity<List<TarefaDTO>> findWithProjetoAndUsers() {
+        List<TarefaDTO> list = tarefaService.getTarefasWithProjetoAndUsers();
+        return ResponseEntity.ok().body(list);
     }
 
     @PostMapping
@@ -49,5 +66,4 @@ public class TarefaResource {
         tarefaService.delete(id);
         return ResponseEntity.noContent().build();
     }
-
 }

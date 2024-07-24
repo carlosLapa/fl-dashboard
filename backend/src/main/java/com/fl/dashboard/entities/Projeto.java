@@ -14,12 +14,6 @@ import java.util.Set;
 @Table(name = "tb_projeto")
 public class Projeto {
 
-    @ManyToMany
-    @JoinTable(name="tb_projeto_user",
-            joinColumns = @JoinColumn(name = "projeto_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<User> users = new HashSet<>();
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,6 +31,15 @@ public class Projeto {
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
 
+    @ManyToMany
+    @JoinTable(name="tb_projeto_user",
+            joinColumns = @JoinColumn(name = "projeto_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
+
+    @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL)
+    private Set<Tarefa> tarefas;
+
     public Projeto() {
     }
 
@@ -52,6 +55,10 @@ public class Projeto {
 
     public Set<User> getUsers() {
         return users;
+    }
+
+    public Set<Tarefa> getTarefas() {
+        return tarefas;
     }
 
     public Long getId() {

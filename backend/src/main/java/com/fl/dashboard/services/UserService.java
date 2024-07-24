@@ -124,7 +124,7 @@ public class UserService {
     }
     */
 
-    // Colocar um pré-alerta, no FRONTEND, caso o ficheiro carregado - mas antes de mandar persistir - exceda o tamanho máximo
+    // Posteriormente, colocar um pré-alerta, no FRONTEND, caso o ficheiro carregado - mas antes de mandar persistir - exceda o tamanho máximo
     private void validateImage(MultipartFile imageFile) {
         if (!ALLOWED_CONTENT_TYPES.contains(imageFile.getContentType())) {
             throw new IllegalArgumentException("Ficheiro inválido. São permitidos JPEG e PNG");
