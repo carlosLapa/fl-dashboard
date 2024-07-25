@@ -1,4 +1,3 @@
-/* tarefaService.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
 import { Tarefa, TarefaFormData } from '../types/tarefa';
@@ -61,14 +60,3 @@ export const deleteTarefa = async (id: number): Promise<void> => {
     throw error;
   }
 };
-
-
-GET /tarefas: Retrieve all tasks.
-GET /tarefas/:id: Retrieve a specific task by ID.
-GET /users/:userId/tarefas: Retrieve all tasks assigned to a specific user.
-GET /projetos/:projetoId/tarefas: Retrieve all tasks related to a specific project.
-PUT /tarefas/:id: Update a specific task by ID.
-DELETE /tarefas/:id: Delete a specific task by ID.
-
-
-*/
