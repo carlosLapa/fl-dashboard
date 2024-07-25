@@ -1,10 +1,9 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.TarefaDTO;
-import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
-import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
@@ -17,19 +16,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class TarefaService {
+
     @Autowired
     private TarefaRepository tarefaRepository;
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private ProjetoRepository projetoRepository;
 
     @Transactional(readOnly = true)
     public List<TarefaDTO> findAll() {
@@ -48,7 +43,7 @@ public class TarefaService {
     public TarefaDTO insert(TarefaDTO tarefaDTO) {
         Tarefa entity = new Tarefa();
         copyDTOtoEntity(tarefaDTO, entity);
-        tarefaRepository.save(entity);
+        entity = tarefaRepository.save(entity);
         return new TarefaDTO(entity);
     }
 
@@ -78,32 +73,17 @@ public class TarefaService {
 
     private void copyDTOtoEntity(TarefaDTO tarefaDTO, Tarefa entity) {
         entity.setDescricao(tarefaDTO.getDescricao());
+        entity.setStatus(tarefaDTO.getStatus());
         entity.setPrioridade(tarefaDTO.getPrioridade());
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
-    }
 
-    public List<TarefaDTO> getTarefasByUser(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        List<Tarefa> tarefas = tarefaRepository.findByAssignedUsers(user);
-        return tarefas.stream().map(TarefaDTO::new).toList();
-    }
-
-    public List<TarefaDTO> getTarefasByProjeto(Long projetoId) {
-        Projeto projeto = projetoRepository.findById(projetoId).orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
-        List<Tarefa> tarefas = tarefaRepository.findByProjeto(projeto);
-        return tarefas.stream().map(TarefaDTO::new).toList();
-    }
-
-    public List<TarefaDTO> getTarefasWithProjetoAndUsers() {
-        List<Tarefa> tarefas = tarefaRepository.findAll();
-        return tarefas.stream()
-                .map(tarefa -> {
-                    Projeto projeto = projetoRepository.findById(tarefa.getProjeto().getId()).orElse(null);
-                    Set<User> assignedUsers = tarefa.getAssignedUsers().stream()
-                            .map(user -> userRepository.findById(user.getId()).orElse(null))
-                            .collect(Collectors.toSet());
-                    return new TarefaDTO(tarefa, assignedUsers, projeto);
-                }).toList();
+        entity.getUsers().clear();
+        for (UserDTO userDTO : tarefaDTO.getUsers()) {
+            User user = userRepository.getReferenceById(userDTO.getId());
+            entity.getUsers().add(user);
+        }
     }
 }
+
+

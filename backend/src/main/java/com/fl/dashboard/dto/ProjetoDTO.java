@@ -1,7 +1,6 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
-import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -9,9 +8,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,9 +33,7 @@ public class ProjetoDTO {
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
 
-    private List<UserDTO> users = new ArrayList<>();
-
-    private List<TarefaDTO> tarefas;
+    private Set<UserDTO> users = new HashSet<>();
 
     public ProjetoDTO() {
     }
@@ -60,22 +56,12 @@ public class ProjetoDTO {
         this.prioridade = entity.getPrioridade();
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
-        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
-        this.tarefas = initializeTarefas(entity.getTarefas());
+        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
     }
 
     public ProjetoDTO(Projeto entity, Set<User> users) {
         this(entity);
         users.forEach(u -> this.users.add(new UserDTO(u)));
-    }
-
-    private List<TarefaDTO> initializeTarefas(Set<Tarefa> tarefas) {
-        List<TarefaDTO> list = new ArrayList<>();
-        for (Tarefa tarefa : tarefas) {
-            TarefaDTO tarefaDTO = new TarefaDTO(tarefa, tarefa.getAssignedUsers(), tarefa.getProjeto());
-            list.add(tarefaDTO);
-        }
-        return list;
     }
 
 }

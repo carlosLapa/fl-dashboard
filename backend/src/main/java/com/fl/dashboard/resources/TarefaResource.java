@@ -29,30 +29,12 @@ public class TarefaResource {
         return ResponseEntity.ok().body(tarefaDTO);
     }
 
-    @GetMapping(value = "/users/{userId}")
-    public ResponseEntity<List<TarefaDTO>> findByUser(@PathVariable Long userId) {
-        List<TarefaDTO> list = tarefaService.getTarefasByUser(userId);
-        return ResponseEntity.ok().body(list);
-    }
-
-    @GetMapping(value = "/projetos/{projetoId}")
-    public ResponseEntity<List<TarefaDTO>> findByProjeto(@PathVariable Long projetoId) {
-        List<TarefaDTO> list = tarefaService.getTarefasByProjeto(projetoId);
-        return ResponseEntity.ok().body(list);
-    }
-
-    @GetMapping(value = "/with-projeto-and-users")
-    public ResponseEntity<List<TarefaDTO>> findWithProjetoAndUsers() {
-        List<TarefaDTO> list = tarefaService.getTarefasWithProjetoAndUsers();
-        return ResponseEntity.ok().body(list);
-    }
-
     @PostMapping
     public ResponseEntity<TarefaDTO> insert(@Valid @RequestBody TarefaDTO tarefaDTO) {
-        TarefaDTO newDto = tarefaService.insert(tarefaDTO);
+        tarefaDTO = tarefaService.insert(tarefaDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(newDto.getId()).toUri();
-        return ResponseEntity.created(uri).body(newDto);
+                .buildAndExpand(tarefaDTO.getId()).toUri();
+        return ResponseEntity.created(uri).body(tarefaDTO);
     }
 
     @PutMapping(value = "/{id}")

@@ -32,8 +32,8 @@ public class User {
     @ManyToMany(mappedBy = "users")
     private Set<Projeto> projetos = new HashSet<>();
 
-    @ManyToMany(mappedBy = "assignedUsers")
-    private Set<Tarefa> assignedTarefas;
+    @ManyToMany(mappedBy = "users")
+    private Set<Tarefa> tarefas = new HashSet<>();
 
     public User() {
     }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -14,27 +15,20 @@ import java.util.Set;
 @Setter
 public class Tarefa {
 
+    @ManyToMany
+    @JoinTable(name = "tb_tarefa_user",
+            joinColumns = @JoinColumn(name = "tarefa_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String descricao;
     private String status;
     private String prioridade; //ENUMS??
     private Date prazoEstimado;
     private Date prazoReal;
-
-    @ManyToOne
-    @JoinColumn(name = "projeto_id")
-    private Projeto projeto;
-
-    @ManyToMany
-    @JoinTable(
-            name = "tb_tarefa_users",
-            joinColumns = @JoinColumn(name = "tarefa_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> assignedUsers;
 
     public Tarefa() {
     }

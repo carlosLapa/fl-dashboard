@@ -1,7 +1,6 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
-import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,9 +10,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -37,9 +36,7 @@ public class UserDTO {
     private String password;
     private byte[] profileImage;
 
-    private List<ProjetoDTO> projetos = new ArrayList<>();
-
-    private List<TarefaDTO> tarefas;
+    private Set<ProjetoDTO> projetos = new HashSet<>();
 
     public UserDTO() {
     }
@@ -62,24 +59,11 @@ public class UserDTO {
         email = entity.getEmail();
         password = entity.getPassword();
         profileImage = entity.getProfileImage();
-        projetos = entity.getProjetos().stream()
-                .map(ProjetoDTO::new)
-                .collect(Collectors.toList());
-        tarefas = initializeTarefas(entity.getAssignedTarefas());
     }
 
     public UserDTO(User entity, Set<Projeto> projetos) {
         this(entity);
         projetos.forEach(proj -> this.projetos.add(new ProjetoDTO(proj)));
-    }
-
-    private List<TarefaDTO> initializeTarefas(Set<Tarefa> tarefas) {
-        List<TarefaDTO> list = new ArrayList<>();
-        for (Tarefa tarefa : tarefas) {
-            TarefaDTO tarefaDTO = new TarefaDTO(tarefa, tarefa.getAssignedUsers(), tarefa.getProjeto());
-            list.add(tarefaDTO);
-        }
-        return list;
     }
 
 }

@@ -1,6 +1,8 @@
 package com.fl.dashboard.services;
 
+import com.fl.dashboard.dto.TarefaDTO;
 import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,15 +42,17 @@ public class UserService {
         return new UserDTO(entity);
     }
 
-    /*
     @Transactional
-    public UserDTO insert(UserDTO userDTO) {
-        User entity = new User();
-        copyDTOtoEntity(userDTO, entity);
-        entity = userRepository.save(entity);
-        return new UserDTO(entity);
+    public List<TarefaDTO> getTarefasByUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+
+        Set<Tarefa> assignedTarefas = user.getTarefas();
+
+        return assignedTarefas.stream()
+                .map(TarefaDTO::new)
+                .collect(Collectors.toList());
     }
-    */
 
     @Transactional
     public UserDTO insert(UserDTO userDTO, MultipartFile imageFile) {

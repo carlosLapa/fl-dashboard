@@ -1,16 +1,12 @@
 package com.fl.dashboard.dto;
 
-import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -25,8 +21,7 @@ public class TarefaDTO {
     private Date prazoEstimado;
     private Date prazoReal;
 
-    private List<UserDTO> assignedUsers;
-    private ProjetoDTO projeto;
+    private Set<UserDTO> users = new HashSet<>();
 
     public TarefaDTO() {
     }
@@ -41,27 +36,19 @@ public class TarefaDTO {
     }
 
     public TarefaDTO(Tarefa entity) {
-        id = entity.getId();
-        descricao = entity.getDescricao();
-        status = entity.getStatus();
-        prioridade = entity.getPrioridade();
-        prazoEstimado = entity.getPrazoEstimado();
-        prazoReal = entity.getPrazoReal();
-        assignedUsers = entity.getAssignedUsers().stream()
-                .map(UserDTO::new)
-                .collect(Collectors.toList());
-        projeto = new ProjetoDTO(entity.getProjeto());
+        this.id = entity.getId();
+        this.descricao = entity.getDescricao();
+        this.status = entity.getStatus();
+        this.prioridade = entity.getPrioridade();
+        this.prazoEstimado = entity.getPrazoEstimado();
+        this.prazoReal = entity.getPrazoReal();
+        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
     }
 
-    public TarefaDTO(Tarefa entity, Set<User> assignedUsers, Projeto projeto) {
+    public TarefaDTO(Tarefa entity, Set<User> users) {
         this(entity);
-        List<UserDTO> list = new ArrayList<>();
-        for (User assignedUser : assignedUsers) {
-            UserDTO userDTO = new UserDTO(assignedUser);
-            list.add(userDTO);
-        }
-        this.assignedUsers = list;
-        this.projeto = new ProjetoDTO(projeto);
+        users.forEach(u -> this.users.add(new UserDTO(u)));
     }
+
 
 }

@@ -1,5 +1,6 @@
 package com.fl.dashboard.resources;
 
+import com.fl.dashboard.dto.TarefaDTO;
 import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,12 @@ public class UserResource {
     public ResponseEntity<UserDTO> findById(@PathVariable Long id) {
         UserDTO userDTO = userService.findById(id);
         return ResponseEntity.ok().body(userDTO);
+    }
+
+    @GetMapping("/{userId}/tarefas")
+    public ResponseEntity<List<TarefaDTO>> getTarefasByUser(@PathVariable Long userId) {
+        List<TarefaDTO> tarefaDTOs = userService.getTarefasByUser(userId);
+        return ResponseEntity.ok(tarefaDTOs);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

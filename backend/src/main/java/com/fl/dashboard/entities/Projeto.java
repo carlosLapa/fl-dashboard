@@ -1,9 +1,6 @@
 package com.fl.dashboard.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -37,9 +34,6 @@ public class Projeto {
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<User> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL)
-    private Set<Tarefa> tarefas;
-
     public Projeto() {
     }
 
@@ -55,10 +49,6 @@ public class Projeto {
 
     public Set<User> getUsers() {
         return users;
-    }
-
-    public Set<Tarefa> getTarefas() {
-        return tarefas;
     }
 
     public Long getId() {
