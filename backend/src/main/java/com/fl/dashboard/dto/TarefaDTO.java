@@ -50,5 +50,4 @@ public class TarefaDTO {
         users.forEach(u -> this.users.add(new UserDTO(u)));
     }
 
-
 }

@@ -11,6 +11,11 @@ import java.util.Set;
 @Table(name = "tb_projeto")
 public class Projeto {
 
+    @ManyToMany
+    @JoinTable(name = "tb_projeto_user",
+            joinColumns = @JoinColumn(name = "projeto_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,18 +26,12 @@ public class Projeto {
     //private String coordenacao - buscar o nome ao User
     //private String responsavel - buscar o nome ao User
     private String prioridade;
-
     @Column(columnDefinition = "TEXT")
     private String observacao;
-
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
-
-    @ManyToMany
-    @JoinTable(name="tb_projeto_user",
-            joinColumns = @JoinColumn(name = "projeto_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<User> users = new HashSet<>();
+    @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
+    private Set<Tarefa> tarefas = new HashSet<>();
 
     public Projeto() {
     }
@@ -49,6 +48,14 @@ public class Projeto {
 
     public Set<User> getUsers() {
         return users;
+    }
+
+    public Set<Tarefa> getTarefas() {
+        return tarefas;
+    }
+
+    public void setTarefas(Set<Tarefa> tarefas) {
+        this.tarefas = tarefas;
     }
 
     public Long getId() {

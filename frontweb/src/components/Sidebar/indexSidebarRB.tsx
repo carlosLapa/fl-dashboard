@@ -20,7 +20,12 @@ function SidebarFL() {
           </Nav.Item>
           <Nav.Item>
             <Link to="/propostas" className="sidebar-link text-light mb-5">
-              Propostas
+              Tarefas
+            </Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Link to="/placeholder" className="sidebar-link text-light mb-5">
+              Placeholder
             </Link>
           </Nav.Item>
           <Nav.Item>

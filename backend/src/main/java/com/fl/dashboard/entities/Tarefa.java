@@ -15,12 +15,6 @@ import java.util.Set;
 @Setter
 public class Tarefa {
 
-    @ManyToMany
-    @JoinTable(name = "tb_tarefa_user",
-            joinColumns = @JoinColumn(name = "tarefa_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<User> users = new HashSet<>();
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,6 +23,16 @@ public class Tarefa {
     private String prioridade; //ENUMS??
     private Date prazoEstimado;
     private Date prazoReal;
+
+    @ManyToMany
+    @JoinTable(name = "tb_tarefa_user",
+            joinColumns = @JoinColumn(name = "tarefa_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "projeto_id")
+    private Projeto projeto;
 
     public Tarefa() {
     }

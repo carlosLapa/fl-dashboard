@@ -1,13 +1,15 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.ProjetoDTO;
-import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.ProjetoWithTarefasDTO;
+import com.fl.dashboard.dto.ProjetoWithUsersDTO;
 import com.fl.dashboard.entities.Projeto;
-import com.fl.dashboard.entities.User;
+import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
+import com.fl.dashboard.utils.ProjetoDTOMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -26,34 +28,70 @@ public class ProjetoService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ProjetoDTOMapper projetoDTOMapper;
 
+    /* A REVER!
+    Estes 2s primeiros métodos fazem a mesma coisa, Projeto com os Users, só que 1 é paged e o outro não!
+    Decidir qual manter e fazer as alterações necessários na chamada à API e correspondente Frontend
+
+    **** Acresce que os métodos de PUT e POST tb estão a utlizar o ProjetoWithUsersDTO, para preservar o funcionamento!
+    **** Assim, por agora mantém-se para permitir testes, uma vez que a estrutura já está funcional
+    */
     @Transactional(readOnly = true)
-    public Page<ProjetoDTO> findAllPaged(Pageable pageable) {
+    public Page<ProjetoWithUsersDTO> findAllPaged(Pageable pageable) {
         Page<Projeto> list = projetoRepository.findAll(pageable);
-        return list.map(ProjetoDTO::new);
+        return list.map(ProjetoWithUsersDTO::new);
     }
 
     @Transactional(readOnly = true)
-    public ProjetoDTO findById(Long id) {
+    public ProjetoWithUsersDTO findByIdWithUsers(Long id) {
         Projeto entity = projetoRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Projeto com o id " + id + " não encontrado"));
-        return new ProjetoDTO(entity, entity.getUsers());
+        return new ProjetoWithUsersDTO(entity, entity.getUsers());
+    }
+
+    @Transactional(readOnly = true)
+    public ProjetoWithTarefasDTO findProjetoWithTarefas(Long id) {
+        Projeto projeto = projetoRepository.findByIdWithTarefas(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + id));
+
+        System.out.println("Tarefas size: " + projeto.getTarefas().size());
+        for (Tarefa tarefa : projeto.getTarefas()) {
+            System.out.println("Tarefa: " + tarefa.getId() + " - " + tarefa.getDescricao());
+        }
+
+        return new ProjetoWithTarefasDTO(projeto);
     }
 
     @Transactional
-    public ProjetoDTO insert(ProjetoDTO projetoDTO) {
+    public ProjetoWithUsersDTO insert(ProjetoWithUsersDTO projetoDTO) {
         Projeto entity = new Projeto();
-        copyDTOtoEntity(projetoDTO, entity);
+        projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
         entity = projetoRepository.save(entity);
-        return new ProjetoDTO(entity);
+        return new ProjetoWithUsersDTO(entity, entity.getUsers());
     }
 
     @Transactional
-    public ProjetoDTO update(Long id, ProjetoDTO projetoDTO) {
+    public ProjetoWithUsersDTO update(Long id, ProjetoWithUsersDTO projetoDTO) {
         try {
-            Projeto entity = projetoRepository.getReferenceById(id);
-            copyDTOtoEntity(projetoDTO, entity);
-            entity = projetoRepository.save(entity);  // Ensure entity is saved after updating
+            Projeto entity = projetoRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+            projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
+            entity = projetoRepository.save(entity);
+            return new ProjetoWithUsersDTO(entity, entity.getUsers());
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
+        }
+    }
+
+    @Transactional
+    public ProjetoDTO updateBasicInfo(Long id, ProjetoDTO projetoDTO) {
+        try {
+            Projeto entity = projetoRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+            projetoDTOMapper.copyBasicDTOtoEntity(projetoDTO, entity);
+            entity = projetoRepository.save(entity);
             return new ProjetoDTO(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
@@ -69,21 +107,6 @@ public class ProjetoService {
             projetoRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
             throw new DatabaseException(("Não permitido! Integridade da BD em causa"));
-        }
-    }
-
-    private void copyDTOtoEntity(ProjetoDTO projetoDTO, Projeto entity) {
-        entity.setProjetoAno(projetoDTO.getProjetoAno());
-        entity.setDesignacao(projetoDTO.getDesignacao());
-        entity.setEntidade(projetoDTO.getEntidade());
-        entity.setPrazo(projetoDTO.getPrazo());
-        entity.setPrioridade(projetoDTO.getPrioridade());
-        entity.setObservacao(projetoDTO.getObservacao());
-
-        entity.getUsers().clear();
-        for (UserDTO userDTO : projetoDTO.getUsers()) {
-            User user = userRepository.getReferenceById(userDTO.getId());
-            entity.getUsers().add(user);
         }
     }
 

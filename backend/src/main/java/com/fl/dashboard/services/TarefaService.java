@@ -78,11 +78,13 @@ public class TarefaService {
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
 
+        /*
         entity.getUsers().clear();
         for (UserDTO userDTO : tarefaDTO.getUsers()) {
             User user = userRepository.getReferenceById(userDTO.getId());
             entity.getUsers().add(user);
         }
+        */
     }
 }
 

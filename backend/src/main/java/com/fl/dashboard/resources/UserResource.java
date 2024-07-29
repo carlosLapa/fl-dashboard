@@ -2,7 +2,9 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.TarefaDTO;
 import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.UserWithProjetosDTO;
 import com.fl.dashboard.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,22 @@ public class UserResource {
     @Autowired
     private UserService userService;
 
+    @GetMapping("/with-projetos")
+    public ResponseEntity<List<UserWithProjetosDTO>> findAllWithProjetos() {
+        List<UserWithProjetosDTO> list = userService.findAllWithProjetos();
+        return ResponseEntity.ok().body(list);
+    }
+
     @GetMapping
     public ResponseEntity<List<UserDTO>> findAll() {
         List<UserDTO> list = userService.findAll();
         return ResponseEntity.ok().body(list);
+    }
+
+    @GetMapping("/{id}/with-projetos")
+    public ResponseEntity<UserWithProjetosDTO> findByIdWithProjetos(@PathVariable Long id) {
+        UserWithProjetosDTO dto = userService.findByIdWithProjetos(id);
+        return ResponseEntity.ok().body(dto);
     }
 
     @GetMapping(value = "/{id}")
@@ -38,12 +52,31 @@ public class UserResource {
         return ResponseEntity.ok(tarefaDTOs);
     }
 
+    @PostMapping("/with-projetos")
+    public ResponseEntity<UserWithProjetosDTO> insertWithProjetos(
+            @RequestPart("user") @Valid UserWithProjetosDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+        dto = userService.insertWithProjetos(dto, imageFile);
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(dto.getId()).toUri();
+        return ResponseEntity.created(uri).body(dto);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDTO> insert(@ModelAttribute UserDTO dto, @RequestParam(value = "image", required = false) MultipartFile imageFile) {
         UserDTO newDto = userService.insert(dto, imageFile);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(newDto.getId()).toUri();
         return ResponseEntity.created(uri).body(newDto);
+    }
+
+    @PutMapping(value = "/{id}/with-projetos")
+    public ResponseEntity<UserWithProjetosDTO> updateWithProjetos(
+            @PathVariable Long id,
+            @RequestPart("user") @Valid UserWithProjetosDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+        dto = userService.updateWithProjetos(id, dto, imageFile);
+        return ResponseEntity.ok().body(dto);
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

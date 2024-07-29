@@ -1,7 +1,6 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
-import com.fl.dashboard.entities.User;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -9,9 +8,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -27,13 +23,12 @@ public class ProjetoDTO {
     @Size(min = 4, max = 50, message = "Entidade deve conter de 4 a 50 caracteres")
     @NotBlank(message = "Campo requerido")
     private String entidade;
+
     private String prioridade;
     private String observacao;
 
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
-
-    private Set<UserDTO> users = new HashSet<>();
 
     public ProjetoDTO() {
     }
@@ -56,12 +51,6 @@ public class ProjetoDTO {
         this.prioridade = entity.getPrioridade();
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
-        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
-    }
-
-    public ProjetoDTO(Projeto entity, Set<User> users) {
-        this(entity);
-        users.forEach(u -> this.users.add(new UserDTO(u)));
     }
 
 }

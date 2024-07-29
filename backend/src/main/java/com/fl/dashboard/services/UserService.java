@@ -2,8 +2,11 @@ package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.TarefaDTO;
 import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.UserWithProjetosDTO;
+import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
@@ -29,10 +32,33 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ProjetoRepository projetoRepository;
+
+    /* No caso de paginação
+    public Page<UserDTO> findAllPaged(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(UserDTO::new);
+    }
+    */
+
     @Transactional(readOnly = true)
     public List<UserDTO> findAll() {
         List<User> list = userRepository.findAll();
         return list.stream().map(UserDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserWithProjetosDTO> findAllWithProjetos() {
+        List<User> list = userRepository.findAll();
+        return list.stream().map(UserWithProjetosDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public UserWithProjetosDTO findByIdWithProjetos(Long id) {
+        User entity = userRepository.findByIdWithProjetos(id).orElseThrow(
+                () -> new ResourceNotFoundException("Utilizador com o id: " + id + " não encontrado"));
+        return new UserWithProjetosDTO(entity);
     }
 
     @Transactional(readOnly = true)
@@ -52,6 +78,18 @@ public class UserService {
         return assignedTarefas.stream()
                 .map(TarefaDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public UserWithProjetosDTO insertWithProjetos(UserWithProjetosDTO userDTO, MultipartFile imageFile) {
+        User entity = new User();
+        copyDTOtoEntity(userDTO, entity);
+        copyProjetosToEntity(userDTO, entity);
+        if (imageFile != null && !imageFile.isEmpty()) {
+            processImageFile(entity, imageFile);
+        }
+        entity = userRepository.save(entity);
+        return new UserWithProjetosDTO(entity);
     }
 
     @Transactional
@@ -112,6 +150,41 @@ public class UserService {
         entity.setEmail(userDTO.getEmail());
         entity.setPassword(userDTO.getPassword());
         entity.setProfileImage(userDTO.getProfileImage());
+    }
+
+    private void copyProjetosToEntity(UserWithProjetosDTO userDTO, User entity) {
+        entity.getProjetos().clear();
+        userDTO.getProjetos().forEach(projetoDTO -> {
+            Projeto projeto = projetoRepository.getReferenceById(projetoDTO.getId());
+            entity.getProjetos().add(projeto);
+        });
+    }
+
+    @Transactional
+    public UserWithProjetosDTO updateWithProjetos(Long id, UserWithProjetosDTO userDTO, MultipartFile imageFile) {
+        try {
+            User entity = userRepository.getReferenceById(id);
+            copyDTOtoEntity(userDTO, entity);
+            copyProjetosToEntity(userDTO, entity);
+            if (imageFile != null && !imageFile.isEmpty()) {
+                processImageFile(entity, imageFile);
+            }
+            entity = userRepository.save(entity);
+            return new UserWithProjetosDTO(entity);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
+        }
+    }
+
+    private void processImageFile(User entity, MultipartFile imageFile) {
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                validateImage(imageFile);
+                entity.setProfileImage(imageFile.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException("Error processing image file", e);
+            }
+        }
     }
 
     /*
