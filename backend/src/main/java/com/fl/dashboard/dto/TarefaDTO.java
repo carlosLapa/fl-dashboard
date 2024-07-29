@@ -1,13 +1,11 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Tarefa;
-import com.fl.dashboard.entities.User;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -20,8 +18,6 @@ public class TarefaDTO {
     private String prioridade;
     private Date prazoEstimado;
     private Date prazoReal;
-
-    private Set<UserDTO> users = new HashSet<>();
 
     public TarefaDTO() {
     }
@@ -42,12 +38,6 @@ public class TarefaDTO {
         this.prioridade = entity.getPrioridade();
         this.prazoEstimado = entity.getPrazoEstimado();
         this.prazoReal = entity.getPrazoReal();
-        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
-    }
-
-    public TarefaDTO(Tarefa entity, Set<User> users) {
-        this(entity);
-        users.forEach(u -> this.users.add(new UserDTO(u)));
     }
 
 }

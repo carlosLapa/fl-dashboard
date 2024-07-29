@@ -1,9 +1,10 @@
 package com.fl.dashboard.services;
 
-import com.fl.dashboard.dto.TarefaDTO;
-import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.*;
+import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
@@ -16,12 +17,17 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TarefaService {
 
     @Autowired
     private TarefaRepository tarefaRepository;
+
+    @Autowired
+    private ProjetoRepository projetoRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -32,11 +38,39 @@ public class TarefaService {
         return list.stream().map(TarefaDTO::new).toList();
     }
 
+    /*
+    public Page<TarefaDTO> findAllPaged(Pageable pageable) {
+        Page<Tarefa> tarefas = tarefaRepository.findAll(pageable);
+        return tarefas.map(TarefaDTO::new);
+    }
+    */
+
     @Transactional(readOnly = true)
     public TarefaDTO findById(Long id) {
         Tarefa entity = tarefaRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Tarefa com o id " + id + " não encontrado"));
         return new TarefaDTO(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public TarefaWithUsersDTO findByIdWithUsers(Long id) {
+        Tarefa entity = tarefaRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Tarefa com o id " + id + " não encontrado"));
+        return new TarefaWithUsersDTO(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public TarefaWithProjetoDTO findByIdWithProjeto(Long id) {
+        Tarefa entity = tarefaRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Tarefa com o id " + id + " não encontrado"));
+        return new TarefaWithProjetoDTO(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public TarefaWithUserAndProjetoDTO findByIdWithUsersAndProjeto(Long id) {
+        Tarefa tarefa = tarefaRepository.findByIdWithUsersAndProjeto(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found with id: " + id));
+        return new TarefaWithUserAndProjetoDTO(tarefa);
     }
 
     @Transactional
@@ -59,6 +93,72 @@ public class TarefaService {
         }
     }
 
+    // To handle user associations
+    @Transactional
+    public void updateTarefaUsers(Long tarefaId, Set<Long> userIds) {
+        Tarefa tarefa = tarefaRepository.findById(tarefaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+
+        tarefa.getUsers().clear();
+        for (Long userId : userIds) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            tarefa.getUsers().add(user);
+        }
+
+        tarefaRepository.save(tarefa);
+    }
+
+    @Transactional
+    public void updateTarefaProjeto(Long tarefaId, Long projetoId) {
+        Tarefa tarefa = tarefaRepository.findById(tarefaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+
+        if (projetoId != null) {
+            Projeto projeto = projetoRepository.findById(projetoId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+            tarefa.setProjeto(projeto);
+        } else {
+            tarefa.setProjeto(null);
+        }
+
+        tarefaRepository.save(tarefa);
+    }
+
+    @Transactional
+    public TarefaWithUserAndProjetoDTO updateWithAssociations(TarefaUpdateDTO dto) {
+        Tarefa tarefa = tarefaRepository.findById(dto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+
+        tarefa.setDescricao(dto.getDescricao());
+        tarefa.setStatus(dto.getStatus());
+        tarefa.setPrioridade(dto.getPrioridade());
+        tarefa.setPrazoEstimado(dto.getPrazoEstimado());
+        tarefa.setPrazoReal(dto.getPrazoReal());
+
+        // Update projeto association
+        if (dto.getProjetoId() != null) {
+            Projeto projeto = projetoRepository.findById(dto.getProjetoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+            tarefa.setProjeto(projeto);
+        } else {
+            tarefa.setProjeto(null);  // Remove projeto association if projetoId is null
+        }
+
+        // Update user associations
+        tarefa.getUsers().clear();  // Remove all existing associations
+        if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
+            Set<User> users = dto.getUserIds().stream()
+                    .map(userId -> userRepository.findById(userId)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)))
+                    .collect(Collectors.toSet());
+            tarefa.setUsers(users);
+        }
+
+        tarefa = tarefaRepository.save(tarefa);
+        return new TarefaWithUserAndProjetoDTO(tarefa);
+    }
+
     @Transactional(propagation = Propagation.SUPPORTS)
     public void delete(Long id) {
         if (!tarefaRepository.existsById(id)) {
@@ -71,21 +171,42 @@ public class TarefaService {
         }
     }
 
+    @Transactional
+    public TarefaWithUserAndProjetoDTO insertWithAssociations(TarefaInsertDTO dto) {
+        Tarefa tarefa = new Tarefa();
+        tarefa.setDescricao(dto.getDescricao());
+        tarefa.setStatus(dto.getStatus());
+        tarefa.setPrioridade(dto.getPrioridade());
+        tarefa.setPrazoEstimado(dto.getPrazoEstimado());
+        tarefa.setPrazoReal(dto.getPrazoReal());
+
+        if (dto.getProjetoId() != null) {
+            Projeto projeto = projetoRepository.findById(dto.getProjetoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+            tarefa.setProjeto(projeto);
+        }
+
+        if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
+            Set<User> users = dto.getUserIds().stream()
+                    .map(userId -> userRepository.findById(userId)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)))
+                    .collect(Collectors.toSet());
+            tarefa.setUsers(users);
+        }
+
+        tarefa = tarefaRepository.save(tarefa);
+        return new TarefaWithUserAndProjetoDTO(tarefa);
+    }
+
+
     private void copyDTOtoEntity(TarefaDTO tarefaDTO, Tarefa entity) {
         entity.setDescricao(tarefaDTO.getDescricao());
         entity.setStatus(tarefaDTO.getStatus());
         entity.setPrioridade(tarefaDTO.getPrioridade());
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
-
-        /*
-        entity.getUsers().clear();
-        for (UserDTO userDTO : tarefaDTO.getUsers()) {
-            User user = userRepository.getReferenceById(userDTO.getId());
-            entity.getUsers().add(user);
-        }
-        */
     }
+
 }
 
 
