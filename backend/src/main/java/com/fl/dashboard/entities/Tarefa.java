@@ -1,5 +1,6 @@
 package com.fl.dashboard.entities;
 
+import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +20,10 @@ public class Tarefa {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String descricao;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private TarefaStatus status;
+
     private String prioridade; //ENUMS??
     private Date prazoEstimado;
     private Date prazoReal;
@@ -37,7 +41,7 @@ public class Tarefa {
     public Tarefa() {
     }
 
-    public Tarefa(Long id, String descricao, String status, String prioridade, Date prazoEstimado, Date prazoReal) {
+    public Tarefa(Long id, String descricao, TarefaStatus status, String prioridade, Date prazoEstimado, Date prazoReal) {
         this.id = id;
         this.descricao = descricao;
         this.status = status;

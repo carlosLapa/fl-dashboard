@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -180,12 +182,14 @@ public class TarefaService {
         tarefa.setPrazoEstimado(dto.getPrazoEstimado());
         tarefa.setPrazoReal(dto.getPrazoReal());
 
+        // Associate Projeto only if projetoId is provided
         if (dto.getProjetoId() != null) {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
             tarefa.setProjeto(projeto);
         }
 
+        // Associate Users only if userIds are provided
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
             Set<User> users = dto.getUserIds().stream()
                     .map(userId -> userRepository.findById(userId)
@@ -198,13 +202,28 @@ public class TarefaService {
         return new TarefaWithUserAndProjetoDTO(tarefa);
     }
 
-
     private void copyDTOtoEntity(TarefaDTO tarefaDTO, Tarefa entity) {
         entity.setDescricao(tarefaDTO.getDescricao());
         entity.setStatus(tarefaDTO.getStatus());
         entity.setPrioridade(tarefaDTO.getPrioridade());
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
+    }
+
+    @Transactional
+    public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
+        Tarefa tarefa = tarefaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+        tarefa.setStatus(newStatus);
+        return new TarefaDTO(tarefaRepository.save(tarefa));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<TarefaStatus, List<TarefaWithUserAndProjetoDTO>> getTarefasByStatus() {
+        List<Tarefa> tarefas = tarefaRepository.findAll();
+        return tarefas.stream()
+                .map(TarefaWithUserAndProjetoDTO::new)
+                .collect(Collectors.groupingBy(TarefaWithUserAndProjetoDTO::getStatus));
     }
 
 }
