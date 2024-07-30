@@ -1,5 +1,5 @@
 import { Projeto, ProjetoFormData } from '../types/projeto';
-import { addProjetoAPI, getProjetosAPI } from '../api/requestsApi';
+import { addProjetoAPI, getProjetosAPI, getProjetoByIdAPI } from '../api/requestsApi';
 
 export const getProjetos = async (): Promise<Projeto[]> => {
   try {
@@ -26,6 +26,16 @@ export const addProjeto = async (data: ProjetoFormData): Promise<void> => {
     await addProjetoAPI(data);
   } catch (error) {
     console.error('Error adding project:', error);
+    throw error;
+  }
+};
+
+export const getProjetoById = async (id: number): Promise<Projeto> => {
+  try {
+    const projetoData = await getProjetoByIdAPI(id);
+    return projetoData;
+  } catch (error) {
+    console.error('Erro ao carregar o projeto:', error);
     throw error;
   }
 };

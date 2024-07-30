@@ -1,7 +1,7 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import { ProjetoFormData } from 'types/projeto';
+import { Projeto, ProjetoFormData } from 'types/projeto';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
@@ -68,6 +68,16 @@ export const deleteUserAPI = async (id: number): Promise<void> => {
 export const getProjetosAPI = async () => {
   const response = await axios.get(BASE_URL + '/projetos');
   return response.data.content || [];
+};
+
+export const getProjetoByIdAPI = async (id: number): Promise<Projeto> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/projetos/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    throw error;
+  }
 };
 
 export const addProjetoAPI = async (data: ProjetoFormData): Promise<void> => {
