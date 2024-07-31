@@ -1,7 +1,11 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import { Projeto, ProjetoFormData } from 'types/projeto';
+import {
+  Projeto,
+  ProjetoFormData,
+  ProjetoWithUsersAndTarefasDTO,
+} from 'types/projeto';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
@@ -70,16 +74,6 @@ export const getProjetosAPI = async () => {
   return response.data.content || [];
 };
 
-export const getProjetoByIdAPI = async (id: number): Promise<Projeto> => {
-  try {
-    const response = await axios.get(`${BASE_URL}/projetos/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching project:', error);
-    throw error;
-  }
-};
-
 export const addProjetoAPI = async (data: ProjetoFormData): Promise<void> => {
   try {
     await axios.post(`${BASE_URL}/projetos`, data);
@@ -114,6 +108,17 @@ export const deleteProjetoAPI = async (id: number): Promise<void> => {
     await axios.delete(`${BASE_URL}/projetos/${id}`);
   } catch (error) {
     console.error('Error deleting project:', error);
+    throw error;
+  }
+};
+
+// For the Kanban board, we need to fetch the project with its users and tasks.
+export const getProjetoWithUsersAndTarefasAPI = async (id: number): Promise<ProjetoWithUsersAndTarefasDTO> => {
+  try {
+    const response = await axios.get<ProjetoWithUsersAndTarefasDTO>(`${BASE_URL}/projetos/${id}/full`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching project with users and tasks:', error);
     throw error;
   }
 };

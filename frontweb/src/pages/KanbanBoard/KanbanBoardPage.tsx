@@ -1,39 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import ProjectKanbanBoard from '../../components/Task/ProjectKanbanBoard';
-import { getProjetoById } from '../../services/projetoService';
-
-interface ProjectDetails {
-  id: number;
-  nome: string;
-  // Add other project properties as needed
-}
+import ProjetoKanbanBoard from '../../components/Tarefa/ProjetoKanbanBoard';
+import { getProjetoWithUsersAndTarefas } from '../../services/projetoService';
+import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
 
 const KanbanBoardPage: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>();
-  const [project, setProject] = useState<ProjectDetails | null>(null);
+  const { projetoId } = useParams<{ projetoId: string }>();
+  const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
+    null
+  );
 
   useEffect(() => {
     const loadProject = async () => {
-      if (projectId) {
-        const projectData = await getProjetoById(Number(projectId));
-        setProject({
-          id: projectData.id,
-          nome: projectData.designacao || '',
-        });
+      if (projetoId) {
+        const projetoData = await getProjetoWithUsersAndTarefas(
+          Number(projetoId)
+        );
+        setProjeto(projetoData);
       }
     };
     loadProject();
-  }, [projectId]);
+  }, [projetoId]);
 
-  if (!project) {
+  if (!projeto) {
     return <div>Loading project...</div>;
   }
 
   return (
-    <div className="kanban-board-page">
-      <h1>{project.nome} Kanban Board</h1>
-      <ProjectKanbanBoard projectId={project.id} />
+    <div className="home-container flex-grow-1">
+      {' '}
+      <div className="kanban-board-page">
+        <h1>{projeto.designacao} - Kanban Board</h1>
+        <ProjetoKanbanBoard projeto={projeto} />{' '}
+      </div>{' '}
     </div>
   );
 };

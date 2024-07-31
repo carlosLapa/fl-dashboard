@@ -2,6 +2,7 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.dto.ProjetoWithTarefasDTO;
+import com.fl.dashboard.dto.ProjetoWithUsersAndTarefasDTO;
 import com.fl.dashboard.dto.ProjetoWithUsersDTO;
 import com.fl.dashboard.services.ProjetoService;
 import jakarta.validation.Valid;
@@ -52,6 +53,12 @@ public class ProjetoResource {
     @GetMapping("/{id}/with-tarefas")
     public ResponseEntity<ProjetoWithTarefasDTO> getProjetoWithTarefas(@PathVariable Long id) {
         ProjetoWithTarefasDTO projeto = projetoService.findProjetoWithTarefas(id);
+        return ResponseEntity.ok(projeto);
+    }
+
+    @GetMapping("/{id}/full")
+    public ResponseEntity<ProjetoWithUsersAndTarefasDTO> getProjetoWithUsersAndTarefas(@PathVariable Long id) {
+        ProjetoWithUsersAndTarefasDTO projeto = projetoService.findProjetoWithUsersAndTarefas(id);
         return ResponseEntity.ok(projeto);
     }
 

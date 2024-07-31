@@ -20,4 +20,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     @Query("SELECT DISTINCT p FROM Projeto p LEFT JOIN FETCH p.tarefas t WHERE p.id = :id")
     Optional<Projeto> findByIdWithTarefas(@Param("id") Long id);
 
+    @Query("SELECT DISTINCT p FROM Projeto p LEFT JOIN FETCH p.users LEFT JOIN FETCH p.tarefas WHERE p.id = :id")
+    Optional<Projeto> findByIdWithUsersAndTarefas(@Param("id") Long id);
+
 }

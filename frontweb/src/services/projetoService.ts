@@ -1,5 +1,13 @@
-import { Projeto, ProjetoFormData } from '../types/projeto';
-import { addProjetoAPI, getProjetosAPI, getProjetoByIdAPI } from '../api/requestsApi';
+import {
+  Projeto,
+  ProjetoFormData,
+  ProjetoWithUsersAndTarefasDTO,
+} from '../types/projeto';
+import {
+  addProjetoAPI,
+  getProjetosAPI,
+  getProjetoWithUsersAndTarefasAPI,
+} from '../api/requestsApi';
 
 export const getProjetos = async (): Promise<Projeto[]> => {
   try {
@@ -30,12 +38,16 @@ export const addProjeto = async (data: ProjetoFormData): Promise<void> => {
   }
 };
 
-export const getProjetoById = async (id: number): Promise<Projeto> => {
+//For the kanban board
+export const getProjetoWithUsersAndTarefas = async (
+  id: number
+): Promise<ProjetoWithUsersAndTarefasDTO> => {
   try {
-    const projetoData = await getProjetoByIdAPI(id);
+    const projetoData = await getProjetoWithUsersAndTarefasAPI(id);
+    // Perform any necessary data treatment here
     return projetoData;
   } catch (error) {
-    console.error('Erro ao carregar o projeto:', error);
+    console.error('Error in projeto service:', error);
     throw error;
   }
 };

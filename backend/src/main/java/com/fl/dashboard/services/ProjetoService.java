@@ -2,6 +2,7 @@ package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.dto.ProjetoWithTarefasDTO;
+import com.fl.dashboard.dto.ProjetoWithUsersAndTarefasDTO;
 import com.fl.dashboard.dto.ProjetoWithUsersDTO;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
@@ -62,6 +63,14 @@ public class ProjetoService {
         }
 
         return new ProjetoWithTarefasDTO(projeto);
+    }
+
+    @Transactional(readOnly = true)
+    public ProjetoWithUsersAndTarefasDTO findProjetoWithUsersAndTarefas(Long id) {
+        Projeto projeto = projetoRepository.findByIdWithUsersAndTarefas(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + id));
+
+        return new ProjetoWithUsersAndTarefasDTO(projeto);
     }
 
     @Transactional

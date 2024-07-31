@@ -23,10 +23,7 @@ const AppRoutes = () => {
         <Route path="/users" element={<UsersPage />} />
       </Routes>
       <Routes>
-        <Route
-          path="/projetos/:projetoId/kanban"
-          element={<KanbanBoardPage />}
-        />
+        <Route path="/projetos/:projetoId/full" element={<KanbanBoardPage />} />
       </Routes>
     </BrowserRouter>
   );

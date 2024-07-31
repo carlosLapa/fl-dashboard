@@ -1,4 +1,5 @@
 import { User } from './user';
+import { Tarefa } from './tarefa';
 
 export type Projeto = {
   id: number;
@@ -20,3 +21,7 @@ export interface ProjetoFormData {
   prazo: string;
   users: User[];
 }
+
+export type ProjetoWithUsersAndTarefasDTO = Projeto & {
+  tarefas: Tarefa[];
+};
