@@ -18,10 +18,15 @@ const TarefaList: React.FC<TarefaListProps> = ({ title, tarefas }) => {
             {...provided.droppableProps}
             ref={provided.innerRef}
             className="tarefa-list-content"
+            style={{ minHeight: '100px' }}
           >
-            {tarefas.map((tarefa, index) => (
-              <TarefaCard key={tarefa.id} tarefa={tarefa} index={index} />
-            ))}
+            {tarefas.length > 0 ? (
+              tarefas.map((tarefa, index) => (
+                <TarefaCard key={tarefa.id} tarefa={tarefa} index={index} />
+              ))
+            ) : (
+              <div>No tasks in this status</div>
+            )}
             {provided.placeholder}
           </div>
         )}
