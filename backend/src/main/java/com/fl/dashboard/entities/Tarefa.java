@@ -1,6 +1,5 @@
 package com.fl.dashboard.entities;
 
-import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,23 +15,20 @@ import java.util.Set;
 @Setter
 public class Tarefa {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String descricao;
-
-    @Enumerated(EnumType.STRING)
-    private TarefaStatus status;
-
-    private String prioridade; //ENUMS??
-    private Date prazoEstimado;
-    private Date prazoReal;
-
     @ManyToMany
     @JoinTable(name = "tb_tarefa_user",
             joinColumns = @JoinColumn(name = "tarefa_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<User> users = new HashSet<>();
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String descricao;
+    private String prioridade;
+    private Date prazoEstimado;
+    private Date prazoReal;
 
     @ManyToOne
     @JoinColumn(name = "projeto_id")
@@ -41,10 +37,9 @@ public class Tarefa {
     public Tarefa() {
     }
 
-    public Tarefa(Long id, String descricao, TarefaStatus status, String prioridade, Date prazoEstimado, Date prazoReal) {
+    public Tarefa(Long id, String descricao, String prioridade, Date prazoEstimado, Date prazoReal) {
         this.id = id;
         this.descricao = descricao;
-        this.status = status;
         this.prioridade = prioridade;
         this.prazoEstimado = prazoEstimado;
         this.prazoReal = prazoReal;

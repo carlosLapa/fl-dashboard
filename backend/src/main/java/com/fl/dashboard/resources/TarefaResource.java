@@ -1,7 +1,6 @@
 package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.*;
-import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.services.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -102,23 +99,6 @@ public class TarefaResource {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         tarefaService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/status")
-    public ResponseEntity<List<TarefaStatus>> getStatus() {
-        return ResponseEntity.ok(Arrays.asList(TarefaStatus.values()));
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<TarefaDTO> updateStatus(@PathVariable Long id, @RequestBody TarefaStatus newStatus) {
-        TarefaDTO updatedTarefa = tarefaService.updateStatus(id, newStatus);
-        return ResponseEntity.ok(updatedTarefa);
-    }
-
-    @GetMapping("/by-status")
-    public ResponseEntity<Map<TarefaStatus, List<TarefaWithUserAndProjetoDTO>>> getTarefasByStatus() {
-        Map<TarefaStatus, List<TarefaWithUserAndProjetoDTO>> tarefasByStatus = tarefaService.getTarefasByStatus();
-        return ResponseEntity.ok(tarefasByStatus);
     }
 
 }
