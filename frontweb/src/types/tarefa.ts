@@ -1,12 +1,9 @@
 import { User } from './user';
 import { Projeto } from './projeto';
 
-export type StatusType = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
-
 export interface Tarefa {
   id: number;
   descricao: string;
-  status: StatusType;
   prioridade: string;
   prazoEstimado: string;
   prazoReal: string;
@@ -22,7 +19,6 @@ export interface Tarefa {
 
 export interface TarefaFormData {
   descricao: string;
-  status: StatusType;
   prioridade: string;
   prazoEstimado: string;
   prazoReal: string;
@@ -30,25 +26,7 @@ export interface TarefaFormData {
   projeto: Projeto;
 }
 
-/*
-export type Tarefa = {
-  id: number;
-  descricao: string;
-  status: string;
-  prioridade: string;
-  prazoEstimado: string;
-  prazoReal: string;
-  assignedUsers: User[];
-  projeto: Projeto;
-};
-
-export interface TarefaFormData {
-  descricao: string;
-  status: string;
-  prioridade: string;
-  prazoEstimado: string;
-  prazoReal: string;
-  assignedUsers: User[];
-  projeto: Projeto;
+export interface KanbanTarefa extends Tarefa {
+  column: string;
+  uniqueId: string;
 }
-*/

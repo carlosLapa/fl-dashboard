@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import ProjetoKanbanBoard from '../../components/Tarefa/ProjetoKanbanBoard';
 import { getProjetoWithUsersAndTarefas } from '../../services/projetoService';
@@ -9,31 +9,43 @@ const KanbanBoardPage: React.FC = () => {
   const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
     null
   );
+  const [error, setError] = useState<string | null>(null);
+
+  const loadProject = useMemo(
+    () => async () => {
+      if (projetoId) {
+        try {
+          const projetoData = await getProjetoWithUsersAndTarefas(
+            Number(projetoId)
+          );
+          setProjeto(projetoData);
+        } catch (err) {
+          setError('Failed to load project. Please try again.');
+        }
+      }
+    },
+    [projetoId]
+  );
 
   useEffect(() => {
-    const loadProject = async () => {
-      if (projetoId) {
-        const projetoData = await getProjetoWithUsersAndTarefas(
-          Number(projetoId)
-        );
-        setProjeto(projetoData);
-      }
-    };
     loadProject();
-  }, [projetoId]);
+  }, [loadProject]);
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
 
   if (!projeto) {
-    return <div>Loading project...</div>;
+    return <div className="loading-message">Loading project...</div>;
   }
 
   return (
-    <div className="home-container flex-grow-1">
-      {' '}
-      <div className="kanban-board-page">
+    <main className="home-container flex-grow-1">
+      <section className="kanban-board-page">
         <h1>{projeto.designacao} - Kanban Board</h1>
-        <ProjetoKanbanBoard projeto={projeto} />{' '}
-      </div>{' '}
-    </div>
+        <ProjetoKanbanBoard projeto={projeto} />
+      </section>
+    </main>
   );
 };
 

@@ -1,18 +1,18 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import TarefaCard from './TarefaCard';
-import { Tarefa } from '../../types/tarefa';
+import { KanbanTarefa } from '../../types/tarefa';
 
 interface TarefaListProps {
-  title: string;
-  tarefas: Tarefa[];
+  column: string;
+  tarefas: KanbanTarefa[];
 }
 
-const TarefaList: React.FC<TarefaListProps> = ({ title, tarefas }) => {
+const TarefaList: React.FC<TarefaListProps> = ({ column, tarefas }) => {
   return (
     <div className="tarefa-list">
-      <h2>{title}</h2>
-      <Droppable droppableId={title}>
+      <h2>{column}</h2>
+      <Droppable droppableId={column}>
         {(provided) => (
           <div
             {...provided.droppableProps}
@@ -22,10 +22,14 @@ const TarefaList: React.FC<TarefaListProps> = ({ title, tarefas }) => {
           >
             {tarefas.length > 0 ? (
               tarefas.map((tarefa, index) => (
-                <TarefaCard key={tarefa.id} tarefa={tarefa} index={index} />
+                <TarefaCard
+                  key={`${column}-${tarefa.id}`}
+                  task={tarefa}
+                  index={index}
+                />
               ))
             ) : (
-              <div>No tasks in this status</div>
+              <div>No tasks in this column</div>
             )}
             {provided.placeholder}
           </div>
