@@ -1,11 +1,8 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import {
-  Projeto,
-  ProjetoFormData,
-  ProjetoWithUsersAndTarefasDTO,
-} from 'types/projeto';
+import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
+import { TarefaWithUsersAndProjetoDTO, TarefaWithUsersDTO } from 'types/tarefa';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
@@ -112,13 +109,44 @@ export const deleteProjetoAPI = async (id: number): Promise<void> => {
   }
 };
 
-// For the Kanban board, we need to fetch the project with its users and tasks.
-export const getProjetoWithUsersAndTarefasAPI = async (id: number): Promise<ProjetoWithUsersAndTarefasDTO> => {
+export const getProjetoWithUsersAndTarefasAPI = async (
+  id: number
+): Promise<ProjetoWithUsersAndTarefasDTO> => {
   try {
-    const response = await axios.get<ProjetoWithUsersAndTarefasDTO>(`${BASE_URL}/projetos/${id}/full`);
+    const response = await axios.get<ProjetoWithUsersAndTarefasDTO>(
+      `${BASE_URL}/projetos/${id}/full`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching project with users and tasks:', error);
+    throw error;
+  }
+};
+
+export const getTarefaWithUsersAndProjetoAPI = async (
+  tarefaId: number
+): Promise<TarefaWithUsersAndProjetoDTO> => {
+  try {
+    const response = await axios.get<TarefaWithUsersAndProjetoDTO>(
+      `${BASE_URL}/tarefas/${tarefaId}/full`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching tarefa with users and projeto:', error);
+    throw error;
+  }
+};
+
+export const getTarefaWithUsersAPI = async (
+  tarefaId: number
+): Promise<TarefaWithUsersDTO> => {
+  try {
+    const response = await axios.get<TarefaWithUsersDTO>(
+      `${BASE_URL}/tarefas/${tarefaId}/with-users`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching tarefa with users:', error);
     throw error;
   }
 };

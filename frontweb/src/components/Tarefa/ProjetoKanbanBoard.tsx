@@ -3,6 +3,7 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
 import { KanbanTarefa } from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
+import { getTarefaWithUsers } from 'services/tarefaService';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
@@ -26,24 +27,30 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   ]);
 
   useEffect(() => {
-    const updatedColumns: { [key: string]: KanbanTarefa[] } = {
-      BACKLOG: [],
-      TODO: [],
-      IN_PROGRESS: [],
-      IN_REVIEW: [],
-      DONE: [],
-    };
-    projeto.tarefas.forEach((tarefa) => {
-      const kanbanTarefa: KanbanTarefa = {
-        ...tarefa,
-        column: 'BACKLOG',
-        projeto: { id: projeto.id, designacao: projeto.designacao },
-        users: projeto.users,
-        uniqueId: `${tarefa.id}-${Date.now()}`,
+    const fetchTarefasWithUsers = async () => {
+      const updatedColumns: { [key: string]: KanbanTarefa[] } = {
+        BACKLOG: [],
+        TODO: [],
+        IN_PROGRESS: [],
+        IN_REVIEW: [],
+        DONE: [],
       };
-      updatedColumns.BACKLOG.push(kanbanTarefa);
-    });
-    setColumns(updatedColumns);
+
+      for (const tarefa of projeto.tarefas) {
+        const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
+        const kanbanTarefa: KanbanTarefa = {
+          ...tarefaWithUsers,
+          column: 'BACKLOG',
+          projeto: { id: projeto.id, designacao: projeto.designacao },
+          uniqueId: `${tarefa.id}-${Date.now()}`,
+        };
+        updatedColumns[kanbanTarefa.column].push(kanbanTarefa);
+      }
+
+      setColumns(updatedColumns);
+    };
+
+    fetchTarefasWithUsers();
   }, [projeto]);
 
   const onDragEnd = (result: DropResult) => {
@@ -77,7 +84,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           <TarefaColumn
             key={columnId}
             columnId={columnId}
-            tasks={columns[columnId]}
+            tarefas={columns[columnId]}
           />
         ))}
       </div>

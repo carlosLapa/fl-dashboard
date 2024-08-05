@@ -5,10 +5,10 @@ import { KanbanTarefa } from '../../types/tarefa';
 
 interface TarefaColumnProps {
   columnId: string;
-  tasks: KanbanTarefa[];
+  tarefas: KanbanTarefa[];
 }
 
-const TarefaColumn: React.FC<TarefaColumnProps> = ({ columnId, tasks }) => {
+const TarefaColumn: React.FC<TarefaColumnProps> = ({ columnId, tarefas }) => {
   return (
     <div style={{ margin: '8px', minWidth: '250px' }}>
       <h2>{columnId}</h2>
@@ -23,8 +23,8 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({ columnId, tasks }) => {
               padding: '8px',
             }}
           >
-            {tasks.map((task, index) => (
-              <TarefaCard key={task.uniqueId} task={task} index={index} />
+            {tarefas.map((tarefa, index) => (
+              <TarefaCard key={tarefa.uniqueId} tarefa={tarefa} index={index} />
             ))}
             {provided.placeholder}
           </div>

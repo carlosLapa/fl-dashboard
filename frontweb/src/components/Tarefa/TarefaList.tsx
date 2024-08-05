@@ -24,7 +24,7 @@ const TarefaList: React.FC<TarefaListProps> = ({ column, tarefas }) => {
               tarefas.map((tarefa, index) => (
                 <TarefaCard
                   key={`${column}-${tarefa.id}`}
-                  task={tarefa}
+                  tarefa={tarefa}
                   index={index}
                 />
               ))

@@ -26,6 +26,15 @@ export interface TarefaFormData {
   projeto: Projeto;
 }
 
+export type TarefaWithUsersAndProjetoDTO = Tarefa & {
+  projeto: Projeto;
+  users: User[];
+};
+
+export type TarefaWithUsersDTO = Tarefa & {
+  users: User[];
+};
+
 export interface KanbanTarefa extends Tarefa {
   column: string;
   uniqueId: string;
