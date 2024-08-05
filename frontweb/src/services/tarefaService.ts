@@ -3,13 +3,16 @@ import { BASE_URL } from '../util/requests';
 import {
   Tarefa,
   TarefaFormData,
+  TarefaStatus,
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
 } from '../types/tarefa';
 import {
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
+  updateTarefaStatusAPI,
 } from 'api/requestsApi';
+import { ColunaWithProjetoDTO } from 'types/coluna';
 
 export const getTarefas = async (): Promise<Tarefa[]> => {
   try {
@@ -100,6 +103,34 @@ export const getTarefaWithUsers = async (
     const tarefaData = await getTarefaWithUsersAPI(id);
     // Perform any necessary data treatment here
     return tarefaData;
+  } catch (error) {
+    console.error('Error in tarefa service:', error);
+    throw error;
+  }
+};
+
+export const getColumnsForProject = async (
+  projetoId: number
+): Promise<ColunaWithProjetoDTO[]> => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/colunas/projeto/${projetoId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching columns:', error);
+    return [];
+  }
+};
+
+export const updateTarefaStatus = async (
+  id: number,
+  newStatus: TarefaStatus
+): Promise<TarefaWithUsersDTO> => {
+  try {
+    const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
+    // Perform any necessary data treatment here
+    return updatedTarefa;
   } catch (error) {
     console.error('Error in tarefa service:', error);
     throw error;

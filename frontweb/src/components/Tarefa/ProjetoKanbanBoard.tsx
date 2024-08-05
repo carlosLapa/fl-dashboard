@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
-import { KanbanTarefa } from '../../types/tarefa';
+import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
-import { getTarefaWithUsers } from 'services/tarefaService';
+import {
+  getTarefaWithUsers,
+  getColumnsForProject,
+  updateTarefaStatus,
+} from 'services/tarefaService';
+import { ColunaWithProjetoDTO } from '../../types/coluna';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
 }
 
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
-  const [columns, setColumns] = useState<{ [key: string]: KanbanTarefa[] }>({
+  const [columns, setColumns] = useState<{
+    [key in TarefaStatus]: KanbanTarefa[];
+  }>({
     BACKLOG: [],
     TODO: [],
     IN_PROGRESS: [],
@@ -18,7 +25,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     DONE: [],
   });
 
-  const [columnsOrder] = useState<string[]>([
+  const [columnsOrder, setColumnsOrder] = useState<TarefaStatus[]>([
     'BACKLOG',
     'TODO',
     'IN_PROGRESS',
@@ -27,8 +34,9 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   ]);
 
   useEffect(() => {
-    const fetchTarefasWithUsers = async () => {
-      const updatedColumns: { [key: string]: KanbanTarefa[] } = {
+    const fetchColumnsAndTarefas = async () => {
+      const fetchedColumns = await getColumnsForProject(projeto.id);
+      const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
         BACKLOG: [],
         TODO: [],
         IN_PROGRESS: [],
@@ -36,24 +44,55 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         DONE: [],
       };
 
+      const updatedColumnsOrder: TarefaStatus[] = [
+        'BACKLOG',
+        'TODO',
+        'IN_PROGRESS',
+        'IN_REVIEW',
+        'DONE',
+      ];
+
+      fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
+        if (column.status in updatedColumns) {
+          updatedColumns[column.status as TarefaStatus] = [];
+        }
+      });
+
+      function isTarefaStatus(status: any): status is TarefaStatus {
+        return ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'].includes(
+          status
+        );
+      }
+
       for (const tarefa of projeto.tarefas) {
         const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
         const kanbanTarefa: KanbanTarefa = {
           ...tarefaWithUsers,
-          column: 'BACKLOG',
+          column: tarefaWithUsers.status as TarefaStatus,
           projeto: { id: projeto.id, designacao: projeto.designacao },
           uniqueId: `${tarefa.id}-${Date.now()}`,
         };
-        updatedColumns[kanbanTarefa.column].push(kanbanTarefa);
+        if (
+          isTarefaStatus(kanbanTarefa.status) &&
+          kanbanTarefa.status in updatedColumns
+        ) {
+          updatedColumns[kanbanTarefa.status].push(kanbanTarefa);
+        } else {
+          console.warn(
+            `Unknown status: ${kanbanTarefa.status}. Moving task to BACKLOG.`
+          );
+          updatedColumns.BACKLOG.push(kanbanTarefa);
+        }
       }
 
       setColumns(updatedColumns);
+      setColumnsOrder(updatedColumnsOrder);
     };
 
-    fetchTarefasWithUsers();
+    fetchColumnsAndTarefas();
   }, [projeto]);
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
 
     if (!destination) return;
@@ -65,10 +104,26 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       return;
     }
 
-    const sourceColumn = columns[source.droppableId];
-    const destColumn = columns[destination.droppableId];
+    const sourceColumn = columns[source.droppableId as TarefaStatus];
+    const destColumn = columns[destination.droppableId as TarefaStatus];
     const [removed] = sourceColumn.splice(source.index, 1);
     destColumn.splice(destination.index, 0, removed);
+
+    setColumns({
+      ...columns,
+      [source.droppableId]: sourceColumn,
+      [destination.droppableId]: destColumn,
+    });
+
+    try {
+      await updateTarefaStatus(
+        removed.id,
+        destination.droppableId as TarefaStatus
+      );
+    } catch (error) {
+      console.error('Failed to update tarefa status:', error);
+      // Optionally, revert the local state change if the API call fails
+    }
 
     setColumns({
       ...columns,

@@ -25,12 +25,13 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
           }}
         >
           <h3>{tarefa.descricao}</h3>
+          <p>Status: {tarefa.status}</p>
           <p>Prioridade: {tarefa.prioridade}</p>
           <p>Prazo estimado: {tarefa.prazoEstimado}</p>
           <p>Prazo real: {tarefa.prazoReal}</p>
-          <p>Projeto: {tarefa.projeto?.designacao}</p>
+          <p>Projeto: {tarefa.projeto.designacao}</p>
           <p>
-            Atribuição: {tarefa.users?.map((user) => user.username).join(', ')}
+            Atribuição: {tarefa.users.map((user) => user.username).join(', ')}
           </p>
         </div>
       )}

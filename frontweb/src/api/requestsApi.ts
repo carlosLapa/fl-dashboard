@@ -2,7 +2,11 @@
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
 import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
-import { TarefaWithUsersAndProjetoDTO, TarefaWithUsersDTO } from 'types/tarefa';
+import {
+  TarefaStatus,
+  TarefaWithUsersAndProjetoDTO,
+  TarefaWithUsersDTO,
+} from 'types/tarefa';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
@@ -147,6 +151,22 @@ export const getTarefaWithUsersAPI = async (
     return response.data;
   } catch (error) {
     console.error('Error fetching tarefa with users:', error);
+    throw error;
+  }
+};
+
+export const updateTarefaStatusAPI = async (
+  tarefaId: number,
+  newStatus: TarefaStatus
+) => {
+  try {
+    const response = await axios.put<TarefaWithUsersDTO>(
+      `${BASE_URL}/tarefas/${tarefaId}/status`,
+      { status: newStatus }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating tarefa status:', error);
     throw error;
   }
 };

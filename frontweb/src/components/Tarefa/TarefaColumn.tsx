@@ -1,10 +1,10 @@
 import React from 'react';
 import { StrictModeDroppable } from '../../util/strickModeDroppable';
 import TarefaCard from './TarefaCard';
-import { KanbanTarefa } from '../../types/tarefa';
+import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
 
 interface TarefaColumnProps {
-  columnId: string;
+  columnId: TarefaStatus;
   tarefas: KanbanTarefa[];
 }
 

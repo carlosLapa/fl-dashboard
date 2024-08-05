@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ProjetoKanbanBoard from '../../components/Tarefa/ProjetoKanbanBoard';
 import { getProjetoWithUsersAndTarefas } from '../../services/projetoService';
@@ -11,8 +11,8 @@ const KanbanBoardPage: React.FC = () => {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const loadProject = useMemo(
-    () => async () => {
+  useEffect(() => {
+    const loadProject = async () => {
       if (projetoId) {
         try {
           const projetoData = await getProjetoWithUsersAndTarefas(
@@ -23,13 +23,9 @@ const KanbanBoardPage: React.FC = () => {
           setError('Failed to load project. Please try again.');
         }
       }
-    },
-    [projetoId]
-  );
-
-  useEffect(() => {
+    };
     loadProject();
-  }, [loadProject]);
+  }, [projetoId]);
 
   if (error) {
     return <div className="error-message">{error}</div>;
