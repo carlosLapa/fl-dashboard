@@ -101,4 +101,10 @@ public class TarefaResource {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<TarefaDTO> updateStatus(@PathVariable Long id, @RequestBody TarefaStatusUpdateDTO statusDTO) {
+        TarefaDTO updatedTarefa = tarefaService.updateStatus(id, statusDTO.getStatus());
+        return ResponseEntity.ok().body(updatedTarefa);
+    }
+
 }

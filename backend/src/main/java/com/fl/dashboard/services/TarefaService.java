@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -197,6 +198,16 @@ public class TarefaService {
         tarefa = tarefaRepository.save(tarefa);
         return new TarefaWithUserAndProjetoDTO(tarefa);
     }
+
+    @Transactional
+    public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
+        Tarefa tarefa = tarefaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+        tarefa.setStatus(newStatus);
+        tarefa = tarefaRepository.save(tarefa);
+        return new TarefaDTO(tarefa);
+    }
+
 
     private void copyDTOtoEntity(TarefaDTO tarefaDTO, Tarefa entity) {
         entity.setDescricao(tarefaDTO.getDescricao());
