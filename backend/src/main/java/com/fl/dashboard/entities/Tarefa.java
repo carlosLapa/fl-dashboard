@@ -1,5 +1,6 @@
 package com.fl.dashboard.entities;
 
+import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,9 +31,16 @@ public class Tarefa {
     private Date prazoEstimado;
     private Date prazoReal;
 
+    @Enumerated(EnumType.STRING)
+    private TarefaStatus status = TarefaStatus.BACKLOG;
+
     @ManyToOne
     @JoinColumn(name = "projeto_id")
     private Projeto projeto;
+
+    @ManyToOne
+    @JoinColumn(name = "coluna_id")
+    private Coluna coluna;
 
     public Tarefa() {
     }

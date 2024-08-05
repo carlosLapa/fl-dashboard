@@ -2,10 +2,7 @@ package com.fl.dashboard.entities;
 
 import jakarta.persistence.*;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "tb_projeto")
@@ -16,9 +13,15 @@ public class Projeto {
             joinColumns = @JoinColumn(name = "projeto_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<User> users = new HashSet<>();
+
+    @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("order ASC")
+    private List<Coluna> colunas = new ArrayList<>();
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private Integer projetoAno;
     private String designacao;
     private String entidade;
@@ -27,9 +30,12 @@ public class Projeto {
     //private String responsavel - buscar o nome ao User
     private String prioridade;
     @Column(columnDefinition = "TEXT")
+
     private String observacao;
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+
     private Date prazo;
+
     @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
     private Set<Tarefa> tarefas = new HashSet<>();
 

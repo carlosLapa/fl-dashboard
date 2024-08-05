@@ -53,4 +53,9 @@ public class ProjetoDTO {
         this.prazo = entity.getPrazo();
     }
 
+    public ProjetoDTO(Long id, String designacao) {
+        this.id = id;
+        this.designacao = designacao;
+    }
+
 }
