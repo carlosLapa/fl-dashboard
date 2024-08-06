@@ -30,6 +30,7 @@ export interface TarefaFormData {
   prioridade: string;
   prazoEstimado: string;
   prazoReal: string;
+  status: TarefaStatus;
   users: User[];
   projeto: Projeto;
 }

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BASE_URL } from '../util/requests';
 import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
+  TarefaFormData,
   TarefaStatus,
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
@@ -151,6 +152,33 @@ export const getTarefaWithUsersAPI = async (
     return response.data;
   } catch (error) {
     console.error('Error fetching tarefa with users:', error);
+    throw error;
+  }
+};
+
+export const getAllTarefasWithUsersAndProjetoAPI = async (): Promise<
+  TarefaWithUsersAndProjetoDTO[]
+> => {
+  try {
+    const response = await axios.get(`${BASE_URL}/tarefas/full`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all tarefas with users and projeto:', error);
+    throw error;
+  }
+};
+
+export const addTarefaAPI = async (
+  data: TarefaFormData
+): Promise<TarefaWithUsersAndProjetoDTO> => {
+  try {
+    const response = await axios.post<TarefaWithUsersAndProjetoDTO>(
+      `${BASE_URL}/tarefas`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error adding tarefa:', error);
     throw error;
   }
 };

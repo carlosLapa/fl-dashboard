@@ -19,7 +19,7 @@ function SidebarFL() {
             </Link>
           </Nav.Item>
           <Nav.Item>
-            <Link to="/projetos/:projetoId/full" className="sidebar-link text-light mb-5">
+            <Link to="/tarefas" className="sidebar-link text-light mb-5">
               Tarefas
             </Link>
           </Nav.Item>

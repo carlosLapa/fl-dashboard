@@ -8,6 +8,8 @@ import {
   TarefaWithUsersDTO,
 } from '../types/tarefa';
 import {
+  addTarefaAPI,
+  getAllTarefasWithUsersAndProjetoAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
   updateTarefaStatusAPI,
@@ -58,6 +60,19 @@ export const getTarefasByProjeto = async (
       error
     );
     return [];
+  }
+};
+
+export const addTarefa = async (
+  data: TarefaFormData
+): Promise<TarefaWithUsersAndProjetoDTO> => {
+  try {
+    const newTarefa = await addTarefaAPI(data);
+    // Perform any necessary data treatment here
+    return newTarefa;
+  } catch (error) {
+    console.error('Error in tarefa service:', error);
+    throw error;
   }
 };
 
@@ -120,6 +135,18 @@ export const getColumnsForProject = async (
   } catch (error) {
     console.error('Error fetching columns:', error);
     return [];
+  }
+};
+
+export const getAllTarefasWithUsersAndProjeto = async (): Promise<
+  TarefaWithUsersAndProjetoDTO[]
+> => {
+  try {
+    const tarefasData = await getAllTarefasWithUsersAndProjetoAPI();
+    return tarefasData;
+  } catch (error) {
+    console.error('Error fetching all tarefas with users and projeto:', error);
+    throw error;
   }
 };
 
