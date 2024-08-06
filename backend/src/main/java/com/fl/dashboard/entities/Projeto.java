@@ -15,7 +15,7 @@ public class Projeto {
     Set<User> users = new HashSet<>();
 
     @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("order ASC")
+    @OrderBy("ordem ASC")
     private List<Coluna> colunas = new ArrayList<>();
 
     @Id
