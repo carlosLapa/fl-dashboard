@@ -9,9 +9,10 @@ import {
 } from '../types/tarefa';
 import {
   addTarefaAPI,
-  getAllTarefasWithUsersAndProjetoAPI,
+  getAllTarefasWithUsersAndProjetoAPI as getAllTarefasAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
+  updateTarefaAPI,
   updateTarefaStatusAPI,
 } from 'api/requestsApi';
 import { ColunaWithProjetoDTO } from 'types/coluna';
@@ -79,15 +80,16 @@ export const addTarefa = async (
 export const updateTarefa = async (
   id: number,
   data: TarefaFormData
-): Promise<Tarefa | null> => {
+): Promise<TarefaWithUsersAndProjetoDTO> => {
   try {
-    const response = await axios.put(`${BASE_URL}/tarefas/${id}`, data);
-    return response.data;
+    const updatedTarefa = await updateTarefaAPI(id, data);
+    return updatedTarefa;
   } catch (error) {
-    console.error(`Error updating task with id ${id}:`, error);
-    return null;
+    console.error('Error in tarefa service:', error);
+    throw error;
   }
 };
+
 
 export const deleteTarefa = async (id: number): Promise<void> => {
   try {
@@ -138,11 +140,9 @@ export const getColumnsForProject = async (
   }
 };
 
-export const getAllTarefasWithUsersAndProjeto = async (): Promise<
-  TarefaWithUsersAndProjetoDTO[]
-> => {
+export const getAllTarefasWithUsersAndProjeto = async (): Promise<TarefaWithUsersAndProjetoDTO[]> => {
   try {
-    const tarefasData = await getAllTarefasWithUsersAndProjetoAPI();
+    const tarefasData = await getAllTarefasAPI();
     return tarefasData;
   } catch (error) {
     console.error('Error fetching all tarefas with users and projeto:', error);

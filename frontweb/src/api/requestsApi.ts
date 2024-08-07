@@ -183,6 +183,11 @@ export const addTarefaAPI = async (
   }
 };
 
+export const updateTarefaAPI = async (id: number, data: TarefaFormData) => {
+  const response = await axios.put(`${BASE_URL}/tarefas/${id}`, data);
+  return response.data;
+};
+
 export const updateTarefaStatusAPI = async (
   tarefaId: number,
   newStatus: TarefaStatus
