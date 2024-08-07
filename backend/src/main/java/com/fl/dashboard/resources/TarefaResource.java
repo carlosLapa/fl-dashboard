@@ -48,6 +48,12 @@ public class TarefaResource {
         return ResponseEntity.ok().body(dto);
     }
 
+    @GetMapping("/full")
+    public ResponseEntity<List<TarefaWithUserAndProjetoDTO>> findAllWithUsersAndProjeto() {
+        List<TarefaWithUserAndProjetoDTO> dtos = tarefaService.findAllWithUsersAndProjeto();
+        return ResponseEntity.ok().body(dtos);
+    }
+
     @PostMapping("/with-associations")
     public ResponseEntity<TarefaWithUserAndProjetoDTO> insertWithAssociations(@Valid @RequestBody TarefaInsertDTO dto) {
         TarefaWithUserAndProjetoDTO result = tarefaService.insertWithAssociations(dto);

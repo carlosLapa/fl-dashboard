@@ -39,6 +39,12 @@ public class TarefaService {
         return list.stream().map(TarefaDTO::new).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<TarefaWithUserAndProjetoDTO> findAllWithUsersAndProjeto() {
+        List<Tarefa> list = tarefaRepository.findAll();
+        return list.stream().map(TarefaWithUserAndProjetoDTO::new).toList();
+    }
+
     /*
     public Page<TarefaDTO> findAllPaged(Pageable pageable) {
         Page<Tarefa> tarefas = tarefaRepository.findAll(pageable);
@@ -215,6 +221,7 @@ public class TarefaService {
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
     }
+
 
 }
 
