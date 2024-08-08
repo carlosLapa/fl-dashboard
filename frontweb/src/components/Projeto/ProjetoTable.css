@@ -35,3 +35,7 @@
 .delete-icon:hover {
   color: rgb(255, 0, 0);
 }
+
+.view-icon {
+  margin-left: 12px;
+}

@@ -3,9 +3,15 @@ import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
 import { Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPencilAlt,
+  faTrashAlt,
+  faEye,
+} from '@fortawesome/free-solid-svg-icons';
+import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 
 import './ProjetoTable.css';
+import { Link } from 'react-router-dom';
 
 export interface ProjetoTableProps {
   projetos: Projeto[];
@@ -68,6 +74,21 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                     onClick={() => onDeleteProjeto(projeto.id)}
                     className="delete-icon"
                   />
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`tooltip-${projeto.id}`}>
+                        Ver Kanban Board
+                      </Tooltip>
+                    }
+                  >
+                    <Link
+                      to={`/projetos/${projeto.id}/full`}
+                      className="view-icon"
+                    >
+                      <FontAwesomeIcon icon={faEye} />
+                    </Link>
+                  </OverlayTrigger>
                 </td>
               </tr>
             ))}
