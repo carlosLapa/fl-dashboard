@@ -3,7 +3,9 @@ import { BASE_URL } from '../util/requests';
 import {
   Tarefa,
   TarefaFormData,
+  TarefaInsertFormData,
   TarefaStatus,
+  TarefaUpdateFormData,
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
 } from '../types/tarefa';
@@ -65,7 +67,7 @@ export const getTarefasByProjeto = async (
 };
 
 export const addTarefa = async (
-  data: TarefaFormData
+  data: TarefaInsertFormData
 ): Promise<TarefaWithUsersAndProjetoDTO> => {
   try {
     const newTarefa = await addTarefaAPI(data);
@@ -79,7 +81,7 @@ export const addTarefa = async (
 
 export const updateTarefa = async (
   id: number,
-  data: TarefaFormData
+  data: TarefaUpdateFormData
 ): Promise<TarefaWithUsersAndProjetoDTO> => {
   try {
     const updatedTarefa = await updateTarefaAPI(id, data);
@@ -89,7 +91,6 @@ export const updateTarefa = async (
     throw error;
   }
 };
-
 
 export const deleteTarefa = async (id: number): Promise<void> => {
   try {
@@ -140,7 +141,9 @@ export const getColumnsForProject = async (
   }
 };
 
-export const getAllTarefasWithUsersAndProjeto = async (): Promise<TarefaWithUsersAndProjetoDTO[]> => {
+export const getAllTarefasWithUsersAndProjeto = async (): Promise<
+  TarefaWithUsersAndProjetoDTO[]
+> => {
   try {
     const tarefasData = await getAllTarefasAPI();
     return tarefasData;

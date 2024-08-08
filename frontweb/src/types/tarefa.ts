@@ -35,6 +35,27 @@ export interface TarefaFormData {
   projeto: Projeto;
 }
 
+export interface TarefaInsertFormData {
+  descricao: string;
+  prioridade: string;
+  prazoEstimado: string;
+  prazoReal: string;
+  status: TarefaStatus;
+  projetoId: number;
+  userIds: number[];
+}
+
+export interface TarefaUpdateFormData {
+  id: number;
+  descricao: string;
+  prioridade: string;
+  prazoEstimado: string;
+  prazoReal: string;
+  status: TarefaStatus;
+  projetoId: number;
+  userIds: number[];
+}
+
 export type TarefaWithUsersAndProjetoDTO = Tarefa & {
   projeto: Projeto;
   users: User[];

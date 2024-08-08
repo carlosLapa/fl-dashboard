@@ -4,7 +4,9 @@ import { BASE_URL } from '../util/requests';
 import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
   TarefaFormData,
+  TarefaInsertFormData,
   TarefaStatus,
+  TarefaUpdateFormData,
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
@@ -169,11 +171,11 @@ export const getAllTarefasWithUsersAndProjetoAPI = async (): Promise<
 };
 
 export const addTarefaAPI = async (
-  data: TarefaFormData
+  data: TarefaInsertFormData
 ): Promise<TarefaWithUsersAndProjetoDTO> => {
   try {
     const response = await axios.post<TarefaWithUsersAndProjetoDTO>(
-      `${BASE_URL}/tarefas`,
+      `${BASE_URL}/tarefas/with-associations`,
       data
     );
     return response.data;
@@ -183,7 +185,10 @@ export const addTarefaAPI = async (
   }
 };
 
-export const updateTarefaAPI = async (id: number, data: TarefaFormData) => {
+export const updateTarefaAPI = async (
+  id: number,
+  data: TarefaUpdateFormData
+) => {
   const response = await axios.put(`${BASE_URL}/tarefas/${id}`, data);
   return response.data;
 };

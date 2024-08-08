@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import TarefaTable from 'components/Tarefa/TarefaTable';
-import { TarefaWithUsersAndProjetoDTO, TarefaFormData } from 'types/tarefa';
+import {
+  TarefaWithUsersAndProjetoDTO,
+  TarefaFormData,
+  TarefaInsertFormData,
+  TarefaUpdateFormData,
+} from 'types/tarefa';
 import {
   getAllTarefasWithUsersAndProjeto,
   addTarefa,
@@ -9,7 +14,7 @@ import {
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 
-import "./styles.css";
+import './styles.css';
 
 const TarefaPage: React.FC = () => {
   const [tarefas, setTarefas] = useState<TarefaWithUsersAndProjetoDTO[]>([]);
@@ -34,18 +39,34 @@ const TarefaPage: React.FC = () => {
     }
   };
 
-  const handleAddOrUpdateTarefa = async (formData: TarefaFormData) => {
+  const handleAddTarefa = async (formData: TarefaInsertFormData) => {
     try {
-      if (tarefaToEdit) {
-        await updateTarefa(tarefaToEdit.id, formData);
-      } else {
-        await addTarefa(formData);
-      }
+      await addTarefa(formData);
+      await fetchTarefas();
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error adding tarefa:', error);
+    }
+  };
+
+  const handleUpdateTarefa = async (formData: TarefaUpdateFormData) => {
+    try {
+      await updateTarefa(formData.id, formData);
       await fetchTarefas();
       setShowModal(false);
       setTarefaToEdit(null);
     } catch (error) {
-      console.error('Error adding/updating tarefa:', error);
+      console.error('Error updating tarefa:', error);
+    }
+  };
+
+  const handleAddOrUpdateTarefa = async (
+    formData: TarefaInsertFormData | TarefaUpdateFormData
+  ) => {
+    if ('id' in formData) {
+      await handleUpdateTarefa(formData as TarefaUpdateFormData);
+    } else {
+      await handleAddTarefa(formData as TarefaInsertFormData);
     }
   };
 

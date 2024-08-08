@@ -1,6 +1,12 @@
+// src/components/Tarefa/TarefaModal.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
-import { TarefaFormData } from '../../types/tarefa';
+import {
+  Tarefa,
+  TarefaInsertFormData,
+  TarefaUpdateFormData,
+} from '../../types/tarefa';
 import { User } from 'types/user';
 import { Projeto } from 'types/projeto';
 import { getUsersAPI, getProjetosAPI } from '../../api/requestsApi';
@@ -8,8 +14,8 @@ import { getUsersAPI, getProjetosAPI } from '../../api/requestsApi';
 interface TarefaModalProps {
   show: boolean;
   onHide: () => void;
-  tarefa?: TarefaFormData | null;
-  onSave: (formData: TarefaFormData) => void;
+  tarefa?: Tarefa | null;
+  onSave: (formData: TarefaInsertFormData | TarefaUpdateFormData) => void;
   isEditing: boolean;
 }
 
@@ -20,23 +26,16 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   onSave,
   isEditing,
 }) => {
-  const [formData, setFormData] = useState<TarefaFormData>({
+  const [formData, setFormData] = useState<
+    TarefaInsertFormData | TarefaUpdateFormData
+  >({
     descricao: '',
     prioridade: '',
     prazoEstimado: '',
     prazoReal: '',
     status: 'BACKLOG',
-    projeto: {
-      id: 0,
-      designacao: '',
-      projetoAno: 0,
-      entidade: '',
-      prioridade: '',
-      observacao: '',
-      prazo: '',
-      users: [],
-    },
-    users: [],
+    projetoId: 0,
+    userIds: [],
   });
 
   const [users, setUsers] = useState<User[]>([]);
@@ -55,7 +54,15 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 
   useEffect(() => {
     if (isEditing && tarefa) {
-      setFormData(tarefa);
+      setFormData({
+        descricao: tarefa.descricao,
+        prioridade: tarefa.prioridade,
+        prazoEstimado: tarefa.prazoEstimado,
+        prazoReal: tarefa.prazoReal,
+        status: tarefa.status,
+        projetoId: tarefa.projeto.id,
+        userIds: tarefa.users.map((user) => user.id),
+      });
     } else {
       setFormData({
         descricao: '',
@@ -63,17 +70,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         prazoEstimado: '',
         prazoReal: '',
         status: 'BACKLOG',
-        projeto: {
-          id: 0,
-          designacao: '',
-          projetoAno: 0,
-          entidade: '',
-          prioridade: '',
-          observacao: '',
-          prazo: '',
-          users: [],
-        },
-        users: [],
+        projetoId: 0,
+        userIds: [],
       });
     }
   }, [isEditing, tarefa]);
@@ -88,19 +86,24 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   };
 
   const handleUserSelect = (userId: number) => {
-    const selectedUser = users.find((user) => user.id === userId);
-    if (selectedUser) {
-      setFormData((prevData) => ({
-        ...prevData,
-        users: prevData.users.includes(selectedUser)
-          ? prevData.users.filter((user) => user.id !== userId)
-          : [...prevData.users, selectedUser],
-      }));
-    }
+    setFormData((prevData) => ({
+      ...prevData,
+      userIds: prevData.userIds.includes(userId)
+        ? prevData.userIds.filter((id) => id !== userId)
+        : [...prevData.userIds, userId],
+    }));
   };
 
   const handleSave = () => {
-    onSave(formData);
+    if (formData.projetoId === 0) {
+      alert('Please select a valid project');
+      return;
+    }
+    if (isEditing && tarefa) {
+      onSave({ ...formData, id: tarefa.id } as TarefaUpdateFormData);
+    } else {
+      onSave(formData as TarefaInsertFormData);
+    }
     onHide();
   };
 
@@ -173,8 +176,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
             <Form.Label>Projeto</Form.Label>
             <Form.Control
               as="select"
-              name="projeto"
-              value={formData.projeto.id}
+              name="projetoId"
+              value={formData.projetoId}
               onChange={handleInputChange}
             >
               <option value={0}>Selecione um projeto</option>
@@ -187,13 +190,13 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
           </Form.Group>
 
           <Form.Group controlId="formUsers">
-            <Form.Label>Colaboradores</Form.Label>
+            <Form.Label>Usuários Atribuídos</Form.Label>
             {users.map((user) => (
               <Form.Check
                 key={user.id}
                 type="checkbox"
                 label={user.username}
-                checked={formData.users.some((u) => u.id === user.id)}
+                checked={formData.userIds.includes(user.id)}
                 onChange={() => handleUserSelect(user.id)}
               />
             ))}
