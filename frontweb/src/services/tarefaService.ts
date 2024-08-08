@@ -2,7 +2,6 @@ import axios from 'axios';
 import { BASE_URL } from '../util/requests';
 import {
   Tarefa,
-  TarefaFormData,
   TarefaInsertFormData,
   TarefaStatus,
   TarefaUpdateFormData,
@@ -11,6 +10,7 @@ import {
 } from '../types/tarefa';
 import {
   addTarefaAPI,
+  deleteTarefaAPI,
   getAllTarefasWithUsersAndProjetoAPI as getAllTarefasAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
@@ -94,9 +94,9 @@ export const updateTarefa = async (
 
 export const deleteTarefa = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${BASE_URL}/tarefas/${id}`);
+    await deleteTarefaAPI(id);
   } catch (error) {
-    console.error(`Error deleting task with id ${id}:`, error);
+    console.error('Error deleting tarefa:', error);
     throw error;
   }
 };

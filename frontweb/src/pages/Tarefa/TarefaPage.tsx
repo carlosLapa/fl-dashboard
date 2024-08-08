@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import TarefaTable from 'components/Tarefa/TarefaTable';
 import {
   TarefaWithUsersAndProjetoDTO,
-  TarefaFormData,
   TarefaInsertFormData,
   TarefaUpdateFormData,
 } from 'types/tarefa';
@@ -10,6 +9,7 @@ import {
   getAllTarefasWithUsersAndProjeto,
   addTarefa,
   updateTarefa,
+  deleteTarefa,
 } from 'services/tarefaService';
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
@@ -78,8 +78,14 @@ const TarefaPage: React.FC = () => {
     }
   };
 
-  const handleDeleteTarefa = (tarefaId: number) => {
-    console.log('Delete tarefa:', tarefaId);
+  const handleDeleteTarefa = async (tarefaId: number) => {
+    try {
+      await deleteTarefa(tarefaId);
+      await fetchTarefas(); // Refresh the list after deletion
+    } catch (error) {
+      console.error('Error deleting tarefa:', error);
+      // Optionally, show an error message to the user
+    }
   };
 
   if (isLoading) {

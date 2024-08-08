@@ -3,7 +3,6 @@ import axios from 'axios';
 import { BASE_URL } from '../util/requests';
 import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
-  TarefaFormData,
   TarefaInsertFormData,
   TarefaStatus,
   TarefaUpdateFormData,
@@ -210,4 +209,8 @@ export const updateTarefaStatusAPI = async (
     console.error('Error updating tarefa status:', error);
     throw error;
   }
+};
+
+export const deleteTarefaAPI = async (id: number): Promise<void> => {
+  await axios.delete(`${BASE_URL}/tarefas/${id}`);
 };
