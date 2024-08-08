@@ -7,11 +7,13 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
 import './styles.css';
-import { Link } from 'react-router-dom';
 
 function NavbarFL() {
   return (
-    <Navbar expand="lg" className="bg-dark navbar-dark custom-navbar sticky-top">
+    <Navbar
+      expand="lg"
+      className="bg-dark navbar-dark custom-navbar sticky-top"
+    >
       <Container fluid>
         <Navbar.Brand href="#" className="text-light me-5 ms-3 fl-brand">
           <h3>Ferreira Lapa</h3>
@@ -36,12 +38,22 @@ function NavbarFL() {
             </Form>
           </div>
           <Nav className="my-2 my-lg-0" navbarScroll>
-            <Link to="/" className="custom-navbar-link text-light me-5">
+            <a
+              href="https://www.ferreiralapa.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="custom-navbar-link text-light me-5"
+            >
               Home
-            </Link>
-            <Nav.Link href="#action2" className="text-light me-5">
+            </a>
+            <a
+              href="https://www.ferreiralapa.com/portfolio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="custom-navbar-link text-light me-5"
+            >
               Portfolio
-            </Nav.Link>
+            </a>
             <NavDropdown
               title="Dropdown exemplo"
               id="navbarScrollingDropdown"
