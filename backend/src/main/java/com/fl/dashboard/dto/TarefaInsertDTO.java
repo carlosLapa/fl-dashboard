@@ -1,5 +1,6 @@
 package com.fl.dashboard.dto;
 
+import com.fl.dashboard.enums.TarefaStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,4 +16,5 @@ public class TarefaInsertDTO {
     private Date prazoReal;
     private Long projetoId;
     private Set<Long> userIds;
+    private TarefaStatus status;
 }
