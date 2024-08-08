@@ -189,7 +189,10 @@ export const updateTarefaAPI = async (
   id: number,
   data: TarefaUpdateFormData
 ) => {
-  const response = await axios.put(`${BASE_URL}/tarefas/${id}`, data);
+  const response = await axios.put(
+    `${BASE_URL}/tarefas/with-associations/${id}`,
+    data
+  );
   return response.data;
 };
 

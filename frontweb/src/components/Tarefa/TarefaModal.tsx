@@ -57,8 +57,12 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       setFormData({
         descricao: tarefa.descricao,
         prioridade: tarefa.prioridade,
-        prazoEstimado: tarefa.prazoEstimado,
-        prazoReal: tarefa.prazoReal,
+        prazoEstimado: tarefa.prazoEstimado
+          ? new Date(tarefa.prazoEstimado).toISOString().split('T')[0]
+          : '',
+        prazoReal: tarefa.prazoReal
+          ? new Date(tarefa.prazoReal).toISOString().split('T')[0]
+          : '',
         status: tarefa.status,
         projetoId: tarefa.projeto.id,
         userIds: tarefa.users.map((user) => user.id),
