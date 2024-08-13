@@ -5,6 +5,7 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
+import profileImg from '../../assets/images/Carlos.jpg';
 
 import './styles.css';
 
@@ -76,7 +77,7 @@ function NavbarFL() {
                 style={{ width: '35px', height: '35px' }}
               >
                 <img
-                  src="https://media.licdn.com/dms/image/C4E03AQGZRXblYdcgkA/profile-displayphoto-shrink_100_100/0/1517535613338?e=1723075200&v=beta&t=0aUIXB6ve48VSpaHfnlqvMGiuuXm6vMEckabcbnlJpI"
+                  src={profileImg}
                   alt="User Avatar"
                   className="w-100 h-100"
                 />

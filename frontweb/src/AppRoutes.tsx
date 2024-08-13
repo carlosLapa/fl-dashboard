@@ -1,11 +1,11 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Homepage from 'pages/Homepage';
 import NavbarFL from 'components/Navbar/indexNavbarRB';
 import SidebarFL from 'components/Sidebar/indexSidebarRB';
 import ProjetosPage from 'pages/Projetos/ProjetosPage';
 import UsersPage from 'pages/Users/UsersPage';
 import KanbanBoardPage from 'pages/KanbanBoard/KanbanBoardPage';
 import TarefaPage from 'pages/Tarefa/TarefaPage';
+import WelcomePage from 'pages/Homepage/WelcomePage';
 
 // Routes temporárias
 
@@ -15,7 +15,7 @@ const AppRoutes = () => {
       <NavbarFL />
       <SidebarFL />
       <Routes>
-        <Route path="/" element={<Homepage />} />
+        <Route path="/" element={<WelcomePage />} />
       </Routes>
       <Routes>
         <Route path="/projetos" element={<ProjetosPage />} />
