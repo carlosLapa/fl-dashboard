@@ -31,40 +31,47 @@ const UserTable: React.FC<UserTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td>{user.username}</td>
-              <td>{user.funcao}</td>
-              <td>{user.cargo}</td>
-              <td>{user.email}</td>
-              <td>
-                {user.profileImage ? (
-                  <img
-                    src={`data:image/jpeg;base64,${user.profileImage}`}
-                    alt={`${user.username}`}
-                    style={{
-                      maxWidth: '90px',
-                      maxHeight: '90px',
-                      marginLeft: '25%',
-                    }}
+          {Array.isArray(users) ? (
+            users.map((user) => (
+              <tr key={user.id}>
+                <td>{user.username}</td>
+                <td>{user.funcao}</td>
+                <td>{user.cargo}</td>
+                <td>{user.email}</td>
+                <td>
+                  {user.profileImage ? (
+                    <img
+                      src={`data:image/jpeg;base64,${user.profileImage}`}
+                      alt={`${user.username}`}
+                      style={{
+                        maxWidth: '90px',
+                        maxHeight: '90px',
+                        marginLeft: '25%',
+                      }}
+                    />
+                  ) : (
+                    <span>Sem imagem</span>
+                  )}
+                </td>
+                <td>
+                  <FontAwesomeIcon
+                    icon={faPencilAlt}
+                    onClick={() => onEditUser(user.id)}
+                    className="mr-2 edit-icon"
                   />
-                ) : (
-                  <span>Sem imagem</span>
-                )}
-              </td>
-              <td>
-                <FontAwesomeIcon
-                  icon={faPencilAlt}
-                  onClick={() => onEditUser(user.id)}                  className="mr-2 edit-icon"
-                />
-                <FontAwesomeIcon
-                  icon={faTrashAlt}
-                  onClick={() => onDeleteUser(user.id)}
-                  className="delete-icon"
-                />
-              </td>
+                  <FontAwesomeIcon
+                    icon={faTrashAlt}
+                    onClick={() => onDeleteUser(user.id)}
+                    className="delete-icon"
+                  />
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={6}>Não foram encontrados Colaboradores</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
     </div>

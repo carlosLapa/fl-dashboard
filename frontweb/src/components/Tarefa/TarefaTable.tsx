@@ -32,30 +32,34 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {tarefas.map((tarefa) => (
-            <tr key={tarefa.id}>
-              <td>{tarefa.descricao}</td>
-              <td>{tarefa.status}</td>
-              <td>{new Date(tarefa.prazoEstimado).toLocaleDateString()}</td>
-              <td>{new Date(tarefa.prazoReal).toLocaleDateString()}</td>
-              <td>
-                {tarefa.users.map((user) => user.username).join(', ')}
-              </td>
-              <td>{tarefa.projeto.designacao}</td>
-              <td>
-                <FontAwesomeIcon
-                  icon={faPencilAlt}
-                  onClick={() => onEditTarefa(tarefa.id)}
-                  className="mr-2 edit-icon"
-                />
-                <FontAwesomeIcon
-                  icon={faTrashAlt}
-                  onClick={() => onDeleteTarefa(tarefa.id)}
-                  className="delete-icon"
-                />
-              </td>
+          {Array.isArray(tarefas) ? (
+            tarefas.map((tarefa) => (
+              <tr key={tarefa.id}>
+                <td>{tarefa.descricao}</td>
+                <td>{tarefa.status}</td>
+                <td>{new Date(tarefa.prazoEstimado).toLocaleDateString()}</td>
+                <td>{new Date(tarefa.prazoReal).toLocaleDateString()}</td>
+                <td>{tarefa.users.map((user) => user.username).join(', ')}</td>
+                <td>{tarefa.projeto.designacao}</td>
+                <td>
+                  <FontAwesomeIcon
+                    icon={faPencilAlt}
+                    onClick={() => onEditTarefa(tarefa.id)}
+                    className="mr-2 edit-icon"
+                  />
+                  <FontAwesomeIcon
+                    icon={faTrashAlt}
+                    onClick={() => onDeleteTarefa(tarefa.id)}
+                    className="delete-icon"
+                  />
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={7}>Não existem tarefas</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </Table>
     </div>

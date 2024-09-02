@@ -185,25 +185,30 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
               onChange={handleInputChange}
             >
               <option value={0}>Selecione um projeto</option>
-              {projetos.map((projeto) => (
-                <option key={projeto.id} value={projeto.id}>
-                  {projeto.designacao}
-                </option>
-              ))}
+              {Array.isArray(projetos) &&
+                projetos.map((projeto) => (
+                  <option key={projeto.id} value={projeto.id}>
+                    {projeto.designacao}
+                  </option>
+                ))}
             </Form.Control>
           </Form.Group>
 
           <Form.Group controlId="formUsers">
             <Form.Label>Usuários Atribuídos</Form.Label>
-            {users.map((user) => (
-              <Form.Check
-                key={user.id}
-                type="checkbox"
-                label={user.username}
-                checked={formData.userIds.includes(user.id)}
-                onChange={() => handleUserSelect(user.id)}
-              />
-            ))}
+            {Array.isArray(users) ? (
+              users.map((user) => (
+                <Form.Check
+                  key={user.id}
+                  type="checkbox"
+                  label={user.username}
+                  checked={formData.userIds.includes(user.id)}
+                  onChange={() => handleUserSelect(user.id)}
+                />
+              ))
+            ) : (
+              <p>Não foram encontrados Colaboradores</p>
+            )}
           </Form.Group>
         </Form>
       </Modal.Body>

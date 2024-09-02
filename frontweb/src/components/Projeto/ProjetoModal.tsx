@@ -196,23 +196,27 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
 
           <Form.Group controlId="formUsers">
             <Form.Label>Colaboradores</Form.Label>
-            {users.map((user) => (
-              <Form.Check
-                key={user.id}
-                type="checkbox"
-                label={user.username}
-                checked={formData.users.some(
-                  (selectedUser) => selectedUser.id === user.id
-                )}
-                onChange={() =>
-                  formData.users.some(
+            {Array.isArray(users) ? (
+              users.map((user) => (
+                <Form.Check
+                  key={user.id}
+                  type="checkbox"
+                  label={user.username}
+                  checked={formData.users.some(
                     (selectedUser) => selectedUser.id === user.id
-                  )
-                    ? handleUserDeselect(user.id)
-                    : handleUserSelect(user)
-                }
-              />
-            ))}
+                  )}
+                  onChange={() =>
+                    formData.users.some(
+                      (selectedUser) => selectedUser.id === user.id
+                    )
+                      ? handleUserDeselect(user.id)
+                      : handleUserSelect(user)
+                  }
+                />
+              ))
+            ) : (
+              <p>No users available</p>
+            )}
           </Form.Group>
         </Form>
       </Modal.Body>
