@@ -1,6 +1,7 @@
 package com.fl.dashboard.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,12 +18,16 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @NotBlank(message = "Campo Obrigatório")
     private String username;
+
     private String funcao;
     private String cargo;
 
     @Column(unique = true)
     private String email;
+
     private String password;
 
     @Lob
