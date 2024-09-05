@@ -144,7 +144,7 @@ public class UserService {
     }
 
     private void copyDTOtoEntity(UserDTO userDTO, User entity) {
-        entity.setUsername(userDTO.getUsername());
+        entity.setName(userDTO.getName());
         entity.setFuncao(userDTO.getFuncao());
         entity.setCargo(userDTO.getCargo());
         entity.setEmail(userDTO.getEmail());
