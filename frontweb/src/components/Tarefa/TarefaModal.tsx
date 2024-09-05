@@ -201,7 +201,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 <Form.Check
                   key={user.id}
                   type="checkbox"
-                  label={user.username}
+                  label={user.name}
                   checked={formData.userIds.includes(user.id)}
                   onChange={() => handleUserSelect(user.id)}
                 />

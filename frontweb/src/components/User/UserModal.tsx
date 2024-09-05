@@ -20,7 +20,7 @@ const UserModal: React.FC<UserModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<User>({
     id: 0,
-    username: '',
+    name: '',
     funcao: '',
     cargo: '',
     email: '',
@@ -38,7 +38,7 @@ const UserModal: React.FC<UserModalProps> = ({
 
       setFormData({
         id: userToEdit.id,
-        username: userToEdit.username,
+        name: userToEdit.name,
         funcao: userToEdit.funcao,
         cargo: userToEdit.cargo,
         email: userToEdit.email,
@@ -49,7 +49,7 @@ const UserModal: React.FC<UserModalProps> = ({
     } else {
       setFormData({
         id: 0,
-        username: '',
+        name: '',
         funcao: '',
         cargo: '',
         email: '',
@@ -120,12 +120,12 @@ const UserModal: React.FC<UserModalProps> = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="formUsername">
+          <Form.Group controlId="formName">
             <Form.Label>Nome de Utilizador</Form.Label>
             <Form.Control
               type="text"
-              name="username"
-              value={formData.username}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
             />
           </Form.Group>

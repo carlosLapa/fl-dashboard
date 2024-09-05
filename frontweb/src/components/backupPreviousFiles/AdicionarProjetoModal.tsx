@@ -151,7 +151,7 @@ const AdicionarProjetoModal: React.FC<ModalProps> = ({
               <Form.Check
                 key={user.id}
                 type="checkbox"
-                label={user.username}
+                label={user.name}
                 checked={formData.users.some(
                   (selectedUser) => selectedUser.id === user.id
                 )}

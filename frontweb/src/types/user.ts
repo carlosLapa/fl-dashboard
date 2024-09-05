@@ -1,6 +1,6 @@
 export type User = {
   id: number;
-  username: string;
+  name: string;
   funcao: string;
   cargo: string;
   email: string;
@@ -10,7 +10,7 @@ export type User = {
 
 export type UserDTO = {
   id: number | undefined;
-  username: string;
+  name: string;
   funcao: string; 
   cargo: string;
   email: string;

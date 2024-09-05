@@ -34,7 +34,7 @@ const UserTable: React.FC<UserTableProps> = ({
           {Array.isArray(users) ? (
             users.map((user) => (
               <tr key={user.id}>
-                <td>{user.username}</td>
+                <td>{user.name}</td>
                 <td>{user.funcao}</td>
                 <td>{user.cargo}</td>
                 <td>{user.email}</td>
@@ -42,7 +42,7 @@ const UserTable: React.FC<UserTableProps> = ({
                   {user.profileImage ? (
                     <img
                       src={`data:image/jpeg;base64,${user.profileImage}`}
-                      alt={`${user.username}`}
+                      alt={`${user.name}`}
                       style={{
                         maxWidth: '90px',
                         maxHeight: '90px',

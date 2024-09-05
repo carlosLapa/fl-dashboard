@@ -34,7 +34,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
   };
 
   const renderUserNames = (users: User[]) => {
-    return users.map((user) => user.username).join(', ');
+    return users.map((user) => user.name).join(', ');
   };
 
   return (

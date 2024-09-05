@@ -17,7 +17,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<User>({
     id: 0,
-    username: '',
+    name: '',
     funcao: '',
     cargo: '',
     email: '',
@@ -31,7 +31,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
     if (show) {
       setFormData({
         id: 0,
-        username: '',
+        name: '',
         funcao: '',
         cargo: '',
         email: '',
@@ -88,12 +88,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group controlId="formUsername">
+          <Form.Group controlId="formName">
             <Form.Label>Nome de Utilizador</Form.Label>
             <Form.Control
               type="text"
-              name="username"
-              value={formData.username}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
             />
           </Form.Group>
