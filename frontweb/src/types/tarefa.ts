@@ -21,7 +21,7 @@ export interface Tarefa {
   };
   users: {
     id: number;
-    username: string;
+    name: string;
   }[];
 }
 

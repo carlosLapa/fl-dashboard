@@ -39,7 +39,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 <td>{tarefa.status}</td>
                 <td>{new Date(tarefa.prazoEstimado).toLocaleDateString()}</td>
                 <td>{new Date(tarefa.prazoReal).toLocaleDateString()}</td>
-                <td>{tarefa.users.map((user) => user.username).join(', ')}</td>
+                <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
                 <td>{tarefa.projeto.designacao}</td>
                 <td>
                   <FontAwesomeIcon
