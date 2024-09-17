@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { useAuth } from '../../AuthContext';
 
 interface LoginModalProps {
   show: boolean;
@@ -7,15 +8,25 @@ interface LoginModalProps {
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt with:', { username, password });
-    // Here we'll add the actual login logic later
-    onHide();
+    console.log('Login form submitted');
+    console.log('Attempting login for email:', email);
+    try {
+      await login(email, password);
+      console.log('Login successful');
+      onHide();
+    } catch (error) {
+      console.error('Login failed in modal:', error);
+      // Here you can add error handling, such as displaying an error message to the user
+    }
   };
+
+  console.log('Rendering LoginModal, show:', show);
 
   return (
     <Modal show={show} onHide={onHide} centered>
@@ -25,12 +36,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
-            <Form.Label>Username</Form.Label>
+            <Form.Label>Email</Form.Label>
             <Form.Control
-              type="text"
-              placeholder="Enter username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </Form.Group>

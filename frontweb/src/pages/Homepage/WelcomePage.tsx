@@ -13,9 +13,6 @@ const WelcomePage = () => {
       <div className="home-container flex-grow-1">
         <div className="home-central-view-container">
           <h1>Bem-vindo ao Painel de Gestão de Projetos</h1>
-          <button onClick={handleShowLoginModal} className="btn btn-primary">
-            Login
-          </button>
         </div>
         <LoginModal show={showLoginModal} onHide={handleHideLoginModal} />
       </div>
