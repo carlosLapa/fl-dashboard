@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 //import NavDropdown from 'react-bootstrap/NavDropdown';
-import profileImg from '../../assets/images/Carlos.jpg';
+import defaultAvatarImage from '../../assets/images/user-avatar-test.png';
 import UserInfo from '../User/UserInfo';
 import { useAuth } from '../../AuthContext';
 //import LoginModal from '../Login/LoginModal';
@@ -80,7 +80,7 @@ function NavbarFL() {
                         style={{ width: '35px', height: '35px' }}
                       >
                         <img
-                          src={profileImg}
+                          src={user.profileImage || defaultAvatarImage}
                           alt="User Avatar"
                           className="w-100 h-100"
                         />

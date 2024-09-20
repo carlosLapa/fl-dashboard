@@ -53,7 +53,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const currentUser = users.find((u: User) => u.email === email);
       if (currentUser) {
         console.log('Current user found:', currentUser.name);
-        setUser(currentUser);
+        setUser({
+          ...currentUser,
+          profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
+        });
       } else {
         console.error('User not found in the fetched data');
         throw new Error('User not found');
