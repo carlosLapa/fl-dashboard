@@ -1,0 +1,23 @@
+.user-info {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.user-welcome {
+  color: white;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.logout-button {
+  margin-left: 10px;
+  color: white;
+  border-color: white;
+}
+
+.logout-button:hover {
+  background-color: white;
+  color: #343a40;
+}

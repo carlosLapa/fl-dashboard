@@ -1,24 +1,26 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+//import NavDropdown from 'react-bootstrap/NavDropdown';
 import profileImg from '../../assets/images/Carlos.jpg';
-import { useAuth } from '../../AuthContext';
 import UserInfo from '../User/UserInfo';
-import LoginModal from '../Login/LoginModal';
+import { useAuth } from '../../AuthContext';
+//import LoginModal from '../Login/LoginModal';
 
 import './styles.css';
 
 function NavbarFL() {
   const { user } = useAuth();
+  /* Se decidirmos voltar a colocar o login na navbar.
+  
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleShowLoginModal = () => setShowLoginModal(true);
   const handleCloseLoginModal = () => setShowLoginModal(false);
-
+ */
   return (
     <>
       <Navbar
@@ -52,64 +54,45 @@ function NavbarFL() {
               </Form>
             </div>
             <Nav className="my-2 my-lg-0" navbarScroll>
-              <a
-                href="https://www.ferreiralapa.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="custom-navbar-link text-light me-5"
-              >
-                Home
-              </a>
-              <a
-                href="https://www.ferreiralapa.com/portfolio/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="custom-navbar-link text-light me-5"
-              >
-                Portfolio
-              </a>
-              <NavDropdown
-                title="Dropdown exemplo"
-                id="navbarScrollingDropdown"
-                className="text-light me-5"
-              >
-                <NavDropdown.Item href="#action3" className="text-dark">
-                  Uma ação
-                </NavDropdown.Item>
-                <NavDropdown.Item href="#action4" className="text-dark">
-                  Outra ação
-                </NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item href="#action5" className="text-dark">
-                  Algo
-                </NavDropdown.Item>
-              </NavDropdown>
-              {user ? (
-                <>
-                  <UserInfo />
-                  <Nav.Link className="me-3">
-                    <div
-                      className="rounded-circle overflow-hidden"
-                      style={{ width: '35px', height: '35px' }}
-                    >
-                      <img
-                        src={profileImg}
-                        alt="User Avatar"
-                        className="w-100 h-100"
-                      />
-                    </div>
-                  </Nav.Link>
-                </>
-              ) : (
-                <Nav.Link className="text-light" onClick={handleShowLoginModal}>
-                  Login
-                </Nav.Link>
-              )}
+              <div className="nav-item-container">
+                <a
+                  href="https://www.ferreiralapa.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="custom-navbar-link text-light me-5"
+                >
+                  Home
+                </a>
+                <a
+                  href="https://www.ferreiralapa.com/portfolio/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="custom-navbar-link text-light me-5"
+                >
+                  Portfolio
+                </a>
+                {user && (
+                  <>
+                    <UserInfo />
+                    <Nav.Link className="me-3">
+                      <div
+                        className="rounded-circle overflow-hidden"
+                        style={{ width: '35px', height: '35px' }}
+                      >
+                        <img
+                          src={profileImg}
+                          alt="User Avatar"
+                          className="w-100 h-100"
+                        />
+                      </div>
+                    </Nav.Link>
+                  </>
+                )}
+              </div>
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <LoginModal show={showLoginModal} onHide={handleCloseLoginModal} />
     </>
   );
 }

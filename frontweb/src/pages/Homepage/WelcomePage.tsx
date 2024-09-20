@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from 'react-bootstrap';
 import LoginModal from 'components/Login/LoginModal';
 import './styles.css';
 
@@ -13,6 +14,13 @@ const WelcomePage = () => {
       <div className="home-container flex-grow-1">
         <div className="home-central-view-container">
           <h1>Bem-vindo ao Painel de Gestão de Projetos</h1>
+          <Button
+            variant="primary"
+            onClick={handleShowLoginModal}
+            className="mt-3"
+          >
+            Login
+          </Button>
         </div>
         <LoginModal show={showLoginModal} onHide={handleHideLoginModal} />
       </div>
