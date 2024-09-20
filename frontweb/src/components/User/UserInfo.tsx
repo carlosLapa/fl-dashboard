@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../AuthContext';
-import { Button } from 'react-bootstrap';
+import { Button, Nav } from 'react-bootstrap';
+import defaultAvatarImage from '../../assets/images/user-avatar-test.png';
 
 import './userInfo.css';
 
@@ -22,6 +23,18 @@ const UserInfo: React.FC = () => {
       >
         Logout
       </Button>
+      <Nav.Link className="me-3">
+        <div
+          className="rounded-circle overflow-hidden"
+          style={{ width: '35px', height: '35px' }}
+        >
+          <img
+            src={user.profileImage || defaultAvatarImage}
+            alt="User Avatar"
+            className="w-100 h-100"
+          />
+        </div>
+      </Nav.Link>
     </div>
   );
 };
