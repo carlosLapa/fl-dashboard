@@ -6,6 +6,7 @@ import UsersPage from 'pages/Users/UsersPage';
 import TarefaPage from 'pages/Tarefa/TarefaPage';
 import WelcomePage from 'pages/Homepage/WelcomePage';
 import ProtectedRoute from './ProtectedRoute';
+import KanbanBoardPage from 'pages/KanbanBoard/KanbanBoardPage';
 
 const AppRoutes = () => {
   return (
@@ -26,9 +27,12 @@ const AppRoutes = () => {
           path="/tarefas"
           element={<ProtectedRoute element={<TarefaPage />} />}
         />
+        <Route
+          path="/projetos/:projetoId/full"
+          element={<ProtectedRoute element={<KanbanBoardPage />} />}
+        />
       </Routes>
     </>
   );
 };
-
 export default AppRoutes;
