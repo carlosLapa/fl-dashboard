@@ -1,13 +1,16 @@
 import './assets/styles/_variables.scss';
 import './App.css';
-import AppRoutes from 'AppRoutes';
+import AppRoutes from 'routes/AppRoutes';
 import { AuthProvider } from './AuthContext';
+import { BrowserRouter } from 'react-router-dom';
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

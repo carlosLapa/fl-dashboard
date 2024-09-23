@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 import axios from 'axios';
 import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
 
   const login = async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
@@ -57,6 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           ...currentUser,
           profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
         });
+        navigate('/projetos'); // Redirect to ProjetosPage after successful login
       } else {
         console.error('User not found in the fetched data');
         throw new Error('User not found');
@@ -90,6 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

@@ -24,11 +24,6 @@ function SidebarFL() {
             </Link>
           </Nav.Item>
           <Nav.Item>
-            <Link to="/projetos/:projetoId/full" className="sidebar-link text-light mb-5">
-              Kanban Board
-            </Link>
-          </Nav.Item>
-          <Nav.Item>
             <Link to="/placeholder" className="sidebar-link text-light mb-5">
               Placeholder
             </Link>
