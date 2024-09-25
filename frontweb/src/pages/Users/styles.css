@@ -1,7 +1,71 @@
 .add-user-btn {
-    margin-right: 1025px;
-    padding: 8px 16px;
-    font-size: 16px;
-    background-color:rgb(209, 205, 205);
-    border-color: aliceblue;
-  }
+  margin-right: 1025px;
+  padding: 8px 16px;
+  font-size: 16px;
+  background-color: rgb(209, 205, 205);
+  border-color: aliceblue;
+}
+
+.users-tarefas-page-container {
+  margin-top: 2%;
+  margin-left: 15%;
+  min-width: 100%;
+}
+
+.user-info-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.user-image-container {
+  margin-right: 20px;
+}
+
+.user-profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-profile-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #666;
+}
+
+.tarefas-h2title {
+  margin-top: 2%;
+  font-size: 30px;
+  color: #333;
+}
+
+.tarefas-table-container {
+  display: flex;
+  margin-top: 3%;
+  margin-left: 9%;
+  margin-right: 10%;
+}

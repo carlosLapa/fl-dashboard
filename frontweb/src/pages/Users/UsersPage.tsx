@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import UserTable from 'components/User/UserTable';
 import { getUsers } from 'services/userService';
 import { deleteUserAPI, getUserByIdAPI } from 'api/requestsApi';
@@ -14,6 +15,7 @@ const UsersPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +63,10 @@ const UsersPage: React.FC = () => {
     }
   };
 
+  const handleViewTasks = (userId: number) => {
+    navigate(`/users/${userId}/tarefas`);
+  };
+
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Colaboradores</h2>
@@ -77,6 +83,7 @@ const UsersPage: React.FC = () => {
         users={users}
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUser}
+        onViewTasks={handleViewTasks}
       />
       <AddUserModal
         show={showAddModal}

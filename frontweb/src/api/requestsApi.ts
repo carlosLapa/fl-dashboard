@@ -9,6 +9,7 @@ import {
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
+import { getTarefasByUser } from 'services/tarefaService';
 
 /**
  * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
@@ -213,4 +214,24 @@ export const updateTarefaStatusAPI = async (
 
 export const deleteTarefaAPI = async (id: number): Promise<void> => {
   await axios.delete(`${BASE_URL}/tarefas/${id}`);
+};
+
+// O mais eficiente será implementar um método no backend que retorne
+// as tarefas - e o projeto associado - de um user específico.
+export const getTarefasWithUsersAndProjetoByUser = async (
+  userId: number
+): Promise<TarefaWithUsersAndProjetoDTO[]> => {
+  try {
+    const userTarefas = await getTarefasByUser(userId);
+    const fullTarefas = await Promise.all(
+      userTarefas.map((tarefa) => getTarefaWithUsersAndProjetoAPI(tarefa.id))
+    );
+    return fullTarefas;
+  } catch (error) {
+    console.error(
+      `Error fetching full tasks for user with id ${userId}:`,
+      error
+    );
+    return [];
+  }
 };

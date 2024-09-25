@@ -1,5 +1,5 @@
 import { User } from 'types/user';
-import { getUsersAPI, createUserAPI } from 'api/requestsApi';
+import { getUsersAPI, createUserAPI, getUserByIdAPI } from 'api/requestsApi';
 
 /**
  * asynchronous function (and wrapper around the getUsersAPI() function)
@@ -24,7 +24,18 @@ export const createUser = async (formData: FormData): Promise<User> => {
     const newUser = await createUserAPI(formData);
     return newUser;
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Erro ao criar colaborador:', error);
+    throw error;
+  }
+};
+
+export const getUserById = async (userId: number): Promise<User> => {
+  try {
+    const userData = await getUserByIdAPI(userId);
+    console.log('Service getUserById data:', userData);
+    return userData;
+  } catch (error) {
+    console.error('Erro ao buscar colaborador:', error);
     throw error;
   }
 };

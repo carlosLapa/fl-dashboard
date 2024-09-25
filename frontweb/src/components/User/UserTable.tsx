@@ -2,20 +2,27 @@ import React from 'react';
 import Table from 'react-bootstrap/Table';
 import { User } from '../../types/user';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPencilAlt,
+  faTrashAlt,
+  faTasks,
+} from '@fortawesome/free-solid-svg-icons';
 
 import './styles.css';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface UserTableProps {
   users: User[];
   onEditUser: (userId: number) => void;
   onDeleteUser: (userId: number) => void;
+  onViewTasks: (userId: number) => void;
 }
 
 const UserTable: React.FC<UserTableProps> = ({
   users,
   onEditUser,
   onDeleteUser,
+  onViewTasks,
 }) => {
   return (
     <div className="user-container">
@@ -54,16 +61,49 @@ const UserTable: React.FC<UserTableProps> = ({
                   )}
                 </td>
                 <td>
-                  <FontAwesomeIcon
-                    icon={faPencilAlt}
-                    onClick={() => onEditUser(user.id)}
-                    className="mr-2 edit-icon"
-                  />
-                  <FontAwesomeIcon
-                    icon={faTrashAlt}
-                    onClick={() => onDeleteUser(user.id)}
-                    className="delete-icon"
-                  />
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`edit-tooltip-${user.id}`}>Editar</Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faPencilAlt}
+                      onClick={() => onEditUser(user.id)}
+                      className="edit-icon"
+                      style={{ marginRight: '10px' }}
+                    />
+                  </OverlayTrigger>
+
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`delete-tooltip-${user.id}`}>
+                        Eliminar
+                      </Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faTrashAlt}
+                      onClick={() => onDeleteUser(user.id)}
+                      className="delete-icon"
+                      style={{ marginRight: '10px' }}
+                    />
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`tasks-tooltip-${user.id}`}>
+                        Ver Tarefas atribuídas
+                      </Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faTasks}
+                      onClick={() => onViewTasks(user.id)}
+                      className="view-tasks-icon"
+                    />
+                  </OverlayTrigger>
                 </td>
               </tr>
             ))
