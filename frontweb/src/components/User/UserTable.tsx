@@ -7,9 +7,9 @@ import {
   faTrashAlt,
   faTasks,
 } from '@fortawesome/free-solid-svg-icons';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import './styles.css';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 interface UserTableProps {
   users: User[];

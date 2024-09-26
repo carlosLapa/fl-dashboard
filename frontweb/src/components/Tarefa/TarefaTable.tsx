@@ -3,7 +3,7 @@ import Table from 'react-bootstrap/Table';
 import { TarefaWithUsersAndProjetoDTO } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './styles.css';
 
 interface TarefaTableProps {
@@ -42,16 +42,30 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
                 <td>{tarefa.projeto.designacao}</td>
                 <td>
-                  <FontAwesomeIcon
-                    icon={faPencilAlt}
-                    onClick={() => onEditTarefa(tarefa.id)}
-                    className="mr-2 edit-icon"
-                  />
-                  <FontAwesomeIcon
-                    icon={faTrashAlt}
-                    onClick={() => onDeleteTarefa(tarefa.id)}
-                    className="delete-icon"
-                  />
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`edit-tooltip-${tarefa.id}`}>Editar</Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faPencilAlt}
+                      onClick={() => onEditTarefa(tarefa.id)}
+                      className="mr-2 edit-icon"
+                    />
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`edit-tooltip-${tarefa.id}`}>Apagar</Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faTrashAlt}
+                      onClick={() => onDeleteTarefa(tarefa.id)}
+                      className="delete-icon"
+                    />
+                  </OverlayTrigger>
                 </td>
               </tr>
             ))

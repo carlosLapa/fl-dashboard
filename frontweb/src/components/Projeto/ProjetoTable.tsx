@@ -64,16 +64,30 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                 <td>{formatDate(projeto.prazo)}</td>
                 <td>{renderUserNames(projeto.users)}</td>
                 <td>
-                  <FontAwesomeIcon
-                    icon={faPencilAlt}
-                    onClick={() => onEditProjeto(projeto)}
-                    className="mr-2 edit-icon"
-                  />
-                  <FontAwesomeIcon
-                    icon={faTrashAlt}
-                    onClick={() => onDeleteProjeto(projeto.id)}
-                    className="delete-icon"
-                  />
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`tooltip-${projeto.id}`}>Editar</Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faPencilAlt}
+                      onClick={() => onEditProjeto(projeto)}
+                      className="mr-2 edit-icon"
+                    />
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`tooltip-${projeto.id}`}>Apagar</Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faTrashAlt}
+                      onClick={() => onDeleteProjeto(projeto.id)}
+                      className="delete-icon"
+                    />
+                  </OverlayTrigger>
                   <OverlayTrigger
                     placement="top"
                     overlay={

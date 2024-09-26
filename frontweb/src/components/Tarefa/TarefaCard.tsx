@@ -7,6 +7,11 @@ interface TarefaCardProps {
   index: number;
 }
 
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  return dateString.split('T')[0];
+};
+
 const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
   return (
     <Draggable draggableId={tarefa.uniqueId} index={index}>
@@ -27,12 +32,10 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
           <h3>{tarefa.descricao}</h3>
           <p>Status: {tarefa.status}</p>
           <p>Prioridade: {tarefa.prioridade}</p>
-          <p>Prazo estimado: {tarefa.prazoEstimado}</p>
-          <p>Prazo real: {tarefa.prazoReal}</p>
+          <p>Prazo estimado: {formatDate(tarefa.prazoEstimado)}</p>
+          <p>Prazo real: {formatDate(tarefa.prazoReal)}</p>
           <p>Projeto: {tarefa.projeto.designacao}</p>
-          <p>
-            Atribuição: {tarefa.users.map((user) => user.name).join(', ')}
-          </p>
+          <p>Atribuição: {tarefa.users.map((user) => user.name).join(', ')}</p>
         </div>
       )}
     </Draggable>
