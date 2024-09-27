@@ -13,10 +13,12 @@ import {
 } from 'services/tarefaService';
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
+import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
 
 import './styles.css';
 
 const TarefaPage: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
   const [tarefas, setTarefas] = useState<TarefaWithUsersAndProjetoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -33,7 +35,7 @@ const TarefaPage: React.FC = () => {
       const detailedTarefas = await getAllTarefasWithUsersAndProjeto();
       setTarefas(detailedTarefas);
     } catch (error) {
-      console.error('Error fetching tarefas:', error);
+      console.error('Erro ao buscar tarefas:', error);
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +47,7 @@ const TarefaPage: React.FC = () => {
       await fetchTarefas();
       setShowModal(false);
     } catch (error) {
-      console.error('Error adding tarefa:', error);
+      console.error('Error ao adicionar tarefa:', error);
     }
   };
 
@@ -56,7 +58,7 @@ const TarefaPage: React.FC = () => {
       setShowModal(false);
       setTarefaToEdit(null);
     } catch (error) {
-      console.error('Error updating tarefa:', error);
+      console.error('Erro ao atualizar tarefa:', error);
     }
   };
 
@@ -81,11 +83,14 @@ const TarefaPage: React.FC = () => {
   const handleDeleteTarefa = async (tarefaId: number) => {
     try {
       await deleteTarefa(tarefaId);
-      await fetchTarefas(); // Refresh the list after deletion
+      await fetchTarefas();
     } catch (error) {
-      console.error('Error deleting tarefa:', error);
-      // Optionally, show an error message to the user
+      console.error('Erro ao apagar tarefa:', error);
     }
+  };
+
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'table' ? 'calendar' : 'table');
   };
 
   if (isLoading) {
@@ -95,7 +100,11 @@ const TarefaPage: React.FC = () => {
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Tarefas</h2>
-      <div className="d-flex justify-content-end mb-4">
+
+      <div
+        className="d-flex justify-content-between align-items-center mb-4"
+        style={{ marginLeft: '7%', marginRight: '7%' }}
+      >
         <Button
           variant="primary"
           onClick={() => {
@@ -103,15 +112,28 @@ const TarefaPage: React.FC = () => {
             setShowModal(true);
           }}
           className="add-tarefa-btn"
+          style={{ whiteSpace: 'nowrap' }}
         >
           Adicionar Tarefa
         </Button>
+        <Button
+          variant="secondary"
+          onClick={toggleViewMode}
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          {viewMode === 'table' ? 'Calendar View' : 'Table View'}
+        </Button>
       </div>
-      <TarefaTable
-        tarefas={tarefas}
-        onEditTarefa={handleEditTarefa}
-        onDeleteTarefa={handleDeleteTarefa}
-      />
+
+      {viewMode === 'table' ? (
+        <TarefaTable
+          tarefas={tarefas}
+          onEditTarefa={handleEditTarefa}
+          onDeleteTarefa={handleDeleteTarefa}
+        />
+      ) : (
+        <TarefasCalendar tarefas={tarefas} />
+      )}
       <TarefaModal
         show={showModal}
         onHide={() => {
