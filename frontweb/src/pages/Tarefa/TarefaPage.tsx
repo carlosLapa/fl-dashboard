@@ -121,7 +121,7 @@ const TarefaPage: React.FC = () => {
           onClick={toggleViewMode}
           style={{ whiteSpace: 'nowrap' }}
         >
-          {viewMode === 'table' ? 'Calendar View' : 'Table View'}
+          {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
         </Button>
       </div>
 
