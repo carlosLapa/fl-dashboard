@@ -13,10 +13,13 @@ import {
 } from 'types/tarefa';
 import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
+import { useNavigate } from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
 
 import './styles.css';
 
 const UsersTarefasPage: React.FC = () => {
+  const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [user, setUser] = useState<User | null>(null);
   const [tarefas, setTarefas] = useState<TarefaWithUsersAndProjetoDTO[]>([]);
@@ -48,6 +51,10 @@ const UsersTarefasPage: React.FC = () => {
 
     fetchUserAndTarefas();
   }, [userId]);
+
+  const handleNavigateToCalendar = () => {
+    navigate(`/user-calendar/${userId}`);
+  };
 
   const handleEditTarefa = (tarefaId: number) => {
     const tarefa = tarefas.find((t) => t.id === tarefaId);
@@ -121,6 +128,11 @@ const UsersTarefasPage: React.FC = () => {
           </div>
         </div>
         <h2 className="tarefas-title">Tarefas atribuídas</h2>
+        <div className="mt-2">
+          <Button variant="primary" onClick={handleNavigateToCalendar}>
+            Ver Calendário
+          </Button>
+        </div>
       </div>
       <div className="tarefas-table-container">
         <UserTarefaTable

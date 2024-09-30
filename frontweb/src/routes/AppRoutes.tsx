@@ -8,6 +8,7 @@ import WelcomePage from 'pages/Homepage/WelcomePage';
 import ProtectedRoute from './ProtectedRoute';
 import KanbanBoardPage from 'pages/KanbanBoard/KanbanBoardPage';
 import UsersTarefasPage from 'pages/Users/UsersTarefasPage';
+import UserCalendarPage from 'pages/Users/UserCalendarPage';
 
 const AppRoutes = () => {
   return (
@@ -35,6 +36,10 @@ const AppRoutes = () => {
         <Route
           path="/users/:userId/tarefas"
           element={<ProtectedRoute element={<UsersTarefasPage />} />}
+        />
+        <Route
+          path="/user-calendar/:userId"
+          element={<ProtectedRoute element={<UserCalendarPage />} />}
         />
       </Routes>
     </>

@@ -13,9 +13,10 @@ const localizer = momentLocalizer(moment);
 
 interface TarefasCalendarProps {
   tarefas: TarefaWithUsersAndProjetoDTO[];
+  title?: string;
 }
 
-const TarefasCalendar: React.FC<TarefasCalendarProps> = ({ tarefas }) => {
+const TarefasCalendar: React.FC<TarefasCalendarProps> = ({ tarefas, title = 'Calendar' }) => {
   const events = tarefas.map((tarefa) => ({
     id: tarefa.id,
     title: tarefa.descricao,
@@ -40,6 +41,7 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({ tarefas }) => {
 
   return (
     <div style={{ height: '500px', width: '101%', marginLeft: '7%' }}>
+      <h3>{title}</h3>
       <Calendar
         localizer={localizer}
         events={events}
