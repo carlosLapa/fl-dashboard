@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../AuthContext';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
 import { TarefaWithUsersAndProjetoDTO } from 'types/tarefa';
@@ -13,19 +13,18 @@ const UserCalendarPage: React.FC = () => {
     TarefaWithUsersAndProjetoDTO[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Verifica se poderá ser necessário ainda
   const { user } = useAuth();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
 
-  useEffect(() => {
-    fetchUserTarefas();
-  }, []);
-
-  const fetchUserTarefas = async () => {
+  const fetchUserTarefas = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (user) {
-        const tarefas = await getTarefasWithUsersAndProjetoByUser(user.id);
+      if (userId) {
+        const tarefas = await getTarefasWithUsersAndProjetoByUser(
+          Number(userId)
+        );
         setUserTarefas(tarefas);
       }
     } catch (error) {
@@ -33,7 +32,11 @@ const UserCalendarPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchUserTarefas();
+  }, [fetchUserTarefas]);
 
   const handleGoBack = () => {
     navigate(`/users/${userId}/tarefas`);
