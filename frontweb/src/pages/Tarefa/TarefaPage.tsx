@@ -16,9 +16,13 @@ import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
 
 import './styles.css';
+import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
 
 const TarefaPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
+  const [showDetailsCard, setShowDetailsCard] = useState(false);
+  const [selectedTarefa, setSelectedTarefa] =
+    useState<TarefaWithUsersAndProjetoDTO | null>(null);
   const [tarefas, setTarefas] = useState<TarefaWithUsersAndProjetoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -89,6 +93,14 @@ const TarefaPage: React.FC = () => {
     }
   };
 
+  const handleViewDetails = (tarefaId: number) => {
+    const tarefa = tarefas.find((t) => t.id === tarefaId);
+    if (tarefa) {
+      setSelectedTarefa(tarefa);
+      setShowDetailsCard(true);
+    }
+  };
+
   const toggleViewMode = () => {
     setViewMode(viewMode === 'table' ? 'calendar' : 'table');
   };
@@ -103,7 +115,7 @@ const TarefaPage: React.FC = () => {
 
       <div
         className="d-flex justify-content-between align-items-center mb-4"
-        style={{ marginLeft: '7%', marginRight: '7%' }}
+        style={{ marginLeft: '5%', marginRight: '7%' }}
       >
         <Button
           variant="primary"
@@ -130,6 +142,7 @@ const TarefaPage: React.FC = () => {
           tarefas={tarefas}
           onEditTarefa={handleEditTarefa}
           onDeleteTarefa={handleDeleteTarefa}
+          onViewDetails={handleViewDetails}
         />
       ) : (
         <TarefasCalendar tarefas={tarefas} />
@@ -144,6 +157,12 @@ const TarefaPage: React.FC = () => {
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />
+      {showDetailsCard && selectedTarefa && (
+        <TarefaDetailsCard
+          tarefa={selectedTarefa}
+          onClose={() => setShowDetailsCard(false)}
+        />
+      )}
     </div>
   );
 };
