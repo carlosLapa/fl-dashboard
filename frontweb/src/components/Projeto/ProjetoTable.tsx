@@ -7,11 +7,11 @@ import {
   faPencilAlt,
   faTrashAlt,
   faEye,
+  faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
-
-import './ProjetoTable.css';
 import { Link } from 'react-router-dom';
+import './ProjetoTable.css';
 
 export interface ProjetoTableProps {
   projetos: Projeto[];
@@ -101,6 +101,22 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                       className="view-icon"
                     >
                       <FontAwesomeIcon icon={faEye} />
+                    </Link>
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`tooltip-details-${projeto.id}`}>
+                        Ver Detalhes do Projeto
+                      </Tooltip>
+                    }
+                  >
+                    <Link
+                      to={`/projetos/${projeto.id}/details`}
+                      className="info-icon"
+                      style={{ marginLeft: '12px' }}
+                    >
+                      <FontAwesomeIcon icon={faInfoCircle} />
                     </Link>
                   </OverlayTrigger>
                 </td>

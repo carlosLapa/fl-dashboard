@@ -9,6 +9,7 @@ import ProtectedRoute from './ProtectedRoute';
 import KanbanBoardPage from 'pages/KanbanBoard/KanbanBoardPage';
 import UsersTarefasPage from 'pages/Users/UsersTarefasPage';
 import UserCalendarPage from 'pages/Users/UserCalendarPage';
+import ProjetoDetailsPage from 'pages/Projetos/ProjetoDetailsPage';
 
 const AppRoutes = () => {
   return (
@@ -40,6 +41,10 @@ const AppRoutes = () => {
         <Route
           path="/user-calendar/:userId"
           element={<ProtectedRoute element={<UserCalendarPage />} />}
+        />
+        <Route
+          path="/projetos/:projetoId/details"
+          element={<ProtectedRoute element={<ProjetoDetailsPage />} />}
         />
       </Routes>
     </>

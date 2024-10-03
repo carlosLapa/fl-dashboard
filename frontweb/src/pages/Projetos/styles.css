@@ -6,3 +6,10 @@
   background-color:rgb(209, 205, 205);
   border-color: aliceblue;
 }
+
+.projeto-details-container{
+  margin-top: 1%;
+  margin-left: 15%;
+  width: 83%;
+  /*border: 2px solid rgb(68, 255, 0);*/
+}
