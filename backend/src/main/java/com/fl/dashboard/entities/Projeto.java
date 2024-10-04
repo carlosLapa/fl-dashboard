@@ -18,6 +18,13 @@ public class Projeto {
     @OrderBy("ordem ASC")
     private List<Coluna> colunas = new ArrayList<>();
 
+    @OneToMany(mappedBy = "projeto")
+    private List<Notification> notifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
+    private Set<Tarefa> tarefas = new HashSet<>();
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,9 +42,6 @@ public class Projeto {
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
 
     private Date prazo;
-
-    @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
-    private Set<Tarefa> tarefas = new HashSet<>();
 
     public Projeto() {
     }

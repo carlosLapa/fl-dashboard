@@ -5,22 +5,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "tb_tarefa")
 @Getter
 @Setter
 public class Tarefa {
-
-    @ManyToMany
-    @JoinTable(name = "tb_tarefa_user",
-            joinColumns = @JoinColumn(name = "tarefa_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<User> users = new HashSet<>();
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +32,15 @@ public class Tarefa {
     @ManyToOne
     @JoinColumn(name = "coluna_id")
     private Coluna coluna;
+
+    @ManyToMany
+    @JoinTable(name = "tb_tarefa_user",
+            joinColumns = @JoinColumn(name = "tarefa_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    Set<User> users = new HashSet<>();
+
+    @OneToMany(mappedBy = "tarefa")
+    private List<Notification> notifications = new ArrayList<>();
 
     public Tarefa() {
     }
