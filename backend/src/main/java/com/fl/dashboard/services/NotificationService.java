@@ -125,4 +125,21 @@ public class NotificationService {
             entity.setProjeto(projeto);
         }
     }
+
+    @Transactional
+    public void markAsRead(Long id) {
+        Notification notification = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        notification.setIsRead(true);
+        repository.save(notification);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<NotificationDTO> findByUser(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Page<Notification> page = repository.findByUser(user, pageable);
+        return page.map(this::convertToDTO);
+    }
+
 }
