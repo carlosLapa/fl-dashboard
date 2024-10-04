@@ -12,9 +12,12 @@ import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,11 @@ public class NotificationService {
     @Autowired
     private ProjetoRepository projetoRepository;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+
     @Transactional(readOnly = true)
     public Page<NotificationDTO> findAllPaged(Pageable pageable) {
         Page<Notification> page = repository.findAll(pageable);
@@ -50,7 +58,14 @@ public class NotificationService {
         Notification notification = new Notification();
         copyInsertDtoToEntity(dto, notification);
         notification = repository.save(notification);
-        return convertToDTO(notification);
+        NotificationDTO savedDto = convertToDTO(notification);
+
+        // Send notification through WebSocket
+        logger.info("Sending notification through WebSocket: {}", savedDto);
+        messagingTemplate.convertAndSend("/topic/notifications", savedDto);
+        logger.info("Notification sent through WebSocket");
+
+        return savedDto;
     }
 
     @Transactional
@@ -58,7 +73,14 @@ public class NotificationService {
         Notification notification = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
         copyUpdateDtoToEntity(dto, notification);
         notification = repository.save(notification);
-        return convertToDTO(notification);
+        NotificationDTO updatedDto = convertToDTO(notification);
+
+        // Send updated notification through WebSocket
+        logger.info("Sending notification through WebSocket: {}", updatedDto);
+        messagingTemplate.convertAndSend("/topic/notifications", updatedDto);
+        logger.info("Notification sent through WebSocket");
+
+        return updatedDto;
     }
 
     @Transactional
@@ -131,7 +153,12 @@ public class NotificationService {
         Notification notification = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
         notification.setIsRead(true);
-        repository.save(notification);
+        notification = repository.save(notification);
+
+        // Send updated notification through WebSocket
+        logger.info("Sending notification through WebSocket: {}", notification);
+        messagingTemplate.convertAndSend("/topic/notifications", convertToDTO(notification));
+        logger.info("Notification sent through WebSocket");
     }
 
     @Transactional(readOnly = true)

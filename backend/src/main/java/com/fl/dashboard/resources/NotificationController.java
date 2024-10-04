@@ -4,6 +4,8 @@ import com.fl.dashboard.dto.NotificationDTO;
 import com.fl.dashboard.dto.NotificationInsertDTO;
 import com.fl.dashboard.dto.NotificationUpdateDTO;
 import com.fl.dashboard.services.NotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,8 @@ public class NotificationController {
     @Autowired
     private NotificationService service;
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
+
     @GetMapping
     public ResponseEntity<Page<NotificationDTO>> findAll(Pageable pageable) {
         Page<NotificationDTO> list = service.findAllPaged(pageable);
@@ -34,10 +38,12 @@ public class NotificationController {
 
     @PostMapping
     public ResponseEntity<NotificationDTO> insert(@RequestBody NotificationInsertDTO dto) {
-        NotificationDTO newDto = service.insert(dto);
+        logger.info("Received POST request to create notification: {}", dto);
+        NotificationDTO notificationDTO = service.insert(dto);
+        logger.info("Notification created: {}", notificationDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(newDto.getId()).toUri();
-        return ResponseEntity.created(uri).body(newDto);
+                .buildAndExpand(notificationDTO.getId()).toUri();
+        return ResponseEntity.created(uri).body(notificationDTO);
     }
 
     @PutMapping(value = "/{id}")
