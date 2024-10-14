@@ -26,7 +26,9 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<Page<NotificationDTO>> findAll(Pageable pageable) {
+        logger.info("Received request to fetch all notifications");
         Page<NotificationDTO> list = service.findAllPaged(pageable);
+        logger.info("Returning {} notifications", list.getTotalElements());
         return ResponseEntity.ok().body(list);
     }
 

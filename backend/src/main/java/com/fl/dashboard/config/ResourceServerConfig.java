@@ -48,7 +48,7 @@ public class ResourceServerConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/ws/**").permitAll()
-                .anyRequest().permitAll());
+                .anyRequest().authenticated());
         http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         return http.build();

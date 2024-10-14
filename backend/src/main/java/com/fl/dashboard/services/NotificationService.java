@@ -24,32 +24,40 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class NotificationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+    private static final String TOPIC_NOTIFICATIONS = "/topic/notifications";
+    private static final String TOPIC_NOTIFICATIONS_SENDING_NOTIFICATION = "Sending notification through WebSocket: {}";
+    private static final String TOPIC_NOTIFICATIONS_NOTIFICATION_NOT_FOUND = "Notification not found";
+    private static final String USER_NOT_FOUND = "User not found";
+
     @Autowired
     private NotificationRepository repository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private TarefaRepository tarefaRepository;
-
     @Autowired
     private ProjetoRepository projetoRepository;
-
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    private static final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+    public void sendNotificationToUser(Long userId, NotificationDTO notification) {
+        logger.info("Sending notification to user {}: {}", userId, notification);
+        messagingTemplate.convertAndSendToUser(userId.toString(), TOPIC_NOTIFICATIONS, notification);
+        logger.info("Notification sent to user {}", userId);
+    }
 
     @Transactional(readOnly = true)
     public Page<NotificationDTO> findAllPaged(Pageable pageable) {
+        logger.info("Fetching notifications from database");
         Page<Notification> page = repository.findAll(pageable);
+        logger.info("Found {} notifications", page.getTotalElements());
         return page.map(this::convertToDTO);
     }
 
     @Transactional(readOnly = true)
     public NotificationDTO findById(Long id) {
-        Notification notification = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        Notification notification = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(TOPIC_NOTIFICATIONS_NOTIFICATION_NOT_FOUND));
         return convertToDTO(notification);
     }
 
@@ -61,24 +69,26 @@ public class NotificationService {
         NotificationDTO savedDto = convertToDTO(notification);
 
         // Send notification through WebSocket
-        logger.info("Sending notification through WebSocket: {}", savedDto);
-        messagingTemplate.convertAndSend("/topic/notifications", savedDto);
+        logger.info(TOPIC_NOTIFICATIONS_SENDING_NOTIFICATION, savedDto);
+        messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS, savedDto);
         logger.info("Notification sent through WebSocket");
+        sendNotificationToUser(savedDto.getUserId(), savedDto);
 
         return savedDto;
     }
 
     @Transactional
     public NotificationDTO update(Long id, NotificationUpdateDTO dto) {
-        Notification notification = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        Notification notification = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException(TOPIC_NOTIFICATIONS_NOTIFICATION_NOT_FOUND));
         copyUpdateDtoToEntity(dto, notification);
         notification = repository.save(notification);
         NotificationDTO updatedDto = convertToDTO(notification);
 
         // Send updated notification through WebSocket
-        logger.info("Sending notification through WebSocket: {}", updatedDto);
-        messagingTemplate.convertAndSend("/topic/notifications", updatedDto);
+        logger.info(TOPIC_NOTIFICATIONS_SENDING_NOTIFICATION, updatedDto);
+        messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS, updatedDto);
         logger.info("Notification sent through WebSocket");
+        sendNotificationToUser(updatedDto.getUserId(), updatedDto);
 
         return updatedDto;
     }
@@ -105,7 +115,7 @@ public class NotificationService {
         // Set user, tarefa, and projeto based on IDs
         if (dto.getUserId() != null) {
             User user = userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
             entity.setUser(user);
         }
 
@@ -131,7 +141,7 @@ public class NotificationService {
         // Update user, tarefa, and projeto based on IDs if they are provided
         if (dto.getUserId() != null) {
             User user = userRepository.findById(dto.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
             entity.setUser(user);
         }
 
@@ -151,20 +161,20 @@ public class NotificationService {
     @Transactional
     public void markAsRead(Long id) {
         Notification notification = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(TOPIC_NOTIFICATIONS_NOTIFICATION_NOT_FOUND));
         notification.setIsRead(true);
         notification = repository.save(notification);
 
         // Send updated notification through WebSocket
         logger.info("Sending notification through WebSocket: {}", notification);
-        messagingTemplate.convertAndSend("/topic/notifications", convertToDTO(notification));
+        messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS, convertToDTO(notification));
         logger.info("Notification sent through WebSocket");
     }
 
     @Transactional(readOnly = true)
     public Page<NotificationDTO> findByUser(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         Page<Notification> page = repository.findByUser(user, pageable);
         return page.map(this::convertToDTO);
     }
