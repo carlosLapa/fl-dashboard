@@ -6,8 +6,10 @@ import {
   faPencilAlt,
   faTrashAlt,
   faTasks,
+  faBell,
 } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 import './styles.css';
 
@@ -24,6 +26,12 @@ const UserTable: React.FC<UserTableProps> = ({
   onDeleteUser,
   onViewTasks,
 }) => {
+  const navigate = useNavigate();
+
+  const handleNavigateToNotifications = () => {
+    navigate('/notifications');
+  };
+
   return (
     <div className="user-container">
       <Table striped bordered hover>
@@ -102,6 +110,21 @@ const UserTable: React.FC<UserTableProps> = ({
                       icon={faTasks}
                       onClick={() => onViewTasks(user.id)}
                       className="view-tasks-icon"
+                    />
+                  </OverlayTrigger>
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`notifications-tooltip-${user.id}`}>
+                        Ver Notificações
+                      </Tooltip>
+                    }
+                  >
+                    <FontAwesomeIcon
+                      icon={faBell}
+                      onClick={handleNavigateToNotifications}
+                      className="view-notifications-icon"
+                      style={{ marginRight: '10px' }}
                     />
                   </OverlayTrigger>
                 </td>

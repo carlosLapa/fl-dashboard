@@ -10,6 +10,7 @@ import KanbanBoardPage from 'pages/KanbanBoard/KanbanBoardPage';
 import UsersTarefasPage from 'pages/Users/UsersTarefasPage';
 import UserCalendarPage from 'pages/Users/UserCalendarPage';
 import ProjetoDetailsPage from 'pages/Projetos/ProjetoDetailsPage';
+import NotificationsPage from 'pages/Notifications/NotificationsPage';
 
 const AppRoutes = () => {
   return (
@@ -45,6 +46,10 @@ const AppRoutes = () => {
         <Route
           path="/projetos/:projetoId/details"
           element={<ProtectedRoute element={<ProjetoDetailsPage />} />}
+        />
+        <Route
+          path="/notifications"
+          element={<ProtectedRoute element={<NotificationsPage />} />}
         />
       </Routes>
     </>
