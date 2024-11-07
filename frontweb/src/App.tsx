@@ -4,13 +4,18 @@ import { ToastContainer } from 'react-toastify';
 import AppRoutes from 'routes/AppRoutes';
 import { AuthProvider } from './AuthContext';
 import { BrowserRouter } from 'react-router-dom';
+import NotificationList from 'components/NotificationBox/NotificationList';
+import { NotificationProvider } from 'NotificationContext';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ToastContainer autoClose={2000} />
-        <AppRoutes />
+        <NotificationProvider>
+          <ToastContainer autoClose={2000} />
+          <NotificationList />
+          <AppRoutes />
+        </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
   );
