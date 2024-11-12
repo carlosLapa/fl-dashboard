@@ -48,7 +48,7 @@ const AppRoutes = () => {
           element={<ProtectedRoute element={<ProjetoDetailsPage />} />}
         />
         <Route
-          path="/notifications"
+          path="/notifications/:userId"
           element={<ProtectedRoute element={<NotificationsPage />} />}
         />
       </Routes>

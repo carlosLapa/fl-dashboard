@@ -1,10 +1,16 @@
+// src/components/NotificationBox/NotificationBox.tsx
+
 import React, { useEffect } from 'react';
 import useWebSocket from 'hooks/useWebSocketMessage';
 import { useNotification } from '../../NotificationContext';
 import { NotificationInsertDTO } from 'types/notification';
 import './styles.css';
 
-const NotificationBox: React.FC = () => {
+interface NotificationBoxProps {
+  userId: number;
+}
+
+const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   const { handleNewNotification } = useNotification();
   const {
     isConnected,
@@ -15,7 +21,7 @@ const NotificationBox: React.FC = () => {
     clearMessages,
     connectionStats,
     reconnect,
-  } = useWebSocket();
+  } = useWebSocket(userId);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -26,10 +32,10 @@ const NotificationBox: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      removeSubscription('/topic/notifications');
+      removeSubscription(`/topic/notifications/${userId}`);
       clearMessages();
     };
-  }, [removeSubscription, clearMessages]);
+  }, [removeSubscription, clearMessages, userId]);
 
   const handleSendNotification = () => {
     const notification: NotificationInsertDTO = {
@@ -38,16 +44,21 @@ const NotificationBox: React.FC = () => {
       isRead: false,
       createdAt: new Date().toISOString(),
       relatedId: null,
-      userId: 1,
+      userId: userId,
       tarefaId: 10,
       projetoId: 5,
     };
-    sendMessage({ type: 'NOTIFICATION', content: notification });
+  
+    // Send the notification object directly
+    sendMessage({
+      type: 'NOTIFICATION',
+      content: notification  // Remove JSON.stringify here
+    });
   };
 
   return (
     <div className="notification-box">
-      <h2>Notifications Control Panel</h2>
+      <h2>Notifications for User ID: {userId}</h2>
       <div className="connection-status">
         <p>Connection status: {isConnected ? 'Connected' : 'Disconnected'}</p>
         <p>Messages sent: {connectionStats.messagesSent}</p>

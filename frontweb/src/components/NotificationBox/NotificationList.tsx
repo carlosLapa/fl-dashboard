@@ -6,7 +6,7 @@ const NotificationList: React.FC = () => {
   const { notifications, handleMarkAsRead } = useNotification();
 
   return (
-    <div className="notification-list">
+    <div className="notification-list" role="list">
       {notifications.map((notification) => (
         <NotificationDisplay
           key={notification.id}

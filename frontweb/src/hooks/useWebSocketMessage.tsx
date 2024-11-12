@@ -8,7 +8,7 @@ import {
 
 interface WebSocketMessage {
   type: string;
-  content: CustomNotification | NotificationInsertDTO;
+  content: CustomNotification | NotificationInsertDTO | string;
 }
 
 interface ConnectionStats {
@@ -17,7 +17,8 @@ interface ConnectionStats {
   queueSize: number;
 }
 
-const useWebSocket = () => {
+const useWebSocket = (userId: number) => {
+  // Accept userId as a parameter
   const SOCKET_URL = 'http://localhost:8080/ws';
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -53,7 +54,13 @@ const useWebSocket = () => {
         console.log('Received message:', parsedMessage);
         updateConnectionStats('received');
 
-        if (parsedMessage.type === 'NOTIFICATION') {
+        // Ensure parsedMessage.content is an object and has userId
+        if (
+          parsedMessage.type === 'NOTIFICATION' &&
+          typeof parsedMessage.content !== 'string' &&
+          'userId' in parsedMessage.content &&
+          parsedMessage.content.userId === userId
+        ) {
           setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
             if (newMessages.length > MAX_MESSAGES) {
@@ -69,7 +76,7 @@ const useWebSocket = () => {
         console.error('Error processing WebSocket message:', error);
       }
     },
-    [updateConnectionStats]
+    [updateConnectionStats, userId] // Include userId in dependencies
   );
 
   const clearMessages = useCallback(() => {
@@ -123,7 +130,7 @@ const useWebSocket = () => {
       if (stompClient && isConnected) {
         console.log('Sending message:', message);
         stompClient.publish({
-          destination: '/app/notifications',
+          destination: '/app/send-notification', // Ensure this matches the @MessageMapping in the backend
           body: JSON.stringify(message),
         });
         updateConnectionStats('sent');
@@ -158,7 +165,7 @@ const useWebSocket = () => {
         setIsConnected(true);
         setConnectionError(null);
         setConnectionAttempts(0);
-        client.subscribe('/topic/notifications', handleMessage);
+        client.subscribe(`/topic/notifications/${userId}`, handleMessage); // Subscribe to user-specific topic
       }
     };
 
@@ -190,7 +197,7 @@ const useWebSocket = () => {
         client.deactivate();
       }
     };
-  }, [handleMessage]);
+  }, [handleMessage, userId]); // Include userId in dependencies
 
   return {
     isConnected,

@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 import { Notification, NotificationInsertDTO } from 'types/notification';
+import useWebSocket from 'hooks/useWebSocketMessage';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -12,9 +19,10 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
 );
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const NotificationProvider: React.FC<{
+  children: React.ReactNode;
+  userId: number;
+}> = ({ children, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const handleNewNotification = useCallback((notification: Notification) => {
@@ -29,12 +37,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   }, []);
 
+  // Use the useWebSocket hook
+  const { messages, sendMessage } = useWebSocket(userId);
+
   const sendNotification = useCallback(
     (notification: NotificationInsertDTO) => {
-      // WebSocket send logic will be handled by components
+      const message = {
+        type: 'NOTIFICATION',
+        content: notification,
+      };
+      sendMessage(message);
     },
-    []
+    [sendMessage]
   );
+
+  // Handle new messages from WebSocket
+  useEffect(() => {
+    messages.forEach((message) => {
+      handleNewNotification(message);
+    });
+  }, [messages, handleNewNotification]); // Add handleNewNotification to the dependency array
 
   return (
     <NotificationContext.Provider

@@ -28,8 +28,9 @@ const UserTable: React.FC<UserTableProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleNavigateToNotifications = () => {
-    navigate('/notifications');
+  const handleNavigateToNotifications = (userId: number) => {
+    console.log('Navigating to notifications for User ID:', userId);
+    navigate(`/notifications/${userId}`);
   };
 
   return (
@@ -122,7 +123,7 @@ const UserTable: React.FC<UserTableProps> = ({
                   >
                     <FontAwesomeIcon
                       icon={faBell}
-                      onClick={handleNavigateToNotifications}
+                      onClick={() => handleNavigateToNotifications(user.id)}
                       className="view-notifications-icon"
                       style={{ marginRight: '10px' }}
                     />

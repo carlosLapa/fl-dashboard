@@ -11,7 +11,10 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   onMarkAsRead,
 }) => {
   return (
-    <div className={`notification ${notification.isRead ? 'read' : 'unread'}`}>
+    <div
+      className={`notification ${notification.isRead ? 'read' : 'unread'}`}
+      role="listitem"
+    >
       <h3>{notification.type}</h3>
       <p>{notification.content}</p>
       <small>{new Date(notification.createdAt).toLocaleString()}</small>
@@ -19,11 +22,14 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
       {notification.projeto && (
         <p>Projeto: {notification.projeto.designacao}</p>
       )}
-      <button onClick={() => onMarkAsRead(notification.id)}>
+      <button
+        onClick={() => onMarkAsRead(notification.id)}
+        aria-label={`Mark notification as read: ${notification.content}`}
+      >
         Mark as Read
       </button>
     </div>
   );
 };
 
-export default NotificationDisplay;
+export default React.memo(NotificationDisplay);
