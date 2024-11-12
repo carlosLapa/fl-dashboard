@@ -1,12 +1,10 @@
 package com.fl.dashboard.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.fl.dashboard.dto.NotificationDTO;
 import com.fl.dashboard.dto.NotificationInsertDTO;
 import com.fl.dashboard.dto.NotificationUpdateDTO;
+import com.fl.dashboard.dto.WebSocketMessage;
 import com.fl.dashboard.entities.Notification;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
@@ -18,10 +16,12 @@ import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.fl.dashboard.dto.WebSocketMessage;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class NotificationService {
     private static final String TOPIC_NOTIFICATIONS = "/topic/notifications";
     private static final String TOPIC_NOTIFICATIONS_SENDING_NOTIFICATION = "Sending notification through WebSocket: {}";
     private static final String TOPIC_NOTIFICATIONS_NOTIFICATION_NOT_FOUND = "Notification not found";
-    private static final String TOPIC_NOTIFICATIONS_NOTIFICATION_SENT = "Notification not found";
+    private static final String TOPIC_NOTIFICATIONS_NOTIFICATION_SENT = "Notification sent";
     private static final String USER_NOT_FOUND = "User not found";
 
     @Autowired
@@ -47,34 +47,44 @@ public class NotificationService {
     private SimpMessagingTemplate messagingTemplate;
 
     public void handleWebSocketNotification(WebSocketMessage message) {
+        logger.info("Received WebSocket message: {}", message);
         if ("NOTIFICATION".equals(message.getType())) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 NotificationInsertDTO notificationDTO = mapper.convertValue(message.getContent(), NotificationInsertDTO.class);
 
+                // Process the notification
                 Notification notification = new Notification();
                 copyInsertDtoToEntity(notificationDTO, notification);
+                notification = notificationRepository.save(notification);
+                logger.info("Notification processed and saved: {}", notification);
 
-                // Save to database
-                Notification savedNotification = notificationRepository.save(notification);
-
-                // Convert saved notification to DTO for broadcasting
-                NotificationDTO broadcastDTO = convertToDTO(savedNotification);
-
-                // Broadcast the saved notification
-                messagingTemplate.convertAndSend("/topic/notifications", broadcastDTO);
+                // Send notification through WebSocket
+                NotificationDTO savedDto = convertToDTO(notification);
+                messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS + "/" + notificationDTO.getUserId(), savedDto);
 
             } catch (Exception e) {
-                System.err.println("Error processing notification: " + e.getMessage());
+                logger.error("Error processing notification: {}", e.getMessage());
                 e.printStackTrace();
             }
         }
     }
 
-    public void sendNotificationToUser(Long userId, NotificationDTO notification) {
-        logger.info("Sending notification to user {}: {}", userId, notification);
-        messagingTemplate.convertAndSendToUser(userId.toString(), TOPIC_NOTIFICATIONS, notification);
-        logger.info("Notification sent to user {}", userId);
+    private void sendNotificationToUser(Long userId, NotificationDTO notificationDTO) {
+        if (userId != null) {
+            logger.info("Sending notification to user with ID: {}", userId);
+            // Logic to send notification to the user
+        } else {
+            logger.warn("Cannot send notification, user ID is null");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<NotificationDTO> findPagedByUserId(Long userId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        Page<Notification> page = notificationRepository.findByUser(user, pageable);
+        return page.map(this::convertToDTO);
     }
 
     @Transactional(readOnly = true)
@@ -91,17 +101,33 @@ public class NotificationService {
         return convertToDTO(notification);
     }
 
+    @Transactional(readOnly = true)
+    public List<NotificationDTO> findAllByUserId(Long userId) {
+        List<Notification> notifications = notificationRepository.findByUserId(userId);
+        return notifications.stream().map(this::convertToDTO).toList();
+    }
+
     @Transactional
     public NotificationDTO insert(NotificationInsertDTO dto) {
         Notification notification = new Notification();
         copyInsertDtoToEntity(dto, notification);
-        notification = notificationRepository.save(notification);
+        logger.info("Attempting to save notification: {}", notification);
+
+        try {
+            notification = notificationRepository.save(notification);
+            logger.info("Notification saved successfully: {}", notification);
+        } catch (Exception e) {
+            logger.error("Error saving notification", e);
+            throw e; // Re-throw to ensure transaction rollback
+        }
+
         NotificationDTO savedDto = convertToDTO(notification);
+        logger.info("Converted NotificationDTO: {}", savedDto);
 
         // Send notification through WebSocket
-        logger.info(TOPIC_NOTIFICATIONS_SENDING_NOTIFICATION, savedDto);
+        logger.info("Sending notification to topic: {}", TOPIC_NOTIFICATIONS);
         messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS, savedDto);
-        logger.info(TOPIC_NOTIFICATIONS_NOTIFICATION_SENT);
+        logger.info("Notification sent to topic successfully");
         sendNotificationToUser(savedDto.getUserId(), savedDto);
 
         return savedDto;
@@ -136,7 +162,7 @@ public class NotificationService {
                 notification.getIsRead(),
                 notification.getCreatedAt(),
                 notification.getRelatedId(),
-                notification.getUser().getId(),
+                notification.getUser() != null ? notification.getUser().getId() : null,
                 notification.getTarefa() != null ? notification.getTarefa().getId() : null,
                 notification.getProjeto() != null ? notification.getProjeto().getId() : null);
     }
@@ -147,11 +173,15 @@ public class NotificationService {
         entity.setIsRead(dto.getIsRead());
         entity.setCreatedAt(dto.getCreatedAt());
         entity.setRelatedId(dto.getRelatedId());
-        // Set user, tarefa, and projeto based on IDs
+
         if (dto.getUserId() != null) {
+            logger.info("Attempting to find user with ID: {}", dto.getUserId());
             User user = userRepository.findById(dto.getUserId())
                     .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+            logger.info("User found: {}", user.getId());
             entity.setUser(user);
+        } else {
+            logger.warn("User ID is null in NotificationInsertDTO");
         }
 
         if (dto.getTarefaId() != null) {
@@ -165,6 +195,8 @@ public class NotificationService {
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
             entity.setProjeto(projeto);
         }
+
+        logger.info("Notification entity after setting fields: {}", entity);
     }
 
     private void copyUpdateDtoToEntity(NotificationUpdateDTO dto, Notification entity) {
@@ -259,5 +291,4 @@ public class NotificationService {
         insertDTO.setProjetoId(notificationDTO.getProjetoId());
         return insertDTO;
     }
-
 }

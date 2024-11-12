@@ -1,8 +1,10 @@
 package com.fl.dashboard.resources;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fl.dashboard.dto.NotificationDTO;
 import com.fl.dashboard.dto.NotificationInsertDTO;
 import com.fl.dashboard.dto.NotificationUpdateDTO;
+import com.fl.dashboard.dto.WebSocketMessage;
 import com.fl.dashboard.services.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -32,39 +35,25 @@ public class NotificationController {
     private NotificationService notificationService;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // WebSocket endpoints
-    @MessageMapping("/notifications")
-    @SendTo("/topic/notifications")
-    public NotificationDTO sendNotification(NotificationDTO notification) {
-        logger.info("Received WebSocket notification: {}", notification);
-        try {
-            // Process the notification
-            NotificationDTO processedNotification = notificationService.processNotification(notification);
-            logger.info("Sending processed notification to topic: {}", TOPIC_NOTIFICATIONS);
-            return processedNotification;
-        } catch (Exception e) {
-            logger.error("Error processing notification", e);
-            // You might want to send an error message back to the client
-            return new NotificationDTO(null, "ERROR", "Failed to process notification", false, new Date(), null, null, null, null);
-        }
-    }
-
     @MessageMapping("/send-notification")
     @SendTo("/topic/notifications")
-    public NotificationDTO handleNotification(NotificationInsertDTO notificationInsertDTO) {
-        logger.info("Received notification insert request: {}", notificationInsertDTO);
+    public NotificationDTO handleNotification(@Payload WebSocketMessage message) {
+        logger.info("Received notification message via WebSocket: {}", message);
         try {
+            ObjectMapper mapper = new ObjectMapper();
+            NotificationInsertDTO notificationInsertDTO = mapper.convertValue(message.getContent(), NotificationInsertDTO.class);
             NotificationDTO result = notificationService.insert(notificationInsertDTO);
-            logger.info("Sending inserted notification to topic: {}", TOPIC_NOTIFICATIONS);
+            logger.info("Notification inserted successfully: {}", result);
             return result;
         } catch (Exception e) {
             logger.error("Error inserting notification", e);
-            // You might want to send an error message back to the client
             return new NotificationDTO(null, "ERROR", "Failed to insert notification", false, new Date(), null, null, null, null);
         }
     }
-
 
     @MessageMapping("/**")
     public void handleAnyMessage(Message<?> message) {
@@ -86,6 +75,12 @@ public class NotificationController {
         return ResponseEntity.ok().body(dto);
     }
 
+    @GetMapping("/user/{userId}/all")
+    public ResponseEntity<List<NotificationDTO>> findAllByUserId(@PathVariable Long userId) {
+        List<NotificationDTO> notifications = notificationService.findAllByUserId(userId);
+        return ResponseEntity.ok().body(notifications);
+    }
+
     @PostMapping
     public ResponseEntity<NotificationDTO> insert(@RequestBody NotificationInsertDTO dto) {
         logger.info("Received POST request to create notification: {}", dto);
@@ -93,7 +88,6 @@ public class NotificationController {
         logger.info("Notification created: {}", notificationDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(notificationDTO.getId()).toUri();
-
         // Send to all subscribers
         messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS, notificationDTO);
 

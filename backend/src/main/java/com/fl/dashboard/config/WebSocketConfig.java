@@ -26,6 +26,12 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
 import org.springframework.web.socket.messaging.StompSubProtocolHandler;
 import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.util.MimeType;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
+import java.util.List;
+
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -49,6 +55,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:3000")
                 .withSockJS();
+    }
+
+    @Override
+    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
+        MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+        DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
+        resolver.setDefaultMimeType(MimeType.valueOf("application/json"));
+        converter.setContentTypeResolver(resolver);
+        messageConverters.add(converter);
+        return false;
     }
 
     @Override
