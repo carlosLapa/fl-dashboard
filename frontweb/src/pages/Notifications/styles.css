@@ -1,0 +1,13 @@
+.notifications-container {
+  padding-top: 80px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin-left: 12%; /* Match sidebar width */
+}
+
+.notifications-page {
+  position: relative;
+  width: 88%; /* Complement to sidebar width */
+  padding: 20px;
+}

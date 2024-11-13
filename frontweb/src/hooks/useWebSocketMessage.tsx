@@ -50,33 +50,31 @@ const useWebSocket = (userId: number) => {
   const handleMessage = useCallback(
     (message: Message) => {
       try {
-        const parsedMessage: WebSocketMessage = JSON.parse(message.body);
-        console.log('Received message:', parsedMessage);
+        console.log('Raw message received:', message.body);
+        const parsedMessage = JSON.parse(message.body);
+        console.log('Parsed message:', parsedMessage);
         updateConnectionStats('received');
 
-        // Ensure parsedMessage.content is an object and has userId
-        if (
-          parsedMessage.type === 'NOTIFICATION' &&
-          typeof parsedMessage.content !== 'string' &&
-          'userId' in parsedMessage.content &&
-          parsedMessage.content.userId === userId
-        ) {
+        // Handle both direct notification objects and wrapped messages
+        const notification =
+          parsedMessage.type === 'NOTIFICATION'
+            ? parsedMessage.content
+            : parsedMessage;
+
+        if (notification.userId === userId) {
           setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
             if (newMessages.length > MAX_MESSAGES) {
               newMessages.splice(0, newMessages.length - MAX_MESSAGES);
             }
-            return [
-              ...newMessages,
-              parsedMessage.content as CustomNotification,
-            ];
+            return [...newMessages, notification as CustomNotification];
           });
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
       }
     },
-    [updateConnectionStats, userId] // Include userId in dependencies
+    [updateConnectionStats, userId]
   );
 
   const clearMessages = useCallback(() => {
@@ -110,12 +108,16 @@ const useWebSocket = (userId: number) => {
 
   const removeSubscription = useCallback(
     (topic: string) => {
-      if (stompClient && isConnected) {
-        stompClient.unsubscribe(topic);
-        setSubscriptions((prev) => prev.filter((t) => t !== topic));
+      if (stompClient?.connected) {
+        try {
+          stompClient.unsubscribe(topic);
+          setSubscriptions((prev) => prev.filter((t) => t !== topic));
+        } catch (error) {
+          console.log('Error unsubscribing:', error);
+        }
       }
     },
-    [stompClient, isConnected]
+    [stompClient]
   );
 
   const filterMessages = useCallback(
@@ -165,7 +167,13 @@ const useWebSocket = (userId: number) => {
         setIsConnected(true);
         setConnectionError(null);
         setConnectionAttempts(0);
-        client.subscribe(`/topic/notifications/${userId}`, handleMessage); // Subscribe to user-specific topic
+
+        const subscriptions = [
+          client.subscribe('/topic/notifications', handleMessage),
+          client.subscribe(`/topic/notifications/${userId}`, handleMessage),
+        ];
+
+        setSubscriptions(subscriptions.map((sub) => sub.id));
       }
     };
 
@@ -193,11 +201,18 @@ const useWebSocket = (userId: number) => {
     return () => {
       isComponentMounted = false;
       if (client.connected) {
-        console.log('Cleaning up WebSocket connection...');
+        subscriptions.forEach((subId) => {
+          try {
+            client.unsubscribe(subId);
+          } catch (error) {
+            console.log('Cleanup unsubscribe error:', error);
+          }
+        });
         client.deactivate();
       }
     };
-  }, [handleMessage, userId]); // Include userId in dependencies
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handleMessage, userId]);
 
   return {
     isConnected,

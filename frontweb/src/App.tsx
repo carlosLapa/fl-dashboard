@@ -4,7 +4,6 @@ import { ToastContainer } from 'react-toastify';
 import AppRoutes from 'routes/AppRoutes';
 import { AuthProvider, useAuth } from './AuthContext';
 import { BrowserRouter } from 'react-router-dom';
-import NotificationList from 'components/NotificationBox/NotificationList';
 import { NotificationProvider } from 'NotificationContext';
 
 const AppContent: React.FC = () => {
@@ -15,7 +14,6 @@ const AppContent: React.FC = () => {
       {' '}
       {/* Use nullish coalescing to provide a default value */}
       <ToastContainer autoClose={2000} />
-      <NotificationList />
       <AppRoutes />
     </NotificationProvider>
   );

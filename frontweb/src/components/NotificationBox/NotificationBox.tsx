@@ -1,9 +1,7 @@
-// src/components/NotificationBox/NotificationBox.tsx
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import useWebSocket from 'hooks/useWebSocketMessage';
-import { useNotification } from '../../NotificationContext';
-import { NotificationInsertDTO } from 'types/notification';
+import { Notification, NotificationInsertDTO } from 'types/notification';
+import NotificationDisplay from './NotificationDisplay';
 import './styles.css';
 
 interface NotificationBoxProps {
@@ -11,7 +9,9 @@ interface NotificationBoxProps {
 }
 
 const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
-  const { handleNewNotification } = useNotification();
+  const [displayedNotifications, setDisplayedNotifications] = useState<
+    NotificationInsertDTO[]
+  >([]);
   const {
     isConnected,
     messages,
@@ -23,12 +23,63 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     reconnect,
   } = useWebSocket(userId);
 
+  const convertToNotificationInsertDTO = (
+    notification: Notification
+  ): NotificationInsertDTO => {
+    return {
+      type: notification.type,
+      content: notification.content,
+      isRead: notification.isRead,
+      createdAt: notification.createdAt,
+      relatedId: notification.relatedId,
+      userId: notification.user?.id || 0,
+      tarefaId: notification.tarefa?.id || 0,
+      projetoId: notification.projeto?.id || 0,
+    };
+  };
+
+  const convertToDisplayNotification = (
+    dto: NotificationInsertDTO
+  ): Notification => {
+    return {
+      id: dto.userId, // Using userId as temporary id for display
+      type: dto.type,
+      content: dto.content,
+      isRead: dto.isRead,
+      createdAt: dto.createdAt,
+      relatedId: dto.relatedId,
+      user: {
+        id: dto.userId,
+        name: `User ${dto.userId}`,
+      },
+      tarefa: {
+        id: dto.tarefaId,
+        descricao: `Tarefa ${dto.tarefaId}`,
+      },
+      projeto: {
+        id: dto.projetoId,
+        designacao: `Projeto ${dto.projetoId}`,
+      },
+    };
+  };
+
+  const handleMarkAsRead = (userId: number) => {
+    setDisplayedNotifications((prev) =>
+      prev.map((notification) =>
+        notification.userId === userId
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+  };
+
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      handleNewNotification(latestMessage);
+      const convertedMessage = convertToNotificationInsertDTO(latestMessage);
+      setDisplayedNotifications((prev) => [...prev, convertedMessage]);
     }
-  }, [messages, handleNewNotification]);
+  }, [messages]);
 
   useEffect(() => {
     return () => {
@@ -48,39 +99,56 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       tarefaId: 10,
       projetoId: 5,
     };
-  
-    // Send the notification object directly
+
     sendMessage({
       type: 'NOTIFICATION',
-      content: notification  // Remove JSON.stringify here
+      content: notification,
     });
   };
 
   return (
-    <div className="notification-box">
-      <h2>Notifications for User ID: {userId}</h2>
-      <div className="connection-status">
-        <p>Connection status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-        <p>Messages sent: {connectionStats.messagesSent}</p>
-        <p>Messages received: {connectionStats.messagesReceived}</p>
-        <p>Queue size: {connectionStats.queueSize}</p>
-      </div>
-      {connectionError && (
-        <div className="error-container">
-          <p className="error-message">{connectionError}</p>
-          <button onClick={reconnect} className="reconnect-btn">
-            Retry Connection
-          </button>
+    <div className="notification-container">
+      <div className="notification-box">
+        <div className="connection-status">
+          <p>Connection status: {isConnected ? 'Connected' : 'Disconnected'}</p>
+          <p>Messages sent: {connectionStats.messagesSent}</p>
+          <p>Messages received: {connectionStats.messagesReceived}</p>
+          <p>Queue size: {connectionStats.queueSize}</p>
         </div>
-      )}
-      {!isConnected && <p>Please check your connection or token validity.</p>}
-      <button
-        onClick={handleSendNotification}
-        className="send-notification-btn"
-        disabled={!isConnected}
-      >
-        Send Test Notification
-      </button>
+
+        {connectionError && (
+          <div className="error-container">
+            <p className="error-message">{connectionError}</p>
+            <button onClick={reconnect} className="reconnect-btn">
+              Retry Connection
+            </button>
+          </div>
+        )}
+
+        {!isConnected && <p>Please check your connection or token validity.</p>}
+
+        <button
+          onClick={handleSendNotification}
+          className="send-notification-btn"
+          disabled={!isConnected}
+        >
+          Send Test Notification
+        </button>
+      </div>
+
+      <div className="notifications-list" role="list">
+        {displayedNotifications.length === 0 ? (
+          <p className="no-notifications">No notifications</p>
+        ) : (
+          displayedNotifications.map((notification, index) => (
+            <NotificationDisplay
+              key={`notification-${index}`}
+              notification={convertToDisplayNotification(notification)}
+              onMarkAsRead={handleMarkAsRead}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 };

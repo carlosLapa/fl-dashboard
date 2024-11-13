@@ -1,15 +1,29 @@
 import React from 'react';
-import { Notification } from 'types/notification';
+import { Notification, NotificationInsertDTO } from 'types/notification';
 
 interface NotificationDisplayProps {
-  notification: Notification;
+  notification: Notification | NotificationInsertDTO;
   onMarkAsRead: (id: number) => void;
 }
+
+const isNotification = (
+  notification: Notification | NotificationInsertDTO
+): notification is Notification => {
+  return 'tarefa' in notification && 'projeto' in notification;
+};
 
 const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   notification,
   onMarkAsRead,
 }) => {
+  const handleMarkAsRead = () => {
+    if (isNotification(notification)) {
+      onMarkAsRead(notification.id);
+    } else {
+      onMarkAsRead(notification.userId);
+    }
+  };
+
   return (
     <div
       className={`notification ${notification.isRead ? 'read' : 'unread'}`}
@@ -18,12 +32,22 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
       <h3>{notification.type}</h3>
       <p>{notification.content}</p>
       <small>{new Date(notification.createdAt).toLocaleString()}</small>
-      {notification.tarefa && <p>Tarefa: {notification.tarefa.descricao}</p>}
-      {notification.projeto && (
-        <p>Projeto: {notification.projeto.designacao}</p>
+      {isNotification(notification) && (
+        <>
+          {notification.tarefa && (
+            <p className="notification-detail">
+              Tarefa: {notification.tarefa.descricao}
+            </p>
+          )}
+          {notification.projeto && (
+            <p className="notification-detail">
+              Projeto: {notification.projeto.designacao}
+            </p>
+          )}
+        </>
       )}
       <button
-        onClick={() => onMarkAsRead(notification.id)}
+        onClick={handleMarkAsRead}
         aria-label={`Mark notification as read: ${notification.content}`}
       >
         Mark as Read
