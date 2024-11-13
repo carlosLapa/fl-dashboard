@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useWebSocket from 'hooks/useWebSocketMessage';
-import { Notification, NotificationInsertDTO } from 'types/notification';
+import { useNotification } from '../../NotificationContext';
+import { Notification } from 'types/notification';
 import NotificationDisplay from './NotificationDisplay';
 import './styles.css';
 
@@ -9,9 +10,12 @@ interface NotificationBoxProps {
 }
 
 const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
-  const [displayedNotifications, setDisplayedNotifications] = useState<
-    NotificationInsertDTO[]
-  >([]);
+  const {
+    notifications,
+    loadStoredNotifications,
+    handleNewNotification,
+    handleMarkAsRead,
+  } = useNotification();
   const [originalMessages, setOriginalMessages] = useState<Notification[]>([]);
   const {
     isConnected,
@@ -24,67 +28,36 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     reconnect,
   } = useWebSocket(userId);
 
-  const convertToNotificationInsertDTO = (
-    notification: Notification
-  ): NotificationInsertDTO => {
-    return {
-      type: notification.type,
-      content: notification.content,
-      isRead: notification.isRead,
-      createdAt: notification.createdAt,
-      relatedId: notification.relatedId,
-      userId: notification.user?.id || 0,
-      tarefaId: notification.tarefa?.id || 0,
-      projetoId: notification.projeto?.id || 0,
-    };
-  };
+  useEffect(() => {
+    loadStoredNotifications(userId);
+  }, [userId, loadStoredNotifications]);
 
   const convertToDisplayNotification = (
-    dto: NotificationInsertDTO,
+    notification: Notification,
     index: number
   ): Notification => {
     const originalMessage = originalMessages[index];
     return {
-      id: dto.userId,
-      type: dto.type,
-      content: dto.content,
-      isRead: dto.isRead,
-      createdAt: dto.createdAt,
-      relatedId: dto.relatedId,
-      user: {
-        id: dto.userId,
-        name: `User ${dto.userId}`,
-      },
+      ...notification,
       tarefa: {
-        id: dto.tarefaId,
+        id: notification.tarefa?.id || 0,
         descricao: originalMessage?.tarefa?.descricao || 'Teste 2',
       },
       projeto: {
-        id: dto.projetoId,
+        id: notification.projeto?.id || 0,
         designacao:
           originalMessage?.projeto?.designacao || 'P-02 Lidl Alcântara',
       },
     };
   };
 
-  const handleMarkAsRead = (userId: number) => {
-    setDisplayedNotifications((prev) =>
-      prev.map((notification) =>
-        notification.userId === userId
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-  };
-
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
       setOriginalMessages((prev) => [...prev, latestMessage]);
-      const convertedMessage = convertToNotificationInsertDTO(latestMessage);
-      setDisplayedNotifications((prev) => [...prev, convertedMessage]);
+      handleNewNotification(latestMessage);
     }
-  }, [messages]);
+  }, [messages, handleNewNotification]);
 
   useEffect(() => {
     return () => {
@@ -94,7 +67,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   }, [removeSubscription, clearMessages, userId]);
 
   const handleSendNotification = () => {
-    const notification: NotificationInsertDTO = {
+    const notification = {
       type: 'GENERAL_NOTIFICATION',
       content: 'This is a test notification',
       isRead: false,
@@ -142,10 +115,10 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       </div>
 
       <div className="notifications-list" role="list">
-        {displayedNotifications.length === 0 ? (
+        {notifications.length === 0 ? (
           <p className="no-notifications">No notifications</p>
         ) : (
-          displayedNotifications.map((notification, index) => (
+          notifications.map((notification, index) => (
             <NotificationDisplay
               key={`notification-${index}`}
               notification={convertToDisplayNotification(notification, index)}

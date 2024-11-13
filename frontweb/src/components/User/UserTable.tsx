@@ -80,7 +80,7 @@ const UserTable: React.FC<UserTableProps> = ({
                       icon={faPencilAlt}
                       onClick={() => onEditUser(user.id)}
                       className="edit-icon"
-                      style={{ marginRight: '10px' }}
+                      style={{ marginRight: '8px' }}
                     />
                   </OverlayTrigger>
 
@@ -96,9 +96,10 @@ const UserTable: React.FC<UserTableProps> = ({
                       icon={faTrashAlt}
                       onClick={() => onDeleteUser(user.id)}
                       className="delete-icon"
-                      style={{ marginRight: '10px' }}
+                      style={{ marginRight: '8px' }}
                     />
                   </OverlayTrigger>
+
                   <OverlayTrigger
                     placement="top"
                     overlay={
@@ -111,8 +112,10 @@ const UserTable: React.FC<UserTableProps> = ({
                       icon={faTasks}
                       onClick={() => onViewTasks(user.id)}
                       className="view-tasks-icon"
+                      style={{ marginRight: '8px' }}
                     />
                   </OverlayTrigger>
+
                   <OverlayTrigger
                     placement="top"
                     overlay={
@@ -125,7 +128,6 @@ const UserTable: React.FC<UserTableProps> = ({
                       icon={faBell}
                       onClick={() => handleNavigateToNotifications(user.id)}
                       className="view-notifications-icon"
-                      style={{ marginRight: '10px' }}
                     />
                   </OverlayTrigger>
                 </td>

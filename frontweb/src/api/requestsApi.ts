@@ -9,6 +9,7 @@ import {
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
+import { Notification } from 'types/notification';
 import { getTarefasByUser } from 'services/tarefaService';
 
 /**
@@ -234,4 +235,13 @@ export const getTarefasWithUsersAndProjetoByUser = async (
     );
     return [];
   }
+};
+
+export const getNotificationsAPI = async (
+  userId: number
+): Promise<Notification[]> => {
+  const response = await axios.get(
+    `${BASE_URL}/notifications/user/${userId}/all`
+  );
+  return response.data;
 };

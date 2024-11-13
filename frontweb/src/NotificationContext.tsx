@@ -7,12 +7,14 @@ import React, {
 } from 'react';
 import { Notification, NotificationInsertDTO } from 'types/notification';
 import useWebSocket from 'hooks/useWebSocketMessage';
+import { getNotificationsAPI } from 'api/requestsApi';
 
 interface NotificationContextType {
   notifications: Notification[];
   handleNewNotification: (notification: Notification) => void;
   handleMarkAsRead: (id: number) => void;
   sendNotification: (notification: NotificationInsertDTO) => void;
+  loadStoredNotifications: (userId: number) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -24,6 +26,15 @@ export const NotificationProvider: React.FC<{
   userId: number;
 }> = ({ children, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const loadStoredNotifications = async (userId: number) => {
+    try {
+      const storedNotifications = await getNotificationsAPI(userId);
+      setNotifications(storedNotifications);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  };
 
   const handleNewNotification = useCallback((notification: Notification) => {
     setNotifications((prev) => [...prev, notification]);
@@ -37,7 +48,6 @@ export const NotificationProvider: React.FC<{
     );
   }, []);
 
-  // Use the useWebSocket hook
   const { messages, sendMessage } = useWebSocket(userId);
 
   const sendNotification = useCallback(
@@ -51,12 +61,15 @@ export const NotificationProvider: React.FC<{
     [sendMessage]
   );
 
-  // Handle new messages from WebSocket
   useEffect(() => {
     messages.forEach((message) => {
       handleNewNotification(message);
     });
-  }, [messages, handleNewNotification]); // Add handleNewNotification to the dependency array
+  }, [messages, handleNewNotification]);
+
+  useEffect(() => {
+    loadStoredNotifications(userId);
+  }, [userId]);
 
   return (
     <NotificationContext.Provider
@@ -65,6 +78,7 @@ export const NotificationProvider: React.FC<{
         handleNewNotification,
         handleMarkAsRead,
         sendNotification,
+        loadStoredNotifications,
       }}
     >
       {children}
