@@ -12,6 +12,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   const [displayedNotifications, setDisplayedNotifications] = useState<
     NotificationInsertDTO[]
   >([]);
+  const [originalMessages, setOriginalMessages] = useState<Notification[]>([]);
   const {
     isConnected,
     messages,
@@ -39,10 +40,12 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   };
 
   const convertToDisplayNotification = (
-    dto: NotificationInsertDTO
+    dto: NotificationInsertDTO,
+    index: number
   ): Notification => {
+    const originalMessage = originalMessages[index];
     return {
-      id: dto.userId, // Using userId as temporary id for display
+      id: dto.userId,
       type: dto.type,
       content: dto.content,
       isRead: dto.isRead,
@@ -54,11 +57,12 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       },
       tarefa: {
         id: dto.tarefaId,
-        descricao: `Tarefa ${dto.tarefaId}`,
+        descricao: originalMessage?.tarefa?.descricao || 'Teste 2',
       },
       projeto: {
         id: dto.projetoId,
-        designacao: `Projeto ${dto.projetoId}`,
+        designacao:
+          originalMessage?.projeto?.designacao || 'P-02 Lidl Alcântara',
       },
     };
   };
@@ -76,6 +80,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
+      setOriginalMessages((prev) => [...prev, latestMessage]);
       const convertedMessage = convertToNotificationInsertDTO(latestMessage);
       setDisplayedNotifications((prev) => [...prev, convertedMessage]);
     }
@@ -143,7 +148,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
           displayedNotifications.map((notification, index) => (
             <NotificationDisplay
               key={`notification-${index}`}
-              notification={convertToDisplayNotification(notification)}
+              notification={convertToDisplayNotification(notification, index)}
               onMarkAsRead={handleMarkAsRead}
             />
           ))
