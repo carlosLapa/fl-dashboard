@@ -7,7 +7,7 @@
 
 .notification-box {
   border: 2px solid red;
-  margin-left: 12%;
+  margin-left: 2%;
   min-width: 20%;
   position: relative;
   z-index: 2;
@@ -18,7 +18,7 @@
   position: relative;
   z-index: 2;
   margin-top: 20px;
-  margin-left: 12%;
+  margin-left: 2%;
   width: 88%;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
