@@ -1,8 +1,9 @@
 package com.fl.dashboard.services;
 
-import com.fl.dashboard.dto.NotificationDTO;
 import com.fl.dashboard.dto.NotificationInsertDTO;
+import com.fl.dashboard.dto.NotificationResponseDTO;
 import com.fl.dashboard.dto.NotificationUpdateDTO;
+import com.fl.dashboard.dto.UserMinDTO;
 import com.fl.dashboard.entities.Notification;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.NotificationRepository;
@@ -38,7 +39,7 @@ class NotificationServiceTest {
     private NotificationService notificationService;
 
     private Notification notification;
-    private NotificationDTO notificationDTO;
+    private NotificationResponseDTO notificationResponseDTO;
     private User user;
 
     @BeforeEach
@@ -54,9 +55,17 @@ class NotificationServiceTest {
         notification.setIsRead(false);
         notification.setUser(user);
 
-        notificationDTO = new NotificationDTO(notification.getId(), notification.getType(),
-                notification.getContent(), notification.getIsRead(), notification.getCreatedAt(),
-                notification.getRelatedId(), user.getId(), null, null);
+        notificationResponseDTO = new NotificationResponseDTO();
+        notificationResponseDTO.setId(notification.getId());
+        notificationResponseDTO.setType(notification.getType());
+        notificationResponseDTO.setContent(notification.getContent());
+        notificationResponseDTO.setIsRead(notification.getIsRead());
+        notificationResponseDTO.setCreatedAt(notification.getCreatedAt());
+
+        UserMinDTO userDto = new UserMinDTO();
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        notificationResponseDTO.setUser(userDto);
     }
 
     @Test
@@ -64,20 +73,22 @@ class NotificationServiceTest {
         Page<Notification> page = new PageImpl<>(List.of(notification));
         when(notificationRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        Page<NotificationDTO> result = notificationService.findAllPaged(PageRequest.of(0, 10));
+        Page<NotificationResponseDTO> result = notificationService.findAllPaged(PageRequest.of(0, 10));
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
+        assertEquals(user.getName(), result.getContent().get(0).getUser().getName());
     }
 
     @Test
     void findById() {
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
 
-        NotificationDTO result = notificationService.findById(1L);
+        NotificationResponseDTO result = notificationService.findById(1L);
 
         assertNotNull(result);
         assertEquals(notification.getId(), result.getId());
+        assertEquals(user.getName(), result.getUser().getName());
     }
 
     @Test
@@ -90,10 +101,11 @@ class NotificationServiceTest {
         insertDTO.setContent("Test Content");
         insertDTO.setUserId(1L);
 
-        NotificationDTO result = notificationService.insert(insertDTO);
+        NotificationResponseDTO result = notificationService.insert(insertDTO);
 
         assertNotNull(result);
         assertEquals(notification.getId(), result.getId());
+        assertEquals(user.getId(), result.getUser().getId());
     }
 
     @Test
@@ -105,18 +117,31 @@ class NotificationServiceTest {
         updateDTO.setId(1L);
         updateDTO.setContent("Updated Content");
 
-        NotificationDTO result = notificationService.update(1L, updateDTO);
+        NotificationResponseDTO result = notificationService.update(1L, updateDTO);
 
         assertNotNull(result);
         assertEquals("Updated Content", result.getContent());
+        assertEquals(user.getName(), result.getUser().getName());
     }
 
     @Test
+    void findByUser() {
+        Page<Notification> page = new PageImpl<>(List.of(notification));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(notificationRepository.findByUser(eq(user), any(Pageable.class))).thenReturn(page);
+
+        Page<NotificationResponseDTO> result = notificationService.findByUser(1L, PageRequest.of(0, 10));
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(user.getName(), result.getContent().get(0).getUser().getName());
+    }
+
+    // Delete and markAsRead tests remain the same
+    @Test
     void delete() {
         doNothing().when(notificationRepository).deleteById(1L);
-
         assertDoesNotThrow(() -> notificationService.delete(1L));
-
         verify(notificationRepository, times(1)).deleteById(1L);
     }
 
@@ -130,18 +155,5 @@ class NotificationServiceTest {
         assertTrue(notification.getIsRead());
         verify(notificationRepository, times(1)).save(notification);
     }
-
-    @Test
-    void findByUser() {
-        Page<Notification> page = new PageImpl<>(List.of(notification));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(notificationRepository.findByUser(eq(user), any(Pageable.class))).thenReturn(page);
-
-        Page<NotificationDTO> result = notificationService.findByUser(1L, PageRequest.of(0, 10));
-
-        assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        assertEquals(user.getId(), result.getContent().get(0).getUserId());
-    }
-
 }
+

@@ -1,8 +1,8 @@
 package com.fl.dashboard.resources;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fl.dashboard.dto.NotificationDTO;
 import com.fl.dashboard.dto.NotificationInsertDTO;
+import com.fl.dashboard.dto.NotificationResponseDTO;
 import com.fl.dashboard.dto.NotificationUpdateDTO;
 import com.fl.dashboard.dto.WebSocketMessage;
 import com.fl.dashboard.services.NotificationService;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -38,20 +37,19 @@ public class NotificationController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // WebSocket endpoints
     @MessageMapping("/send-notification")
     @SendTo("/topic/notifications")
-    public NotificationDTO handleNotification(@Payload WebSocketMessage message) {
+    public NotificationResponseDTO handleNotification(@Payload WebSocketMessage message) {
         logger.info("Received notification message via WebSocket: {}", message);
         try {
             ObjectMapper mapper = new ObjectMapper();
             NotificationInsertDTO notificationInsertDTO = mapper.convertValue(message.getContent(), NotificationInsertDTO.class);
-            NotificationDTO result = notificationService.insert(notificationInsertDTO);
+            NotificationResponseDTO result = notificationService.insert(notificationInsertDTO);
             logger.info("Notification inserted successfully: {}", result);
             return result;
         } catch (Exception e) {
             logger.error("Error inserting notification", e);
-            return new NotificationDTO(null, "ERROR", "Failed to insert notification", false, new Date(), null, null, null, null);
+            throw new RuntimeException("Failed to insert notification", e);
         }
     }
 
@@ -60,43 +58,46 @@ public class NotificationController {
         logger.info("Received message on any destination: {}", message);
     }
 
-    // REST endpoints
     @GetMapping
-    public ResponseEntity<Page<NotificationDTO>> findAll(Pageable pageable) {
+    public ResponseEntity<Page<NotificationResponseDTO>> findAll(Pageable pageable) {
         logger.info("Received request to fetch all notifications");
-        Page<NotificationDTO> list = notificationService.findAllPaged(pageable);
+        Page<NotificationResponseDTO> list = notificationService.findAllPaged(pageable);
         logger.info("Returning {} notifications", list.getTotalElements());
         return ResponseEntity.ok().body(list);
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<NotificationDTO> findById(@PathVariable Long id) {
-        NotificationDTO dto = notificationService.findById(id);
+    public ResponseEntity<NotificationResponseDTO> findById(@PathVariable Long id) {
+        NotificationResponseDTO dto = notificationService.findById(id);
         return ResponseEntity.ok().body(dto);
     }
 
     @GetMapping("/user/{userId}/all")
-    public ResponseEntity<List<NotificationDTO>> findAllByUserId(@PathVariable Long userId) {
-        List<NotificationDTO> notifications = notificationService.findAllByUserId(userId);
+    public ResponseEntity<List<NotificationResponseDTO>> findAllByUserId(@PathVariable Long userId) {
+        List<NotificationResponseDTO> notifications = notificationService.findAllByUserId(userId);
         return ResponseEntity.ok().body(notifications);
     }
 
+    @GetMapping("/user/{userId}/details")
+    public ResponseEntity<List<NotificationResponseDTO>> getAllNotificationsWithDetails(@PathVariable Long userId) {
+        return ResponseEntity.ok(notificationService.findAllByUserIdWithDetails(userId));
+    }
+
     @PostMapping
-    public ResponseEntity<NotificationDTO> insert(@RequestBody NotificationInsertDTO dto) {
+    public ResponseEntity<NotificationResponseDTO> insert(@RequestBody NotificationInsertDTO dto) {
         logger.info("Received POST request to create notification: {}", dto);
-        NotificationDTO notificationDTO = notificationService.insert(dto);
+        NotificationResponseDTO notificationDTO = notificationService.insert(dto);
         logger.info("Notification created: {}", notificationDTO);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(notificationDTO.getId()).toUri();
-        // Send to all subscribers
         messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS, notificationDTO);
 
         return ResponseEntity.created(uri).body(notificationDTO);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<NotificationDTO> update(@PathVariable Long id, @RequestBody NotificationUpdateDTO dto) {
-        NotificationDTO newDto = notificationService.update(id, dto);
+    public ResponseEntity<NotificationResponseDTO> update(@PathVariable Long id, @RequestBody NotificationUpdateDTO dto) {
+        NotificationResponseDTO newDto = notificationService.update(id, dto);
         return ResponseEntity.ok().body(newDto);
     }
 
@@ -107,11 +108,11 @@ public class NotificationController {
     }
 
     @GetMapping("user/{userId}/unread")
-    public ResponseEntity<Page<NotificationDTO>> findUnreadByUser(
+    public ResponseEntity<Page<NotificationResponseDTO>> findUnreadByUser(
             @PathVariable Long userId,
             Pageable pageable
     ) {
-        Page<NotificationDTO> notifications = notificationService.findUnreadByUser(userId, pageable);
+        Page<NotificationResponseDTO> notifications = notificationService.findUnreadByUser(userId, pageable);
         return ResponseEntity.ok().body(notifications);
     }
 
@@ -128,11 +129,12 @@ public class NotificationController {
     }
 
     @GetMapping("user/{userId}")
-    public ResponseEntity<Page<NotificationDTO>> findByUser(
+    public ResponseEntity<Page<NotificationResponseDTO>> findByUser(
             @PathVariable Long userId,
             Pageable pageable
     ) {
-        Page<NotificationDTO> notifications = notificationService.findByUser(userId, pageable);
+        Page<NotificationResponseDTO> notifications = notificationService.findByUser(userId, pageable);
         return ResponseEntity.ok().body(notifications);
     }
 }
+
