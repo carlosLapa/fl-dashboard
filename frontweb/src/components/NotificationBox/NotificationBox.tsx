@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import useWebSocket from 'hooks/useWebSocketMessage';
 import { useNotification } from '../../NotificationContext';
-import { Notification } from 'types/notification';
 import NotificationDisplay from './NotificationDisplay';
 import './styles.css';
 
@@ -16,7 +15,9 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     handleNewNotification,
     handleMarkAsRead,
   } = useNotification();
-  const [originalMessages, setOriginalMessages] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const {
     isConnected,
     messages,
@@ -29,32 +30,25 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   } = useWebSocket(userId);
 
   useEffect(() => {
-    loadStoredNotifications(userId);
-  }, [userId, loadStoredNotifications]);
-
-  const convertToDisplayNotification = (
-    notification: Notification,
-    index: number
-  ): Notification => {
-    const originalMessage = originalMessages[index];
-    return {
-      ...notification,
-      tarefa: {
-        id: notification.tarefa?.id || 0,
-        descricao: originalMessage?.tarefa?.descricao || 'Teste 2',
-      },
-      projeto: {
-        id: notification.projeto?.id || 0,
-        designacao:
-          originalMessage?.projeto?.designacao || 'P-02 Lidl Alcântara',
-      },
+    const loadInitialNotifications = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        await loadStoredNotifications(userId);
+      } catch (err) {
+        setError('Failed to load notifications');
+        console.error('Error loading notifications:', err);
+      } finally {
+        setIsLoading(false);
+      }
     };
-  };
+    loadInitialNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      setOriginalMessages((prev) => [...prev, latestMessage]);
       handleNewNotification(latestMessage);
     }
   }, [messages, handleNewNotification]);
@@ -64,7 +58,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       removeSubscription(`/topic/notifications/${userId}`);
       clearMessages();
     };
-  }, [removeSubscription, clearMessages, userId]);
+  }, [clearMessages, removeSubscription, userId]);
 
   const handleSendNotification = () => {
     const notification = {
@@ -115,16 +109,20 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       </div>
 
       <div className="notifications-list" role="list">
-        {notifications.length === 0 ? (
-          <p className="no-notifications">No notifications</p>
+        {Array.isArray(notifications) ? (
+          notifications.length === 0 ? (
+            <p className="no-notifications">No notifications</p>
+          ) : (
+            notifications.map((notification, index) => (
+              <NotificationDisplay
+                key={`notification-${index}`}
+                notification={notification}
+                onMarkAsRead={handleMarkAsRead}
+              />
+            ))
+          )
         ) : (
-          notifications.map((notification, index) => (
-            <NotificationDisplay
-              key={`notification-${index}`}
-              notification={convertToDisplayNotification(notification, index)}
-              onMarkAsRead={handleMarkAsRead}
-            />
-          ))
+          <p>Loading notifications...</p>
         )}
       </div>
     </div>

@@ -67,6 +67,18 @@
   right: -5px;
 }
 
+.loading-state {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.error-state {
+  text-align: center;
+  padding: 20px;
+  color: #dc3545;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(-100%);

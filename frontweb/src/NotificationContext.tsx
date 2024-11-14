@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Notification, NotificationInsertDTO } from 'types/notification';
 import useWebSocket from 'hooks/useWebSocketMessage';
-import { getNotificationsAPI } from 'api/requestsApi';
+import { getNotificationDetailsAPI } from 'api/requestsApi';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -29,8 +29,8 @@ export const NotificationProvider: React.FC<{
 
   const loadStoredNotifications = async (userId: number) => {
     try {
-      const storedNotifications = await getNotificationsAPI(userId);
-      setNotifications(storedNotifications);
+      const detailedNotifications = await getNotificationDetailsAPI(userId);
+      setNotifications(detailedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
     }

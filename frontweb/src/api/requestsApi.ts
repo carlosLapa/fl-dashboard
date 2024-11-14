@@ -237,11 +237,26 @@ export const getTarefasWithUsersAndProjetoByUser = async (
   }
 };
 
-export const getNotificationsAPI = async (
+// Notifications
+
+export const getNotificationDetailsAPI = async (
   userId: number
 ): Promise<Notification[]> => {
   const response = await axios.get(
-    `${BASE_URL}/notifications/user/${userId}/all`
+    `${BASE_URL}/notifications/user/${userId}/details`
   );
+  return response.data;
+};
+
+export const markNotificationAsReadAPI = async (
+  notificationId: number
+): Promise<void> => {
+  await axios.patch(`${BASE_URL}/notifications/${notificationId}/read`);
+};
+
+export const createNotificationAPI = async (
+  notification: Notification
+): Promise<Notification> => {
+  const response = await axios.post(`${BASE_URL}/notifications`, notification);
   return response.data;
 };

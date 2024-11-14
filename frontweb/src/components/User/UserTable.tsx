@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-
+import { useNotification } from 'NotificationContext';
 import './styles.css';
 
 interface UserTableProps {
@@ -27,9 +27,10 @@ const UserTable: React.FC<UserTableProps> = ({
   onViewTasks,
 }) => {
   const navigate = useNavigate();
+  const { loadStoredNotifications } = useNotification();
 
-  const handleNavigateToNotifications = (userId: number) => {
-    console.log('Navigating to notifications for User ID:', userId);
+  const handleNavigateToNotifications = async (userId: number) => {
+    await loadStoredNotifications(userId); // Refresh notifications
     navigate(`/notifications/${userId}`);
   };
 
