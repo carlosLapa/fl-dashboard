@@ -1,12 +1,14 @@
 package com.fl.dashboard.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class NotificationInsertDTO {
 
     private String type;
@@ -18,17 +20,4 @@ public class NotificationInsertDTO {
     private Long tarefaId;
     private Long projetoId;
 
-    public NotificationInsertDTO() {
-    }
-
-    public NotificationInsertDTO(String type, String content, Boolean isRead, Date createdAt, Long relatedId, Long userId, Long tarefaId, Long projetoId) {
-        this.type = type;
-        this.content = content;
-        this.isRead = isRead;
-        this.createdAt = createdAt;
-        this.relatedId = relatedId;
-        this.userId = userId;
-        this.tarefaId = tarefaId;
-        this.projetoId = projetoId;
-    }
 }

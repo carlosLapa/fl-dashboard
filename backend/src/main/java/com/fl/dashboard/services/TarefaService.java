@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +34,9 @@ public class TarefaService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<TarefaDTO> findAll() {
@@ -106,12 +111,42 @@ public class TarefaService {
         Tarefa tarefa = tarefaRepository.findById(tarefaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
 
+        Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
         tarefa.getUsers().clear();
+
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
             tarefa.getUsers().add(user);
+
+            if (!previousUsers.contains(user)) {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type("TAREFA_ATRIBUIDA")
+                        .content("Foi-lhe atribuída a tarefa: " + tarefa.getDescricao())
+                        .userId(userId)
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(tarefa.getId())
+                        .build();
+
+                notificationService.processNotification(notification);
+            }
         }
+
+        previousUsers.forEach(user -> {
+            if (!userIds.contains(user.getId())) {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type("TAREFA_REMOVIDA")
+                        .content("Foi removido/a da tarefa: " + tarefa.getDescricao())
+                        .userId(user.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(tarefa.getId())
+                        .build();
+
+                notificationService.processNotification(notification);
+            }
+        });
 
         tarefaRepository.save(tarefa);
     }
@@ -137,6 +172,8 @@ public class TarefaService {
         Tarefa tarefa = tarefaRepository.findById(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
 
+        Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
+
         tarefa.setDescricao(dto.getDescricao());
         tarefa.setPrioridade(dto.getPrioridade());
         tarefa.setPrazoEstimado(dto.getPrazoEstimado());
@@ -151,30 +188,48 @@ public class TarefaService {
             tarefa.setProjeto(null);  // Remove projeto association if projetoId is null
         }
 
-        // Update user associations
-        tarefa.getUsers().clear();  // Remove all existing associations
+        // Update user associations with notifications
+        tarefa.getUsers().clear();
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
             Set<User> users = dto.getUserIds().stream()
-                    .map(userId -> userRepository.findById(userId)
-                            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)))
+                    .map(userId -> {
+                        User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+                        if (!previousUsers.contains(user)) {
+                            NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                                    .type("TAREFA_ATRIBUIDA")
+                                    .content("Foi-lhe atribuída a tarefa: " + tarefa.getDescricao())
+                                    .userId(userId)
+                                    .isRead(false)
+                                    .createdAt(new Date())
+                                    .tarefaId(tarefa.getId())
+                                    .build();
+                            notificationService.processNotification(notification);
+                        }
+                        return user;
+                    })
                     .collect(Collectors.toSet());
             tarefa.setUsers(users);
         }
 
-        tarefa = tarefaRepository.save(tarefa);
-        return new TarefaWithUserAndProjetoDTO(tarefa);
-    }
+        // Notify users who were removed
+        previousUsers.forEach(user -> {
+            if (dto.getUserIds() == null || !dto.getUserIds().contains(user.getId())) {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type("TAREFA_REMOVIDA")
+                        .content("Foi removido/a da tarefa: " + tarefa.getDescricao())
+                        .userId(user.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(tarefa.getId())
+                        .build();
+                notificationService.processNotification(notification);
+            }
+        });
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public void delete(Long id) {
-        if (!tarefaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Recurso não encontrado");
-        }
-        try {
-            tarefaRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException(("Não permitido! Integridade da BD em causa"));
-        }
+        Tarefa savedTarefa = tarefaRepository.save(tarefa);
+        return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
 
     @Transactional
@@ -201,25 +256,72 @@ public class TarefaService {
             tarefa.setUsers(users);
         }
 
-        tarefa = tarefaRepository.save(tarefa);
-        return new TarefaWithUserAndProjetoDTO(tarefa);
+        Tarefa savedTarefa = tarefaRepository.save(tarefa);
+
+        // Send notifications to all assigned users
+        if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
+            dto.getUserIds().forEach(userId -> {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type("TAREFA_ATRIBUIDA")
+                        .content("Foi-lhe atribuída uma nova tarefa: " + savedTarefa.getDescricao())
+                        .userId(userId)
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(savedTarefa.getId())
+                        .build();
+
+                notificationService.processNotification(notification);
+            });
+        }
+
+        return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
 
     @Transactional
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
         Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+
+        TarefaStatus previousStatus = tarefa.getStatus();
+        String descricao = tarefa.getDescricao();
+        Long tarefaId = tarefa.getId();
+
         tarefa.setStatus(newStatus);
+
+        tarefa.getUsers().forEach(user -> {
+            NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                    .type("TAREFA_STATUS_ALTERADO")
+                    .content("Estado da tarefa '" + descricao + "' alterado de " + previousStatus + " para " + newStatus)
+                    .userId(user.getId())
+                    .isRead(false)
+                    .createdAt(new Date())
+                    .tarefaId(tarefaId)
+                    .build();
+
+            notificationService.processNotification(notification);
+        });
+
         tarefa = tarefaRepository.save(tarefa);
         return new TarefaDTO(tarefa);
     }
-
 
     private void copyDTOtoEntity(TarefaDTO tarefaDTO, Tarefa entity) {
         entity.setDescricao(tarefaDTO.getDescricao());
         entity.setPrioridade(tarefaDTO.getPrioridade());
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void delete(Long id) {
+        if (!tarefaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Tarefa não encontrada");
+        }
+        try {
+            tarefaRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Violação de integridade da base de dados");
+        }
     }
 
 
