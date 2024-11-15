@@ -4,12 +4,14 @@ import {
   TarefaWithUsersAndProjetoDTO,
   TarefaInsertFormData,
   TarefaUpdateFormData,
+  TarefaStatus,
 } from 'types/tarefa';
 import {
   getAllTarefasWithUsersAndProjeto,
   addTarefa,
   updateTarefa,
   deleteTarefa,
+  updateTarefaStatus,
 } from 'services/tarefaService';
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
@@ -101,6 +103,18 @@ const TarefaPage: React.FC = () => {
     }
   };
 
+  const handleStatusUpdate = async (
+    tarefaId: number,
+    newStatus: TarefaStatus
+  ) => {
+    try {
+      await updateTarefaStatus(tarefaId, newStatus);
+      await fetchTarefas();
+    } catch (error) {
+      console.error('Erro ao atualizar status da tarefa:', error);
+    }
+  };
+
   const toggleViewMode = () => {
     setViewMode(viewMode === 'table' ? 'calendar' : 'table');
   };
@@ -154,6 +168,7 @@ const TarefaPage: React.FC = () => {
           setTarefaToEdit(null);
         }}
         onSave={handleAddOrUpdateTarefa}
+        onStatusChange={handleStatusUpdate}
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />

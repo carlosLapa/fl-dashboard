@@ -6,6 +6,7 @@ import {
   Tarefa,
   TarefaInsertFormData,
   TarefaUpdateFormData,
+  TarefaStatus,
 } from '../../types/tarefa';
 import { User } from 'types/user';
 import { Projeto } from 'types/projeto';
@@ -17,6 +18,7 @@ interface TarefaModalProps {
   tarefa?: Tarefa | null;
   onSave: (formData: TarefaInsertFormData | TarefaUpdateFormData) => void;
   isEditing: boolean;
+  onStatusChange?: (tarefaId: number, newStatus: TarefaStatus) => void;
 }
 
 const TarefaModal: React.FC<TarefaModalProps> = ({
@@ -25,6 +27,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   tarefa,
   onSave,
   isEditing,
+  onStatusChange,
 }) => {
   const [formData, setFormData] = useState<
     TarefaInsertFormData | TarefaUpdateFormData
@@ -86,6 +89,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     >
   ) => {
     const { name, value } = event.target;
+    if (name === 'status' && isEditing && tarefa) {
+      onStatusChange?.(tarefa.id, value as TarefaStatus);
+    }
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
