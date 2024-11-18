@@ -11,6 +11,7 @@ import {
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from 'NotificationContext';
+import NotificationBadge from './../NotificationBox/NotificationBadge';
 import './styles.css';
 
 interface UserTableProps {
@@ -125,11 +126,16 @@ const UserTable: React.FC<UserTableProps> = ({
                       </Tooltip>
                     }
                   >
-                    <FontAwesomeIcon
-                      icon={faBell}
-                      onClick={() => handleNavigateToNotifications(user.id)}
-                      className="view-notifications-icon"
-                    />
+                    <div
+                      style={{ position: 'relative', display: 'inline-block' }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faBell}
+                        onClick={() => handleNavigateToNotifications(user.id)}
+                        className="view-notifications-icon"
+                      />
+                      <NotificationBadge userId={user.id} />
+                    </div>
                   </OverlayTrigger>
                 </td>
               </tr>

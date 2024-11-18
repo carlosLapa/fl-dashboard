@@ -1,23 +1,24 @@
 .user-container {
-    /*border: 2px solid red;*/
-    margin-left: 7%;
-    min-width: 100%;
-  }
-  
-  /* estilos da tabela em si */
-  .user-table {
-      
-    }
-    
-    .user-table th,
-    .user-table td {
-      
-    }
-    
-    .user-table th {
-      
-    }
-    
-    .user-table td {
-      
-    }
+  /*border: 2px solid red;*/
+  margin-left: 7%;
+  min-width: 100%;
+}
+
+.view-tasks-icon,
+.view-notifications-icon {
+  cursor: pointer;
+}
+
+/* estilos da tabela em si, para quando e se necessário */
+.user-table {
+}
+
+.user-table th,
+.user-table td {
+}
+
+.user-table th {
+}
+
+.user-table td {
+}

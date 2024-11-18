@@ -15,6 +15,7 @@ interface NotificationContextType {
   handleMarkAsRead: (id: number) => void;
   sendNotification: (notification: NotificationInsertDTO) => void;
   loadStoredNotifications: (userId: number) => Promise<void>;
+  unreadCount: number;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -26,11 +27,13 @@ export const NotificationProvider: React.FC<{
   userId: number;
 }> = ({ children, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const loadStoredNotifications = async (userId: number) => {
     try {
       const detailedNotifications = await getNotificationDetailsAPI(userId);
       setNotifications(detailedNotifications);
+      setUnreadCount(detailedNotifications.filter((n) => !n.isRead).length);
     } catch (error) {
       console.error('Error loading notifications:', error);
     }
@@ -38,6 +41,9 @@ export const NotificationProvider: React.FC<{
 
   const handleNewNotification = useCallback((notification: Notification) => {
     setNotifications((prev) => [...prev, notification]);
+    if (!notification.isRead) {
+      setUnreadCount((prev) => prev + 1);
+    }
   }, []);
 
   const handleMarkAsRead = useCallback((id: number) => {
@@ -46,6 +52,7 @@ export const NotificationProvider: React.FC<{
         notif.id === id ? { ...notif, isRead: true } : notif
       )
     );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   }, []);
 
   const { messages, sendMessage } = useWebSocket(userId);
@@ -75,6 +82,7 @@ export const NotificationProvider: React.FC<{
     <NotificationContext.Provider
       value={{
         notifications,
+        unreadCount,
         handleNewNotification,
         handleMarkAsRead,
         sendNotification,

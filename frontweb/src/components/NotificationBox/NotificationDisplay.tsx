@@ -1,5 +1,6 @@
 import React from 'react';
 import { Notification, NotificationInsertDTO } from 'types/notification';
+import { markNotificationAsReadAPI } from 'api/requestsApi';
 
 interface NotificationDisplayProps {
   notification: Notification | NotificationInsertDTO;
@@ -16,11 +17,10 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   notification,
   onMarkAsRead,
 }) => {
-  const handleMarkAsRead = () => {
+  const handleMarkAsRead = async () => {
     if (isNotification(notification)) {
+      await markNotificationAsReadAPI(notification.id);
       onMarkAsRead(notification.id);
-    } else {
-      onMarkAsRead(notification.userId);
     }
   };
 
