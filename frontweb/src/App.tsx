@@ -13,7 +13,11 @@ const AppContent: React.FC = () => {
     <NotificationProvider userId={user?.id ?? 0}>
       {' '}
       {/* Use nullish coalescing to provide a default value */}
-      <ToastContainer autoClose={2000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={true}
+      />
       <AppRoutes />
     </NotificationProvider>
   );

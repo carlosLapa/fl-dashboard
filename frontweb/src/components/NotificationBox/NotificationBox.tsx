@@ -19,13 +19,9 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   const [error, setError] = useState<string | null>(null);
 
   const {
-    isConnected,
     messages,
     removeSubscription,
-    connectionError,
     clearMessages,
-    connectionStats,
-    reconnect,
   } = useWebSocket(userId);
 
   useEffect(() => {

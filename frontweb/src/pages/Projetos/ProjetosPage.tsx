@@ -87,15 +87,11 @@ const ProjetosPage: React.FC = () => {
           Adicionar Projeto
         </Button>
       </div>
-      {isLoading ? (
-        <p>A carregar...</p>
-      ) : (
-        <ProjetoTable
-          projetos={projetos}
-          onEditProjeto={handleEditProjeto}
-          onDeleteProjeto={handleDeleteProjeto}
-        />
-      )}
+      <ProjetoTable
+        projetos={projetos}
+        onEditProjeto={handleEditProjeto}
+        onDeleteProjeto={handleDeleteProjeto}
+      />
       <ProjetoModal
         show={showModal}
         onHide={() => {
