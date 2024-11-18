@@ -6,12 +6,13 @@ import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
 interface TarefaColumnProps {
   columnId: TarefaStatus;
   tarefas: KanbanTarefa[];
+  columnTitle: string;
 }
 
-const TarefaColumn: React.FC<TarefaColumnProps> = ({ columnId, tarefas }) => {
+const TarefaColumn: React.FC<TarefaColumnProps> = ({ columnId, tarefas, columnTitle }) => {
   return (
     <div style={{ margin: '8px', minWidth: '250px' }}>
-      <h2>{columnId}</h2>
+      <h2>{columnTitle}</h2>
       <StrictModeDroppable droppableId={columnId}>
         {(provided) => (
           <div

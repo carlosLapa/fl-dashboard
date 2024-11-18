@@ -15,6 +15,14 @@ interface ProjetoKanbanBoardProps {
 }
 
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
+  const statusTranslations: { [key in TarefaStatus]: string } = {
+    BACKLOG: 'Backlog',
+    TODO: 'A Fazer',
+    IN_PROGRESS: 'Em Progresso',
+    IN_REVIEW: 'Em Revisão',
+    DONE: 'Concluído'
+  };
+  
   const [columns, setColumns] = useState<{
     [key in TarefaStatus]: KanbanTarefa[];
   }>({
@@ -140,6 +148,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
             key={columnId}
             columnId={columnId}
             tarefas={columns[columnId]}
+            columnTitle={statusTranslations[columnId]}
           />
         ))}
       </div>
