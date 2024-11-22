@@ -147,8 +147,7 @@ const useWebSocket = (userId: number) => {
     let isComponentMounted = true;
     const token = localStorage.getItem('access_token');
 
-    if (!token) {
-      setConnectionError('No authentication token found');
+    if (!token || userId === 0) {
       return;
     }
 
@@ -211,7 +210,7 @@ const useWebSocket = (userId: number) => {
         client.deactivate();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleMessage, userId]);
 
   return {

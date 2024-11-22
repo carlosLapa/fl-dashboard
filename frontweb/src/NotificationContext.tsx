@@ -30,6 +30,9 @@ export const NotificationProvider: React.FC<{
   const [unreadCount, setUnreadCount] = useState(0);
 
   const loadStoredNotifications = async (userId: number) => {
+    const token = localStorage.getItem('access_token');
+    if (!token || userId === 0) return;
+
     try {
       const detailedNotifications = await getNotificationDetailsAPI(userId);
       setNotifications(detailedNotifications);
@@ -76,6 +79,13 @@ export const NotificationProvider: React.FC<{
 
   useEffect(() => {
     loadStoredNotifications(userId);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
   }, [userId]);
 
   return (

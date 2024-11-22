@@ -11,6 +11,7 @@ import UsersTarefasPage from 'pages/Users/UsersTarefasPage';
 import UserCalendarPage from 'pages/Users/UserCalendarPage';
 import ProjetoDetailsPage from 'pages/Projetos/ProjetoDetailsPage';
 import NotificationsPage from 'pages/Notifications/NotificationsPage';
+import SearchResultsPage from 'pages/Search/SearchResultsPage'
 
 const AppRoutes = () => {
   return (
@@ -50,6 +51,10 @@ const AppRoutes = () => {
         <Route
           path="/notifications/:userId"
           element={<ProtectedRoute element={<NotificationsPage />} />}
+        />
+        <Route
+          path="/search"
+          element={<ProtectedRoute element={<SearchResultsPage />} />}
         />
       </Routes>
     </>

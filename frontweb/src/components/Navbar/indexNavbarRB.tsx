@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
@@ -6,12 +6,16 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import UserInfo from '../User/UserInfo';
 import { useAuth } from '../../AuthContext';
+import { useNavigate } from 'react-router-dom';
+
 //import LoginModal from '../Login/LoginModal';
 
 import './styles.css';
 
 function NavbarFL() {
+  const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
   /* Se decidirmos voltar a colocar o login na navbar.
   
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -19,6 +23,14 @@ function NavbarFL() {
   const handleShowLoginModal = () => setShowLoginModal(true);
   const handleCloseLoginModal = () => setShowLoginModal(false);
  */
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
   return (
     <>
       <Navbar
@@ -35,12 +47,14 @@ function NavbarFL() {
             className="justify-content-between"
           >
             <div className="d-flex me-3">
-              <Form className="d-flex me-auto">
+              <Form className="d-flex me-auto" onSubmit={handleSearch}>
                 <Form.Control
                   type="search"
                   placeholder="Search"
                   className="search-textarea"
                   aria-label="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   style={{
                     borderRadius: '5px',
                     padding: '0.5rem 1rem',
@@ -48,7 +62,9 @@ function NavbarFL() {
                     width: '25rem',
                   }}
                 />
-                <Button variant="outline-light">Search</Button>
+                <Button variant="outline-light" type="submit">
+                  Search
+                </Button>
               </Form>
             </div>
             <Nav className="my-2 my-lg-0" navbarScroll>

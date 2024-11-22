@@ -1,4 +1,10 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from 'react';
 import axios from 'axios';
 import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
@@ -17,6 +23,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      const tokenType = 'Bearer'; // Or get this from storage if you save it
+      axios.defaults.headers.common['Authorization'] = `${tokenType} ${token}`;
+
+      // Fetch user data to restore session
+      getUsersAPI().then((users) => {
+        // You might want to store the email in localStorage as well
+        const email = localStorage.getItem('user_email');
+        const currentUser = users.find((u: User) => u.email === email);
+        if (currentUser) {
+          setUser({
+            ...currentUser,
+            profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
+          });
+        }
+      });
+    }
+  }, []);
 
   const login = async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
@@ -43,6 +70,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.log('Access token received, type:', token_type);
 
       localStorage.setItem('access_token', access_token);
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('user_email', email);
       axios.defaults.headers.common[
         'Authorization'
       ] = `${token_type} ${access_token}`;
@@ -77,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = () => {
     // Remove the token from localStorage
     localStorage.removeItem('access_token');
-
+    localStorage.removeItem('user_email');
     // Clear the user from state
     setUser(null);
 

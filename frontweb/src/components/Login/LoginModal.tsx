@@ -19,6 +19,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
     //console.log('Attempting login for email:', email);
     try {
       await login(email, password);
+      localStorage.setItem('user_email', email);
       toast.success('Autenticação bem-sucedida!');
       onHide();
     } catch (error) {
