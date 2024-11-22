@@ -232,4 +232,14 @@ public class UserService implements UserDetailsService {
 
         return user;
     }
+
+    @Transactional(readOnly = true)
+    public List<UserWithProjetosDTO> searchUsers(String query) {
+        String searchQuery = "%" + query.toLowerCase() + "%";
+        List<User> users = userRepository.findByNameLikeIgnoreCaseOrEmailLikeIgnoreCase(searchQuery, searchQuery);
+        return users.stream()
+                .map(UserWithProjetosDTO::new)
+                .toList();
+    }
+
 }

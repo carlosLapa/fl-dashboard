@@ -91,6 +91,12 @@ public class UserResource {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<UserWithProjetosDTO>> searchUsers(@RequestParam String query) {
+        List<UserWithProjetosDTO> results = userService.searchUsers(query);
+        return ResponseEntity.ok().body(results);
+    }
+
     /*
     @PostMapping("/{id}/upload-image")
     public ResponseEntity<String> uploadUserImage(@PathVariable Long id, @RequestParam("image") MultipartFile imageFile) {

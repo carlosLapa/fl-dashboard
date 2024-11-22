@@ -4,6 +4,7 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.User;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -17,6 +18,7 @@ public class UserWithProjetosDTO extends UserDTO {
 
     public UserWithProjetosDTO(User entity) {
         super(entity);
+        Hibernate.initialize(entity.getProjetos()); //ensures the projetos collection is properly loaded within the transaction.
         this.projetos = entity.getProjetos().stream()
                 .map(ProjetoDTO::new)
                 .collect(Collectors.toSet());

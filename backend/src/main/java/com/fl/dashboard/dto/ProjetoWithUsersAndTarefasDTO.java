@@ -5,6 +5,7 @@ import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +24,8 @@ public class ProjetoWithUsersAndTarefasDTO extends ProjetoDTO {
 
     public ProjetoWithUsersAndTarefasDTO(Projeto entity) {
         super(entity);
+        Hibernate.initialize(entity.getUsers());
+        Hibernate.initialize(entity.getTarefas());
         this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
         this.tarefas = entity.getTarefas().stream().map(TarefaDTO::new).collect(Collectors.toSet());
     }

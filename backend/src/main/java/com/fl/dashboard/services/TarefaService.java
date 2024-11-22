@@ -324,7 +324,13 @@ public class TarefaService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<TarefaWithUserAndProjetoDTO> searchTarefas(String query) {
+        String searchQuery = "%" + query.toLowerCase() + "%";
+        List<Tarefa> tarefas = tarefaRepository.findByDescricaoLikeIgnoreCaseOrStatusLikeIgnoreCase(searchQuery, searchQuery);
+        return tarefas.stream()
+                .map(TarefaWithUserAndProjetoDTO::new)
+                .toList();
+    }
 
 }
-
-

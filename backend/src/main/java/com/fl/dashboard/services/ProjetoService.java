@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ProjetoService {
 
@@ -117,6 +119,15 @@ public class ProjetoService {
         } catch (DataIntegrityViolationException e) {
             throw new DatabaseException(("Não permitido! Integridade da BD em causa"));
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjetoWithUsersAndTarefasDTO> searchProjetos(String query) {
+        String searchQuery = "%" + query.toLowerCase() + "%";
+        List<Projeto> projetos = projetoRepository.findByDesignacaoLikeIgnoreCaseOrEntidadeLikeIgnoreCase(searchQuery, searchQuery);
+        return projetos.stream()
+                .map(ProjetoWithUsersAndTarefasDTO::new)
+                .toList();
     }
 
 }

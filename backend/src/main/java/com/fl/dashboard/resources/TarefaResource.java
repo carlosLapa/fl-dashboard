@@ -113,4 +113,10 @@ public class TarefaResource {
         return ResponseEntity.ok().body(updatedTarefa);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<TarefaWithUserAndProjetoDTO>> searchTarefas(@RequestParam String query) {
+        List<TarefaWithUserAndProjetoDTO> results = tarefaService.searchTarefas(query);
+        return ResponseEntity.ok().body(results);
+    }
+
 }

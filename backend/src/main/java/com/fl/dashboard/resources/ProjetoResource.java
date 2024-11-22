@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/projetos")
@@ -87,6 +88,12 @@ public class ProjetoResource {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         projetoService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProjetoWithUsersAndTarefasDTO>> searchProjetos(@RequestParam String query) {
+        List<ProjetoWithUsersAndTarefasDTO> results = projetoService.searchProjetos(query);
+        return ResponseEntity.ok().body(results);
     }
 
 }

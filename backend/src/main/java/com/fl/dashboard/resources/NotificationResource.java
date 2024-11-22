@@ -25,9 +25,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/notifications")
-public class NotificationController {
+public class NotificationResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
+    private static final Logger logger = LoggerFactory.getLogger(NotificationResource.class);
     private static final String TOPIC_NOTIFICATIONS = "/topic/notifications";
 
     @Autowired
