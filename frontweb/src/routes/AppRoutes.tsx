@@ -1,5 +1,4 @@
 import { Route, Routes } from 'react-router-dom';
-import NavbarFL from 'components/Navbar/indexNavbarRB';
 import SidebarFL from 'components/Sidebar/indexSidebarRB';
 import ProjetosPage from 'pages/Projetos/ProjetosPage';
 import UsersPage from 'pages/Users/UsersPage';
@@ -11,13 +10,15 @@ import UsersTarefasPage from 'pages/Users/UsersTarefasPage';
 import UserCalendarPage from 'pages/Users/UserCalendarPage';
 import ProjetoDetailsPage from 'pages/Projetos/ProjetoDetailsPage';
 import NotificationsPage from 'pages/Notifications/NotificationsPage';
-import SearchResultsPage from 'pages/Search/SearchResultsPage'
+import SearchResultsPage from 'pages/Search/SearchResultsPage';
+import { useAuth } from '../AuthContext';
 
 const AppRoutes = () => {
+  const { user } = useAuth();
+
   return (
     <>
-      <NavbarFL />
-      <SidebarFL />
+      {user && <SidebarFL />}
       <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route

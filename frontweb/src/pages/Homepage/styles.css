@@ -1,4 +1,70 @@
-.home-container {
+.hero-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-content {
+  text-align: center;
+  color: white;
+  z-index: 1;
+  margin-top: 30vh; /* This will push the content lower */
+}
+
+.hero-content h1 {
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.login-button,
+.login-button:active,
+.login-button:focus,
+.login-button.active {
+  background: transparent !important;
+  border: none !important;
+  color: rgb(0, 0, 0) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-weight: bold;
+  font-size: 1.3rem;
+  margin-top: 10rem;
+}
+
+.login-button:hover {
+  transform: scale(1.5);
+}
+
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/** .home-container {
   border: 2px solid red;  
   margin-left: 12%;
 }
@@ -12,3 +78,4 @@
   margin-right: 3%;
   margin-left: 3%;
 }
+**/

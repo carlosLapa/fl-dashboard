@@ -5,14 +5,14 @@ import AppRoutes from 'routes/AppRoutes';
 import { AuthProvider, useAuth } from './AuthContext';
 import { BrowserRouter } from 'react-router-dom';
 import { NotificationProvider } from 'NotificationContext';
+import NavbarFL from './components/Navbar/indexNavbarRB';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
 
   return (
     <NotificationProvider userId={user?.id ?? 0}>
-      {' '}
-      {/* Use nullish coalescing to provide a default value */}
+      {user && <NavbarFL />}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -27,8 +27,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppContent />{' '}
-        {/* Separate component to ensure useAuth is within AuthProvider */}
+        <AppContent />
       </AuthProvider>
     </BrowserRouter>
   );

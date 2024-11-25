@@ -16,13 +16,8 @@ function NavbarFL() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  /* Se decidirmos voltar a colocar o login na navbar.
-  
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const handleShowLoginModal = () => setShowLoginModal(true);
-  const handleCloseLoginModal = () => setShowLoginModal(false);
- */
+  if (!user) return null;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
