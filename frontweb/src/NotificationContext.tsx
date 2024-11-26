@@ -5,7 +5,11 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { Notification, NotificationInsertDTO } from 'types/notification';
+import {
+  Notification,
+  NotificationInsertDTO,
+  NotificationType,
+} from 'types/notification';
 import useWebSocket from 'hooks/useWebSocketMessage';
 import { getNotificationDetailsAPI } from 'api/requestsApi';
 
@@ -43,9 +47,15 @@ export const NotificationProvider: React.FC<{
   };
 
   const handleNewNotification = useCallback((notification: Notification) => {
-    setNotifications((prev) => [...prev, notification]);
-    if (!notification.isRead) {
-      setUnreadCount((prev) => prev + 1);
+    if (
+      Object.values(NotificationType).includes(
+        notification.type as NotificationType
+      )
+    ) {
+      setNotifications((prev) => [...prev, notification]);
+      if (!notification.isRead) {
+        setUnreadCount((prev) => prev + 1);
+      }
     }
   }, []);
 
@@ -62,11 +72,17 @@ export const NotificationProvider: React.FC<{
 
   const sendNotification = useCallback(
     (notification: NotificationInsertDTO) => {
-      const message = {
-        type: 'NOTIFICATION',
-        content: notification,
-      };
-      sendMessage(message);
+      if (
+        Object.values(NotificationType).includes(
+          notification.type as NotificationType
+        )
+      ) {
+        const message = {
+          type: 'NOTIFICATION',
+          content: notification,
+        };
+        sendMessage(message);
+      }
     },
     [sendMessage]
   );

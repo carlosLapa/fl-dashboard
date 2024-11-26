@@ -8,6 +8,8 @@ import {
   TarefaWithUsersAndProjetoDTO,
   TarefaWithUsersDTO,
 } from '../types/tarefa';
+import { NotificationInsertDTO, NotificationType } from 'types/notification';
+import { useNotification } from '../NotificationContext';
 import {
   addTarefaAPI,
   deleteTarefaAPI,
@@ -71,7 +73,21 @@ export const addTarefa = async (
 ): Promise<TarefaWithUsersAndProjetoDTO> => {
   try {
     const newTarefa = await addTarefaAPI(data);
-    // Perform any necessary data treatment here
+
+    data.userIds.forEach((userId) => {
+      const notification: NotificationInsertDTO = {
+        type: NotificationType.TAREFA_ATRIBUIDA,
+        content: `Nova tarefa atribuída: "${newTarefa.descricao}"`,
+        userId: userId,
+        tarefaId: newTarefa.id,
+        projetoId: newTarefa.projeto.id,
+        relatedId: newTarefa.id,
+        isRead: false,
+        createdAt: new Date().toISOString()
+    };
+      useNotification().sendNotification(notification);
+    });
+
     return newTarefa;
   } catch (error) {
     console.error('Error in tarefa service:', error);

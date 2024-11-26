@@ -1,11 +1,13 @@
 package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.Tarefa;
+import com.fl.dashboard.enums.EstadoTarefa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,5 +22,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             @Param("descricaoQuery") String descricaoQuery,
             @Param("statusQuery") String statusQuery
     );
+
+    List<Tarefa> findByPrazoRealBeforeAndStatusNot(LocalDate deadline, EstadoTarefa status);
 
 }

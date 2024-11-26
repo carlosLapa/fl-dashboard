@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client';
 import {
   Notification as CustomNotification,
   NotificationInsertDTO,
+  NotificationType,
 } from 'types/notification';
 
 interface WebSocketMessage {
@@ -61,7 +62,10 @@ const useWebSocket = (userId: number) => {
             ? parsedMessage.content
             : parsedMessage;
 
-        if (notification.userId === userId) {
+        if (
+          notification.userId === userId &&
+          Object.values(NotificationType).includes(notification.type)
+        ) {
           setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
             if (newMessages.length > MAX_MESSAGES) {

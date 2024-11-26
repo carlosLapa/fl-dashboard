@@ -6,6 +6,7 @@ import com.fl.dashboard.entities.Notification;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.repositories.NotificationRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
@@ -20,6 +21,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -270,6 +272,77 @@ public class NotificationService {
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
             entity.setProjeto(projeto);
         }
+    }
+
+    @Transactional
+    public NotificationResponseDTO createTaskStatusNotification(User user, Tarefa tarefa) {
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.TAREFA_STATUS_ALTERADO.name());
+        notification.setContent("O estado da tarefa '" + tarefa.getDescricao() + "' foi alterado para " + tarefa.getStatus());
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(user.getId());
+        notification.setTarefaId(tarefa.getId());
+        return insert(notification);
+    }
+
+    @Transactional
+    public NotificationResponseDTO createTaskAssignmentNotification(User user, Tarefa tarefa) {
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.TAREFA_ATRIBUIDA.name());
+        notification.setContent("Nova tarefa atribuída: " + tarefa.getDescricao());
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(user.getId());
+        notification.setTarefaId(tarefa.getId());
+        return insert(notification);
+    }
+
+    @Transactional
+    public NotificationResponseDTO createTaskCompletionNotification(User user, Tarefa tarefa) {
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.TAREFA_CONCLUIDA.name());
+        notification.setContent("A tarefa '" + tarefa.getDescricao() + "' foi concluída");
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(user.getId());
+        notification.setTarefaId(tarefa.getId());
+        return insert(notification);
+    }
+
+    @Transactional
+    public NotificationResponseDTO createProjectUpdateNotification(User user, Projeto projeto) {
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.PROJETO_ATUALIZADO.name());
+        notification.setContent("O projeto '" + projeto.getDesignacao() + "' foi atualizado");
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(user.getId());
+        notification.setProjetoId(projeto.getId());
+        return insert(notification);
+    }
+
+    @Transactional
+    public NotificationResponseDTO createGeneralNotification(User user, String content) {
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.NOTIFICACAO_GERAL.name());
+        notification.setContent(content);
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(user.getId());
+        return insert(notification);
+    }
+
+    @Transactional
+    public NotificationResponseDTO createTaskDeadlineNotification(User user, Tarefa tarefa) {
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.TAREFA_PRAZO_PROXIMO.name());
+        notification.setContent("A tarefa '" + tarefa.getDescricao() + "' está próxima do prazo de conclusão: " + tarefa.getPrazoReal());
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(user.getId());
+        notification.setTarefaId(tarefa.getId());
+        return insert(notification);
     }
 
     public void delete(Long id) {

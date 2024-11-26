@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNotification } from '../../NotificationContext';
-import { Notification } from 'types/notification';
+import { Notification, NotificationType } from 'types/notification';
 import './styles.css';
 
 interface NotificationBadgeProps {
@@ -11,13 +11,15 @@ const NotificationBadge: React.FC<NotificationBadgeProps> = ({ userId }) => {
   const { notifications } = useNotification();
   const unreadCount = notifications.filter(
     (notification: Notification) =>
-      !notification.isRead && notification.user?.id === userId
+      !notification.isRead &&
+      notification.user?.id === userId &&
+      Object.values(NotificationType).includes(
+        notification.type as NotificationType
+      )
   ).length;
 
   return unreadCount > 0 ? (
-    <div className="notification-badge-container">
-      <span className="notification-badge">{unreadCount}</span>
-    </div>
+    <span className="notification-badge">{unreadCount}</span>
   ) : null;
 };
 

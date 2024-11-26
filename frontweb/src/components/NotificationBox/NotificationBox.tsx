@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useWebSocket from 'hooks/useWebSocketMessage';
 import { useNotification } from '../../NotificationContext';
 import NotificationDisplay from './NotificationDisplay';
+import { NotificationType } from 'types/notification';
 import './styles.css';
 
 interface NotificationBoxProps {
@@ -39,9 +40,18 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   useEffect(() => {
     if (messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      handleNewNotification(latestMessage);
+      if (
+        Object.values(NotificationType).includes(
+          latestMessage.type as NotificationType
+        )
+      ) {
+        handleNewNotification(latestMessage);
+      }
     }
   }, [messages, handleNewNotification]);
+
+  if (isLoading) return <p>Loading notifications...</p>;
+  if (error) return <p className="error-message">{error}</p>;
 
   return (
     <div className="notification-container">

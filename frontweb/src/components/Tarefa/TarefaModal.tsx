@@ -8,6 +8,8 @@ import {
   TarefaUpdateFormData,
   TarefaStatus,
 } from '../../types/tarefa';
+import { useNotification } from '../../NotificationContext';
+import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
 import { Projeto } from 'types/projeto';
 import { getUsersAPI, getProjetosAPI } from '../../api/requestsApi';
@@ -29,6 +31,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   isEditing,
   onStatusChange,
 }) => {
+  const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<
     TarefaInsertFormData | TarefaUpdateFormData
   >({
@@ -91,6 +94,18 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     const { name, value } = event.target;
     if (name === 'status' && isEditing && tarefa) {
       onStatusChange?.(tarefa.id, value as TarefaStatus);
+
+      const notification = {
+        type: NotificationType.TAREFA_STATUS_ALTERADO,
+        content: `Status da tarefa "${tarefa.descricao}" alterado para ${value}`,
+        userId: tarefa.users[0]?.id,
+        tarefaId: tarefa.id,
+        projetoId: tarefa.projeto.id,
+        relatedId: tarefa.id,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      };
+      sendNotification(notification);
     }
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
@@ -111,8 +126,34 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     }
     if (isEditing && tarefa) {
       onSave({ ...formData, id: tarefa.id } as TarefaUpdateFormData);
+
+      const notification = {
+        type: NotificationType.TAREFA_STATUS_ALTERADO,
+        content: `Tarefa "${formData.descricao}" foi atualizada`,
+        userId: formData.userIds[0],
+        tarefaId: tarefa.id,
+        projetoId: formData.projetoId,
+        relatedId: tarefa.id,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      };
+      sendNotification(notification);
     } else {
       onSave(formData as TarefaInsertFormData);
+
+      formData.userIds.forEach((userId) => {
+        const notification = {
+          type: NotificationType.TAREFA_ATRIBUIDA,
+          content: `Nova tarefa atribuída: "${formData.descricao}"`,
+          userId: userId,
+          tarefaId: 0, // Will be updated after task creation
+          projetoId: formData.projetoId,
+          relatedId: 0, // Will be updated after task creation
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        };
+        sendNotification(notification);
+      });
     }
     onHide();
   };

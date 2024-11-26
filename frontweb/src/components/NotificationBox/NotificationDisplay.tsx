@@ -16,10 +16,14 @@ const isNotification = (
 
 const getNotificationColor = (type: string) => {
   const colors: { [key: string]: string } = {
-    TASK_ASSIGNED: '#BFDBFE',
+    GENERAL_NOTIFICATION: '#CBD5E1',
+    TAREFA_ATRIBUIDA: '#BFDBFE',
+    TASK_ASSIGNEMENT:'#BFDBFE',
+    TAREFA_STATUS_ALTERADO: '#DDD6FE',
     TASK_UPDATED: '#DDD6FE',
     TASK_COMPLETED: '#BBF7D0',
     PROJECT_UPDATED: '#FEF3C7',
+    TASK_DEADLINE_APPROACHING: '#FEE2E2',
     DEFAULT: '#E2E8F0',
   };
   return colors[type] || colors.DEFAULT;
@@ -28,11 +32,13 @@ const getNotificationColor = (type: string) => {
 const getNotificationTitle = (type: string) => {
   const titles: { [key: string]: string } = {
     GENERAL_NOTIFICATION: 'Notificação Geral',
+    TAREFA_ATRIBUIDA: 'Nova Tarefa Atribuída',
+    TASK_ASSIGNEMENT: 'Nova Tarefa Atribuída',
     TAREFA_STATUS_ALTERADO: 'Estado da Tarefa Alterado',
-    TASK_ASSIGNED: 'Nova Tarefa Atribuída',
-    TASK_UPDATED: 'Tarefa Atualizada',
     TASK_COMPLETED: 'Tarefa Concluída',
+    TASK_UPDATED: 'Tarefa Atualizada',
     PROJECT_UPDATED: 'Projeto Atualizado',
+    TASK_DEADLINE_APPROACHING: 'Prazo de Tarefa Próximo',
   };
   return titles[type] || type;
 };
