@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import ProjetoKanbanBoard from '../../components/Tarefa/ProjetoKanbanBoard';
 import { getProjetoWithUsersAndTarefas } from '../../services/projetoService';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
+import './styles.css';
 
 const KanbanBoardPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
@@ -38,7 +39,7 @@ const KanbanBoardPage: React.FC = () => {
   return (
     <main className="home-container flex-grow-1">
       <section className="kanban-board-page">
-        <h1>{projeto.designacao} - Kanban Board</h1>
+        <h1 className="kanban-board-title">{projeto.designacao} - Kanban Board</h1>
         <ProjetoKanbanBoard projeto={projeto} />
       </section>
     </main>

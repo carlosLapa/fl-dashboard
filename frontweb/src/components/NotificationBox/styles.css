@@ -3,15 +3,14 @@
   position: relative;
   width: 100%;
   z-index: 1;
-  padding: 20px;
+  padding: 0 20px;
   max-width: 800px;
-  margin: 20px auto 0;
+  margin: 0 auto; 
 }
 
 .notifications-list {
   position: relative;
   z-index: 2;
-  margin-top: 20px;
   margin-left: 2%;
   width: 88%;
   max-height: calc(100vh - 200px);
@@ -75,6 +74,7 @@
   color: #4b5563;
   border: none;
   font-size: 13px;
+  font-family: Roboto, system-ui, -apple-system, sans-serif;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }

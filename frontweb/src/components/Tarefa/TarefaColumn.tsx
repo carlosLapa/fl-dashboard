@@ -20,7 +20,7 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({ columnId, tarefas, columnTi
             ref={provided.innerRef}
             style={{
               minHeight: '500px',
-              backgroundColor: '#f4f5f7',
+              backgroundColor: '#f7f7f7',
               padding: '8px',
             }}
           >

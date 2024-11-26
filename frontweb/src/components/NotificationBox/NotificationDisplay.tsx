@@ -24,6 +24,18 @@ const getNotificationColor = (type: string) => {
   return colors[type] || colors.DEFAULT;
 };
 
+const getNotificationTitle = (type: string) => {
+  const titles: { [key: string]: string } = {
+    GENERAL_NOTIFICATION: 'Notificação Geral',
+    TAREFA_STATUS_ALTERADO: 'Estado da Tarefa Alterado',
+    TASK_ASSIGNED: 'Nova Tarefa Atribuída',
+    TASK_UPDATED: 'Tarefa Atualizada',
+    TASK_COMPLETED: 'Tarefa Concluída',
+    PROJECT_UPDATED: 'Projeto Atualizado',
+  };
+  return titles[type] || type;
+};
+
 const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   notification,
   onMarkAsRead,
@@ -45,7 +57,9 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
       role="listitem"
     >
       <div className="notification-header">
-        <h3 className="notification-type">{notification.type}</h3>
+        <h3 className="notification-type">
+          {getNotificationTitle(notification.type)}
+        </h3>
         <span className="notification-date">
           {new Date(notification.createdAt).toLocaleDateString('pt-PT')}
         </span>
