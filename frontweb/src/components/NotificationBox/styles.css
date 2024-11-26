@@ -1,20 +1,14 @@
+/* Container Styles */
 .notification-container {
   position: relative;
   width: 100%;
   z-index: 1;
-  margin-top: 20px;
-}
-
-.notification-box {
-  border: 2px solid red;
-  margin-left: 2%;
-  min-width: 20%;
-  position: relative;
-  z-index: 2;
+  padding: 20px;
+  max-width: 800px;
+  margin: 20px auto 0;
 }
 
 .notifications-list {
-  border: 2px solid red;
   position: relative;
   z-index: 2;
   margin-top: 20px;
@@ -24,63 +18,112 @@
   overflow-y: auto;
 }
 
-.notification {
-  padding: 1rem;
-  margin: 0.5rem 0;
-  border-radius: 4px;
+/* Card Styles */
+.notification-card {
+  padding: 12px;
+  margin: 0 0 16px 0;
+  border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto, sans-serif';
+  transition: all 0.2s ease;
   animation: slideIn 0.3s ease-out;
 }
 
-.notification.unread {
-  background-color: #f0f7ff;
-  border-left: 4px solid #0066cc;
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.notification.read {
-  background-color: #f5f5f5;
-  border-left: 4px solid #999;
+.notification-type {
+  font-size: 20px;
+  color: #1f2937;
+  margin: 0;
 }
 
-.notification button {
-  margin-top: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  background-color: #0066cc;
-  color: white;
+.notification-date {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.notification-content {
+  font-size: 16px;
+  color: #4b5563;
+  margin: 16px 0;
+}
+
+.notification-details {
+  font-size: 15px;
+  color: #6b7280;
+  margin-top: 16px;
+}
+
+.notification-detail {
+  margin-top: 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Button Styles */
+.mark-read-button {
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #4b5563;
   border: none;
-  border-radius: 3px;
+  font-size: 13px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.notification button:hover {
-  background-color: #0052a3;
+.mark-read-button:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* State Styles */
+.notification-loading,
+.notification-error,
+.notification-empty {
+  padding: 20px;
+  text-align: center;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.notification-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Badge Styles */
+.notification-badge-container {
+  position: relative;
+  display: inline-block;
 }
 
 .notification-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: #ff4444;
+  top: -20px;
+  right: -16px;
+  background-color: #ff2200;
   color: white;
   border-radius: 50%;
   padding: 1px 4px;
   font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 18px;
   text-align: center;
 }
 
-.loading-state {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-.error-state {
-  text-align: center;
-  padding: 20px;
-  color: #dc3545;
-}
-
+/* Animation */
 @keyframes slideIn {
   from {
     transform: translateX(-100%);

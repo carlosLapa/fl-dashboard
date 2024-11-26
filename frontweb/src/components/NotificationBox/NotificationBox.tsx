@@ -18,11 +18,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    messages,
-    removeSubscription,
-    clearMessages,
-  } = useWebSocket(userId);
+  const { messages } = useWebSocket(userId);
 
   useEffect(() => {
     const loadInitialNotifications = async () => {
@@ -32,7 +28,6 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
         await loadStoredNotifications(userId);
       } catch (err) {
         setError('Failed to load notifications');
-        console.error('Error loading notifications:', err);
       } finally {
         setIsLoading(false);
       }
@@ -48,30 +43,23 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     }
   }, [messages, handleNewNotification]);
 
-  useEffect(() => {
-    return () => {
-      removeSubscription(`/topic/notifications/${userId}`);
-      clearMessages();
-    };
-  }, [clearMessages, removeSubscription, userId]);
-
   return (
     <div className="notification-container">
-      <div className="notifications-list" role="list">
-        {Array.isArray(notifications) ? (
-          notifications.length === 0 ? (
-            <p className="no-notifications">No notifications</p>
-          ) : (
-            notifications.map((notification, index) => (
-              <NotificationDisplay
-                key={`notification-${index}`}
-                notification={notification}
-                onMarkAsRead={handleMarkAsRead}
-              />
-            ))
-          )
+      <div className="notifications-list">
+        {isLoading ? (
+          <div className="notification-loading">Loading notifications...</div>
+        ) : error ? (
+          <div className="notification-error">{error}</div>
+        ) : notifications.length === 0 ? (
+          <div className="notification-empty">No notifications</div>
         ) : (
-          <p>Loading notifications...</p>
+          notifications.map((notification, index) => (
+            <NotificationDisplay
+              key={`notification-${notification.id || index}`}
+              notification={notification}
+              onMarkAsRead={handleMarkAsRead}
+            />
+          ))
         )}
       </div>
     </div>

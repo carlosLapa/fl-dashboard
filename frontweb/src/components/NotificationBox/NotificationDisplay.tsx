@@ -13,6 +13,17 @@ const isNotification = (
   return 'tarefa' in notification && 'projeto' in notification;
 };
 
+const getNotificationColor = (type: string) => {
+  const colors: { [key: string]: string } = {
+    TASK_ASSIGNED: '#BFDBFE', // Light blue like IN_PROGRESS
+    TASK_UPDATED: '#DDD6FE', // Light purple like IN_REVIEW
+    TASK_COMPLETED: '#BBF7D0', // Light green like DONE
+    PROJECT_UPDATED: '#FEF3C7', // Light yellow like TODO
+    DEFAULT: '#E2E8F0', // Light gray like BACKLOG
+  };
+  return colors[type] || colors.DEFAULT;
+};
+
 const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   notification,
   onMarkAsRead,
@@ -26,32 +37,46 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
 
   return (
     <div
-      className={`notification ${notification.isRead ? 'read' : 'unread'}`}
+      className="notification-card"
+      style={{
+        backgroundColor: getNotificationColor(notification.type),
+        opacity: notification.isRead ? 0.7 : 1,
+      }}
       role="listitem"
     >
-      <h3>{notification.type}</h3>
-      <p>{notification.content}</p>
-      <small>{new Date(notification.createdAt).toLocaleString()}</small>
+      <div className="notification-header">
+        <h3 className="notification-type">{notification.type}</h3>
+        <span className="notification-date">
+          {new Date(notification.createdAt).toLocaleDateString('pt-PT')}
+        </span>
+      </div>
+
+      <p className="notification-content">{notification.content}</p>
+
       {isNotification(notification) && (
-        <>
+        <div className="notification-details">
           {notification.tarefa && (
-            <p className="notification-detail">
+            <div className="notification-detail">
               Tarefa: {notification.tarefa.descricao}
-            </p>
+            </div>
           )}
           {notification.projeto && (
-            <p className="notification-detail">
+            <div className="notification-detail">
               Projeto: {notification.projeto.designacao}
-            </p>
+            </div>
           )}
-        </>
+        </div>
       )}
-      <button
-        onClick={handleMarkAsRead}
-        aria-label={`Mark notification as read: ${notification.content}`}
-      >
-        Mark as Read
-      </button>
+
+      {!notification.isRead && (
+        <button
+          onClick={handleMarkAsRead}
+          className="mark-read-button"
+          aria-label={`Mark notification as read: ${notification.content}`}
+        >
+          Marcar como lida
+        </button>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNotification } from '../../NotificationContext';
 import { Notification } from 'types/notification';
+import './styles.css';
 
 interface NotificationBadgeProps {
   userId: number;
@@ -14,7 +15,9 @@ const NotificationBadge: React.FC<NotificationBadgeProps> = ({ userId }) => {
   ).length;
 
   return unreadCount > 0 ? (
-    <span className="notification-badge">{unreadCount}</span>
+    <div className="notification-badge-container">
+      <span className="notification-badge">{unreadCount}</span>
+    </div>
   ) : null;
 };
 
