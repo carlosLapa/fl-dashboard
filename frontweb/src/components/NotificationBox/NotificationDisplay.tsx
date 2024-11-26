@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Notification, NotificationInsertDTO } from 'types/notification';
 import { markNotificationAsReadAPI } from 'api/requestsApi';
+import { toast } from 'react-toastify';
 
 interface NotificationDisplayProps {
   notification: Notification | NotificationInsertDTO;
@@ -15,11 +16,11 @@ const isNotification = (
 
 const getNotificationColor = (type: string) => {
   const colors: { [key: string]: string } = {
-    TASK_ASSIGNED: '#BFDBFE', // Light blue like IN_PROGRESS
-    TASK_UPDATED: '#DDD6FE', // Light purple like IN_REVIEW
-    TASK_COMPLETED: '#BBF7D0', // Light green like DONE
-    PROJECT_UPDATED: '#FEF3C7', // Light yellow like TODO
-    DEFAULT: '#E2E8F0', // Light gray like BACKLOG
+    TASK_ASSIGNED: '#BFDBFE',
+    TASK_UPDATED: '#DDD6FE',
+    TASK_COMPLETED: '#BBF7D0',
+    PROJECT_UPDATED: '#FEF3C7',
+    DEFAULT: '#E2E8F0',
   };
   return colors[type] || colors.DEFAULT;
 };
@@ -58,12 +59,18 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   notification,
   onMarkAsRead,
 }) => {
-  const handleMarkAsRead = async () => {
+  const handleMarkAsRead = useCallback(async () => {
     if (isNotification(notification)) {
-      await markNotificationAsReadAPI(notification.id);
-      onMarkAsRead(notification.id);
+      try {
+        await markNotificationAsReadAPI(notification.id);
+        onMarkAsRead(notification.id);
+        toast.success('Notificação marcada como lida');
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+        toast.error('Erro ao marcar notificação como lida');
+      }
     }
-  };
+  }, [notification, onMarkAsRead]);
 
   return (
     <div
