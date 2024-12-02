@@ -1,11 +1,9 @@
 package com.fl.dashboard.services;
 
-import com.fl.dashboard.dto.ProjetoDTO;
-import com.fl.dashboard.dto.ProjetoWithTarefasDTO;
-import com.fl.dashboard.dto.ProjetoWithUsersAndTarefasDTO;
-import com.fl.dashboard.dto.ProjetoWithUsersDTO;
+import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
+import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
@@ -33,6 +31,9 @@ public class ProjetoService {
 
     @Autowired
     private ProjetoDTOMapper projetoDTOMapper;
+
+    @Autowired
+    private NotificationService notificationService;
 
     /* A REVER!
     Estes 2s primeiros métodos fazem a mesma coisa, Projeto com os Users, só que 1 é paged e o outro não!
@@ -79,8 +80,18 @@ public class ProjetoService {
     public ProjetoWithUsersDTO insert(ProjetoWithUsersDTO projetoDTO) {
         Projeto entity = new Projeto();
         projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
-        entity = projetoRepository.save(entity);
-        return new ProjetoWithUsersDTO(entity, entity.getUsers());
+        Projeto savedEntity = projetoRepository.save(entity);
+
+        // Send notifications for new project using UserDTO
+        savedEntity.getUsers().forEach(user ->
+                notificationService.createProjectNotification(
+                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                        NotificationType.PROJETO_ATRIBUIDO,
+                        new UserDTO(user)
+                )
+        );
+
+        return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
     }
 
     @Transactional
@@ -88,12 +99,52 @@ public class ProjetoService {
         try {
             Projeto entity = projetoRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+
+            String oldStatus = entity.getStatus();
             projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
-            entity = projetoRepository.save(entity);
-            return new ProjetoWithUsersDTO(entity, entity.getUsers());
+            Projeto savedEntity = projetoRepository.save(entity);
+
+            NotificationType notificationType;
+            if (savedEntity.getStatus().equals("CONCLUIDO") && !savedEntity.getStatus().equals(oldStatus)) {
+                notificationType = NotificationType.PROJETO_CONCLUIDO;
+            } else {
+                notificationType = NotificationType.PROJETO_ATUALIZADO;
+            }
+
+            savedEntity.getUsers().forEach(user ->
+                    notificationService.createProjectNotification(
+                            new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                            notificationType,
+                            new UserDTO(user)
+                    )
+            );
+
+            return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
+    }
+
+    @Transactional
+    public ProjetoWithUsersDTO updateStatus(Long id, String status) {
+        Projeto entity = projetoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+        entity.setStatus(status);
+        Projeto savedEntity = projetoRepository.save(entity);
+
+        NotificationType notificationType = status.equals("CONCLUIDO")
+                ? NotificationType.PROJETO_CONCLUIDO
+                : NotificationType.PROJETO_ATUALIZADO;
+
+        savedEntity.getUsers().forEach(user ->
+                notificationService.createProjectNotification(
+                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                        notificationType,
+                        new UserDTO(user)
+                )
+        );
+
+        return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
     }
 
     @Transactional

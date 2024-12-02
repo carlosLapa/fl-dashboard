@@ -4,6 +4,8 @@ import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.dto.ProjetoWithTarefasDTO;
 import com.fl.dashboard.dto.ProjetoWithUsersAndTarefasDTO;
 import com.fl.dashboard.dto.ProjetoWithUsersDTO;
+import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class ProjetoResource {
 
     @Autowired
     private ProjetoService projetoService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping
     public ResponseEntity<Page<ProjetoWithUsersDTO>> findAll(Pageable pageable) {
@@ -65,15 +70,35 @@ public class ProjetoResource {
 
     @PostMapping
     public ResponseEntity<ProjetoWithUsersDTO> insert(@Valid @RequestBody ProjetoWithUsersDTO dto) {
-        dto = projetoService.insert(dto);
+        ProjetoWithUsersDTO savedDto = projetoService.insert(dto);
+
+        // Send notifications to all assigned users
+        savedDto.getUsers().forEach(user ->
+                notificationService.createProjectNotification(
+                        projetoService.findByIdWithUsers(savedDto.getId()),
+                        NotificationType.PROJETO_ATRIBUIDO,
+                        user
+                )
+        );
+
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(dto.getId()).toUri();
-        return ResponseEntity.created(uri).body(dto);
+                .buildAndExpand(savedDto.getId()).toUri();
+        return ResponseEntity.created(uri).body(savedDto);
     }
 
     @PutMapping(value = "/{id}")
     public ResponseEntity<ProjetoWithUsersDTO> update(@PathVariable Long id, @Valid @RequestBody ProjetoWithUsersDTO dto) {
         ProjetoWithUsersDTO newDto = projetoService.update(id, dto);
+
+        // Send notifications to all assigned users
+        newDto.getUsers().forEach(user ->
+                notificationService.createProjectNotification(
+                        projetoService.findByIdWithUsers(newDto.getId()),
+                        NotificationType.PROJETO_ATUALIZADO,
+                        user
+                )
+        );
+
         return ResponseEntity.ok().body(newDto);
     }
 
@@ -95,5 +120,15 @@ public class ProjetoResource {
         List<ProjetoWithUsersAndTarefasDTO> results = projetoService.searchProjetos(query);
         return ResponseEntity.ok().body(results);
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ProjetoWithUsersDTO> updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status
+    ) {
+        ProjetoWithUsersDTO updatedProjeto = projetoService.updateStatus(id, status);
+        return ResponseEntity.ok().body(updatedProjeto);
+    }
+
 
 }

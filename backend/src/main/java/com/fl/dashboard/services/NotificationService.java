@@ -345,7 +345,26 @@ public class NotificationService {
         return insert(notification);
     }
 
+    public void createProjectNotification(ProjetoWithUsersDTO projeto, NotificationType type, UserDTO user) {
+        Notification notification = new Notification();
+        notification.setType(type.toString());
+        notification.setUser(userRepository.getReferenceById(user.getId()));
+        notification.setProjeto(projetoRepository.getReferenceById(projeto.getId()));
+
+        switch (type) {
+            case PROJETO_ATRIBUIDO -> notification.setContent("Novo projeto atribuído: " + projeto.getDesignacao());
+            case PROJETO_ATUALIZADO -> notification.setContent("Projeto atualizado: " + projeto.getDesignacao());
+            case PROJETO_CONCLUIDO -> notification.setContent("Projeto concluído: " + projeto.getDesignacao());
+        }
+
+        notification.setCreatedAt(new Date());
+        notification.setIsRead(false);
+
+        notificationRepository.save(notification);
+        messagingTemplate.convertAndSend("/topic/notifications/" + user.getId(), notification);
+    }
+
     public void delete(Long id) {
-        // To implement or not?
+
     }
 }

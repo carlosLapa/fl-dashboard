@@ -37,6 +37,7 @@ public class ProjetoDTOMapper {
         entity.setPrazo(projetoDTO.getPrazo());
         entity.setPrioridade(projetoDTO.getPrioridade());
         entity.setObservacao(projetoDTO.getObservacao());
+        entity.setStatus(projetoDTO.getStatus());
     }
 }
 

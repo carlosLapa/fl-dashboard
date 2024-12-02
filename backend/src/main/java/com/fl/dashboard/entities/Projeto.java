@@ -37,11 +37,12 @@ public class Projeto {
     //private String responsavel - buscar o nome ao User
     private String prioridade;
     @Column(columnDefinition = "TEXT")
-
     private String observacao;
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
-
     private Date prazo;
+    @Column
+    private String status;
+
 
     public Projeto() {
     }
@@ -122,6 +123,14 @@ public class Projeto {
 
     public void setPrazo(Date prazo) {
         this.prazo = prazo;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override

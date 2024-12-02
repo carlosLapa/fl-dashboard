@@ -30,10 +30,12 @@ public class ProjetoDTO {
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
 
+    private String status;
+
     public ProjetoDTO() {
     }
 
-    public ProjetoDTO(Long id, Integer projetoAno, String designacao, String entidade, String prioridade, String observacao, Date prazo) {
+    public ProjetoDTO(Long id, Integer projetoAno, String designacao, String entidade, String prioridade, String observacao, Date prazo, String status) {
         this.id = id;
         this.projetoAno = projetoAno;
         this.designacao = designacao;
@@ -41,6 +43,7 @@ public class ProjetoDTO {
         this.prioridade = prioridade;
         this.observacao = observacao;
         this.prazo = prazo;
+        this.status = status;
     }
 
     public ProjetoDTO(Projeto entity) {
@@ -51,6 +54,7 @@ public class ProjetoDTO {
         this.prioridade = entity.getPrioridade();
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
+        this.status = entity.getStatus();
     }
 
     public ProjetoDTO(Long id, String designacao) {
