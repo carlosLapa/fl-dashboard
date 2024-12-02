@@ -2,6 +2,7 @@ import React from 'react';
 import { Table } from 'react-bootstrap';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
+import ProjetoStatusBadge from './ProjetoStatusBadge';
 
 interface ProjetoDetailsTableProps {
   projeto: Projeto;
@@ -49,6 +50,12 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
         <tr>
           <th className="detail-label">Prazo</th>
           <td className="detail-value">{formatDate(projeto.prazo)}</td>
+        </tr>
+        <tr>
+          <th className="detail-label">Status</th>
+          <td className="detail-value">
+            <ProjetoStatusBadge status={projeto.status} />
+          </td>
         </tr>
         <tr>
           <th className="detail-label">Colaboradores</th>

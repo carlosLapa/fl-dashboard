@@ -1,20 +1,11 @@
-// src/components/Projeto/ProjetoModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { User } from 'types/user';
 import { getUsersAPI } from '../../api/requestsApi';
-
-/**
-The formData state is initialized with the appropriate values based on whether the modal is for creating a new project (isEditing is false)
-or editing an existing project (isEditing is true and projeto is not null).
-
-The useEffect hook that sets the formData state with the projeto data is included, and it handles the formatting of the prazo property.
-
-The helper functions handleUserSelect, handleUserDeselect, handleInputChange, and handleSave are included from the previous EditProjetoModal and AdicionarProjetoModal components.
-
-The JSX code for rendering the form fields and modal structure is included, with the modal title and the "Salvar" button text conditionally rendered based on the isEditing prop.
- */
+import { useNotification } from '../../NotificationContext';
+import { NotificationType } from 'types/notification';
+import { toast } from 'react-toastify';
 
 interface ProjetoModalProps {
   show: boolean;
@@ -31,14 +22,16 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   onSave,
   isEditing,
 }) => {
+  const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<ProjetoFormData>({
-    projetoAno: 0,
+    projetoAno: new Date().getFullYear(),
     designacao: '',
     entidade: '',
     prioridade: '',
     observacao: '',
     prazo: '',
     users: [],
+    status: 'ATIVO',
   });
 
   const [users, setUsers] = useState<User[]>([]);
@@ -48,20 +41,20 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       const usersData = await getUsersAPI();
       setUsers(usersData);
     };
-
     fetchUsers();
   }, []);
 
   useEffect(() => {
     if (!isEditing) {
       setFormData({
-        projetoAno: 0,
+        projetoAno: new Date().getFullYear(),
         designacao: '',
         entidade: '',
         prioridade: '',
         observacao: '',
         prazo: '',
         users: [],
+        status: 'ATIVO',
       });
     }
   }, [isEditing]);
@@ -72,22 +65,9 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         ? new Date(projeto.prazo).toISOString().split('T')[0]
         : '';
 
-      const currentDate = new Date();
-      const projetoDate = new Date(projeto.prazo);
-
-      if (projetoDate.getFullYear() < currentDate.getFullYear()) {
-        console.error('O ano do prazo não pode ser anterior ao ano atual');
-        return;
-      }
-
       setFormData({
-        projetoAno: projeto.projetoAno,
-        designacao: projeto.designacao,
-        entidade: projeto.entidade,
-        prioridade: projeto.prioridade,
-        observacao: projeto.observacao,
+        ...projeto,
         prazo: formattedPrazo,
-        users: projeto.users,
       });
     }
   }, [projeto, isEditing]);
@@ -107,20 +87,68 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   };
 
   const handleInputChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const validateForm = (): boolean => {
+    if (formData.designacao.trim() === '' || formData.entidade.trim() === '') {
+      toast.error('Designação e Entidade são campos obrigatórios');
+      return false;
+    }
+
+    const currentYear = new Date().getFullYear();
+    if (formData.projetoAno < currentYear) {
+      toast.error('O ano do projeto não pode ser anterior ao ano atual');
+      return false;
+    }
+
+    if (formData.prazo) {
+      const prazoDate = new Date(formData.prazo);
+      if (prazoDate < new Date()) {
+        toast.error('O prazo não pode ser anterior à data atual');
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const handleSave = () => {
-    if (formData.designacao.trim() === '' || formData.entidade.trim() === '') {
-      console.error('Designação e Entidade são campos obrigatórios');
-      return;
+    if (!validateForm()) return;
+
+    if (formData.users.length > 0) {
+      formData.users.forEach((user) => {
+        const notificationType =
+          formData.status === 'CONCLUIDO'
+            ? NotificationType.PROJETO_CONCLUIDO
+            : isEditing
+            ? NotificationType.PROJETO_ATUALIZADO
+            : NotificationType.PROJETO_ATRIBUIDO;
+
+        const notification = {
+          type: notificationType,
+          content: `${notificationType}: "${formData.designacao}"`,
+          userId: user.id,
+          projetoId: projeto?.id || 0,
+          tarefaId: 0,
+          relatedId: projeto?.id || 0,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        };
+        sendNotification(notification);
+      });
     }
 
-    console.log('Form Data:', formData);
-
+    toast.success(
+      isEditing
+        ? 'Projeto atualizado com sucesso!'
+        : 'Novo projeto criado com sucesso!'
+    );
     onSave(formData);
     onHide();
   };
@@ -141,6 +169,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               name="projetoAno"
               value={formData.projetoAno}
               onChange={handleInputChange}
+              min={new Date().getFullYear()}
             />
           </Form.Group>
 
@@ -151,6 +180,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               name="designacao"
               value={formData.designacao}
               onChange={handleInputChange}
+              required
             />
           </Form.Group>
 
@@ -161,17 +191,22 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               name="entidade"
               value={formData.entidade}
               onChange={handleInputChange}
+              required
             />
           </Form.Group>
 
           <Form.Group controlId="formPrioridade">
             <Form.Label>Prioridade</Form.Label>
-            <Form.Control
-              type="text"
+            <Form.Select
               name="prioridade"
               value={formData.prioridade}
               onChange={handleInputChange}
-            />
+            >
+              <option value="">Selecione a prioridade</option>
+              <option value="BAIXA">Baixa</option>
+              <option value="MEDIA">Média</option>
+              <option value="ALTA">Alta</option>
+            </Form.Select>
           </Form.Group>
 
           <Form.Group controlId="formObservacao">
@@ -191,12 +226,27 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               name="prazo"
               value={formData.prazo}
               onChange={handleInputChange}
+              min={new Date().toISOString().split('T')[0]}
             />
+          </Form.Group>
+
+          <Form.Group controlId="formStatus">
+            <Form.Label>Status</Form.Label>
+            <Form.Select
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+            >
+              <option value="ATIVO">Ativo</option>
+              <option value="EM_PROGRESSO">Em Progresso</option>
+              <option value="CONCLUIDO">Concluído</option>
+              <option value="SUSPENSO">Suspenso</option>
+            </Form.Select>
           </Form.Group>
 
           <Form.Group controlId="formUsers">
             <Form.Label>Colaboradores</Form.Label>
-            {Array.isArray(users) ? (
+            {Array.isArray(users) && users.length > 0 ? (
               users.map((user) => (
                 <Form.Check
                   key={user.id}
@@ -225,7 +275,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
           Cancelar
         </Button>
         <Button variant="primary" onClick={handleSave}>
-          Registar
+          {isEditing ? 'Atualizar' : 'Registar'}
         </Button>
       </Modal.Footer>
     </Modal>

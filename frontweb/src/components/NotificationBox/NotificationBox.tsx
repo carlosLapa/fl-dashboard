@@ -3,6 +3,7 @@ import useWebSocket from 'hooks/useWebSocketMessage';
 import { useNotification } from '../../NotificationContext';
 import NotificationDisplay from './NotificationDisplay';
 import { NotificationType } from 'types/notification';
+import { toast } from 'react-toastify';
 import './styles.css';
 
 interface NotificationBoxProps {
@@ -46,6 +47,14 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
         )
       ) {
         handleNewNotification(latestMessage);
+        toast.info(`Nova notificação: ${latestMessage.content}`, {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     }
   }, [messages, handleNewNotification]);

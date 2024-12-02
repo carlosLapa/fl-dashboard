@@ -10,6 +10,7 @@ export type Projeto = {
   observacao: string;
   prazo: string;
   users: User[];
+  status: string;
 };
 
 export interface ProjetoFormData {
@@ -20,6 +21,7 @@ export interface ProjetoFormData {
   observacao: string;
   prazo: string;
   users: User[];
+  status: string;
 }
 
 export type ProjetoWithUsersAndTarefasDTO = Projeto & {

@@ -5,17 +5,24 @@
 }
 
 /* estilos da tabela em si */
-.projeto-table {
+.projeto-table th:nth-child(7) {  /* Colaboradores column */
+  width: 15%;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.projeto-table th,
-.projeto-table td {
+.projeto-table th:nth-child(9) {  /* Ações column */
+  width: 12%;
+  min-width: 120px;
 }
 
-.projeto-table th {
-}
-
-.projeto-table td {
+.action-icons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5px;
 }
 
 .edit-icon {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { getProjetos } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
-import Button from 'react-bootstrap/Button';
+import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
 import {
   addProjetoAPI,
@@ -14,11 +14,12 @@ import {
 import './styles.css';
 
 const ProjetosPage: React.FC = () => {
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [projetos, setProjetos] = useState<Projeto[]>([]); // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [projetoToEdit, setProjetoToEdit] = useState<Projeto | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,6 +76,10 @@ const ProjetosPage: React.FC = () => {
     }
   };
 
+  const filteredProjetos = projetos.filter((projeto) =>
+    statusFilter === 'ALL' ? true : projeto.status === statusFilter
+  );
+
   return (
     <div className="container my-4">
       <h2 className="text-center mb-4">Projetos</h2>
@@ -88,9 +93,11 @@ const ProjetosPage: React.FC = () => {
         </Button>
       </div>
       <ProjetoTable
-        projetos={projetos}
+        projetos={filteredProjetos}
         onEditProjeto={handleEditProjeto}
         onDeleteProjeto={handleDeleteProjeto}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
       />
       <ProjetoModal
         show={showModal}

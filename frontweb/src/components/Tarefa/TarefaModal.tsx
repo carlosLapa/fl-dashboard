@@ -13,6 +13,7 @@ import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
 import { Projeto } from 'types/projeto';
 import { getUsersAPI, getProjetosAPI } from '../../api/requestsApi';
+import { toast } from 'react-toastify';
 
 interface TarefaModalProps {
   show: boolean;
@@ -138,6 +139,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         createdAt: new Date().toISOString(),
       };
       sendNotification(notification);
+      toast.success('Tarefa atualizada com sucesso!');
     } else {
       onSave(formData as TarefaInsertFormData);
 
@@ -154,6 +156,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         };
         sendNotification(notification);
       });
+      toast.success('Nova tarefa criada com sucesso!');
     }
     onHide();
   };

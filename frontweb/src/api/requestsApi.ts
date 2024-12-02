@@ -75,7 +75,7 @@ export const deleteUserAPI = async (id: number): Promise<void> => {
 };
 
 export const getProjetosAPI = async () => {
-  const response = await axios.get(BASE_URL + '/projetos');
+  const response = await axios.get(`${BASE_URL}/projetos`);
   return response.data.content || [];
 };
 
@@ -108,6 +108,21 @@ export const updateProjetoAPI = async (
   }
 };
 
+export const updateProjetoStatusAPI = async (
+  projetoId: number,
+  newStatus: string
+) => {
+  try {
+    const response = await axios.patch(
+      `${BASE_URL}/projetos/${projetoId}/status?status=${newStatus}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating projeto status:', error);
+    throw error;
+  }
+};
+
 export const deleteProjetoAPI = async (id: number): Promise<void> => {
   try {
     await axios.delete(`${BASE_URL}/projetos/${id}`);
@@ -129,6 +144,15 @@ export const getProjetoWithUsersAndTarefasAPI = async (
     console.error('Error fetching project with users and tasks:', error);
     throw error;
   }
+};
+
+export const searchProjetosAPI = async (query: string, status?: string) => {
+  const endpoint = status && status !== 'ALL' 
+    ? `${BASE_URL}/projetos/search?query=${query}&status=${status}`
+    : `${BASE_URL}/projetos/search?query=${query}`;
+    
+  const response = await axios.get(endpoint);
+  return response.data;
 };
 
 export const getTarefaWithUsersAndProjetoAPI = async (
