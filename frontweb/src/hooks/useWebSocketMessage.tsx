@@ -36,6 +36,30 @@ const useWebSocket = (userId: number) => {
   const maxConnectionAttempts = 3;
   const MAX_MESSAGES = 50;
 
+  const handleConnect = useCallback(() => {
+    console.log('WebSocket connected successfully');
+    setIsConnected(true);
+    setConnectionError(null);
+    setConnectionAttempts(0);
+  }, []);
+
+  const handleError = useCallback((frame: any) => {
+    console.error('STOMP error:', frame);
+    setIsConnected(false);
+    setConnectionError(
+      `Connection error: ${frame.headers?.message || 'Unknown error'}`
+    );
+    reconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleClose = useCallback(() => {
+    console.log('WebSocket connection closed');
+    setIsConnected(false);
+    reconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const updateConnectionStats = useCallback(
     (type: 'sent' | 'received') => {
       setConnectionStats((prev) => ({
@@ -151,9 +175,7 @@ const useWebSocket = (userId: number) => {
     let isComponentMounted = true;
     const token = localStorage.getItem('access_token');
 
-    if (!token || userId === 0) {
-      return;
-    }
+    if (!token || userId === 0) return;
 
     const client = new Client({
       webSocketFactory: () => new SockJS(SOCKET_URL),
@@ -162,40 +184,27 @@ const useWebSocket = (userId: number) => {
       },
       debug: (str) => console.log('STOMP:', str),
       reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
     });
 
     client.onConnect = () => {
       if (isComponentMounted) {
-        console.log('WebSocket connected successfully');
-        setIsConnected(true);
-        setConnectionError(null);
-        setConnectionAttempts(0);
-
+        handleConnect();
         const subscriptions = [
           client.subscribe('/topic/notifications', handleMessage),
           client.subscribe(`/topic/notifications/${userId}`, handleMessage),
+          client.subscribe('/user/queue/errors', (message) => {
+            console.error('Error received:', message.body);
+            setConnectionError(message.body);
+          }),
         ];
-
         setSubscriptions(subscriptions.map((sub) => sub.id));
       }
     };
 
-    client.onStompError = (frame) => {
-      if (isComponentMounted) {
-        console.error('STOMP error:', frame);
-        setIsConnected(false);
-        setConnectionError(
-          `Connection error: ${frame.headers?.message || 'Unknown error'}`
-        );
-      }
-    };
-
-    client.onWebSocketClose = () => {
-      if (isComponentMounted) {
-        console.log('WebSocket connection closed');
-        setIsConnected(false);
-      }
-    };
+    client.onStompError = handleError;
+    client.onWebSocketClose = handleClose;
 
     console.log('Activating WebSocket connection...');
     client.activate();
@@ -215,7 +224,15 @@ const useWebSocket = (userId: number) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handleMessage, userId]);
+  }, [userId, handleConnect, handleError, handleClose, handleMessage]);
+
+  const getConnectionStatus = useCallback(() => {
+    if (isConnected) return 'Connected';
+    if (connectionError) return `Error: ${connectionError}`;
+    if (connectionAttempts > 0)
+      return `Reconnecting (${connectionAttempts}/${maxConnectionAttempts})`;
+    return 'Disconnected';
+  }, [isConnected, connectionError, connectionAttempts, maxConnectionAttempts]);
 
   return {
     isConnected,
@@ -229,6 +246,7 @@ const useWebSocket = (userId: number) => {
     filterMessages,
     connectionAttempts,
     connectionStats,
+    getConnectionStatus,
   };
 };
 

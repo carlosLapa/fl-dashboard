@@ -6,4 +6,5 @@ import lombok.Data;
 public class ProjetoMinDTO {
     private Long id;
     private String designacao;
+    private String status;
 }

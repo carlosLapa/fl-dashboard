@@ -53,6 +53,7 @@ public class NotificationService {
         dto.setCreatedAt(notification.getCreatedAt());
         dto.setRelatedId(notification.getRelatedId());
 
+        // Eager loading of user data
         if (notification.getUser() != null) {
             UserMinDTO userDto = new UserMinDTO();
             userDto.setId(notification.getUser().getId());
@@ -60,17 +61,12 @@ public class NotificationService {
             dto.setUser(userDto);
         }
 
-        if (notification.getTarefa() != null) {
-            TarefaMinDTO tarefaDto = new TarefaMinDTO();
-            tarefaDto.setId(notification.getTarefa().getId());
-            tarefaDto.setDescricao(notification.getTarefa().getDescricao());
-            dto.setTarefa(tarefaDto);
-        }
-
+        // Eager loading of project data
         if (notification.getProjeto() != null) {
             ProjetoMinDTO projetoDto = new ProjetoMinDTO();
             projetoDto.setId(notification.getProjeto().getId());
             projetoDto.setDesignacao(notification.getProjeto().getDesignacao());
+            projetoDto.setStatus(notification.getProjeto().getStatus());
             dto.setProjeto(projetoDto);
         }
 
@@ -235,7 +231,8 @@ public class NotificationService {
             entity.setUser(user);
         }
 
-        if (dto.getTarefaId() != null) {
+        // Only set Tarefa if it's a task-related notification and tarefaId is provided
+        if (dto.getTarefaId() != null && isTaskRelatedNotification(dto.getType())) {
             Tarefa tarefa = tarefaRepository.findById(dto.getTarefaId())
                     .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
             entity.setTarefa(tarefa);
@@ -246,6 +243,13 @@ public class NotificationService {
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
             entity.setProjeto(projeto);
         }
+    }
+
+    private boolean isTaskRelatedNotification(String type) {
+        return NotificationType.valueOf(type) == NotificationType.TAREFA_STATUS_ALTERADO ||
+                NotificationType.valueOf(type) == NotificationType.TAREFA_ATRIBUIDA ||
+                NotificationType.valueOf(type) == NotificationType.TAREFA_CONCLUIDA ||
+                NotificationType.valueOf(type) == NotificationType.TAREFA_PRAZO_PROXIMO;
     }
 
     private void copyUpdateDtoToEntity(NotificationUpdateDTO dto, Notification entity) {
@@ -345,26 +349,35 @@ public class NotificationService {
         return insert(notification);
     }
 
+    @Transactional
     public void createProjectNotification(ProjetoWithUsersDTO projeto, NotificationType type, UserDTO user) {
+        User userEntity = userRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+
+        Projeto projetoEntity = projetoRepository.findById(projeto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+
         Notification notification = new Notification();
         notification.setType(type.toString());
-        notification.setUser(userRepository.getReferenceById(user.getId()));
-        notification.setProjeto(projetoRepository.getReferenceById(projeto.getId()));
+        notification.setUser(userEntity);
+        notification.setProjeto(projetoEntity);
 
         switch (type) {
             case PROJETO_ATRIBUIDO -> notification.setContent("Novo projeto atribuído: " + projeto.getDesignacao());
             case PROJETO_ATUALIZADO -> notification.setContent("Projeto atualizado: " + projeto.getDesignacao());
             case PROJETO_CONCLUIDO -> notification.setContent("Projeto concluído: " + projeto.getDesignacao());
+            default -> notification.setContent("Notificação do Projeto: " + projeto.getDesignacao());
         }
 
         notification.setCreatedAt(new Date());
         notification.setIsRead(false);
 
-        notificationRepository.save(notification);
-        messagingTemplate.convertAndSend("/topic/notifications/" + user.getId(), notification);
+        Notification savedNotification = notificationRepository.save(notification);
+        NotificationResponseDTO responseDTO = convertToDTO(savedNotification);
+        messagingTemplate.convertAndSend("/topic/notifications/" + user.getId(), responseDTO);
     }
 
     public void delete(Long id) {
-
+        // Verificar novamente a sua necessidade após testes com Users reais
     }
 }

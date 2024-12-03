@@ -1,15 +1,17 @@
 import React from 'react';
-import { Table } from 'react-bootstrap';
+import { Table, Form } from 'react-bootstrap';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
 import ProjetoStatusBadge from './ProjetoStatusBadge';
 
 interface ProjetoDetailsTableProps {
   projeto: Projeto;
+  onStatusChange: (newStatus: string) => Promise<void>;
 }
 
 const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
   projeto,
+  onStatusChange,
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -54,6 +56,16 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
         <tr>
           <th className="detail-label">Status</th>
           <td className="detail-value">
+            <Form.Select
+              value={projeto.status}
+              onChange={(e) => onStatusChange(e.target.value)}
+              className="status-select"
+            >
+              <option value="ATIVO">Ativo</option>
+              <option value="EM_PROGRESSO">Em Progresso</option>
+              <option value="CONCLUIDO">Concluído</option>
+              <option value="SUSPENSO">Suspenso</option>
+            </Form.Select>
             <ProjetoStatusBadge status={projeto.status} />
           </td>
         </tr>

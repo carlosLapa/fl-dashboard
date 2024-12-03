@@ -1,5 +1,6 @@
 package com.fl.dashboard.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,10 +26,12 @@ public class Coluna {
     private String titulo;
     private Integer ordem;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "projeto_id")
     private Projeto projeto;
 
+    @JsonBackReference
     @OneToMany(mappedBy = "coluna")
     private Set<Tarefa> tarefas = new HashSet<>();
 

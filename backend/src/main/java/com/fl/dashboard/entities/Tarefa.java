@@ -1,5 +1,7 @@
 package com.fl.dashboard.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,20 +27,24 @@ public class Tarefa {
     @Enumerated(EnumType.STRING)
     private TarefaStatus status = TarefaStatus.BACKLOG;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "projeto_id")
     private Projeto projeto;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "coluna_id")
     private Coluna coluna;
 
+    @JsonManagedReference
     @ManyToMany
     @JoinTable(name = "tb_tarefa_user",
             joinColumns = @JoinColumn(name = "tarefa_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<User> users = new HashSet<>();
 
+    @JsonBackReference
     @OneToMany(mappedBy = "tarefa")
     private List<Notification> notifications = new ArrayList<>();
 

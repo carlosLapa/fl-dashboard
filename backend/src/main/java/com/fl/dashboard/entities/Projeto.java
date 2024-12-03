@@ -1,5 +1,7 @@
 package com.fl.dashboard.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -8,19 +10,23 @@ import java.util.*;
 @Table(name = "tb_projeto")
 public class Projeto {
 
+    @JsonBackReference
     @ManyToMany
     @JoinTable(name = "tb_projeto_user",
             joinColumns = @JoinColumn(name = "projeto_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<User> users = new HashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
     private List<Coluna> colunas = new ArrayList<>();
 
+    @JsonBackReference
     @OneToMany(mappedBy = "projeto")
     private List<Notification> notifications = new ArrayList<>();
 
+    @JsonBackReference
     @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
     private Set<Tarefa> tarefas = new HashSet<>();
 

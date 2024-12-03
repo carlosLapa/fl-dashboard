@@ -1,7 +1,7 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
+import { Projeto, ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
   TarefaInsertFormData,
   TarefaStatus,
@@ -12,13 +12,6 @@ import {
 import { Notification } from 'types/notification';
 import { getTarefasByUser } from 'services/tarefaService';
 
-/**
- * generic fetchFromAPI function that takes an endpoint parameter and makes the API call
- * to the specified endpoint.
- *
- * Although in the getProjetosAPI function, it returns the content property of the response data,
- * in this case, to access the users property inside the data object or an empty array if the content property is falsy.
- */
 const fetchFromAPI = async (endpoint: string) => {
   const response = await axios.get(`${BASE_URL}/${endpoint}`);
   return response.data;
@@ -79,17 +72,9 @@ export const getProjetosAPI = async () => {
   return response.data.content || [];
 };
 
-export const addProjetoAPI = async (data: ProjetoFormData): Promise<void> => {
-  try {
-    await axios.post(`${BASE_URL}/projetos`, data);
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 422) {
-      console.error('Validation errors:', error.response.data);
-    } else {
-      console.error('Error adding project:', error);
-    }
-    throw error;
-  }
+export const addProjetoAPI = async (projeto: ProjetoFormData) => {
+  const response = await axios.post(`${BASE_URL}/projetos`, projeto);
+  return response.data;
 };
 
 export const updateProjetoAPI = async (
@@ -147,10 +132,11 @@ export const getProjetoWithUsersAndTarefasAPI = async (
 };
 
 export const searchProjetosAPI = async (query: string, status?: string) => {
-  const endpoint = status && status !== 'ALL' 
-    ? `${BASE_URL}/projetos/search?query=${query}&status=${status}`
-    : `${BASE_URL}/projetos/search?query=${query}`;
-    
+  const endpoint =
+    status && status !== 'ALL'
+      ? `${BASE_URL}/projetos/search?query=${query}&status=${status}`
+      : `${BASE_URL}/projetos/search?query=${query}`;
+
   const response = await axios.get(endpoint);
   return response.data;
 };

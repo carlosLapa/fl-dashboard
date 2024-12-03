@@ -1,4 +1,3 @@
-// src/pages/Projetos/ProjetosPage.tsx
 import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { getProjetos } from '../../services/projetoService';
@@ -10,16 +9,21 @@ import {
   updateProjetoAPI,
   deleteProjetoAPI,
 } from 'api/requestsApi';
-
+import { NotificationInsertDTO, NotificationType } from 'types/notification';
+import { useNotification } from 'NotificationContext';
+import { useAuth } from '../../AuthContext';
 import './styles.css';
 
 const ProjetosPage: React.FC = () => {
-  const [projetos, setProjetos] = useState<Projeto[]>([]); // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { user } = useAuth();
+  const [projetos, setProjetos] = useState<Projeto[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [projetoToEdit, setProjetoToEdit] = useState<Projeto | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const { sendNotification } = useNotification();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,8 +39,23 @@ const ProjetosPage: React.FC = () => {
   const handleAddProjeto = async (formData: ProjetoFormData) => {
     try {
       await addProjetoAPI(formData);
+      // Wait a moment for the transaction to complete
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const updatedProjetos = await getProjetos();
       setProjetos(updatedProjetos);
+
+      const newProjeto = updatedProjetos[updatedProjetos.length - 1];
+      sendNotification({
+        type: NotificationType.PROJETO_ATRIBUIDO,
+        content: `Novo projeto atribuído: ${newProjeto.designacao}`,
+        userId: user?.id || 0,
+        projetoId: newProjeto.id,
+        tarefaId: 0,
+        relatedId: 0,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      });
     } catch (error) {
       console.error('Error adding project:', error);
     }
@@ -60,6 +79,22 @@ const ProjetosPage: React.FC = () => {
         await updateProjetoAPI(projetoToEdit.id, updatedProjeto);
         const updatedProjetos = await getProjetos();
         setProjetos(updatedProjetos);
+
+        setTimeout(() => {
+          updatedProjeto.users.forEach((user) => {
+            const notification: NotificationInsertDTO = {
+              type: NotificationType.PROJETO_ATUALIZADO,
+              content: `Projeto "${updatedProjeto.designacao}" foi atualizado`,
+              userId: user.id,
+              projetoId: projetoToEdit.id,
+              tarefaId: 0,
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              relatedId: projetoToEdit.id,
+            };
+            sendNotification(notification);
+          });
+        }, 500);
       }
     } catch (error) {
       console.error('Error updating project:', error);

@@ -1,5 +1,7 @@
 package com.fl.dashboard.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -34,9 +36,11 @@ public class User implements UserDetails {
     @Column(name = "profile_image", columnDefinition = "MEDIUMBLOB")
     private byte[] profileImage;
 
+    @JsonManagedReference
     @ManyToMany(mappedBy = "users")
     private Set<Projeto> projetos = new HashSet<>();
 
+    @JsonBackReference
     @ManyToMany(mappedBy = "users")
     private Set<Tarefa> tarefas = new HashSet<>();
 
@@ -46,6 +50,7 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
+    @JsonBackReference
     @OneToMany(mappedBy = "user")
     private List<Notification> notifications = new ArrayList<>();
 

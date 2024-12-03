@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Form } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import {
   getProjetoWithUsersAndTarefasAPI,
-  getProjetosAPI,
   updateProjetoStatusAPI,
 } from 'api/requestsApi';
 import ProjetoDetailsTable from 'components/Projeto/ProjetoDetailsTable';
 import { ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import ProjetoTarefasTable from 'components/Projeto/ProjetoTarefasTable';
+import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
+import { useNotification } from 'NotificationContext';
 
 const ProjetoDetailsPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
@@ -17,29 +18,47 @@ const ProjetoDetailsPage: React.FC = () => {
     null
   );
   const navigate = useNavigate();
+  const { sendNotification } = useNotification();
+
+  const fetchProjeto = async () => {
+    if (projetoId) {
+      try {
+        const fetchedProjeto = await getProjetoWithUsersAndTarefasAPI(
+          Number(projetoId)
+        );
+        setProjeto(fetchedProjeto);
+      } catch (error) {
+        console.error('Error fetching projeto details:', error);
+        toast.error('Erro ao carregar detalhes do projeto');
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchProjeto = async () => {
-      if (projetoId) {
-        try {
-          const fetchedProjeto = await getProjetoWithUsersAndTarefasAPI(
-            Number(projetoId)
-          );
-          setProjeto(fetchedProjeto);
-        } catch (error) {
-          console.error('Error fetching projeto details:', error);
-        }
-      }
-    };
-
     fetchProjeto();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projetoId]);
 
   const handleStatusChange = async (newStatus: string) => {
-    if (projetoId) {
+    if (projetoId && projeto) {
       try {
         await updateProjetoStatusAPI(Number(projetoId), newStatus);
-        await getProjetosAPI();
+
+        projeto.users.forEach((user) => {
+          const notification = {
+            type: NotificationType.PROJETO_ATUALIZADO,
+            content: `Status do projeto "${projeto.designacao}" foi atualizado para ${newStatus}`,
+            userId: user.id,
+            projetoId: Number(projetoId),
+            tarefaId: 0, // Required by NotificationInsertDTO
+            isRead: false,
+            createdAt: new Date().toISOString(),
+            relatedId: Number(projetoId),
+          };
+          sendNotification(notification);
+        });
+
+        await fetchProjeto();
         toast.success('Status do projeto atualizado com sucesso!');
       } catch (error) {
         console.error('Error updating projeto status:', error);
@@ -59,25 +78,14 @@ const ProjetoDetailsPage: React.FC = () => {
   return (
     <div className="projeto-details-container">
       <h2>Detalhes do Projeto</h2>
-      <div className="status-update-section mb-3">
-        <Form.Group>
-          <Form.Label>Status do Projeto</Form.Label>
-          <Form.Select
-            value={projeto.status}
-            onChange={(e) => handleStatusChange(e.target.value)}
-          >
-            <option value="ATIVO">Ativo</option>
-            <option value="EM_PROGRESSO">Em Progresso</option>
-            <option value="CONCLUIDO">Concluído</option>
-            <option value="SUSPENSO">Suspenso</option>
-          </Form.Select>
-        </Form.Group>
-      </div>
-      <ProjetoDetailsTable projeto={projeto} />
+      <ProjetoDetailsTable
+        projeto={projeto}
+        onStatusChange={handleStatusChange}
+      />
       <h3>Tarefas Associadas</h3>
       <ProjetoTarefasTable tarefas={projeto.tarefas} />
       <Button variant="primary" onClick={handleGoBack}>
-        Voltar para Lista de Projetos
+         Voltar para Lista de Projetos
       </Button>
     </div>
   );

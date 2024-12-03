@@ -35,13 +35,13 @@ public class ProjetoService {
     @Autowired
     private NotificationService notificationService;
 
-    /* A REVER!
-    Estes 2s primeiros métodos fazem a mesma coisa, Projeto com os Users, só que 1 é paged e o outro não!
-    Decidir qual manter e fazer as alterações necessários na chamada à API e correspondente Frontend
+    @Transactional(readOnly = true)
+    public ProjetoDTO findById(Long id) {
+        Projeto projeto = projetoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+        return new ProjetoDTO(projeto);
+    }
 
-    **** Acresce que os métodos de PUT e POST tb estão a utlizar o ProjetoWithUsersDTO, para preservar o funcionamento!
-    **** Assim, por agora mantém-se para permitir testes, uma vez que a estrutura já está funcional
-    */
     @Transactional(readOnly = true)
     public Page<ProjetoWithUsersDTO> findAllPaged(Pageable pageable) {
         Page<Projeto> list = projetoRepository.findAll(pageable);
@@ -82,7 +82,10 @@ public class ProjetoService {
         projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
         Projeto savedEntity = projetoRepository.save(entity);
 
-        // Send notifications for new project using UserDTO
+        // Force flush to ensure the entity is persisted
+        projetoRepository.flush();
+
+        // Now send notifications
         savedEntity.getUsers().forEach(user ->
                 notificationService.createProjectNotification(
                         new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
