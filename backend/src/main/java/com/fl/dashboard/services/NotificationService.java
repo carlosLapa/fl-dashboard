@@ -280,6 +280,11 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponseDTO createTaskStatusNotification(User user, Tarefa tarefa) {
+        if (notificationRepository.existsByTarefaIdAndUserIdAndType(
+                tarefa.getId(), user.getId(), NotificationType.TAREFA_STATUS_ALTERADO.name())) {
+            logger.info("Task status notification already exists for task {} and user {}", tarefa.getId(), user.getId());
+            return null;
+        }
         NotificationInsertDTO notification = new NotificationInsertDTO();
         notification.setType(NotificationType.TAREFA_STATUS_ALTERADO.name());
         notification.setContent("O estado da tarefa '" + tarefa.getDescricao() + "' foi alterado para " + tarefa.getStatus());
@@ -292,6 +297,11 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponseDTO createTaskAssignmentNotification(User user, Tarefa tarefa) {
+        if (notificationRepository.existsByTarefaIdAndUserIdAndType(
+                tarefa.getId(), user.getId(), NotificationType.TAREFA_ATRIBUIDA.name())) {
+            logger.info("Task assignment notification already exists for task {} and user {}", tarefa.getId(), user.getId());
+            return null;
+        }
         NotificationInsertDTO notification = new NotificationInsertDTO();
         notification.setType(NotificationType.TAREFA_ATRIBUIDA.name());
         notification.setContent("Nova tarefa atribuída: " + tarefa.getDescricao());
@@ -304,6 +314,11 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponseDTO createTaskCompletionNotification(User user, Tarefa tarefa) {
+        if (notificationRepository.existsByTarefaIdAndUserIdAndType(
+                tarefa.getId(), user.getId(), NotificationType.TAREFA_CONCLUIDA.name())) {
+            logger.info("Task completion notification already exists for task {} and user {}", tarefa.getId(), user.getId());
+            return null;
+        }
         NotificationInsertDTO notification = new NotificationInsertDTO();
         notification.setType(NotificationType.TAREFA_CONCLUIDA.name());
         notification.setContent("A tarefa '" + tarefa.getDescricao() + "' foi concluída");
@@ -316,6 +331,11 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponseDTO createProjectUpdateNotification(User user, Projeto projeto) {
+        if (notificationRepository.existsByProjetoIdAndUserIdAndType(
+                projeto.getId(), user.getId(), NotificationType.PROJETO_ATUALIZADO.name())) {
+            logger.info("Project update notification already exists for project {} and user {}", projeto.getId(), user.getId());
+            return null;
+        }
         NotificationInsertDTO notification = new NotificationInsertDTO();
         notification.setType(NotificationType.PROJETO_ATUALIZADO.name());
         notification.setContent("O projeto '" + projeto.getDesignacao() + "' foi atualizado");
@@ -326,6 +346,7 @@ public class NotificationService {
         return insert(notification);
     }
 
+    // Método necessário? Após testes, reverificar.
     @Transactional
     public NotificationResponseDTO createGeneralNotification(User user, String content) {
         NotificationInsertDTO notification = new NotificationInsertDTO();
@@ -351,6 +372,15 @@ public class NotificationService {
 
     @Transactional
     public void createProjectNotification(ProjetoWithUsersDTO projeto, NotificationType type, UserDTO user) {
+        // Check if notification already exists for this project and user
+        if (notificationRepository.existsByProjetoIdAndUserIdAndType(
+                projeto.getId(),
+                user.getId(),
+                type.toString())) {
+            logger.info("Notification already exists for project {} and user {}", projeto.getId(), user.getId());
+            return;
+        }
+
         User userEntity = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
 
@@ -361,20 +391,29 @@ public class NotificationService {
         notification.setType(type.toString());
         notification.setUser(userEntity);
         notification.setProjeto(projetoEntity);
-
-        switch (type) {
-            case PROJETO_ATRIBUIDO -> notification.setContent("Novo projeto atribuído: " + projeto.getDesignacao());
-            case PROJETO_ATUALIZADO -> notification.setContent("Projeto atualizado: " + projeto.getDesignacao());
-            case PROJETO_CONCLUIDO -> notification.setContent("Projeto concluído: " + projeto.getDesignacao());
-            default -> notification.setContent("Notificação do Projeto: " + projeto.getDesignacao());
-        }
-
+        notification.setContent(buildNotificationContent(type, projeto.getDesignacao()));
         notification.setCreatedAt(new Date());
         notification.setIsRead(false);
 
-        Notification savedNotification = notificationRepository.save(notification);
-        NotificationResponseDTO responseDTO = convertToDTO(savedNotification);
-        messagingTemplate.convertAndSend("/topic/notifications/" + user.getId(), responseDTO);
+        try {
+            Notification savedNotification = notificationRepository.save(notification);
+            NotificationResponseDTO responseDTO = convertToDTO(savedNotification);
+            messagingTemplate.convertAndSend("/topic/notifications/" + user.getId(), responseDTO);
+            logger.info("Project notification created successfully for user {} and project {}",
+                    user.getId(), projeto.getId());
+        } catch (Exception e) {
+            logger.error("Error creating project notification", e);
+            throw e;
+        }
+    }
+
+    private String buildNotificationContent(NotificationType type, String designacao) {
+        return switch (type) {
+            case PROJETO_ATRIBUIDO -> "Novo projeto atribuído: " + designacao;
+            case PROJETO_ATUALIZADO -> "Projeto atualizado: " + designacao;
+            case PROJETO_CONCLUIDO -> "Projeto concluído: " + designacao;
+            default -> "Notificação do Projeto: " + designacao;
+        };
     }
 
     public void delete(Long id) {

@@ -21,6 +21,8 @@ interface ConnectionStats {
 const useWebSocket = (userId: number) => {
   // Accept userId as a parameter
   const SOCKET_URL = 'http://localhost:8080/ws';
+  const userSpecificTopic = `/topic/notifications/${userId}`;
+  const projectSpecificTopic = `/topic/project-notifications/${userId}`;
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<CustomNotification[]>([]);
@@ -50,14 +52,14 @@ const useWebSocket = (userId: number) => {
       `Connection error: ${frame.headers?.message || 'Unknown error'}`
     );
     reconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleClose = useCallback(() => {
     console.log('WebSocket connection closed');
     setIsConnected(false);
     reconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateConnectionStats = useCallback(
@@ -87,10 +89,23 @@ const useWebSocket = (userId: number) => {
             : parsedMessage;
 
         if (
-          notification.userId === userId &&
+          notification.user?.id === userId &&
           Object.values(NotificationType).includes(notification.type)
         ) {
           setMessages((prevMessages) => {
+            // Check for duplicates using the correct property structure
+            const isDuplicate = prevMessages.some(
+              (msg) =>
+                msg.type === notification.type &&
+                msg.relatedId === notification.relatedId &&
+                msg.user?.id === notification.user?.id
+            );
+
+            if (isDuplicate) {
+              console.log('Duplicate notification detected, skipping');
+              return prevMessages;
+            }
+
             const newMessages = [...prevMessages];
             if (newMessages.length > MAX_MESSAGES) {
               newMessages.splice(0, newMessages.length - MAX_MESSAGES);
@@ -192,12 +207,9 @@ const useWebSocket = (userId: number) => {
       if (isComponentMounted) {
         handleConnect();
         const subscriptions = [
-          client.subscribe('/topic/notifications', handleMessage),
-          client.subscribe(`/topic/notifications/${userId}`, handleMessage),
-          client.subscribe('/user/queue/errors', (message) => {
-            console.error('Error received:', message.body);
-            setConnectionError(message.body);
-          }),
+          client.subscribe(userSpecificTopic, handleMessage),
+          client.subscribe(projectSpecificTopic, handleMessage),
+          client.subscribe('/user/queue/errors', handleError),
         ];
         setSubscriptions(subscriptions.map((sub) => sub.id));
       }

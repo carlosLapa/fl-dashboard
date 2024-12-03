@@ -3,6 +3,7 @@ package com.fl.dashboard.services;
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
+import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -81,18 +82,17 @@ public class ProjetoService {
         Projeto entity = new Projeto();
         projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
         Projeto savedEntity = projetoRepository.save(entity);
-
-        // Force flush to ensure the entity is persisted
         projetoRepository.flush();
 
-        // Now send notifications
-        savedEntity.getUsers().forEach(user ->
-                notificationService.createProjectNotification(
-                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                        NotificationType.PROJETO_ATRIBUIDO,
-                        new UserDTO(user)
-                )
-        );
+        // Create single notification for each assigned user
+        if (!savedEntity.getUsers().isEmpty()) {
+            User assignedUser = savedEntity.getUsers().iterator().next();
+            notificationService.createProjectNotification(
+                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                    NotificationType.PROJETO_ATRIBUIDO,
+                    new UserDTO(assignedUser)
+            );
+        }
 
         return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
     }
