@@ -7,6 +7,7 @@ import com.fl.dashboard.dto.NotificationUpdateDTO;
 import com.fl.dashboard.dto.WebSocketMessage;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.services.NotificationService;
+import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -46,17 +46,22 @@ public class NotificationResource {
     @Operation(summary = "Handle WebSocket notification", description = "Process notification received via WebSocket")
     @MessageMapping("/send-notification")
     @SendTo("/topic/notifications")
-    public NotificationResponseDTO handleNotification(@Payload WebSocketMessage message) {
+    public void handleNotification(WebSocketMessage message) {
         logger.info("Received notification message via WebSocket: {}", message);
         try {
-            NotificationInsertDTO notificationInsertDTO = objectMapper.convertValue(message.getContent(), NotificationInsertDTO.class);
-            validateNotificationType(notificationInsertDTO.getType());
-            NotificationResponseDTO result = notificationService.insert(notificationInsertDTO);
-            logger.info("Notification inserted successfully: {}", result);
-            return result;
+            if (message.getType().equals("NOTIFICATION")) {
+                NotificationInsertDTO notificationDTO = objectMapper.convertValue(
+                        message.getContent(),
+                        NotificationInsertDTO.class
+                );
+                notificationService.insert(notificationDTO);
+            }
+        } catch (ResourceNotFoundException e) {
+            // Log and swallow expected race condition exceptions
+            logger.debug("Expected race condition during notification creation: {}", e.getMessage());
         } catch (Exception e) {
-            logger.error("Error inserting notification", e);
-            throw new RuntimeException("Failed to insert notification", e);
+            logger.error("Error processing notification", e);
+            throw new RuntimeException("Failed to process notification", e);
         }
     }
 

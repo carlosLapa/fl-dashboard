@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjetoService {
@@ -81,51 +84,72 @@ public class ProjetoService {
     public ProjetoWithUsersDTO insert(ProjetoWithUsersDTO projetoDTO) {
         Projeto entity = new Projeto();
         projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
+
+        // Save and flush to ensure the entity is persisted
         Projeto savedEntity = projetoRepository.save(entity);
         projetoRepository.flush();
 
-        // Create single notification for each assigned user
-        if (!savedEntity.getUsers().isEmpty()) {
+        ProjetoWithUsersDTO savedDTO = new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+
+        // Only create notification if project was saved successfully and has users
+        if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
             User assignedUser = savedEntity.getUsers().iterator().next();
             notificationService.createProjectNotification(
-                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                    savedDTO,
                     NotificationType.PROJETO_ATRIBUIDO,
                     new UserDTO(assignedUser)
             );
         }
 
-        return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+        return savedDTO;
     }
 
     @Transactional
     public ProjetoWithUsersDTO update(Long id, ProjetoWithUsersDTO projetoDTO) {
-        try {
-            Projeto entity = projetoRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+        Projeto entity = projetoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
 
-            String oldStatus = entity.getStatus();
-            projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
-            Projeto savedEntity = projetoRepository.save(entity);
+        String oldStatus = entity.getStatus();
+        Set<User> oldUsers = new HashSet<>(entity.getUsers());
 
-            NotificationType notificationType;
-            if (savedEntity.getStatus().equals("CONCLUIDO") && !savedEntity.getStatus().equals(oldStatus)) {
-                notificationType = NotificationType.PROJETO_CONCLUIDO;
-            } else {
-                notificationType = NotificationType.PROJETO_ATUALIZADO;
-            }
+        projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
+        Projeto savedEntity = projetoRepository.save(entity);
+        projetoRepository.flush();
 
-            savedEntity.getUsers().forEach(user ->
-                    notificationService.createProjectNotification(
-                            new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                            notificationType,
-                            new UserDTO(user)
-                    )
-            );
+        // Determine notification type based on status change
+        NotificationType notificationType = determineNotificationType(oldStatus, savedEntity.getStatus());
 
-            return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
-        } catch (EntityNotFoundException e) {
-            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
+        // Find new users to notify about project assignment
+        Set<User> newUsers = savedEntity.getUsers().stream()
+                .filter(user -> !oldUsers.contains(user))
+                .collect(Collectors.toSet());
+
+        // Notify new users about project assignment
+        newUsers.forEach(user ->
+                notificationService.createProjectNotification(
+                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                        NotificationType.PROJETO_ATRIBUIDO,
+                        new UserDTO(user)
+                )
+        );
+
+        // Notify all current users about project update
+        savedEntity.getUsers().forEach(user ->
+                notificationService.createProjectNotification(
+                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                        notificationType,
+                        new UserDTO(user)
+                )
+        );
+
+        return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+    }
+
+    private NotificationType determineNotificationType(String oldStatus, String newStatus) {
+        if ("CONCLUIDO".equals(newStatus) && !newStatus.equals(oldStatus)) {
+            return NotificationType.PROJETO_CONCLUIDO;
         }
+        return NotificationType.PROJETO_ATUALIZADO;
     }
 
     @Transactional

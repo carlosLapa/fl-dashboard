@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import {
@@ -21,6 +21,7 @@ interface ConnectionStats {
 const useWebSocket = (userId: number) => {
   // Accept userId as a parameter
   const SOCKET_URL = 'http://localhost:8080/ws';
+  const messageQueue = useRef<WebSocketMessage[]>([]);
   const userSpecificTopic = `/topic/notifications/${userId}`;
   const projectSpecificTopic = `/topic/project-notifications/${userId}`;
   const [stompClient, setStompClient] = useState<Client | null>(null);
@@ -172,19 +173,43 @@ const useWebSocket = (userId: number) => {
 
   const sendMessage = useCallback(
     (message: WebSocketMessage) => {
-      if (stompClient && isConnected) {
+      if (!stompClient || !isConnected) {
+        console.log('Connection not ready, queueing message');
+        messageQueue.current.push(message);
+
+        // Attempt reconnection
+        if (stompClient && !isConnected) {
+          console.log('Attempting to reconnect...');
+          stompClient.activate();
+        }
+        return;
+      }
+
+      try {
         console.log('Sending message:', message);
         stompClient.publish({
-          destination: '/app/send-notification', // Ensure this matches the @MessageMapping in the backend
+          destination: '/app/send-notification',
           body: JSON.stringify(message),
         });
         updateConnectionStats('sent');
-      } else {
-        console.log('Cannot send message - connection not ready');
+      } catch (error) {
+        console.error('Error sending message:', error);
+        messageQueue.current.push(message);
       }
     },
     [stompClient, isConnected, updateConnectionStats]
   );
+
+  // to handle queued messages
+  useEffect(() => {
+    if (isConnected && messageQueue.current.length > 0) {
+      console.log('Processing queued messages:', messageQueue.current.length);
+      messageQueue.current.forEach((message) => {
+        sendMessage(message);
+      });
+      messageQueue.current = [];
+    }
+  }, [isConnected, sendMessage]);
 
   useEffect(() => {
     let isComponentMounted = true;
@@ -212,6 +237,15 @@ const useWebSocket = (userId: number) => {
           client.subscribe('/user/queue/errors', handleError),
         ];
         setSubscriptions(subscriptions.map((sub) => sub.id));
+
+        // Process any queued messages after reconnection
+        if (messageQueue.current.length > 0) {
+          console.log('Processing queued messages after reconnection');
+          messageQueue.current.forEach((message) => {
+            sendMessage(message);
+          });
+          messageQueue.current = [];
+        }
       }
     };
 

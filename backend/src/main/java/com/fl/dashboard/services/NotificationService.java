@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Date;
 import java.util.List;
@@ -129,8 +131,14 @@ public class NotificationService {
         NotificationResponseDTO savedDto = convertToDTO(notification);
         logger.info("Converted NotificationResponseDTO: {}", savedDto);
 
-        messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS + "/" + dto.getUserId(), savedDto);
-        logger.info("Notification sent to topic successfully");
+        // Register WebSocket send after transaction commits using the modern approach
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS + "/" + dto.getUserId(), savedDto);
+                logger.info("Notification sent to topic successfully after transaction commit");
+            }
+        });
 
         return savedDto;
     }
@@ -372,7 +380,11 @@ public class NotificationService {
 
     @Transactional
     public void createProjectNotification(ProjetoWithUsersDTO projeto, NotificationType type, UserDTO user) {
-        // Check if notification already exists for this project and user
+        // Verify project exists first
+        Projeto projetoEntity = projetoRepository.findById(projeto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+
+        // Check for existing notification
         if (notificationRepository.existsByProjetoIdAndUserIdAndType(
                 projeto.getId(),
                 user.getId(),
@@ -383,9 +395,6 @@ public class NotificationService {
 
         User userEntity = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-
-        Projeto projetoEntity = projetoRepository.findById(projeto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
 
         Notification notification = new Notification();
         notification.setType(type.toString());

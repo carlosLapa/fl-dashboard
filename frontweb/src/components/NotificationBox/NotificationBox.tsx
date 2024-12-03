@@ -3,6 +3,7 @@ import useWebSocket from 'hooks/useWebSocketMessage';
 import { useNotification } from '../../NotificationContext';
 import NotificationDisplay from './NotificationDisplay';
 import { NotificationType } from 'types/notification';
+import { ResourceNotFoundException } from '../../types/exceptions';
 import { toast } from 'react-toastify';
 import './styles.css';
 
@@ -46,15 +47,23 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
           latestMessage.type as NotificationType
         )
       ) {
-        handleNewNotification(latestMessage);
-        toast.info(`Nova notificação: ${latestMessage.content}`, {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        try {
+          handleNewNotification(latestMessage);
+          // Only show toast if notification handling succeeds
+          toast.info(`Nova notificação: ${latestMessage.content}`, {
+            position: 'top-right',
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } catch (error) {
+          // Silently handle expected race condition errors
+          if (!(error instanceof ResourceNotFoundException)) {
+            console.error('Unexpected error handling notification:', error);
+          }
+        }
       }
     }
   }, [messages, handleNewNotification]);

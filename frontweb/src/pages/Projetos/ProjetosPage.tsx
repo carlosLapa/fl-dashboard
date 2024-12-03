@@ -38,24 +38,26 @@ const ProjetosPage: React.FC = () => {
 
   const handleAddProjeto = async (formData: ProjetoFormData) => {
     try {
-      await addProjetoAPI(formData);
-      // Wait a moment for the transaction to complete
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // First create the project and get its response
+      const newProjeto = await addProjetoAPI(formData);
 
+      // Update the projects list
       const updatedProjetos = await getProjetos();
       setProjetos(updatedProjetos);
 
-      const newProjeto = updatedProjetos[updatedProjetos.length - 1];
-      sendNotification({
-        type: NotificationType.PROJETO_ATRIBUIDO,
-        content: `Novo projeto atribuído: ${newProjeto.designacao}`,
-        userId: user?.id || 0,
-        projetoId: newProjeto.id,
-        tarefaId: 0,
-        relatedId: 0,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      });
+      // Only send notification if we have the new project data
+      if (newProjeto && newProjeto.id) {
+        sendNotification({
+          type: NotificationType.PROJETO_ATRIBUIDO,
+          content: `Novo projeto atribuído: ${newProjeto.designacao}`,
+          userId: user?.id || 0,
+          projetoId: newProjeto.id,
+          tarefaId: 0,
+          relatedId: 0,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        });
+      }
     } catch (error) {
       console.error('Error adding project:', error);
     }
