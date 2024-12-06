@@ -8,13 +8,10 @@ import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
-import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -40,13 +37,13 @@ public class TarefaService {
 
     @Transactional(readOnly = true)
     public List<TarefaDTO> findAll() {
-        List<Tarefa> list = tarefaRepository.findAll();
+        List<Tarefa> list = tarefaRepository.findAllActive();
         return list.stream().map(TarefaDTO::new).toList();
     }
 
     @Transactional(readOnly = true)
     public List<TarefaWithUserAndProjetoDTO> findAllWithUsersAndProjeto() {
-        List<Tarefa> list = tarefaRepository.findAll();
+        List<Tarefa> list = tarefaRepository.findAllActive();
         return list.stream().map(TarefaWithUserAndProjetoDTO::new).toList();
     }
 
@@ -59,21 +56,21 @@ public class TarefaService {
 
     @Transactional(readOnly = true)
     public TarefaDTO findById(Long id) {
-        Tarefa entity = tarefaRepository.findById(id).orElseThrow(
+        Tarefa entity = tarefaRepository.findByIdActive(id).orElseThrow(
                 () -> new ResourceNotFoundException("Tarefa com o id " + id + " não encontrado"));
         return new TarefaDTO(entity);
     }
 
     @Transactional(readOnly = true)
     public TarefaWithUsersDTO findByIdWithUsers(Long id) {
-        Tarefa entity = tarefaRepository.findById(id).orElseThrow(
+        Tarefa entity = tarefaRepository.findByIdActive(id).orElseThrow(
                 () -> new ResourceNotFoundException("Tarefa com o id " + id + " não encontrado"));
         return new TarefaWithUsersDTO(entity);
     }
 
     @Transactional(readOnly = true)
     public TarefaWithProjetoDTO findByIdWithProjeto(Long id) {
-        Tarefa entity = tarefaRepository.findById(id).orElseThrow(
+        Tarefa entity = tarefaRepository.findByIdActive(id).orElseThrow(
                 () -> new ResourceNotFoundException("Tarefa com o id " + id + " não encontrado"));
         return new TarefaWithProjetoDTO(entity);
     }
@@ -96,7 +93,8 @@ public class TarefaService {
     @Transactional
     public TarefaDTO update(Long id, TarefaDTO tarefaDTO) {
         try {
-            Tarefa entity = tarefaRepository.getReferenceById(id);
+            Tarefa entity = tarefaRepository.findByIdActive(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Id: " + id + " não foi encontrado"));
             copyDTOtoEntity(tarefaDTO, entity);
             entity = tarefaRepository.save(entity);
             return new TarefaDTO(entity);
@@ -108,7 +106,7 @@ public class TarefaService {
     // To handle user associations
     @Transactional
     public void updateTarefaUsers(Long tarefaId, Set<Long> userIds) {
-        Tarefa tarefa = tarefaRepository.findById(tarefaId)
+        Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
@@ -153,7 +151,7 @@ public class TarefaService {
 
     @Transactional
     public void updateTarefaProjeto(Long tarefaId, Long projetoId) {
-        Tarefa tarefa = tarefaRepository.findById(tarefaId)
+        Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
 
         if (projetoId != null) {
@@ -169,7 +167,7 @@ public class TarefaService {
 
     @Transactional
     public TarefaWithUserAndProjetoDTO updateWithAssociations(TarefaUpdateDTO dto) {
-        Tarefa tarefa = tarefaRepository.findById(dto.getId())
+        Tarefa tarefa = tarefaRepository.findByIdActive(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
@@ -279,7 +277,7 @@ public class TarefaService {
 
     @Transactional
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
-        Tarefa tarefa = tarefaRepository.findById(id)
+        Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
 
         TarefaStatus previousStatus = tarefa.getStatus();
@@ -312,15 +310,20 @@ public class TarefaService {
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(readOnly = true)
+    private Tarefa findByIdForDelete(Long id) {
+        return tarefaRepository.findByIdActive(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+    }
+
+    @Transactional
     public void delete(Long id) {
-        if (!tarefaRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tarefa não encontrada");
-        }
         try {
-            tarefaRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException("Violação de integridade da base de dados");
+            Tarefa tarefa = findByIdForDelete(id);
+            tarefa.markAsDeleted();
+            tarefaRepository.save(tarefa);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
     }
 
