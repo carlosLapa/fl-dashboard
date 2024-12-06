@@ -7,20 +7,18 @@ import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
-import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.utils.ProjetoDTOMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,7 +39,7 @@ public class ProjetoService {
 
     @Transactional(readOnly = true)
     public ProjetoDTO findById(Long id) {
-        Projeto projeto = projetoRepository.findById(id)
+        Projeto projeto = projetoRepository.findByIdActive(id)  // Changed from findById
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
         return new ProjetoDTO(projeto);
     }
@@ -187,15 +185,16 @@ public class ProjetoService {
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional
     public void delete(Long id) {
-        if (!projetoRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Recurso não encontrado");
-        }
         try {
-            projetoRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException(("Não permitido! Integridade da BD em causa"));
+            Projeto projeto = findByIdForDelete(id);
+            // Mark all associated tasks as deleted
+            projeto.getTarefas().forEach(Tarefa::markAsDeleted);
+            projeto.markAsDeleted();
+            projetoRepository.save(projeto);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
     }
 
@@ -206,6 +205,19 @@ public class ProjetoService {
         return projetos.stream()
                 .map(ProjetoWithUsersAndTarefasDTO::new)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Projeto findByIdForDelete(Long id) {
+        Optional<Projeto> obj = projetoRepository.findById(id);
+        return obj.orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjetoWithUsersDTO> findAll() {
+        return projetoRepository.findAllActive().stream()
+                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
+                .collect(Collectors.toList());
     }
 
 }
