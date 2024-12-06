@@ -16,10 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,11 +88,12 @@ public class ProjetoService {
 
         // Only create notification if project was saved successfully and has users
         if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
-            User assignedUser = savedEntity.getUsers().iterator().next();
-            notificationService.createProjectNotification(
-                    savedDTO,
-                    NotificationType.PROJETO_ATRIBUIDO,
-                    new UserDTO(assignedUser)
+            savedEntity.getUsers().forEach(user ->
+                    notificationService.createProjectNotification(
+                            savedDTO,
+                            NotificationType.PROJETO_ATRIBUIDO,  // Already correct
+                            new UserDTO(user)
+                    )
             );
         }
 
@@ -131,6 +129,21 @@ public class ProjetoService {
                 )
         );
 
+        oldUsers.forEach(user -> {
+            if (!savedEntity.getUsers().contains(user)) {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type(NotificationType.PROJETO_REMOVIDO.name())
+                        .content("Foi removido/a do projeto: " + savedEntity.getDesignacao())
+                        .userId(user.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .projetoId(savedEntity.getId())
+                        .build();
+
+                notificationService.processNotification(notification);
+            }
+        });
+
         // Notify all current users about project update
         savedEntity.getUsers().forEach(user ->
                 notificationService.createProjectNotification(
@@ -146,8 +159,10 @@ public class ProjetoService {
     private NotificationType determineNotificationType(String oldStatus, String newStatus) {
         if ("CONCLUIDO".equals(newStatus) && !newStatus.equals(oldStatus)) {
             return NotificationType.PROJETO_CONCLUIDO;
+        } else if (!newStatus.equals(oldStatus)) {
+            return NotificationType.PROJETO_STATUS_ALTERADO;
         }
-        return NotificationType.PROJETO_ATUALIZADO;
+        return NotificationType.PROJETO_EDITADO;
     }
 
     @Transactional
@@ -159,7 +174,7 @@ public class ProjetoService {
 
         NotificationType notificationType = status.equals("CONCLUIDO")
                 ? NotificationType.PROJETO_CONCLUIDO
-                : NotificationType.PROJETO_ATUALIZADO;
+                : NotificationType.PROJETO_STATUS_ALTERADO;  // Changed from PROJETO_ATUALIZADO
 
         savedEntity.getUsers().forEach(user ->
                 notificationService.createProjectNotification(

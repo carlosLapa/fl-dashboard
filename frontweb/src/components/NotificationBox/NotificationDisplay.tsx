@@ -16,29 +16,39 @@ const isNotification = (
 
 const getNotificationColor = (type: string) => {
   const colors: { [key: string]: string } = {
-    GENERAL_NOTIFICATION: '#CBD5E1',
+    NOTIFICACAO_GERAL: '#CBD5E1',
     TAREFA_ATRIBUIDA: '#BFDBFE',
-    TASK_ASSIGNEMENT:'#BFDBFE',
     TAREFA_STATUS_ALTERADO: '#DDD6FE',
-    TASK_UPDATED: '#DDD6FE',
-    TASK_COMPLETED: '#BBF7D0',
-    PROJECT_UPDATED: '#FEF3C7',
-    TASK_DEADLINE_APPROACHING: '#FEE2E2',
-    DEFAULT: '#E2E8F0',
+    TAREFA_PRAZO_PROXIMO: '#FEE2E2',
+    TAREFA_CONCLUIDA: '#BBF7D0',
+    TAREFA_EDITADA: '#DDD6FE',
+    TAREFA_REMOVIDA: '#FECACA',
+    PROJETO_ATRIBUIDO: '#FEF3C7',
+    PROJETO_STATUS_ALTERADO: '#E9D5FF',
+    PROJETO_EDITADO: '#FEF3C7',
+    PROJETO_ATUALIZADO: '#FEF3C7',
+    PROJETO_CONCLUIDO: '#BBF7D0',
+    PROJETO_REMOVIDO: '#FECACA'
+    //DEFAULT: '#E2E8F0',
   };
   return colors[type] || colors.DEFAULT;
 };
 
 const getNotificationTitle = (type: string) => {
   const titles: { [key: string]: string } = {
-    GENERAL_NOTIFICATION: 'Notificação Geral',
+    NOTIFICACAO_GERAL: 'Notificação Geral',
     TAREFA_ATRIBUIDA: 'Nova Tarefa Atribuída',
-    TASK_ASSIGNEMENT: 'Nova Tarefa Atribuída',
     TAREFA_STATUS_ALTERADO: 'Estado da Tarefa Alterado',
-    TASK_COMPLETED: 'Tarefa Concluída',
-    TASK_UPDATED: 'Tarefa Atualizada',
-    PROJECT_UPDATED: 'Projeto Atualizado',
-    TASK_DEADLINE_APPROACHING: 'Prazo de Tarefa Próximo',
+    TAREFA_PRAZO_PROXIMO: 'Prazo de Tarefa Próximo',
+    TAREFA_CONCLUIDA: 'Tarefa Concluída',
+    TAREFA_EDITADA: 'Tarefa Atualizada',
+    TAREFA_REMOVIDA: 'Tarefa Removida',
+    PROJETO_ATRIBUIDO: 'Novo Projeto Atribuído',
+    PROJETO_STATUS_ALTERADO: 'Estado do Projeto Alterado',
+    PROJETO_EDITADO: 'Projeto Atualizado',
+    PROJETO_ATUALIZADO: 'Projeto Atualizado',
+    PROJETO_CONCLUIDO: 'Projeto Concluído',
+    PROJETO_REMOVIDO: 'Removido do Projeto',
   };
   return titles[type] || type;
 };

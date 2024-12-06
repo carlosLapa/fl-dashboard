@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
@@ -14,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -119,7 +117,7 @@ public class TarefaService {
 
             if (!previousUsers.contains(user)) {
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
-                        .type("TAREFA_ATRIBUIDA")
+                        .type(NotificationType.TAREFA_ATRIBUIDA.name())
                         .content("Foi-lhe atribuída a tarefa: " + tarefa.getDescricao())
                         .userId(userId)
                         .isRead(false)
@@ -288,7 +286,7 @@ public class TarefaService {
 
         tarefa.getUsers().forEach(user -> {
             NotificationInsertDTO notification = NotificationInsertDTO.builder()
-                    .type("TAREFA_STATUS_ALTERADO")
+                    .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
                     .content("Estado da tarefa '" + descricao + "' alterado de " + previousStatus + " para " + newStatus)
                     .userId(user.getId())
                     .isRead(false)
@@ -304,10 +302,37 @@ public class TarefaService {
     }
 
     private void copyDTOtoEntity(TarefaDTO tarefaDTO, Tarefa entity) {
+        // Store original values for comparison
+        String oldDescricao = entity.getDescricao();
+        String oldPrioridade = entity.getPrioridade();
+        Date oldPrazoEstimado = entity.getPrazoEstimado();
+        Date oldPrazoReal = entity.getPrazoReal();
+
+        // Update entity
         entity.setDescricao(tarefaDTO.getDescricao());
         entity.setPrioridade(tarefaDTO.getPrioridade());
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
+
+        // Check for changes and notify users
+        if (!entity.getDescricao().equals(oldDescricao) ||
+                !entity.getPrioridade().equals(oldPrioridade) ||
+                !Objects.equals(entity.getPrazoEstimado(), oldPrazoEstimado) ||
+                !Objects.equals(entity.getPrazoReal(), oldPrazoReal)) {
+
+            entity.getUsers().forEach(user -> {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type(NotificationType.TAREFA_EDITADA.name())
+                        .content("A tarefa '" + entity.getDescricao() + "' foi atualizada")
+                        .userId(user.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(entity.getId())
+                        .build();
+
+                notificationService.processNotification(notification);
+            });
+        }
     }
 
     @Transactional(readOnly = true)
@@ -320,6 +345,21 @@ public class TarefaService {
     public void delete(Long id) {
         try {
             Tarefa tarefa = findByIdForDelete(id);
+
+            // Notify all users associated with the task before deletion
+            tarefa.getUsers().forEach(user -> {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type(NotificationType.TAREFA_REMOVIDA.name())
+                        .content("A tarefa '" + tarefa.getDescricao() + "' foi removida")
+                        .userId(user.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(tarefa.getId())
+                        .build();
+
+                notificationService.processNotification(notification);
+            });
+
             tarefa.markAsDeleted();
             tarefaRepository.save(tarefa);
         } catch (EntityNotFoundException e) {
