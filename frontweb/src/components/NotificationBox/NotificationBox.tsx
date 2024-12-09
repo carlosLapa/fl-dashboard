@@ -68,27 +68,60 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     }
   }, [messages, handleNewNotification]);
 
+  
+const unreadNotifications = notifications.filter((n) => !n.isRead);
+  const readNotifications = notifications.filter((n) => {
+    if (!n.isRead) return false;
+    // Filter out notifications older than 7 days - adjust here if needed
+    const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  return new Date(n.createdAt) > sevenDaysAgo;
+  });
   if (isLoading) return <p>Loading notifications...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
   return (
     <div className="notification-container">
-      <div className="notifications-list">
-        {isLoading ? (
-          <div className="notification-loading">Loading notifications...</div>
-        ) : error ? (
-          <div className="notification-error">{error}</div>
-        ) : notifications.length === 0 ? (
-          <div className="notification-empty">No notifications</div>
-        ) : (
-          notifications.map((notification, index) => (
-            <NotificationDisplay
-              key={`notification-${notification.id || index}`}
-              notification={notification}
-              onMarkAsRead={handleMarkAsRead}
-            />
-          ))
-        )}
+      {/* Unread Notifications Section */}
+      <div className="notifications-section">
+        <h2 className="notifications-title">
+          Novas Notificações ({unreadNotifications.length})
+        </h2>
+        <div className="notifications-list">
+          {unreadNotifications.length === 0 ? (
+            <div className="notification-empty">Sem novas notificações</div>
+          ) : (
+            unreadNotifications.map((notification) => (
+              <NotificationDisplay
+                key={notification.id}
+                notification={notification}
+                onMarkAsRead={handleMarkAsRead}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Read Notifications Section */}
+      <div className="notifications-section">
+        <h2 className="notifications-title">
+          Notificações Anteriores ({readNotifications.length})
+        </h2>
+        <div className="notifications-list">
+          {readNotifications.length === 0 ? (
+            <div className="notification-empty">
+              Sem notificações anteriores
+            </div>
+          ) : (
+            readNotifications.map((notification) => (
+              <NotificationDisplay
+                key={notification.id}
+                notification={notification}
+                onMarkAsRead={handleMarkAsRead}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

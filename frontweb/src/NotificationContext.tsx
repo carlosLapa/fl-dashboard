@@ -59,14 +59,15 @@ export const NotificationProvider: React.FC<{
     }
   }, []);
 
-  const handleMarkAsRead = useCallback((id: number) => {
-    setNotifications((prev) =>
-      prev.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
+  const handleMarkAsRead = async (notificationId: number) => {
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) =>
+        notification.id === notificationId
+          ? { ...notification, isRead: true }
+          : notification
       )
     );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-  }, []);
+  };
 
   const { messages, sendMessage } = useWebSocket(userId);
 
