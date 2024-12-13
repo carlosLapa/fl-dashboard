@@ -8,6 +8,7 @@ import com.fl.dashboard.entities.Notification;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.repositories.NotificationRepository;
 import com.fl.dashboard.repositories.UserRepository;
+import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -135,6 +137,72 @@ class NotificationServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals(user.getName(), result.getContent().get(0).getUser().getName());
+    }
+
+    @Test
+    void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+        when(notificationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            notificationService.findById(99L);
+        });
+    }
+
+    @Test
+    void insertShouldThrowResourceNotFoundExceptionWhenUserDoesNotExist() {
+        NotificationInsertDTO insertDTO = new NotificationInsertDTO();
+        insertDTO.setUserId(99L);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            notificationService.insert(insertDTO);
+        });
+    }
+
+    @Test
+    void updateShouldThrowResourceNotFoundExceptionWhenNotificationDoesNotExist() {
+        when(notificationRepository.findById(99L)).thenReturn(Optional.empty());
+        NotificationUpdateDTO updateDTO = new NotificationUpdateDTO();
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            notificationService.update(99L, updateDTO);
+        });
+    }
+
+    @Test
+    void findByUserShouldThrowResourceNotFoundExceptionWhenUserDoesNotExist() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            notificationService.findByUser(99L, PageRequest.of(0, 10));
+        });
+    }
+
+    @Test
+    void markAsReadShouldThrowResourceNotFoundExceptionWhenNotificationDoesNotExist() {
+        when(notificationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            notificationService.markAsRead(99L);
+        });
+    }
+
+    @Test
+    void findByUserShouldSortByCreatedAtDescending() {
+        Notification oldNotification = new Notification();
+        oldNotification.setCreatedAt(new Date(System.currentTimeMillis() - 86400000)); // 1 day ago
+
+        Notification newNotification = new Notification();
+        newNotification.setCreatedAt(new Date());
+
+        Page<Notification> page = new PageImpl<>(List.of(newNotification, oldNotification));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(notificationRepository.findByUser(eq(user), any(Pageable.class))).thenReturn(page);
+
+        Page<NotificationResponseDTO> result = notificationService.findByUser(1L, PageRequest.of(0, 10));
+
+        assertTrue(result.getContent().get(0).getCreatedAt()
+                .after(result.getContent().get(1).getCreatedAt()));
     }
 
     // Delete and markAsRead tests remain the same

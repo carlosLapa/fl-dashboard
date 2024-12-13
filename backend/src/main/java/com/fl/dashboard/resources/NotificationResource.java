@@ -170,5 +170,6 @@ public class NotificationResource {
                             .collect(Collectors.toList())));
         }
     }
+
 }
 

@@ -1,5 +1,5 @@
-INSERT INTO tb_user (first_name, last_name, funcao, cargo, email, password, profile_image) VALUES ('Carlos Ferreira Lapa', 'Programador Informático', 'Sócio', 'carlos@gmail.com', '1234', NULL);
-INSERT INTO tb_user (first_name, last_name, funcao, cargo, email, password, profile_image) VALUES ('José Marques Lapa', 'Engenheiro Civil', 'Diretor-Geral', 'jose@gmail.com', '1234', NULL);
+INSERT INTO tb_user (name, funcao, cargo, email, password, profile_image) VALUES ('Carlos Ferreira Lapa', 'Programador Informático', 'Sócio', 'carlos@gmail.com', '1234', NULL);
+INSERT INTO tb_user (name, funcao, cargo, email, password, profile_image) VALUES ('José Marques Lapa', 'Engenheiro Civil', 'Diretor-Geral', 'jose@gmail.com', '1234', NULL);
 
 INSERT INTO tb_role (authority) VALUES ('ROLE_OPERATOR');
 INSERT INTO tb_role (authority) VALUES ('ROLE_ADMIN');
@@ -11,3 +11,4 @@ INSERT INTO tb_tarefa (descricao, prioridade, prazo_estimado, prazo_real) VALUES
 INSERT INTO tb_departamento (designacao, descricao) VALUES ('Projeto', 'Departamento encarregue da concepção e elaboração de projetos de engenharia civil');
 
 INSERT INTO tb_especialidade (tipo, descricao) VALUES ('Engenharias', 'Elaboração de projetos estruturais');
+
