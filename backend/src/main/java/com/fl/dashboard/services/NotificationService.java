@@ -48,6 +48,10 @@ public class NotificationService {
     private SimpMessagingTemplate messagingTemplate;
 
     private NotificationResponseDTO convertToDTO(Notification notification) {
+        if (notification == null) {
+            return null;
+        }
+
         NotificationResponseDTO dto = new NotificationResponseDTO();
         dto.setId(notification.getId());
         dto.setType(notification.getType());
@@ -338,6 +342,24 @@ public class NotificationService {
         return insert(notification);
     }
 
+    public NotificationResponseDTO createProjectNotification(NotificationInsertDTO dto) {
+        try {
+            Notification notification = new Notification();
+            copyInsertDtoToEntity(dto, notification);
+            notification = notificationRepository.save(notification);
+            NotificationResponseDTO responseDTO = convertToDTO(notification);
+
+            if (messagingTemplate != null) {
+                messagingTemplate.convertAndSend("/topic/notifications", responseDTO);
+            }
+
+            return responseDTO;
+        } catch (Exception e) {
+            logger.error("Error creating project notification", e);
+            throw new ResourceNotFoundException("Error creating notification");
+        }
+    }
+
     @Transactional
     public NotificationResponseDTO createProjectUpdateNotification(User user, Projeto projeto) {
         if (notificationRepository.existsByProjetoIdAndUserIdAndType(
@@ -433,5 +455,5 @@ public class NotificationService {
             throw new ResourceNotFoundException("Id not found " + id);
         }
     }
-    
+
 }

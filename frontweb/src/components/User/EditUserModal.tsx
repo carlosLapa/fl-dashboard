@@ -142,16 +142,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
             />
           </Form.Group>
 
-          <Form.Group controlId="formPassword">
-            <Form.Label>Password</Form.Label>
-            <Form.Control
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-
           <Form.Group controlId="formProfileImage">
             <Form.Label>Imagem de Perfil</Form.Label>
             <Form.Control type="file" onChange={handleImageUpload} />
