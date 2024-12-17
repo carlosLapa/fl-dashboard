@@ -16,9 +16,9 @@ import {
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
-
-import './styles.css';
+import BackButton from 'components/Shared/BackButton';
 import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
+import './styles.css';
 
 const TarefaPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
@@ -128,9 +128,10 @@ const TarefaPage: React.FC = () => {
       <h2 className="text-center mb-4">Tarefas</h2>
 
       <div
-        className="d-flex justify-content-between align-items-center mb-4"
-        style={{ marginLeft: '5%', marginRight: '7%' }}
+        className="d-flex align-items-center gap-2 mb-4"
+        style={{ marginLeft: '5%' }}
       >
+        <BackButton />
         <Button
           variant="primary"
           onClick={() => {
@@ -145,7 +146,7 @@ const TarefaPage: React.FC = () => {
         <Button
           variant="secondary"
           onClick={toggleViewMode}
-          style={{ whiteSpace: 'nowrap' }}
+          style={{ whiteSpace: 'nowrap', marginLeft: '-80px' }}
         >
           {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
         </Button>

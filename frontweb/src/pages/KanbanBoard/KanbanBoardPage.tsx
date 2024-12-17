@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ProjetoKanbanBoard from '../../components/Tarefa/ProjetoKanbanBoard';
 import { getProjetoWithUsersAndTarefas } from '../../services/projetoService';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
+import BackButton from '../../components/Shared/BackButton';
 import './styles.css';
 
 const KanbanBoardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { projetoId } = useParams<{ projetoId: string }>();
   const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
     null
@@ -39,7 +41,12 @@ const KanbanBoardPage: React.FC = () => {
   return (
     <main className="home-container flex-grow-1">
       <section className="kanban-board-page">
-        <h1 className="kanban-board-title">{projeto.designacao} - Kanban Board</h1>
+        <div className="d-flex align-items-center mb-3">
+          <BackButton to="/projetos" />
+          <h1 className="kanban-board-title mb-0">
+            {projeto.designacao} - Kanban Board
+          </h1>
+        </div>
         <ProjetoKanbanBoard projeto={projeto} />
       </section>
     </main>
