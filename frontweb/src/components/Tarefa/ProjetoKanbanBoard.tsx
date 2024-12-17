@@ -3,6 +3,7 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
 import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
+import axios from 'axios';
 import {
   getTarefaWithUsers,
   getColumnsForProject,
@@ -14,15 +15,21 @@ interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
 }
 
+function isTarefaStatus(status: any): status is TarefaStatus {
+  return ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'].includes(
+    status
+  );
+}
+
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   const statusTranslations: { [key in TarefaStatus]: string } = {
     BACKLOG: 'Backlog',
     TODO: 'A Fazer',
     IN_PROGRESS: 'Em Progresso',
     IN_REVIEW: 'Em Revisão',
-    DONE: 'Concluído'
+    DONE: 'Concluído',
   };
-  
+
   const [columns, setColumns] = useState<{
     [key in TarefaStatus]: KanbanTarefa[];
   }>({
@@ -33,7 +40,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     DONE: [],
   });
 
-  const [columnsOrder, setColumnsOrder] = useState<TarefaStatus[]>([
+  const [columnsOrder] = useState<TarefaStatus[]>([
     'BACKLOG',
     'TODO',
     'IN_PROGRESS',
@@ -43,58 +50,51 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
   useEffect(() => {
     const fetchColumnsAndTarefas = async () => {
-      const fetchedColumns = await getColumnsForProject(projeto.id);
-      const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
-        BACKLOG: [],
-        TODO: [],
-        IN_PROGRESS: [],
-        IN_REVIEW: [],
-        DONE: [],
-      };
-
-      const updatedColumnsOrder: TarefaStatus[] = [
-        'BACKLOG',
-        'TODO',
-        'IN_PROGRESS',
-        'IN_REVIEW',
-        'DONE',
-      ];
-
-      fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
-        if (column.status in updatedColumns) {
-          updatedColumns[column.status as TarefaStatus] = [];
-        }
-      });
-
-      function isTarefaStatus(status: any): status is TarefaStatus {
-        return ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'].includes(
-          status
-        );
-      }
-
-      for (const tarefa of projeto.tarefas) {
-        const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
-        const kanbanTarefa: KanbanTarefa = {
-          ...tarefaWithUsers,
-          column: tarefaWithUsers.status as TarefaStatus,
-          projeto: { id: projeto.id, designacao: projeto.designacao },
-          uniqueId: `${tarefa.id}-${Date.now()}`,
+      try {
+        const fetchedColumns = await getColumnsForProject(projeto.id);
+        const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
+          BACKLOG: [],
+          TODO: [],
+          IN_PROGRESS: [],
+          IN_REVIEW: [],
+          DONE: [],
         };
-        if (
-          isTarefaStatus(kanbanTarefa.status) &&
-          kanbanTarefa.status in updatedColumns
-        ) {
-          updatedColumns[kanbanTarefa.status].push(kanbanTarefa);
-        } else {
-          console.warn(
-            `Unknown status: ${kanbanTarefa.status}. Moving task to BACKLOG.`
-          );
-          updatedColumns.BACKLOG.push(kanbanTarefa);
-        }
-      }
 
-      setColumns(updatedColumns);
-      setColumnsOrder(updatedColumnsOrder);
+        fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
+          if (column.status in updatedColumns) {
+            updatedColumns[column.status as TarefaStatus] = [];
+          }
+        });
+        for (const tarefa of projeto.tarefas) {
+          try {
+            const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
+            const kanbanTarefa: KanbanTarefa = {
+              ...tarefaWithUsers,
+              column: tarefaWithUsers.status as TarefaStatus,
+              projeto: { id: projeto.id, designacao: projeto.designacao },
+              uniqueId: `${tarefa.id}-${Date.now()}`,
+            };
+
+            if (
+              isTarefaStatus(kanbanTarefa.status) &&
+              kanbanTarefa.status in updatedColumns
+            ) {
+              updatedColumns[kanbanTarefa.status].push(kanbanTarefa);
+            } else {
+              updatedColumns.BACKLOG.push(kanbanTarefa);
+            }
+          } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 404) {
+              continue;
+            }
+            throw error;
+          }
+        }
+
+        setColumns(updatedColumns);
+      } catch (error) {
+        console.error('Error fetching columns and tarefas:', error);
+      }
     };
 
     fetchColumnsAndTarefas();
@@ -104,7 +104,6 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     const { source, destination } = result;
 
     if (!destination) return;
-
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -117,11 +116,13 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     const [removed] = sourceColumn.splice(source.index, 1);
     destColumn.splice(destination.index, 0, removed);
 
-    setColumns({
+    const newColumns = {
       ...columns,
       [source.droppableId]: sourceColumn,
       [destination.droppableId]: destColumn,
-    });
+    };
+
+    setColumns(newColumns);
 
     try {
       await updateTarefaStatus(
@@ -130,14 +131,8 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       );
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
-      // Optionally, revert the local state change if the API call fails
+      setColumns(columns);
     }
-
-    setColumns({
-      ...columns,
-      [source.droppableId]: sourceColumn,
-      [destination.droppableId]: destColumn,
-    });
   };
 
   return (

@@ -2,6 +2,7 @@ package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.projections.UserDetailsProjection;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    @EntityGraph(attributePaths = {"roles"})
     User findByEmail(String email);
 
     @Query(nativeQuery = true, value = """
@@ -24,12 +26,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     List<UserDetailsProjection> searchUserAndRolesByEmail(String email);
 
-    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.projetos")
+    @EntityGraph(attributePaths = {"projetos", "roles"})
+    @Query("SELECT u FROM User u")
     List<User> findAllWithProjetos();
 
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.projetos WHERE u.id = :id")
+    @EntityGraph(attributePaths = {"projetos", "roles"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findByIdWithProjetos(@Param("id") Long id);
 
+    @EntityGraph(attributePaths = {"projetos", "roles"})
     @Query("SELECT u FROM User u WHERE LOWER(u.name) LIKE :nameQuery OR LOWER(u.email) LIKE :emailQuery")
     List<User> findByNameLikeIgnoreCaseOrEmailLikeIgnoreCase(
             @Param("nameQuery") String nameQuery,

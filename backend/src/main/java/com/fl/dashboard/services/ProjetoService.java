@@ -71,7 +71,6 @@ public class ProjetoService {
     public ProjetoWithUsersAndTarefasDTO findProjetoWithUsersAndTarefas(Long id) {
         Projeto projeto = projetoRepository.findByIdWithUsersAndTarefas(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + id));
-
         return new ProjetoWithUsersAndTarefasDTO(projeto);
     }
 
