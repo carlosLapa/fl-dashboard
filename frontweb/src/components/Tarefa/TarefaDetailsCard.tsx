@@ -1,9 +1,9 @@
 import React from 'react';
-import { TarefaWithUsersAndProjetoDTO } from 'types/tarefa';
+import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import Card from 'react-bootstrap/Card';
 
 interface TarefaDetailsCardProps {
-  tarefa: TarefaWithUsersAndProjetoDTO;
+  tarefa: TarefaWithUserAndProjetoDTO;
   onClose: () => void;
 }
 

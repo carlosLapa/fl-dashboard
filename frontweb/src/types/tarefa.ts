@@ -56,7 +56,7 @@ export interface TarefaUpdateFormData {
   userIds: number[];
 }
 
-export type TarefaWithUsersAndProjetoDTO = Tarefa & {
+export type TarefaWithUserAndProjetoDTO = Tarefa & {
   projeto: Projeto;
   users: User[];
 };

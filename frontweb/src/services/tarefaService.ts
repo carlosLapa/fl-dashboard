@@ -5,7 +5,7 @@ import {
   TarefaInsertFormData,
   TarefaStatus,
   TarefaUpdateFormData,
-  TarefaWithUsersAndProjetoDTO,
+  TarefaWithUserAndProjetoDTO,
   TarefaWithUsersDTO,
 } from '../types/tarefa';
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
@@ -43,7 +43,9 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
 
 export const getTarefasByUser = async (userId: number): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/users/${userId}/tarefas`);
+    const response = await axios.get(
+      `${BASE_URL}/tarefas/user/${userId}/tasks`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching tasks for user with id ${userId}:`, error);
@@ -70,7 +72,7 @@ export const getTarefasByProjeto = async (
 
 export const addTarefa = async (
   data: TarefaInsertFormData
-): Promise<TarefaWithUsersAndProjetoDTO> => {
+): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const newTarefa = await addTarefaAPI(data);
 
@@ -83,8 +85,8 @@ export const addTarefa = async (
         projetoId: newTarefa.projeto.id,
         relatedId: newTarefa.id,
         isRead: false,
-        createdAt: new Date().toISOString()
-    };
+        createdAt: new Date().toISOString(),
+      };
       useNotification().sendNotification(notification);
     });
 
@@ -98,7 +100,7 @@ export const addTarefa = async (
 export const updateTarefa = async (
   id: number,
   data: TarefaUpdateFormData
-): Promise<TarefaWithUsersAndProjetoDTO> => {
+): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const updatedTarefa = await updateTarefaAPI(id, data);
     return updatedTarefa;
@@ -119,7 +121,7 @@ export const deleteTarefa = async (id: number): Promise<void> => {
 
 export const getTarefaWithUsersAndProjeto = async (
   id: number
-): Promise<TarefaWithUsersAndProjetoDTO> => {
+): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAndProjetoAPI(id);
     // Perform any necessary data treatment here
@@ -158,7 +160,7 @@ export const getColumnsForProject = async (
 };
 
 export const getAllTarefasWithUsersAndProjeto = async (): Promise<
-  TarefaWithUsersAndProjetoDTO[]
+  TarefaWithUserAndProjetoDTO[]
 > => {
   try {
     const tarefasData = await getAllTarefasAPI();

@@ -1,7 +1,6 @@
 package com.fl.dashboard.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -38,11 +37,11 @@ public class Tarefa {
     @JoinColumn(name = "coluna_id")
     private Coluna coluna;
 
-    @JsonManagedReference
     @ManyToMany
     @JoinTable(name = "tb_tarefa_user",
             joinColumns = @JoinColumn(name = "tarefa_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @JsonBackReference("user-tarefa")  // Changed to match the reference name
     Set<User> users = new HashSet<>();
 
     @JsonBackReference

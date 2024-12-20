@@ -1,9 +1,9 @@
 import React from 'react';
 import { Table } from 'react-bootstrap';
-import { Tarefa, TarefaWithUsersAndProjetoDTO } from '../../types/tarefa';
+import { Tarefa, TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 
 interface ProjetoTarefasTableProps {
-  tarefas: Tarefa[] | TarefaWithUsersAndProjetoDTO[];
+  tarefas: Tarefa[] | TarefaWithUserAndProjetoDTO[];
 }
 
 const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({ tarefas }) => {

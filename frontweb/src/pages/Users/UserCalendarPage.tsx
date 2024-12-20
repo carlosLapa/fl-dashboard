@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../AuthContext';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
-import { TarefaWithUsersAndProjetoDTO } from 'types/tarefa';
+import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import { getTarefasWithUsersAndProjetoByUser } from 'api/requestsApi';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
@@ -10,10 +10,11 @@ import './styles.css';
 
 const UserCalendarPage: React.FC = () => {
   const [userTarefas, setUserTarefas] = useState<
-    TarefaWithUsersAndProjetoDTO[]
+    TarefaWithUserAndProjetoDTO[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   // Verifica se poderá ser necessário ainda
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { user } = useAuth();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();

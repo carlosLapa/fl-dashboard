@@ -16,8 +16,8 @@ import java.util.Optional;
 @Repository
 public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
-    @EntityGraph(attributePaths = {"users", "projeto", "projeto.colunas"})
-    @Query("SELECT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
+    @EntityGraph(attributePaths = {"users", "projeto", "projeto.colunas", "coluna"})
+    @Query("SELECT DISTINCT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
     Optional<Tarefa> findByIdWithUsersAndProjeto(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"projeto", "projeto.colunas"})
@@ -43,10 +43,27 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     );
 
     @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL")
+    @Query("SELECT DISTINCT t FROM Tarefa t " +
+            "LEFT JOIN t.users u " +
+            "WHERE t.deletedAt IS NULL")
     List<Tarefa> findAllActive();
 
     @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT t FROM Tarefa t WHERE t.status = :status AND t.deletedAt IS NULL")
+    List<Tarefa> findAllByStatus(@Param("status") TarefaStatus status);
+
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT t FROM Tarefa t WHERE t.prioridade = :prioridade AND t.deletedAt IS NULL")
+    List<Tarefa> findAllByPrioridade(@Param("prioridade") String prioridade);
+
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT DISTINCT t FROM Tarefa t " +
+            "JOIN t.users u " +
+            "WHERE u.id = :userId " +
+            "AND t.deletedAt IS NULL")
+    List<Tarefa> findAllByUserId(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"users", "projeto", "projeto.colunas"})
     @Query("SELECT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
     Optional<Tarefa> findByIdActive(@Param("id") Long id);
 
@@ -56,5 +73,12 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             @Param("deadline") LocalDate deadline,
             @Param("status") TarefaStatus status
     );
+
+    @EntityGraph(attributePaths = {"users", "projeto", "coluna"})
+    @Query("SELECT DISTINCT t FROM Tarefa t " +
+            "JOIN t.users u " +
+            "WHERE u.id = :userId " +
+            "AND t.deletedAt IS NULL")
+    List<Tarefa> findAllActiveByUserId(@Param("userId") Long userId);
 
 }

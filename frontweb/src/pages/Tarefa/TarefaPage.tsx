@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TarefaTable from 'components/Tarefa/TarefaTable';
 import {
-  TarefaWithUsersAndProjetoDTO,
+  TarefaWithUserAndProjetoDTO,
   TarefaInsertFormData,
   TarefaUpdateFormData,
   TarefaStatus,
@@ -24,12 +24,12 @@ const TarefaPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
   const [showDetailsCard, setShowDetailsCard] = useState(false);
   const [selectedTarefa, setSelectedTarefa] =
-    useState<TarefaWithUsersAndProjetoDTO | null>(null);
-  const [tarefas, setTarefas] = useState<TarefaWithUsersAndProjetoDTO[]>([]);
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
+  const [tarefas, setTarefas] = useState<TarefaWithUserAndProjetoDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [tarefaToEdit, setTarefaToEdit] =
-    useState<TarefaWithUsersAndProjetoDTO | null>(null);
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
 
   useEffect(() => {
     fetchTarefas();

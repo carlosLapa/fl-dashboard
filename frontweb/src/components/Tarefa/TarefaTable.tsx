@@ -1,6 +1,6 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
-import { TarefaWithUsersAndProjetoDTO } from '../../types/tarefa';
+import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
@@ -11,7 +11,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import './styles.css';
 
 interface TarefaTableProps {
-  tarefas: TarefaWithUsersAndProjetoDTO[];
+  tarefas: TarefaWithUserAndProjetoDTO[];
   onEditTarefa: (tarefaId: number) => void;
   onDeleteTarefa: (tarefaId: number) => void;
   onViewDetails: (tarefaId: number) => void;

@@ -40,8 +40,8 @@ public class User implements UserDetails {
     @ManyToMany(mappedBy = "users")
     private Set<Projeto> projetos = new HashSet<>();
 
-    @JsonBackReference
     @ManyToMany(mappedBy = "users")
+    @JsonManagedReference("user-tarefa")  // Changed to match the reference name
     private Set<Tarefa> tarefas = new HashSet<>();
 
     @ManyToMany
