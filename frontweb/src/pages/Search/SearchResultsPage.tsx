@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { TarefaWithUsersAndProjetoDTO } from '../../types/tarefa';
+import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
 import { User } from '../../types/user';
 import {
@@ -17,7 +17,7 @@ const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState<{
-    tarefas: TarefaWithUsersAndProjetoDTO[];
+    tarefas: TarefaWithUserAndProjetoDTO[];
     projetos: ProjetoWithUsersAndTarefasDTO[];
     users: User[];
   }>({ tarefas: [], projetos: [], users: [] });

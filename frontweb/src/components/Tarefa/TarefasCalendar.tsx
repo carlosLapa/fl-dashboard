@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { TarefaWithUsersAndProjetoDTO } from '../../types/tarefa';
+import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './styles.css';
@@ -12,7 +12,7 @@ moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
 
 interface TarefasCalendarProps {
-  tarefas: TarefaWithUsersAndProjetoDTO[];
+  tarefas: TarefaWithUserAndProjetoDTO[];
   title?: string;
 }
 

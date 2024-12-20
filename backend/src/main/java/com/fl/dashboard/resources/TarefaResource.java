@@ -119,4 +119,10 @@ public class TarefaResource {
         return ResponseEntity.ok().body(results);
     }
 
+    @GetMapping("/user/{userId}/tasks")
+    public ResponseEntity<List<TarefaWithUserAndProjetoDTO>> getAllUserTasks(@PathVariable Long userId) {
+        List<TarefaWithUserAndProjetoDTO> tasks = tarefaService.findAllActiveByUserId(userId);
+        return ResponseEntity.ok(tasks);
+    }
+
 }

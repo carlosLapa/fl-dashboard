@@ -1,12 +1,12 @@
 // api/projectApi.ts
 import axios from 'axios';
 import { BASE_URL } from '../util/requests';
-import { Projeto, ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
+import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
   TarefaInsertFormData,
   TarefaStatus,
   TarefaUpdateFormData,
-  TarefaWithUsersAndProjetoDTO,
+  TarefaWithUserAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
 import { Notification } from 'types/notification';
@@ -143,13 +143,21 @@ export const searchProjetosAPI = async (query: string, status?: string) => {
 
 export const getTarefaWithUsersAndProjetoAPI = async (
   tarefaId: number
-): Promise<TarefaWithUsersAndProjetoDTO> => {
+): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
-    const response = await axios.get<TarefaWithUsersAndProjetoDTO>(
+    const response = await axios.get<TarefaWithUserAndProjetoDTO>(
       `${BASE_URL}/tarefas/${tarefaId}/full`
     );
+
+    if (!response.data) {
+      throw new Error('Tarefa not found or has been deleted');
+    }
+
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      throw new Error('Tarefa not found or has been deleted');
+    }
     console.error('Error fetching tarefa with users and projeto:', error);
     throw error;
   }
@@ -170,7 +178,7 @@ export const getTarefaWithUsersAPI = async (
 };
 
 export const getAllTarefasWithUsersAndProjetoAPI = async (): Promise<
-  TarefaWithUsersAndProjetoDTO[]
+  TarefaWithUserAndProjetoDTO[]
 > => {
   try {
     const response = await axios.get(`${BASE_URL}/tarefas/full`);
@@ -183,9 +191,9 @@ export const getAllTarefasWithUsersAndProjetoAPI = async (): Promise<
 
 export const addTarefaAPI = async (
   data: TarefaInsertFormData
-): Promise<TarefaWithUsersAndProjetoDTO> => {
+): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
-    const response = await axios.post<TarefaWithUsersAndProjetoDTO>(
+    const response = await axios.post<TarefaWithUserAndProjetoDTO>(
       `${BASE_URL}/tarefas/with-associations`,
       data
     );
@@ -231,7 +239,7 @@ export const deleteTarefaAPI = async (id: number): Promise<void> => {
 // as tarefas - e o projeto associado - de um user específico.
 export const getTarefasWithUsersAndProjetoByUser = async (
   userId: number
-): Promise<TarefaWithUsersAndProjetoDTO[]> => {
+): Promise<TarefaWithUserAndProjetoDTO[]> => {
   try {
     const userTarefas = await getTarefasByUser(userId);
     const fullTarefas = await Promise.all(

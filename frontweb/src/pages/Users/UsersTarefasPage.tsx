@@ -7,7 +7,7 @@ import {
 } from 'api/requestsApi';
 import { User } from 'types/user';
 import {
-  TarefaWithUsersAndProjetoDTO,
+  TarefaWithUserAndProjetoDTO,
   TarefaUpdateFormData,
   TarefaInsertFormData,
 } from 'types/tarefa';
@@ -22,12 +22,12 @@ const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const [user, setUser] = useState<User | null>(null);
-  const [tarefas, setTarefas] = useState<TarefaWithUsersAndProjetoDTO[]>([]);
+  const [tarefas, setTarefas] = useState<TarefaWithUserAndProjetoDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showTarefaModal, setShowTarefaModal] = useState(false);
   const [selectedTarefa, setSelectedTarefa] =
-    useState<TarefaWithUsersAndProjetoDTO | null>(null);
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
 
   useEffect(() => {
     const fetchUserAndTarefas = async () => {

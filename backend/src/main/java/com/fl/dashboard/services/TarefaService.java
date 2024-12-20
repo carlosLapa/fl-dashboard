@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,6 +100,15 @@ public class TarefaService {
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<TarefaDTO> findUpcomingDeadlines(int daysAhead) {
+        LocalDate deadline = LocalDate.now().plusDays(daysAhead);
+        return tarefaRepository.findByPrazoRealBeforeAndStatusNot(deadline, TarefaStatus.DONE)
+                .stream()
+                .map(TarefaDTO::new)
+                .toList();
     }
 
     // To handle user associations
@@ -374,6 +384,12 @@ public class TarefaService {
         return tarefas.stream()
                 .map(TarefaWithUserAndProjetoDTO::new)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TarefaWithUserAndProjetoDTO> findAllActiveByUserId(Long userId) {
+        List<Tarefa> tarefas = tarefaRepository.findAllActiveByUserId(userId);
+        return tarefas.stream().map(TarefaWithUserAndProjetoDTO::new).toList();
     }
 
 }

@@ -51,14 +51,6 @@ public class Projeto {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public void markAsDeleted() {
-        this.deletedAt = LocalDateTime.now();
-    }
-
-    public boolean isDeleted() {
-        return deletedAt != null;
-    }
-
     public Projeto() {
     }
 
@@ -70,6 +62,14 @@ public class Projeto {
         this.prioridade = prioridade;
         this.observacao = observacao;
         this.prazo = prazo;
+    }
+
+    public void markAsDeleted() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 
     public Set<User> getUsers() {
@@ -146,6 +146,14 @@ public class Projeto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public List<Coluna> getColunas() {
+        return colunas;
+    }
+
+    public void setColunas(List<Coluna> colunas) {
+        this.colunas = colunas;
     }
 
     @Override
