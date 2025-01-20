@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     console.log('Initiating login process for email:', email);
     try {
       const tokenResponse = await axios.post(
-        'http://localhost:8080/oauth2/token',
+        `${process.env.REACT_APP_API_URL}/oauth2/token`,
         `grant_type=password&username=${encodeURIComponent(
           email
         )}&password=${encodeURIComponent(password)}`,
