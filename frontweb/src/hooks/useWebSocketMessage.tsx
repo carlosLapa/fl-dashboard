@@ -20,7 +20,9 @@ interface ConnectionStats {
 
 const useWebSocket = (userId: number) => {
   // Accept userId as a parameter
-  const SOCKET_URL = 'http://localhost:8080/ws';
+  const SOCKET_URL = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}/ws` 
+  : 'http://localhost:8080/ws';
   const messageQueue = useRef<WebSocketMessage[]>([]);
   const userSpecificTopic = `/topic/notifications/${userId}`;
   const projectSpecificTopic = `/topic/project-notifications/${userId}`;
