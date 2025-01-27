@@ -1,8 +1,8 @@
 name: fl-dashboard
 services:
-  - name: backend
+  - name: fl-dashboard-backend
+    dockerfile_path: backend/Dockerfile
     source_dir: backend
-    dockerfile_path: Dockerfile
     git:
       branch: main
       repo_clone_url: https://github.com/carlosLapa/fl-dashboard.git
