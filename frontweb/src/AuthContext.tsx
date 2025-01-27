@@ -10,6 +10,8 @@ import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
 import { useNavigate } from 'react-router-dom';
 
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;

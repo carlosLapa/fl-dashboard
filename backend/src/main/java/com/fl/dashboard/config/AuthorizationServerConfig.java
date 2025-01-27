@@ -146,7 +146,9 @@ public class AuthorizationServerConfig {
 
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder().build();
+        return AuthorizationServerSettings.builder()
+                .issuer("https://ferreiralapa-dashboard.pt")
+                .build();
     }
 
     @Bean

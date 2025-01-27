@@ -79,6 +79,9 @@ public class ResourceServerConfig {
         corsConfig.addAllowedHeader("Sec-WebSocket-Extensions");
         corsConfig.addAllowedHeader("Sec-WebSocket-Key");
         corsConfig.addAllowedHeader("Sec-WebSocket-Version");
+        corsConfig.addAllowedHeader("Upgrade");
+        corsConfig.addAllowedHeader("Connection");
+        corsConfig.addAllowedHeader("Host");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
