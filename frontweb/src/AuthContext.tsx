@@ -82,8 +82,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       ] = `${token_type} ${access_token}`;
 
       const response = await getUsersAPI();
+      console.log('Users API response:', response);
       const users = Array.isArray(response) ? response : response.content;
+      console.log('Processed users array:', users);
       const currentUser = users?.find((u: User) => u.email === email);
+      console.log('Found user:', currentUser, 'Searching for email:', email);
 
       if (currentUser) {
         setUser({
