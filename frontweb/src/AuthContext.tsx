@@ -42,9 +42,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const tokenType = 'Bearer';
       axios.defaults.headers.common['Authorization'] = `${tokenType} ${token}`;
 
-      getUsersAPI().then((users) => {
+      getUsersAPI().then((response) => {
         const email = localStorage.getItem('user_email');
-        const currentUser = users.find((u: User) => u.email === email);
+        const users = Array.isArray(response) ? response : response.content;
+        const currentUser = users?.find((u: User) => u.email === email);
         if (currentUser) {
           setUser({
             ...currentUser,
@@ -80,8 +81,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         'Authorization'
       ] = `${token_type} ${access_token}`;
 
-      const users = await getUsersAPI();
-      const currentUser = users.find((u: User) => u.email === email);
+      const response = await getUsersAPI();
+      const users = Array.isArray(response) ? response : response.content;
+      const currentUser = users?.find((u: User) => u.email === email);
+
       if (currentUser) {
         setUser({
           ...currentUser,
