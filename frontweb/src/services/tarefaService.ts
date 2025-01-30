@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { BASE_URL } from '../util/requests';
 import {
   Tarefa,
   TarefaInsertFormData,
@@ -23,7 +22,7 @@ import { ColunaWithProjetoDTO } from 'types/coluna';
 
 export const getTarefas = async (): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(`${BASE_URL}/tarefas`);
+    const response = await axios.get('/tarefas');
     return response.data;
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -33,7 +32,7 @@ export const getTarefas = async (): Promise<Tarefa[]> => {
 
 export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   try {
-    const response = await axios.get(`${BASE_URL}/tarefas/${id}`);
+    const response = await axios.get(`/tarefas/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching task with id ${id}:`, error);
@@ -43,9 +42,7 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
 
 export const getTarefasByUser = async (userId: number): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/tarefas/user/${userId}/tasks`
-    );
+    const response = await axios.get(`/tarefas/user/${userId}/tasks`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching tasks for user with id ${userId}:`, error);
@@ -57,9 +54,7 @@ export const getTarefasByProjeto = async (
   projetoId: number
 ): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/projetos/${projetoId}/tarefas`
-    );
+    const response = await axios.get(`/projetos/${projetoId}/tarefas`);
     return response.data;
   } catch (error) {
     console.error(
@@ -124,7 +119,6 @@ export const getTarefaWithUsersAndProjeto = async (
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAndProjetoAPI(id);
-    // Perform any necessary data treatment here
     return tarefaData;
   } catch (error) {
     console.error('Error in tarefa service:', error);
@@ -137,7 +131,6 @@ export const getTarefaWithUsers = async (
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAPI(id);
-    // Perform any necessary data treatment here
     return tarefaData;
   } catch (error) {
     console.error('Error in tarefa service:', error);
@@ -149,9 +142,7 @@ export const getColumnsForProject = async (
   projetoId: number
 ): Promise<ColunaWithProjetoDTO[]> => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/colunas/projeto/${projetoId}`
-    );
+    const response = await axios.get(`/colunas/projeto/${projetoId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching columns:', error);
@@ -177,7 +168,6 @@ export const updateTarefaStatus = async (
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
-    // Perform any necessary data treatment here
     return updatedTarefa;
   } catch (error) {
     console.error('Error in tarefa service:', error);
