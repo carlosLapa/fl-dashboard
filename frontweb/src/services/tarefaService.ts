@@ -22,7 +22,9 @@ import { ColunaWithProjetoDTO } from 'types/coluna';
 
 export const getTarefas = async (): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get('/tarefas');
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/tarefas`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -32,7 +34,9 @@ export const getTarefas = async (): Promise<Tarefa[]> => {
 
 export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   try {
-    const response = await axios.get(`/tarefas/${id}`);
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/tarefas/${id}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching task with id ${id}:`, error);
@@ -42,7 +46,9 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
 
 export const getTarefasByUser = async (userId: number): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(`/tarefas/user/${userId}/tasks`);
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/tarefas/user/${userId}/tasks`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error fetching tasks for user with id ${userId}:`, error);
@@ -54,7 +60,9 @@ export const getTarefasByProjeto = async (
   projetoId: number
 ): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(`/projetos/${projetoId}/tarefas`);
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/projetos/${projetoId}/tarefas`
+    );
     return response.data;
   } catch (error) {
     console.error(
@@ -142,7 +150,9 @@ export const getColumnsForProject = async (
   projetoId: number
 ): Promise<ColunaWithProjetoDTO[]> => {
   try {
-    const response = await axios.get(`/colunas/projeto/${projetoId}`);
+    const response = await axios.get(
+      `${process.env.REACT_APP_API_URL}/colunas/projeto/${projetoId}`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching columns:', error);

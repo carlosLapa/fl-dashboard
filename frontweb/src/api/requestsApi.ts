@@ -11,7 +11,9 @@ import { Notification } from 'types/notification';
 import { getTarefasByUser } from 'services/tarefaService';
 
 const fetchFromAPI = async (endpoint: string) => {
-  const response = await axios.get(`/${endpoint}`);
+  const response = await axios.get(
+    `${process.env.REACT_APP_API_URL}/${endpoint}`
+  );
   return response.data;
 };
 
