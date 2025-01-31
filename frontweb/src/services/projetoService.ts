@@ -1,4 +1,5 @@
 import {
+  PaginatedProjetos,
   Projeto,
   ProjetoFormData,
   ProjetoWithUsersAndTarefasDTO,
@@ -8,27 +9,30 @@ import {
   getProjetosAPI,
   getProjetoWithUsersAndTarefasAPI,
 } from '../api/requestsApi';
-
-export const getProjetos = async (): Promise<Projeto[]> => {
-  try {
-    const projetosData = await getProjetosAPI();
-
-    if (Array.isArray(projetosData)) {
-      const projetosWithUsernames = projetosData.map((projeto) => ({
-        ...projeto,
-        users: projeto.users || [],
-      }));
-
-      return projetosWithUsernames;
+  export const getProjetos = async (page: number = 0, pageSize: number = 10): Promise<PaginatedProjetos> => {
+    try {
+      const response = await getProjetosAPI(page, pageSize);
+      return {
+        content: response.content.map((projeto: Projeto) => ({
+          ...projeto,
+          users: projeto.users || [],
+        })),
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        size: response.size,
+        number: response.number
+      };
+    } catch (error) {
+      console.error('Erro ao carregar os projetos:', error);
+      return {
+        content: [],
+        totalPages: 0,
+        totalElements: 0,
+        size: pageSize,
+        number: page
+      };
     }
-
-    return [];
-  } catch (error) {
-    console.error('Erro ao carregar os projetos:', error);
-    return [];
-  }
-};
-
+  };
 export const addProjeto = async (data: ProjetoFormData): Promise<void> => {
   try {
     await addProjetoAPI(data);

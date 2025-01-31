@@ -1,7 +1,7 @@
 import React from 'react';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
-import { Form, Table } from 'react-bootstrap';
+import { Pagination, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
@@ -14,20 +14,22 @@ import { Link } from 'react-router-dom';
 import ProjetoStatusBadge from './ProjetoStatusBadge';
 import './ProjetoTable.css';
 
-export interface ProjetoTableProps {
+interface ProjetoTableProps {
   projetos: Projeto[];
-  onEditProjeto: (projeto: Projeto) => void;
-  onDeleteProjeto: (projetoId: number) => void;
-  statusFilter?: string;
-  onStatusFilterChange?: (status: string) => void;
-}
-
-const ProjetoTable: React.FC<ProjetoTableProps> = ({
+  onEditProjeto: (id: number) => void;
+  onDeleteProjeto: (id: number) => void;
+  page: number;
+  onPageChange: (page: number) => void;
+  totalPages: number;
+  statusFilter: string;
+  onStatusFilterChange: (status: string) => void;
+}const ProjetoTable: React.FC<ProjetoTableProps> = ({
   projetos,
   onEditProjeto,
   onDeleteProjeto,
-  statusFilter = 'ALL',
-  onStatusFilterChange = () => {},
+  page,
+  onPageChange,
+  totalPages,
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -44,19 +46,6 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
 
   return (
     <div className="projeto-container">
-      <Form.Group className="mb-3">
-        <Form.Label>Filtrar por Status</Form.Label>
-        <Form.Select
-          value={statusFilter}
-          onChange={(e) => onStatusFilterChange(e.target.value)}
-        >
-          <option value="ALL">Todos</option>
-          <option value="ATIVO">Ativo</option>
-          <option value="EM_PROGRESSO">Em Progresso</option>
-          <option value="CONCLUIDO">Concluído</option>
-          <option value="SUSPENSO">Suspenso</option>
-        </Form.Select>
-      </Form.Group>
       {projetos.length > 0 ? (
         <Table striped bordered hover>
           <thead>
@@ -95,7 +84,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                     >
                       <FontAwesomeIcon
                         icon={faPencilAlt}
-                        onClick={() => onEditProjeto(projeto)}
+                        onClick={() => onEditProjeto(projeto.id)}
                         className="mr-2 edit-icon"
                       />
                     </OverlayTrigger>
@@ -151,8 +140,28 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
       ) : (
         <p>Não foram encontrados projetos.</p>
       )}
+      <div className="d-flex justify-content-center mt-3">
+        <Pagination>
+          <Pagination.Prev 
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 0}
+          />
+          {[...Array(totalPages)].map((_, idx) => (
+            <Pagination.Item
+              key={idx}
+              active={idx === page}
+              onClick={() => onPageChange(idx)}
+            >
+              {idx + 1}
+            </Pagination.Item>
+          ))}
+          <Pagination.Next 
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages - 1}
+          />
+        </Pagination>
+      </div>
     </div>
   );
 };
-
 export default ProjetoTable;

@@ -27,3 +27,11 @@ export interface ProjetoFormData {
 export type ProjetoWithUsersAndTarefasDTO = Projeto & {
   tarefas: Tarefa[];
 };
+
+export interface PaginatedProjetos {
+  content: Projeto[];
+  totalPages: number;
+  totalElements?: number;
+  size?: number;
+  number?: number;
+}

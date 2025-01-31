@@ -53,7 +53,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       const usersData = await getUsersAPI();
       const projetosData = await getProjetosAPI();
       setUsers(usersData);
-      setProjetos(projetosData);
+      setProjetos(projetosData.content);
     };
 
     fetchUsersAndProjetos();

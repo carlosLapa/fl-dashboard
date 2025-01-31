@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
+import { PaginatedProjetos, ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
   TarefaInsertFormData,
   TarefaStatus,
@@ -67,11 +67,10 @@ export const deleteUserAPI = async (id: number): Promise<void> => {
   }
 };
 
-export const getProjetosAPI = async () => {
-  const response = await axios.get('/projetos');
-  return response.data.content || [];
+export const getProjetosAPI = async (page: number = 0, size: number = 10): Promise<PaginatedProjetos> => {
+  const response = await axios.get(`/projetos?page=${page}&size=${size}`);
+  return response.data;
 };
-
 export const addProjetoAPI = async (projeto: ProjetoFormData) => {
   const response = await axios.post('/projetos', projeto);
   return response.data;
@@ -131,11 +130,10 @@ export const getProjetoWithUsersAndTarefasAPI = async (
   }
 };
 
-export const searchProjetosAPI = async (query: string, status?: string) => {
-  const endpoint =
-    status && status !== 'ALL'
-      ? `/projetos/search?query=${query}&status=${status}`
-      : `/projetos/search?query=${query}`;
+export const searchProjetosAPI = async (query: string, status?: string, page: number = 0, size: number = 10) => {
+  const endpoint = status && status !== 'ALL'
+    ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
+    : `/projetos/search?query=${query}&page=${page}&size=${size}`;
 
   const response = await axios.get(endpoint);
   return response.data;
