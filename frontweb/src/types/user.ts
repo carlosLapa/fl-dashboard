@@ -18,3 +18,11 @@ export type UserDTO = {
   profileImage: string;
   projetos: any[]; // Replaced ProjetoDTO with any[] since ProjetoDTO is not defined
 };
+
+export interface PaginatedUsers {
+  content: User[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}

@@ -1,13 +1,19 @@
 /* Botão a rever - criar um componente de botões*/
+.page-container {
+  margin-top: 1%;
+  margin-left: 2%;
+  width: 97%;
+}
+
 .add-project-btn {
-  margin-right: 1045px;
+  margin-right: 78%;
   padding: 8px 16px;
   font-size: 16px;
-  background-color:rgb(209, 205, 205);
+  background-color: rgb(209, 205, 205);
   border-color: aliceblue;
 }
 
-.projeto-details-container{
+.projeto-details-container {
   margin-top: 1%;
   margin-left: 15%;
   width: 83%;

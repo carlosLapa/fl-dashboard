@@ -1,5 +1,6 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
+import { Pagination } from 'react-bootstrap';
 import { User } from '../../types/user';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -19,6 +20,9 @@ interface UserTableProps {
   onEditUser: (userId: number) => void;
   onDeleteUser: (userId: number) => void;
   onViewTasks: (userId: number) => void;
+  page: number;
+  onPageChange: (page: number) => void;
+  totalPages: number;
 }
 
 const UserTable: React.FC<UserTableProps> = ({
@@ -26,12 +30,15 @@ const UserTable: React.FC<UserTableProps> = ({
   onEditUser,
   onDeleteUser,
   onViewTasks,
+  page,
+  onPageChange,
+  totalPages,
 }) => {
   const navigate = useNavigate();
   const { loadStoredNotifications } = useNotification();
 
   const handleNavigateToNotifications = async (userId: number) => {
-    await loadStoredNotifications(userId); // Refresh notifications
+    await loadStoredNotifications(userId);
     navigate(`/notifications/${userId}`);
   };
 
@@ -147,6 +154,27 @@ const UserTable: React.FC<UserTableProps> = ({
           )}
         </tbody>
       </Table>
+      <div className="d-flex justify-content-center mt-3">
+        <Pagination>
+          <Pagination.Prev
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 0}
+          />
+          {[...Array(totalPages)].map((_, idx) => (
+            <Pagination.Item
+              key={idx}
+              active={idx === page}
+              onClick={() => onPageChange(idx)}
+            >
+              {idx + 1}
+            </Pagination.Item>
+          ))}
+          <Pagination.Next
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages - 1}
+          />
+        </Pagination>
+      </div>
     </div>
   );
 };

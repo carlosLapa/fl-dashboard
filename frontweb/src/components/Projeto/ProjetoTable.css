@@ -1,21 +1,34 @@
 .projeto-container {
-  /*border: 2px solid red;*/
-  margin-left: 7%;
-  min-width: 102%;
+  margin-left: 12%;
+  min-width: 80%;
 }
 
 /* estilos da tabela em si */
-.projeto-table th:nth-child(7) {  /* Colaboradores column */
-  width: 15%;
-  max-width: 150px;
+.projeto-table th:nth-child(5) {  /* Observação column */
+  width: 12%;
+  max-width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.projeto-table th:nth-child(7),
+.projeto-table td:nth-child(7) {  /* Colaboradores column */
+  width: 5%;
+  max-width: 60px;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
 .projeto-table th:nth-child(9) {  /* Ações column */
   width: 12%;
   min-width: 120px;
+}
+
+/* Force table layout to respect column widths */
+.projeto-table {
+  table-layout: fixed;
 }
 
 .action-icons {
@@ -47,3 +60,11 @@
   margin-left: 12px;
 }
 
+
+.add-project-btn {
+  margin-right: 825px;  /* Reduced from current value */
+  padding: 8px 16px;
+  font-size: 16px;
+  background-color: rgb(209, 205, 205);
+  border-color: aliceblue;
+}

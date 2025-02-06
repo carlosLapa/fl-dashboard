@@ -17,8 +17,8 @@ const fetchFromAPI = async (endpoint: string) => {
   return response.data;
 };
 
-export const getUsersAPI = async () => {
-  return await fetchFromAPI('users');
+export const getUsersAPI = async (page: number = 0, size: number = 10) => {
+  return await fetchFromAPI(`users?page=${page}&size=${size}`);
 };
 
 export const createUserAPI = async (formData: FormData) => {

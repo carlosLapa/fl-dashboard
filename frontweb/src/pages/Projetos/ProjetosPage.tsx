@@ -9,7 +9,6 @@ import {
   updateProjetoAPI,
   deleteProjetoAPI,
   searchProjetosAPI,
-  getProjetosAPI,
 } from 'api/requestsApi';
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import { useNotification } from 'NotificationContext';
@@ -52,6 +51,7 @@ const ProjetosPage: React.FC = () => {
     } else {
       fetchProjetos();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
   const handleEditProjeto = (id: number) => {

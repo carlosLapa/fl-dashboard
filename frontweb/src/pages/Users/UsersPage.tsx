@@ -15,16 +15,21 @@ const UsersPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const usersData = await getUsers();
-      setUsers(usersData);
-    };
+  const fetchUsers = async () => {
+    const response = await getUsers(page, pageSize);
+    console.log('Users response:', response);
+    setUsers(response.content);
+    setTotalPages(response.totalPages);
+  };
 
-    fetchData();
-  }, []);
+  useEffect(() => {
+    fetchUsers();
+  }, [page, pageSize]);
 
   const handleAddUser = () => {
     setShowAddModal(true);
@@ -39,11 +44,10 @@ const UsersPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching user:', error);
-      // Handle error as needed
     }
   };
 
-  const handleUserSaved = (savedUser: User) => {
+  const handleUserSaved = async (savedUser: User) => {
     if (userToEdit) {
       setUsers(
         users.map((user) => (user.id === savedUser.id ? savedUser : user))
@@ -51,13 +55,13 @@ const UsersPage: React.FC = () => {
     } else {
       setUsers([...users, savedUser]);
     }
+    await fetchUsers(); // Refresh the paginated data
   };
 
   const handleDeleteUser = async (userId: number) => {
     try {
       await deleteUserAPI(userId);
-      const updatedUsers = users.filter((user) => user.id !== userId);
-      setUsers(updatedUsers);
+      await fetchUsers(); // Refresh the paginated data
     } catch (error) {
       console.error('Error deleting user:', error);
     }
@@ -84,6 +88,9 @@ const UsersPage: React.FC = () => {
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUser}
         onViewTasks={handleViewTasks}
+        page={page}
+        onPageChange={setPage}
+        totalPages={totalPages}
       />
       <AddUserModal
         show={showAddModal}

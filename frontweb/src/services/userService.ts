@@ -1,25 +1,39 @@
-import { User } from 'types/user';
-import { getUsersAPI, createUserAPI, getUserByIdAPI } from 'api/requestsApi';
+import { PaginatedUsers, User } from '../types/user';
+import { createUserAPI, getUserByIdAPI, getUsersAPI } from '../api/requestsApi';
 
-/**
- * asynchronous function (and wrapper around the getUsersAPI() function)
- * named getUsers that returns a Promise resolving to an array of User objects.
- * The async keyword allows the use of the await keyword inside the function,
- * which is used to wait for asynchronous operations (like API calls) to complete.
- */
-
-export const getUsers = async (): Promise<User[]> => {
+export const getUsers = async (
+  page: number = 0,
+  pageSize: number = 10
+): Promise<PaginatedUsers> => {
   try {
-    const usersData = await getUsersAPI();
-    console.log('Service getUsers data:', usersData);
-    return usersData;
+    const response = await getUsersAPI(page, pageSize);
+    console.log('Raw API response:', response);
+    
+    if (Array.isArray(response)) {
+      return {
+        content: response,
+        totalPages: 1,
+        totalElements: response.length,
+        size: pageSize,
+        number: page
+      };
+    }
+    
+    return response;
   } catch (error) {
-    console.error('Erro ao carregar os projetos:', error);
-    return [];
+    console.error('Error loading users:', error);
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: pageSize,
+      number: page
+    };
   }
 };
-
-export const createUser = async (formData: FormData): Promise<User> => {
+export const createUser = async (
+  formData: FormData
+): Promise<PaginatedUsers> => {
   try {
     const newUser = await createUserAPI(formData);
     return newUser;
@@ -32,7 +46,6 @@ export const createUser = async (formData: FormData): Promise<User> => {
 export const getUserById = async (userId: number): Promise<User> => {
   try {
     const userData = await getUserByIdAPI(userId);
-    console.log('Service getUserById data:', userData);
     return userData;
   } catch (error) {
     console.error('Erro ao buscar colaborador:', error);
