@@ -69,3 +69,11 @@ export interface KanbanTarefa extends Tarefa {
   column: string;
   uniqueId: string;
 }
+
+export interface PaginatedTarefas {
+  content: TarefaWithUserAndProjetoDTO[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}

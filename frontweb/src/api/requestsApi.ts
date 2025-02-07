@@ -1,6 +1,11 @@
 import axios from 'axios';
-import { PaginatedProjetos, ProjetoFormData, ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import {
+  PaginatedProjetos,
+  ProjetoFormData,
+  ProjetoWithUsersAndTarefasDTO,
+} from 'types/projeto';
+import {
+  PaginatedTarefas,
   TarefaInsertFormData,
   TarefaStatus,
   TarefaUpdateFormData,
@@ -67,7 +72,10 @@ export const deleteUserAPI = async (id: number): Promise<void> => {
   }
 };
 
-export const getProjetosAPI = async (page: number = 0, size: number = 10): Promise<PaginatedProjetos> => {
+export const getProjetosAPI = async (
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedProjetos> => {
   const response = await axios.get(`/projetos?page=${page}&size=${size}`);
   return response.data;
 };
@@ -130,10 +138,16 @@ export const getProjetoWithUsersAndTarefasAPI = async (
   }
 };
 
-export const searchProjetosAPI = async (query: string, status?: string, page: number = 0, size: number = 10) => {
-  const endpoint = status && status !== 'ALL'
-    ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
-    : `/projetos/search?query=${query}&page=${page}&size=${size}`;
+export const searchProjetosAPI = async (
+  query: string,
+  status?: string,
+  page: number = 0,
+  size: number = 10
+) => {
+  const endpoint =
+    status && status !== 'ALL'
+      ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
+      : `/projetos/search?query=${query}&page=${page}&size=${size}`;
 
   const response = await axios.get(endpoint);
   return response.data;
@@ -173,16 +187,18 @@ export const getTarefaWithUsersAPI = async (
   }
 };
 
-export const getAllTarefasWithUsersAndProjetoAPI = async (): Promise<
-  TarefaWithUserAndProjetoDTO[]
-> => {
-  try {
-    const response = await axios.get('/tarefas/full');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching all tarefas with users and projeto:', error);
-    throw error;
-  }
+export const getAllTarefasWithUsersAndProjetoAPI = async (
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedTarefas> => {
+  const response = await axios.get('/tarefas/full', {
+    params: {
+      page,
+      size,
+    },
+  });
+  console.log('API Response:', response.data); // Add this to check the response
+  return response.data;
 };
 
 export const addTarefaAPI = async (
@@ -229,20 +245,27 @@ export const deleteTarefaAPI = async (id: number): Promise<void> => {
 };
 
 export const getTarefasWithUsersAndProjetoByUser = async (
-  userId: number
-): Promise<TarefaWithUserAndProjetoDTO[]> => {
+  userId: number,
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedTarefas> => {
   try {
-    const userTarefas = await getTarefasByUser(userId);
-    const fullTarefas = await Promise.all(
-      userTarefas.map((tarefa) => getTarefaWithUsersAndProjetoAPI(tarefa.id))
-    );
-    return fullTarefas;
+    const response = await axios.get(`/tarefas/user/${userId}/full`, {
+      params: { page, size },
+    });
+    return response.data;
   } catch (error) {
     console.error(
       `Error fetching full tasks for user with id ${userId}:`,
       error
     );
-    return [];
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size,
+      number: page,
+    };
   }
 };
 

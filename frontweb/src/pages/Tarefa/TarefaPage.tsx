@@ -30,22 +30,32 @@ const TarefaPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [tarefaToEdit, setTarefaToEdit] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
-
-  useEffect(() => {
-    fetchTarefas();
-  }, []);
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTarefas = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const detailedTarefas = await getAllTarefasWithUsersAndProjeto();
-      setTarefas(detailedTarefas);
+      const response = await getAllTarefasWithUsersAndProjeto(page, pageSize);
+      if (response && response.content) {
+        setTarefas(response.content);
+        setTotalPages(response.totalPages);
+      }
     } catch (error) {
       console.error('Erro ao buscar tarefas:', error);
+      setError('Erro ao carregar tarefas');
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTarefas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize]);
 
   const handleAddTarefa = async (formData: TarefaInsertFormData) => {
     try {
@@ -131,7 +141,6 @@ const TarefaPage: React.FC = () => {
         className="d-flex align-items-center gap-2 mb-4"
         style={{ marginLeft: '5%' }}
       >
-        <BackButton />
         <Button
           variant="primary"
           onClick={() => {
@@ -146,7 +155,7 @@ const TarefaPage: React.FC = () => {
         <Button
           variant="secondary"
           onClick={toggleViewMode}
-          style={{ whiteSpace: 'nowrap', marginLeft: '-80px' }}
+          style={{ whiteSpace: 'nowrap'}}
         >
           {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
         </Button>
@@ -158,10 +167,14 @@ const TarefaPage: React.FC = () => {
           onEditTarefa={handleEditTarefa}
           onDeleteTarefa={handleDeleteTarefa}
           onViewDetails={handleViewDetails}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
       ) : (
         <TarefasCalendar tarefas={tarefas} />
       )}
+
       <TarefaModal
         show={showModal}
         onHide={() => {
@@ -173,6 +186,7 @@ const TarefaPage: React.FC = () => {
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />
+
       {showDetailsCard && selectedTarefa && (
         <TarefaDetailsCard
           tarefa={selectedTarefa}

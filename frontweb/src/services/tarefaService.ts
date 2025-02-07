@@ -12,7 +12,7 @@ import { useNotification } from '../NotificationContext';
 import {
   addTarefaAPI,
   deleteTarefaAPI,
-  getAllTarefasWithUsersAndProjetoAPI as getAllTarefasAPI,
+  getAllTarefasWithUsersAndProjetoAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
   updateTarefaAPI,
@@ -20,15 +20,27 @@ import {
 } from 'api/requestsApi';
 import { ColunaWithProjetoDTO } from 'types/coluna';
 
-export const getTarefas = async (): Promise<Tarefa[]> => {
+export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
   try {
     const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/tarefas`
+      `${process.env.REACT_APP_API_URL}/tarefas?page=${page}&size=${pageSize}`
     );
-    return response.data;
+    return {
+      content: response.data.content,
+      totalPages: response.data.totalPages,
+      totalElements: response.data.totalElements,
+      size: response.data.size,
+      number: response.data.number,
+    };
   } catch (error) {
     console.error('Error fetching tasks:', error);
-    return [];
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: pageSize,
+      number: page,
+    };
   }
 };
 
@@ -44,15 +56,26 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   }
 };
 
-export const getTarefasByUser = async (userId: number): Promise<Tarefa[]> => {
+// Update getTarefasByUser to include pagination
+export const getTarefasByUser = async (
+  userId: number,
+  page: number = 0,
+  pageSize: number = 10
+) => {
   try {
     const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/tarefas/user/${userId}/tasks`
+      `${process.env.REACT_APP_API_URL}/tarefas/user/${userId}/tasks?page=${page}&size=${pageSize}`
     );
     return response.data;
   } catch (error) {
     console.error(`Error fetching tasks for user with id ${userId}:`, error);
-    return [];
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: pageSize,
+      number: page,
+    };
   }
 };
 
@@ -160,16 +183,18 @@ export const getColumnsForProject = async (
   }
 };
 
-export const getAllTarefasWithUsersAndProjeto = async (): Promise<
-  TarefaWithUserAndProjetoDTO[]
-> => {
-  try {
-    const tarefasData = await getAllTarefasAPI();
-    return tarefasData;
-  } catch (error) {
-    console.error('Error fetching all tarefas with users and projeto:', error);
-    throw error;
+export const getAllTarefasWithUsersAndProjeto = async (
+  page: number = 0,
+  size: number = 10
+) => {
+  const response = await getAllTarefasWithUsersAndProjetoAPI(page, size);
+  if (Array.isArray(response)) {
+    return {
+      content: response,
+      totalPages: Math.ceil(response.length / size),
+    };
   }
+  return response;
 };
 
 export const updateTarefaStatus = async (

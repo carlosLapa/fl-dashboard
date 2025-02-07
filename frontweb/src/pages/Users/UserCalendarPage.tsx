@@ -26,7 +26,7 @@ const UserCalendarPage: React.FC = () => {
         const tarefas = await getTarefasWithUsersAndProjetoByUser(
           Number(userId)
         );
-        setUserTarefas(tarefas);
+        setUserTarefas(tarefas.content);
       }
     } catch (error) {
       console.error('Error fetching user tarefas:', error);

@@ -39,7 +39,7 @@ const UsersTarefasPage: React.FC = () => {
             getTarefasWithUsersAndProjetoByUser(parsedUserId),
           ]);
           setUser(userData);
-          setTarefas(userTarefas);
+          setTarefas(userTarefas.content);
         }
       } catch (err) {
         setError('Failed to fetch user data or tarefas');
