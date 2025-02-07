@@ -72,7 +72,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
                 <td>{tarefa.projeto.designacao}</td>
                 <td>
-                  <div className="d-flex justify-content-around">
+                  <div className="d-flex justify-content-center gap-4">
                     <OverlayTrigger
                       placement="top"
                       overlay={
@@ -84,7 +84,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                       <FontAwesomeIcon
                         icon={faPencilAlt}
                         onClick={() => onEditTarefa(tarefa.id)}
-                        className="mr-2 edit-icon"
+                        className="action-icon"
                       />
                     </OverlayTrigger>
                     <OverlayTrigger
@@ -98,7 +98,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                       <FontAwesomeIcon
                         icon={faTrashAlt}
                         onClick={() => onDeleteTarefa(tarefa.id)}
-                        className="delete-icon"
+                        className="action-icon delete-icon"
                       />
                     </OverlayTrigger>
                     <OverlayTrigger
@@ -112,7 +112,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                       <FontAwesomeIcon
                         icon={faInfoCircle}
                         onClick={() => onViewDetails(tarefa.id)}
-                        className="view-details-icon"
+                        className="action-icon"
                       />
                     </OverlayTrigger>
                   </div>

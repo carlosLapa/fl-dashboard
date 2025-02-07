@@ -16,7 +16,7 @@ import {
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
-import BackButton from 'components/Shared/BackButton';
+//import BackButton from 'components/Shared/BackButton';
 import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
 import './styles.css';
 

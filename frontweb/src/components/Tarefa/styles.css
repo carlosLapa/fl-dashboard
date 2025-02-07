@@ -35,3 +35,20 @@
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
+
+.action-icon {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.action-icon:hover {
+  color: #0056b3;
+}
+
+.delete-icon {
+  color: #dc3545;
+}
+
+.delete-icon:hover {
+  color: #c82333;
+}
