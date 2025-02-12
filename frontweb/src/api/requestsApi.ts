@@ -13,7 +13,6 @@ import {
   TarefaWithUsersDTO,
 } from 'types/tarefa';
 import { Notification } from 'types/notification';
-import { getTarefasByUser } from 'services/tarefaService';
 
 const fetchFromAPI = async (endpoint: string) => {
   const response = await axios.get(
