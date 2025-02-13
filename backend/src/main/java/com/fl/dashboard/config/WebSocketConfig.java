@@ -57,10 +57,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] origins = corsOrigins.split(",");
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:3000", "https://ferreiralapa-dashboard.pt")
-                .withSockJS();
+                .withSockJS()
+                .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js");
     }
 
     @Override
