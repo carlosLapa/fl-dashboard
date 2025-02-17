@@ -60,7 +60,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:3000", "https://ferreiralapa-dashboard.pt")
                 .withSockJS()
-                .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js");
+                .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js")
+                .setWebSocketEnabled(true)
+                .setSessionCookieNeeded(false);
     }
 
     @Override
