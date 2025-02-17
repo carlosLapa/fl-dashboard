@@ -2,7 +2,6 @@ package com.fl.dashboard.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -42,9 +41,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
     private final JwtDecoder jwtDecoder;
 
-    @Value("${cors.origins}")
-    private String corsOrigins;
-
     public WebSocketConfig(JwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
     }
@@ -62,7 +58,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS()
                 .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js")
                 .setWebSocketEnabled(true)
-                .setSessionCookieNeeded(false);
+                .setSessionCookieNeeded(false)
+                .setSuppressCors(false);
     }
 
     @Override
