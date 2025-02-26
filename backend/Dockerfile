@@ -1,5 +1,5 @@
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY target/*.jar app.jar
-EXPOSE 8080
+EXPOSE 8080 9090
 CMD ["java", "-jar", "app.jar"]
