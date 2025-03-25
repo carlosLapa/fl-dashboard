@@ -6,6 +6,9 @@ const API_URL =
   process.env.REACT_APP_API_URL ||
   (process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : '');
 
+console.log('API_URL is set to:', API_URL);
+console.log('Environment variable value:', process.env.REACT_APP_API_URL);
+
 // Configure axios defaults
 axios.defaults.baseURL = API_URL;
 

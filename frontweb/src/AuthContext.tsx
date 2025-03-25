@@ -5,7 +5,7 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import axios from './api/apiConfig';
+import axios from 'api/apiConfig';
 import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
 import { useNavigate } from 'react-router-dom';
