@@ -6,6 +6,7 @@ import {
   NotificationInsertDTO,
   NotificationType,
 } from 'types/notification';
+import { getWebSocketUrl } from '../api/apiConfig';
 
 interface WebSocketMessage {
   type: string;
@@ -19,10 +20,9 @@ interface ConnectionStats {
 }
 
 const useWebSocket = (userId: number) => {
-  // Accept userId as a parameter
-  const SOCKET_URL = process.env.REACT_APP_API_URL 
-  ? `${process.env.REACT_APP_API_URL}/ws` 
-  : 'http://localhost:8080/ws';
+  // Use the getWebSocketUrl function from apiConfig
+  const SOCKET_URL = getWebSocketUrl();
+
   const messageQueue = useRef<WebSocketMessage[]>([]);
   const userSpecificTopic = `/topic/notifications/${userId}`;
   const projectSpecificTopic = `/topic/project-notifications/${userId}`;

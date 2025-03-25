@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '../api/apiConfig';
 import {
   Tarefa,
   TarefaInsertFormData,
@@ -22,9 +22,8 @@ import { ColunaWithProjetoDTO } from 'types/coluna';
 
 export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
   try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/tarefas?page=${page}&size=${pageSize}`
-    );
+    // Updated to use relative URL
+    const response = await axios.get(`/tarefas?page=${page}&size=${pageSize}`);
     return {
       content: response.data.content,
       totalPages: response.data.totalPages,
@@ -46,9 +45,8 @@ export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
 
 export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/tarefas/${id}`
-    );
+    // Updated to use relative URL
+    const response = await axios.get(`/tarefas/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching task with id ${id}:`, error);
@@ -63,8 +61,9 @@ export const getTarefasByUser = async (
   pageSize: number = 10
 ) => {
   try {
+    // Updated to use relative URL
     const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/tarefas/user/${userId}/tasks?page=${page}&size=${pageSize}`
+      `/tarefas/user/${userId}/tasks?page=${page}&size=${pageSize}`
     );
     return response.data;
   } catch (error) {
@@ -83,9 +82,8 @@ export const getTarefasByProjeto = async (
   projetoId: number
 ): Promise<Tarefa[]> => {
   try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/projetos/${projetoId}/tarefas`
-    );
+    // Updated to use relative URL
+    const response = await axios.get(`/projetos/${projetoId}/tarefas`);
     return response.data;
   } catch (error) {
     console.error(
@@ -173,9 +171,8 @@ export const getColumnsForProject = async (
   projetoId: number
 ): Promise<ColunaWithProjetoDTO[]> => {
   try {
-    const response = await axios.get(
-      `${process.env.REACT_APP_API_URL}/colunas/projeto/${projetoId}`
-    );
+    // Updated to use relative URL
+    const response = await axios.get(`/colunas/projeto/${projetoId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching columns:', error);

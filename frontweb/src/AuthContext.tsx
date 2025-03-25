@@ -5,12 +5,10 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import axios from 'axios';
+import axios from './api/apiConfig';
 import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
 import { useNavigate } from 'react-router-dom';
-
-axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 
 interface AuthContextType {
   user: User | null;
@@ -62,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     console.log('Initiating login process for email:', email);
     try {
       const tokenResponse = await axios.post(
-        `${process.env.REACT_APP_API_URL}/oauth2/token`,
+        '/oauth2/token',
         `grant_type=password&username=${encodeURIComponent(
           email
         )}&password=${encodeURIComponent(password)}`,

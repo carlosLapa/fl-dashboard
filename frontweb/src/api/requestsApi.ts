@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from './apiConfig';
 import {
   PaginatedProjetos,
   ProjetoFormData,
@@ -15,9 +15,7 @@ import {
 import { Notification } from 'types/notification';
 
 const fetchFromAPI = async (endpoint: string) => {
-  const response = await axios.get(
-    `${process.env.REACT_APP_API_URL}/${endpoint}`
-  );
+  const response = await axios.get(`/${endpoint}`);
   return response.data;
 };
 
