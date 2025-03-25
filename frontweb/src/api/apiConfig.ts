@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// Base API URL - empty for production (to use relative URLs with nginx proxy)
-// or localhost for development
+// Base API URL - use REACT_APP_API_URL for both production and development
+// with fallback to localhost for development
 const API_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:8080'
-    : process.env.REACT_APP_API_URL || '';
+  process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : '');
 
 // Configure axios defaults
 axios.defaults.baseURL = API_URL;
@@ -13,15 +12,14 @@ axios.defaults.baseURL = API_URL;
 // Export for use in other files
 export const getApiUrl = () => API_URL;
 
-// WebSocket URL with fallback for development
+// WebSocket URL
 export const getWebSocketUrl = () => {
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:8080/ws';
   }
 
-  // In production, use relative URL if REACT_APP_API_URL is empty
-  // or the full URL if it's specified
-  return API_URL ? `${API_URL}/ws` : '/ws';
+  // In production, always use the full URL for WebSockets
+  return `${API_URL}/ws`;
 };
 
 export default axios;
