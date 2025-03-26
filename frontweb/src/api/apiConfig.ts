@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-// Force the API URL to be the backend URL
-const API_URL =
-  process.env.REACT_APP_API_URL ||
-  'https://fl-backend-app-don63.ondigitalocean.app:8080';
-
+const API_URL = process.env.REACT_APP_API_URL || 'https://fl-backend-app-6v3xd.ondigitalocean.app';
 console.log('API_URL is set to:', API_URL);
 
 // Configure axios defaults
@@ -18,10 +14,4 @@ export const getWebSocketUrl = () => {
   return `${API_URL}/ws`;
 };
 
-// Create and export a configured axios instance
-const apiClient = axios.create({
-  baseURL: API_URL,
-});
-
-export { apiClient };
 export default axios;

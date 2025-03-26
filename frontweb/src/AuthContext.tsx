@@ -9,6 +9,7 @@ import axios from 'api/apiConfig';
 import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
 import { useNavigate } from 'react-router-dom';
+import { getApiUrl } from 'api/apiConfig';
 
 interface AuthContextType {
   user: User | null;
@@ -59,10 +60,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login = async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
     try {
-      // Get the API URL from environment variable or use a default
-      const apiUrl =
-        process.env.REACT_APP_API_URL ||
-        'https://fl-backend-app-don63.ondigitalocean.app:8080';
+      // Get the API URL from our centralized config
+      const apiUrl = getApiUrl();
       console.log('Using API URL:', apiUrl);
 
       // Create a new axios instance with the specific baseURL

@@ -111,6 +111,7 @@ export const addTarefa = async (
         isRead: false,
         createdAt: new Date().toISOString(),
       };
+      // review this line: hook should only be used within React components or custom hooks, not directly in service functions. This might cause runtime errors.
       useNotification().sendNotification(notification);
     });
 
