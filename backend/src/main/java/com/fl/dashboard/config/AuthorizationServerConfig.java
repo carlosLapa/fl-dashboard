@@ -58,6 +58,9 @@ public class AuthorizationServerConfig {
     @Value("${security.jwt.duration}")
     private Integer jwtDurationSeconds;
 
+    @Value("${security.issuer-uri:}")
+    private String issuerUri;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -144,11 +147,16 @@ public class AuthorizationServerConfig {
         return ClientSettings.builder().build();
     }
 
+
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder()
-                .issuer("https://ferreiralapa-dashboard.pt")
-                .build();
+        AuthorizationServerSettings.Builder builder = AuthorizationServerSettings.builder();
+
+        if (issuerUri != null && !issuerUri.isEmpty()) {
+            builder.issuer(issuerUri);
+        }
+
+        return builder.build();
     }
 
     @Bean

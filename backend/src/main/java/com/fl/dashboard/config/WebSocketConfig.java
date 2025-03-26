@@ -57,8 +57,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        String[] origins = corsOrigins.split(",");
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3000", corsOrigins)
+                .setAllowedOrigins(origins)
                 .withSockJS()
                 .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js")
                 .setWebSocketEnabled(true)
