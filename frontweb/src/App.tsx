@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { BrowserRouter } from 'react-router-dom';
 import { NotificationProvider } from 'NotificationContext';
 import NavbarFL from './components/Navbar/indexNavbarRB';
+import DebugInfo from 'components/DebugInfo';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <AppContent />
+        <DebugInfo />
       </AuthProvider>
     </BrowserRouter>
   );

@@ -59,7 +59,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login = async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
     try {
-      const tokenResponse = await axios.post(
+      // Get the API URL from environment variable or use a default
+      const apiUrl =
+        process.env.REACT_APP_API_URL ||
+        'https://fl-backend-app-don63.ondigitalocean.app:8080';
+      console.log('Using API URL:', apiUrl);
+
+      // Create a new axios instance with the specific baseURL
+      const apiClient = axios.create({
+        baseURL: apiUrl,
+      });
+
+      // Make the request with the new instance
+      const tokenResponse = await apiClient.post(
         '/oauth2/token',
         `grant_type=password&username=${encodeURIComponent(
           email
