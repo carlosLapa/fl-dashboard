@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'frontend/**'
+      - 'frontweb/**'
       - '.github/workflows/frontend.yml'
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: ./frontend
+          context: frontweb
           push: true
           tags: |
             endovelic/fldashboard-frontend:latest
