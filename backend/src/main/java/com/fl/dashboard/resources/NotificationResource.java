@@ -171,5 +171,12 @@ public class NotificationResource {
         }
     }
 
+    @Operation(summary = "Delete all user notifications", description = "Delete all notifications for a specific user")
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteAllForUser(@PathVariable Long userId) {
+        notificationService.deleteAllForUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
 

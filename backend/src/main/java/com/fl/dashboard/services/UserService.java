@@ -8,6 +8,7 @@ import com.fl.dashboard.entities.Role;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.projections.UserDetailsProjection;
+import com.fl.dashboard.repositories.NotificationRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
@@ -19,7 +20,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +39,9 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private ProjetoRepository projetoRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     /* No caso de paginação
     public Page<UserDTO> findAllPaged(Pageable pageable) {
@@ -136,15 +139,20 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional
     public void delete(Long id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Recurso não encontrado");
         }
+
         try {
+            // First delete all notifications for this user
+            notificationRepository.deleteAllByUserId(id);
+
+            // Then delete the user
             userRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException(("Não permitido! Integridade da BD em causa"));
+            throw new DatabaseException("Não permitido! Integridade da BD em causa");
         }
     }
 

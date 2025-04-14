@@ -456,4 +456,17 @@ public class NotificationService {
         }
     }
 
+    @Transactional
+    public void deleteAllForUser(Long userId) {
+        // Verify user exists
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with id: " + userId);
+        }
+
+        // Delete all notifications for this user
+        notificationRepository.deleteAllByUserId(userId);
+
+        logger.info("Deleted all notifications for user with ID: {}", userId);
+    }
+
 }
