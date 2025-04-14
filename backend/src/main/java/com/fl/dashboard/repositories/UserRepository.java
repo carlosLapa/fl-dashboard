@@ -4,6 +4,7 @@ import com.fl.dashboard.entities.User;
 import com.fl.dashboard.projections.UserDetailsProjection;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -40,5 +41,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("nameQuery") String nameQuery,
             @Param("emailQuery") String emailQuery
     );
+
+    @Modifying
+    @Query(value = "DELETE FROM tb_tarefa_user WHERE user_id = :userId", nativeQuery = true)
+    void deleteTaskUserAssociationsByUserId(@Param("userId") Long userId);
 
 }

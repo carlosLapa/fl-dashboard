@@ -144,15 +144,17 @@ public class UserService implements UserDetailsService {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Recurso não encontrado");
         }
-
         try {
-            // First delete all notifications for this user
+            // Delete all notifications for this user
             notificationRepository.deleteAllByUserId(id);
 
-            // Then delete the user
+            // Delete all task-user associations for this user
+            userRepository.deleteTaskUserAssociationsByUserId(id);
+
+            // Finally delete the user
             userRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException("Não permitido! Integridade da BD em causa");
+            throw new DatabaseException("Não permitido! Integridade da BD em causa: " + e.getMessage());
         }
     }
 
@@ -221,7 +223,7 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Ficheiro inválido. São permitidos JPEG e PNG");
         }
         if (imageFile.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("Tamanho do ficheiro excede o limite de 5MB.");
+            throw new IllegalArgumentException("Tamanho do ficheiro excede o limite de 2MB.");
         }
     }
 
