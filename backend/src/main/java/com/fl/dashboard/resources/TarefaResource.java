@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.services.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -119,10 +120,23 @@ public class TarefaResource {
         return ResponseEntity.ok().body(results);
     }
 
+    // Keeping this endpoint for backward compatibility but marked as deprecated
+    @Deprecated
     @GetMapping("/user/{userId}/tasks")
     public ResponseEntity<List<TarefaWithUserAndProjetoDTO>> getAllUserTasks(@PathVariable Long userId) {
         List<TarefaWithUserAndProjetoDTO> tasks = tarefaService.findAllActiveByUserId(userId);
         return ResponseEntity.ok(tasks);
+    }
+
+    // new endpoint for paginated access
+    @GetMapping("/user/{userId}/full")
+    public ResponseEntity<Page<TarefaWithUserAndProjetoDTO>> getAllUserTasksPaginated(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<TarefaWithUserAndProjetoDTO> taskPage = tarefaService.findAllActiveByUserIdPaginated(userId, page, size);
+        return ResponseEntity.ok(taskPage);
     }
 
 }

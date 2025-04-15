@@ -12,6 +12,8 @@ import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -390,6 +392,13 @@ public class TarefaService {
     public List<TarefaWithUserAndProjetoDTO> findAllActiveByUserId(Long userId) {
         List<Tarefa> tarefas = tarefaRepository.findAllActiveByUserId(userId);
         return tarefas.stream().map(TarefaWithUserAndProjetoDTO::new).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TarefaWithUserAndProjetoDTO> findAllActiveByUserIdPaginated(Long userId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveByUserIdPaginated(userId, pageRequest);
+        return tarefaPage.map(TarefaWithUserAndProjetoDTO::new);
     }
 
 }

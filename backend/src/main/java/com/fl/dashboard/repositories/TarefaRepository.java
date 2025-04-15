@@ -3,6 +3,8 @@ package com.fl.dashboard.repositories;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.enums.EstadoTarefa;
 import com.fl.dashboard.enums.TarefaStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -80,5 +82,12 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "WHERE u.id = :userId " +
             "AND t.deletedAt IS NULL")
     List<Tarefa> findAllActiveByUserId(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"users", "projeto", "coluna"})
+    @Query("SELECT DISTINCT t FROM Tarefa t " +
+            "JOIN t.users u " +
+            "WHERE u.id = :userId " +
+            "AND t.deletedAt IS NULL")
+    Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
 
 }
