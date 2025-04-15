@@ -29,15 +29,18 @@ const UsersTarefasPage: React.FC = () => {
   const [selectedTarefa, setSelectedTarefa] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
 
+  //Note: This function runs twice in StrictMode
   useEffect(() => {
     const fetchUserAndTarefas = async () => {
       try {
         if (userId) {
+          console.log(`Starting data fetch for user ${userId}`);
           const parsedUserId = parseInt(userId, 10);
           const [userData, userTarefas] = await Promise.all([
             getUserById(parsedUserId),
             getTarefasWithUsersAndProjetoByUser(parsedUserId),
           ]);
+          console.log(`Completed data fetch for user ${userId}`);
           setUser(userData);
           setTarefas(userTarefas.content);
         }
@@ -48,7 +51,6 @@ const UsersTarefasPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchUserAndTarefas();
   }, [userId]);
 

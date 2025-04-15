@@ -5,6 +5,7 @@ import com.fl.dashboard.services.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping(value = "/tarefas")
@@ -134,9 +136,11 @@ public class TarefaResource {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
+        System.out.println("getAllUserTasksPaginated called for userId: " + userId + ", page: " + page + ", size: " + size);
         Page<TarefaWithUserAndProjetoDTO> taskPage = tarefaService.findAllActiveByUserIdPaginated(userId, page, size);
-        return ResponseEntity.ok(taskPage);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
+                .body(taskPage);
     }
 
 }

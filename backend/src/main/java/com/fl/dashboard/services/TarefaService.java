@@ -11,8 +11,10 @@ import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -396,9 +398,71 @@ public class TarefaService {
 
     @Transactional(readOnly = true)
     public Page<TarefaWithUserAndProjetoDTO> findAllActiveByUserIdPaginated(Long userId, int page, int size) {
+        // Get paginated tasks without eager loading collections
         PageRequest pageRequest = PageRequest.of(page, size);
+
+        // Use a query that doesn't trigger the in-memory pagination warning
         Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveByUserIdPaginated(userId, pageRequest);
-        return tarefaPage.map(TarefaWithUserAndProjetoDTO::new);
+
+        if (tarefaPage.isEmpty()) {
+            return Page.empty(pageRequest);
+        }
+
+        // Convert to DTOs using the constructor
+        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                .map(tarefa -> {
+                    // Ensure the collections are loaded within the transaction
+                    Hibernate.initialize(tarefa.getUsers());
+                    if (tarefa.getProjeto() != null) {
+                        Hibernate.initialize(tarefa.getProjeto());
+                    }
+                    return new TarefaWithUserAndProjetoDTO(tarefa);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+    }
+
+    private TarefaWithUserAndProjetoDTO convertToDTO(Tarefa tarefa) {
+        TarefaWithUserAndProjetoDTO dto = new TarefaWithUserAndProjetoDTO();
+        // Map basic properties
+        dto.setId(tarefa.getId());
+        dto.setDescricao(tarefa.getDescricao());
+        dto.setStatus(tarefa.getStatus());
+        dto.setPrioridade(tarefa.getPrioridade());
+        dto.setPrazoEstimado(tarefa.getPrazoEstimado());
+        dto.setPrazoReal(tarefa.getPrazoReal());
+
+        // Map users (these will be loaded lazily)
+        Set<UserDTO> userDtos = tarefa.getUsers().stream()
+                .map(user -> {
+                    UserDTO userDto = new UserDTO();
+                    userDto.setId(user.getId());
+                    userDto.setName(user.getName());
+                    userDto.setEmail(user.getEmail());
+                    userDto.setCargo(user.getCargo());
+                    userDto.setFuncao(user.getFuncao());
+                    userDto.setProfileImage(user.getProfileImage());
+                    return userDto;
+                })
+                .collect(Collectors.toSet());
+        dto.setUsers(userDtos);
+
+        // Map projeto (this will be loaded lazily)
+        if (tarefa.getProjeto() != null) {
+            ProjetoDTO projetoDto = new ProjetoDTO();
+            projetoDto.setId(tarefa.getProjeto().getId());
+            projetoDto.setDesignacao(tarefa.getProjeto().getDesignacao());
+            projetoDto.setEntidade(tarefa.getProjeto().getEntidade());
+            projetoDto.setObservacao(tarefa.getProjeto().getObservacao());
+            projetoDto.setPrazo(tarefa.getProjeto().getPrazo());
+            projetoDto.setPrioridade(tarefa.getProjeto().getPrioridade());
+            projetoDto.setProjetoAno(tarefa.getProjeto().getProjetoAno());
+            projetoDto.setStatus(tarefa.getProjeto().getStatus());
+            dto.setProjeto(projetoDto);
+        }
+
+        return dto;
     }
 
 }

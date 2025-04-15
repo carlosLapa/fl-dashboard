@@ -12,16 +12,29 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class TarefaWithUserAndProjetoDTO extends TarefaDTO {
-
     private Set<UserDTO> users = new HashSet<>();
     private ProjetoDTO projeto;
 
-    public TarefaWithUserAndProjetoDTO(Tarefa entity) {
-        super(entity);
-        Hibernate.initialize(entity.getUsers());
-        Hibernate.initialize(entity.getProjeto());
-        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
-        this.projeto = new ProjetoDTO(entity.getProjeto());
+    // Add a no-args constructor
+    public TarefaWithUserAndProjetoDTO() {
+        super();
     }
 
+    public TarefaWithUserAndProjetoDTO(Tarefa entity) {
+        super(entity);
+
+        // Safely initialize and map users
+        if (entity.getUsers() != null) {
+            Hibernate.initialize(entity.getUsers());
+            this.users = entity.getUsers().stream()
+                    .map(UserDTO::new)
+                    .collect(Collectors.toSet());
+        }
+
+        // Safely initialize and map projeto
+        if (entity.getProjeto() != null) {
+            Hibernate.initialize(entity.getProjeto());
+            this.projeto = new ProjetoDTO(entity.getProjeto());
+        }
+    }
 }

@@ -14,6 +14,8 @@ import {
 } from 'types/tarefa';
 import { Notification } from 'types/notification';
 
+let pendingRequests: Record<string, Promise<PaginatedTarefas>> = {};
+
 const fetchFromAPI = async (endpoint: string) => {
   const response = await axios.get(`/${endpoint}`);
   return response.data;
@@ -246,12 +248,37 @@ export const getTarefasWithUsersAndProjetoByUser = async (
   page: number = 0,
   size: number = 10
 ): Promise<PaginatedTarefas> => {
+  const requestKey = `user_${userId}_page_${page}_size_${size}`;
+
+  // Check if this exact request is already in progress
+  if (requestKey in pendingRequests) {
+    console.log(`Reusing pending request for ${requestKey}`);
+    return pendingRequests[requestKey];
+  }
+
   try {
-    const response = await axios.get(`/tarefas/user/${userId}/full`, {
-      params: { page, size },
-    });
-    return response.data;
+    console.log(`Making new request for ${requestKey}`);
+    // Create the promise for this request
+    const requestPromise = axios
+      .get(`/tarefas/user/${userId}/full`, {
+        params: { page, size },
+      })
+      .then((response) => response.data);
+
+    // Store the promise
+    pendingRequests[requestKey] = requestPromise;
+
+    // Wait for the response
+    const response = await requestPromise;
+
+    // Request completed, remove from pending
+    delete pendingRequests[requestKey];
+
+    return response;
   } catch (error) {
+    // Request failed, remove from pending
+    delete pendingRequests[requestKey];
+
     console.error(
       `Error fetching full tasks for user with id ${userId}:`,
       error

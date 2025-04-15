@@ -83,11 +83,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "AND t.deletedAt IS NULL")
     List<Tarefa> findAllActiveByUserId(@Param("userId") Long userId);
 
-    @EntityGraph(attributePaths = {"users", "projeto", "coluna"})
-    @Query("SELECT DISTINCT t FROM Tarefa t " +
-            "JOIN t.users u " +
-            "WHERE u.id = :userId " +
-            "AND t.deletedAt IS NULL")
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
     Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
 
 }
