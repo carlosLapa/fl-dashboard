@@ -15,6 +15,7 @@ import {
   getTarefasByDateRange,
   getTarefasSorted, // Import the new sorting function
 } from 'services/tarefaService';
+import { useNotification } from '../../hooks/useNotification';
 import Button from 'react-bootstrap/Button';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
@@ -36,7 +37,7 @@ const TarefaPage: React.FC = () => {
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
+  const { sendNotification } = useNotification();
   // Date filter states
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -141,7 +142,9 @@ const TarefaPage: React.FC = () => {
 
   const handleAddTarefa = async (formData: TarefaInsertFormData) => {
     try {
-      await addTarefa(formData);
+      // Pass the sendNotification function to the service
+      await addTarefa(formData, sendNotification);
+
       if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
@@ -157,7 +160,9 @@ const TarefaPage: React.FC = () => {
 
   const handleUpdateTarefa = async (formData: TarefaUpdateFormData) => {
     try {
-      await updateTarefa(formData.id, formData);
+      // Pass the sendNotification function to the service
+      await updateTarefa(formData.id, formData, sendNotification);
+
       if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
@@ -218,7 +223,11 @@ const TarefaPage: React.FC = () => {
     newStatus: TarefaStatus
   ) => {
     try {
-      await updateTarefaStatus(tarefaId, newStatus);
+      // Find the tarefa for notification details
+      const tarefa = tarefas.find((t) => t.id === tarefaId);
+
+      await updateTarefaStatus(tarefaId, newStatus, sendNotification, tarefa);
+
       if (isFiltered) {
         await fetchFilteredTarefas();
       } else {

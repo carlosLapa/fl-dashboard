@@ -12,7 +12,7 @@ import {
   TarefaWithUserAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
-import { Notification } from 'types/notification';
+import { Notification, NotificationInsertDTO } from 'types/notification';
 
 let pendingRequests: Record<string, Promise<PaginatedTarefas>> = {};
 
@@ -334,7 +334,7 @@ export const markNotificationAsReadAPI = async (
 };
 
 export const createNotificationAPI = async (
-  notification: Notification
+  notification: NotificationInsertDTO
 ): Promise<Notification> => {
   const response = await axios.post('/notifications', notification);
   return response.data;

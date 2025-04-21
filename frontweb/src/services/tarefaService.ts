@@ -8,7 +8,6 @@ import {
   TarefaWithUsersDTO,
 } from '../types/tarefa';
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
-import { useNotification } from '../NotificationContext';
 import {
   addTarefaAPI,
   deleteTarefaAPI,
@@ -97,39 +96,65 @@ export const getTarefasByProjeto = async (
 };
 
 export const addTarefa = async (
-  data: TarefaInsertFormData
-): Promise<TarefaWithUserAndProjetoDTO> => {
+  formData: TarefaInsertFormData,
+  onNotify?: (notification: NotificationInsertDTO) => Promise<void>
+) => {
   try {
-    const newTarefa = await addTarefaAPI(data);
+    const response = await addTarefaAPI(formData);
 
-    data.userIds.forEach((userId) => {
-      const notification: NotificationInsertDTO = {
-        type: NotificationType.TAREFA_ATRIBUIDA,
-        content: `Nova tarefa atribuída: "${newTarefa.descricao}"`,
-        userId: userId,
-        tarefaId: newTarefa.id,
-        projetoId: newTarefa.projeto.id,
-        relatedId: newTarefa.id,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      };
-      // review this line: hook should only be used within React components or custom hooks, not directly in service functions. This might cause runtime errors.
-      useNotification().sendNotification(notification);
-    });
+    // If a notification callback is provided and the task was created successfully
+    if (onNotify && response) {
+      // Create notifications for each assigned user
+      for (const userId of formData.userIds) {
+        const notification: NotificationInsertDTO = {
+          type: NotificationType.TAREFA_ATRIBUIDA,
+          content: `Nova tarefa "${formData.descricao}" atribuída a você`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          relatedId: response.id,
+          userId: userId,
+          tarefaId: response.id,
+          projetoId: formData.projetoId,
+        };
 
-    return newTarefa;
+        await onNotify(notification);
+      }
+    }
+
+    return response;
   } catch (error) {
-    console.error('Error in tarefa service:', error);
+    console.error('Error adding tarefa:', error);
     throw error;
   }
 };
 
 export const updateTarefa = async (
   id: number,
-  data: TarefaUpdateFormData
+  data: TarefaUpdateFormData,
+  onNotify?: (notification: NotificationInsertDTO) => Promise<void>
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const updatedTarefa = await updateTarefaAPI(id, data);
+
+    // If a notification callback is provided and the task was updated successfully
+    if (onNotify && updatedTarefa) {
+      // Create notifications for each assigned user
+      for (const userId of data.userIds) {
+        const notification: NotificationInsertDTO = {
+          type: NotificationType.TAREFA_EDITADA,
+          content: `Tarefa "${data.descricao}" foi atualizada`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          relatedId: updatedTarefa.id,
+          userId: userId,
+          tarefaId: updatedTarefa.id,
+          projetoId: data.projetoId,
+        };
+
+        await onNotify(notification);
+      }
+    }
+
     return updatedTarefa;
   } catch (error) {
     console.error('Error in tarefa service:', error);
@@ -199,16 +224,39 @@ export const getAllTarefasWithUsersAndProjeto = async (
 
 export const updateTarefaStatus = async (
   id: number,
-  newStatus: TarefaStatus
+  newStatus: TarefaStatus,
+  onNotify?: (notification: NotificationInsertDTO) => Promise<void>,
+  tarefa?: TarefaWithUserAndProjetoDTO // Optional tarefa object for notification details
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
+    
+    // If a notification callback is provided and the status was updated successfully
+    if (onNotify && updatedTarefa && tarefa) {
+      // Create notifications for each assigned user
+      for (const user of tarefa.users) {
+        const notification: NotificationInsertDTO = {
+          type: NotificationType.TAREFA_STATUS_ALTERADO,
+          content: `Status da tarefa "${tarefa.descricao}" alterado para ${newStatus}`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          relatedId: id,
+          userId: user.id,
+          tarefaId: id,
+          projetoId: tarefa.projeto.id
+        };
+        
+        await onNotify(notification);
+      }
+    }
+    
     return updatedTarefa;
   } catch (error) {
     console.error('Error in tarefa service:', error);
     throw error;
   }
 };
+
 
 export const getTarefasByDateRange = async (
   dateField: string,
