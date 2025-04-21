@@ -120,14 +120,14 @@ public class TarefaService {
     @Transactional
     public void updateTarefaUsers(Long tarefaId, Set<Long> userIds) {
         Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
         tarefa.getUsers().clear();
 
         for (Long userId : userIds) {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Utilizador não foi encontrado"));
             tarefa.getUsers().add(user);
 
             if (!previousUsers.contains(user)) {
@@ -165,11 +165,11 @@ public class TarefaService {
     @Transactional
     public void updateTarefaProjeto(Long tarefaId, Long projetoId) {
         Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
 
         if (projetoId != null) {
             Projeto projeto = projetoRepository.findById(projetoId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
             tarefa.setProjeto(projeto);
         } else {
             tarefa.setProjeto(null);
@@ -181,7 +181,7 @@ public class TarefaService {
     @Transactional
     public TarefaWithUserAndProjetoDTO updateWithAssociations(TarefaUpdateDTO dto) {
         Tarefa tarefa = tarefaRepository.findByIdActive(dto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
 
@@ -193,7 +193,7 @@ public class TarefaService {
         // Update projeto association
         if (dto.getProjetoId() != null) {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
             tarefa.setProjeto(projeto);
         } else {
             tarefa.setProjeto(null);  // Remove projeto association if projetoId is null
@@ -205,7 +205,7 @@ public class TarefaService {
             Set<User> users = dto.getUserIds().stream()
                     .map(userId -> {
                         User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+                                .orElseThrow(() -> new ResourceNotFoundException("Utilizador não foi encontrado: " + userId));
 
                         if (!previousUsers.contains(user)) {
                             NotificationInsertDTO notification = NotificationInsertDTO.builder()
@@ -254,7 +254,7 @@ public class TarefaService {
         // Associate Projeto only if projetoId is provided
         if (dto.getProjetoId() != null) {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
             tarefa.setProjeto(projeto);
         }
 
@@ -262,7 +262,7 @@ public class TarefaService {
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
             Set<User> users = dto.getUserIds().stream()
                     .map(userId -> userRepository.findById(userId)
-                            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)))
+                            .orElseThrow(() -> new ResourceNotFoundException("Utilizador não foi encontrado: " + userId)))
                     .collect(Collectors.toSet());
             tarefa.setUsers(users);
         }
@@ -291,7 +291,7 @@ public class TarefaService {
     @Transactional
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
 
         TarefaStatus previousStatus = tarefa.getStatus();
         String descricao = tarefa.getDescricao();
@@ -353,7 +353,7 @@ public class TarefaService {
     @Transactional(readOnly = true)
     private Tarefa findByIdForDelete(Long id) {
         return tarefaRepository.findByIdActive(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Tarefa not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada: " + id));
     }
 
     @Transactional
