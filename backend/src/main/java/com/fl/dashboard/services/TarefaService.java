@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -463,6 +464,60 @@ public class TarefaService {
         }
 
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TarefaWithUserAndProjetoDTO> findByDateRange(String dateField, Date startDate, Date endDate, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        // If dates are not provided, return empty result
+        if (startDate == null || endDate == null) {
+            return Page.empty(pageRequest);
+        }
+
+        // Validate field parameter
+        if (!dateField.equals("prazoEstimado") && !dateField.equals("prazoReal")) {
+            throw new IllegalArgumentException("Field must be either 'prazoEstimado' or 'prazoReal'");
+        }
+
+        Page<Tarefa> tarefaPage = tarefaRepository.findByDateRange(dateField, startDate, endDate, pageRequest);
+
+        if (tarefaPage.isEmpty()) {
+            return Page.empty(pageRequest);
+        }
+
+        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                .map(tarefa -> {
+                    // Ensure the collections are loaded within the transaction
+                    Hibernate.initialize(tarefa.getUsers());
+                    if (tarefa.getProjeto() != null) {
+                        Hibernate.initialize(tarefa.getProjeto());
+                    }
+                    return new TarefaWithUserAndProjetoDTO(tarefa);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TarefaWithUserAndProjetoDTO> findAllSorted(String sortField, String sortDirection, int page, int size) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveSorted(pageRequest);
+
+        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                .map(tarefa -> {
+                    Hibernate.initialize(tarefa.getUsers());
+                    if (tarefa.getProjeto() != null) {
+                        Hibernate.initialize(tarefa.getProjeto());
+                    }
+                    return new TarefaWithUserAndProjetoDTO(tarefa);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
     }
 
 }

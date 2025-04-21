@@ -13,12 +13,14 @@ import {
   addTarefaAPI,
   deleteTarefaAPI,
   getAllTarefasWithUsersAndProjetoAPI,
+  getTarefasSortedAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
   updateTarefaAPI,
   updateTarefaStatusAPI,
 } from 'api/requestsApi';
 import { ColunaWithProjetoDTO } from 'types/coluna';
+import { getTarefasByDateRangeAPI } from 'api/requestsApi';
 
 export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
   try {
@@ -205,5 +207,71 @@ export const updateTarefaStatus = async (
   } catch (error) {
     console.error('Error in tarefa service:', error);
     throw error;
+  }
+};
+
+export const getTarefasByDateRange = async (
+  dateField: string,
+  startDate: string,
+  endDate: string,
+  page: number = 0,
+  size: number = 10
+) => {
+  try {
+    const response = await getTarefasByDateRangeAPI(
+      dateField,
+      startDate,
+      endDate,
+      page,
+      size
+    );
+
+    // Handle both array and paginated response formats
+    if (Array.isArray(response)) {
+      return {
+        content: response,
+        totalPages: Math.ceil(response.length / size),
+        totalElements: response.length,
+        size: size,
+        number: page,
+      };
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error fetching tarefas by date range:', error);
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: size,
+      number: page,
+    };
+  }
+};
+
+export const getTarefasSorted = async (
+  sortField: string,
+  sortDirection: 'ASC' | 'DESC',
+  page: number = 0,
+  size: number = 10
+) => {
+  try {
+    const response = await getTarefasSortedAPI(
+      sortField,
+      sortDirection,
+      page,
+      size
+    );
+    return response;
+  } catch (error) {
+    console.error('Error fetching sorted tarefas:', error);
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: size,
+      number: page,
+    };
   }
 };

@@ -293,6 +293,33 @@ export const getTarefasWithUsersAndProjetoByUser = async (
   }
 };
 
+export const getTarefasByDateRangeAPI = async (
+  dateField: string,
+  startDate: string,
+  endDate: string,
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedTarefas> => {
+  try {
+    let url = `/tarefas/date-range?dateField=${dateField}&page=${page}&size=${size}`;
+
+    if (startDate) {
+      url += `&startDate=${startDate}`;
+    }
+
+    if (endDate) {
+      url += `&endDate=${endDate}`;
+    }
+
+    const response = await axios.get(url);
+    console.log('Date filter API Response:', response.data); // Debug log
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching tarefas by date range:', error);
+    throw error;
+  }
+};
+
 export const getNotificationDetailsAPI = async (
   userId: number
 ): Promise<Notification[]> => {
@@ -311,4 +338,21 @@ export const createNotificationAPI = async (
 ): Promise<Notification> => {
   const response = await axios.post('/notifications', notification);
   return response.data;
+};
+
+export const getTarefasSortedAPI = async (
+  sortField: string,
+  sortDirection: 'ASC' | 'DESC',
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedTarefas> => {
+  try {
+    const response = await axios.get(
+      `/tarefas/sorted?sort=${sortField}&direction=${sortDirection}&page=${page}&size=${size}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching sorted tarefas:', error);
+    throw error;
+  }
 };

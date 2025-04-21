@@ -5,12 +5,15 @@ import com.fl.dashboard.services.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -141,6 +144,43 @@ public class TarefaResource {
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
                 .body(taskPage);
+    }
+
+    @GetMapping("/date-range")
+    public ResponseEntity<Page<TarefaWithUserAndProjetoDTO>> findByDateRange(
+            @RequestParam String dateField,  // Changed from 'field' to 'dateField'
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        // Add one day to endDate to make the range inclusive
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(endDate);
+        calendar.add(Calendar.DATE, 1);
+        Date adjustedEndDate = calendar.getTime();
+
+        Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findByDateRange(
+                dateField, startDate, adjustedEndDate, page, size);  // Changed from 'field' to 'dateField'
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
+                .body(result);
+    }
+
+    @GetMapping("/sorted")
+    public ResponseEntity<Page<TarefaWithUserAndProjetoDTO>> findAllSorted(
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "ASC") String direction,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findAllSorted(
+                sort, direction, page, size);
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
+                .body(result);
     }
 
 }

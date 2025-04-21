@@ -6,8 +6,17 @@ import {
   faPencilAlt,
   faTrashAlt,
   faInfoCircle,
+  faSort,
+  faSortDown,
+  faSortUp,
 } from '@fortawesome/free-solid-svg-icons';
-import { OverlayTrigger, Tooltip, Pagination } from 'react-bootstrap';
+import {
+  OverlayTrigger,
+  Tooltip,
+  Pagination,
+  Form,
+  Button,
+} from 'react-bootstrap';
 import './styles.css';
 
 interface TarefaTableProps {
@@ -19,6 +28,18 @@ interface TarefaTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   isLoading?: boolean;
+  // New date filter props
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+  onApplyDateFilter: () => void;
+  onClearDateFilter: () => void;
+  dateFilterField: string;
+  onDateFilterFieldChange: (field: string) => void;
+  sortField: string;
+  sortDirection: 'ASC' | 'DESC';
+  onSort: (field: string) => void;
 }
 
 const TarefaTable: React.FC<TarefaTableProps> = ({
@@ -30,6 +51,17 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
   totalPages,
   onPageChange,
   isLoading,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  onApplyDateFilter,
+  onClearDateFilter,
+  dateFilterField,
+  onDateFilterFieldChange,
+  sortField,
+  sortDirection,
+  onSort,
 }) => {
   console.log('Tarefas in Table:', tarefas); // Add this debug log
 
@@ -39,17 +71,101 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
 
   const hasTarefas = Array.isArray(tarefas) && tarefas.length > 0;
 
+  // Helper function to render sortable column headers
+  const renderSortableHeader = (
+    field: string,
+    label: string,
+    className?: string
+  ) => {
+    return (
+      <th
+        className={className || ''}
+        onClick={() => onSort(field)}
+        style={{ cursor: 'pointer' }}
+      >
+        <div className="d-flex align-items-center justify-content-between">
+          <span>{label}</span>
+          <span className="ms-1">
+            {sortField === field ? (
+              <FontAwesomeIcon
+                icon={sortDirection === 'ASC' ? faSortUp : faSortDown}
+                size="sm"
+              />
+            ) : (
+              <FontAwesomeIcon icon={faSort} size="sm" opacity={0.3} />
+            )}
+          </span>
+        </div>
+      </th>
+    );
+  };
+
   return (
     <div className="tarefa-container">
+      {/* Date Filter Section */}
+      <div className="date-filter-container mb-4 p-3 border rounded bg-light">
+        <h5 className="mb-3">Filtrar por Data</h5>
+        <div className="row g-3">
+          <div className="col-md-3">
+            <Form.Group>
+              <Form.Label>Campo de Data</Form.Label>
+              <Form.Select
+                value={dateFilterField}
+                onChange={(e) => onDateFilterFieldChange(e.target.value)}
+              >
+                <option value="prazoEstimado">Prazo Estimado</option>
+                <option value="prazoReal">Prazo Real</option>
+              </Form.Select>
+            </Form.Group>
+          </div>
+          <div className="col-md-3">
+            <Form.Group>
+              <Form.Label>Data Inicial</Form.Label>
+              <Form.Control
+                type="date"
+                value={startDate}
+                onChange={(e) => onStartDateChange(e.target.value)}
+              />
+            </Form.Group>
+          </div>
+          <div className="col-md-3">
+            <Form.Group>
+              <Form.Label>Data Final</Form.Label>
+              <Form.Control
+                type="date"
+                value={endDate}
+                onChange={(e) => onEndDateChange(e.target.value)}
+              />
+            </Form.Group>
+          </div>
+          <div className="col-md-3 d-flex align-items-end">
+            <Button
+              variant="primary"
+              onClick={onApplyDateFilter}
+              className="me-2"
+            >
+              Aplicar Filtro
+            </Button>
+            <Button variant="outline-secondary" onClick={onClearDateFilter}>
+              Limpar
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Descrição</th>
-            <th>Status</th>
-            <th className="prazo-column">Prazo Estimado</th>
-            <th className="prazo-column">Prazo Real</th>
+            {renderSortableHeader('descricao', 'Descrição')}
+            {renderSortableHeader('status', 'Status')}
+            {renderSortableHeader(
+              'prazoEstimado',
+              'Prazo Estimado',
+              'prazo-column'
+            )}
+            {renderSortableHeader('prazoReal', 'Prazo Real', 'prazo-column')}
             <th>Atribuição</th>
-            <th>Projeto</th>
+            {renderSortableHeader('projeto.designacao', 'Projeto')}
             <th>Ações</th>
           </tr>
         </thead>
@@ -154,4 +270,5 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
     </div>
   );
 };
+
 export default TarefaTable;

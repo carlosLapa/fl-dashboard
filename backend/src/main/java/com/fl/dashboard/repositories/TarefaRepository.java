@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -85,5 +86,20 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
     @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
     Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL " +
+            "AND ((:dateField = 'prazoEstimado' AND t.prazoEstimado BETWEEN :startDate AND :endDate) OR " +
+            "(:dateField = 'prazoReal' AND t.prazoReal BETWEEN :startDate AND :endDate))")
+    Page<Tarefa> findByDateRange(
+            @Param("dateField") String dateField,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL")
+    Page<Tarefa> findAllActiveSorted(Pageable pageable);
 
 }
