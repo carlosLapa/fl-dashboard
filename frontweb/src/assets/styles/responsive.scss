@@ -1,0 +1,142 @@
+@import './breakpoints.scss';
+
+// Responsive container classes
+.container-responsive {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+
+  @include respond-to('mobile') {
+    max-width: 100%;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  @include respond-to('tablet') {
+    max-width: 720px;
+  }
+
+  @include respond-to('desktop') {
+    max-width: 960px;
+  }
+
+  @include respond-to('large-desktop') {
+    max-width: 1140px;
+  }
+}
+
+// Responsive visibility helpers
+.hide-on-mobile {
+  @include respond-to('mobile') {
+    display: none !important;
+  }
+}
+
+.show-on-mobile {
+  display: none !important;
+  @include respond-to('mobile') {
+    display: block !important;
+  }
+}
+
+// Responsive spacing utilities
+@each $breakpoint, $value in $breakpoints {
+  @include respond-to($breakpoint) {
+    .m-#{$breakpoint}-0 { margin: 0 !important; }
+    .m-#{$breakpoint}-1 { margin: 0.25rem !important; }
+    .m-#{$breakpoint}-2 { margin: 0.5rem !important; }
+    .m-#{$breakpoint}-3 { margin: 1rem !important; }
+    .m-#{$breakpoint}-4 { margin: 1.5rem !important; }
+    .m-#{$breakpoint}-5 { margin: 3rem !important; }
+    
+    .p-#{$breakpoint}-0 { padding: 0 !important; }
+    .p-#{$breakpoint}-1 { padding: 0.25rem !important; }
+    .p-#{$breakpoint}-2 { padding: 0.5rem !important; }
+    .p-#{$breakpoint}-3 { padding: 1rem !important; }
+    .p-#{$breakpoint}-4 { padding: 1.5rem !important; }
+    .p-#{$breakpoint}-5 { padding: 3rem !important; }
+  }
+}
+
+// Responsive flex utilities
+.flex-responsive {
+  display: flex;
+  
+  @include respond-to('mobile') {
+    flex-direction: column;
+  }
+}
+
+// Responsive grid system enhancement
+.row-responsive {
+  @include respond-to('mobile') {
+    margin-right: -10px;
+    margin-left: -10px;
+    
+    > [class*="col-"] {
+      padding-right: 10px;
+      padding-left: 10px;
+    }
+  }
+}
+
+// Responsive table wrapper
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  
+  // Hide scrollbar when not needed
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  // Custom styling for tables inside
+  table {
+    min-width: 100%;
+    
+    @include respond-to('mobile') {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// Responsive form elements
+.form-group-responsive {
+  margin-bottom: 1rem;
+  
+  @include respond-to('mobile') {
+    margin-bottom: 0.75rem;
+  }
+  
+  label {
+    @include respond-to('mobile') {
+      font-size: 0.875rem;
+    }
+  }
+  
+  .form-control {
+    @include respond-to('mobile') {
+      font-size: 0.875rem;
+      padding: 0.375rem 0.5rem;
+    }
+  }
+}
+
+// Card responsive adjustments
+.card-responsive {
+  @include respond-to('mobile') {
+    border-radius: 0.25rem;
+    
+    .card-body {
+      padding: 0.75rem;
+    }
+    
+    .card-title {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+}

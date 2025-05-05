@@ -1,0 +1,43 @@
+$breakpoints: (
+  'xs': 320px,       // Small phones
+  'sm': 576px,       // Phones
+  'md': 768px,       // Tablets
+  'lg': 992px,       // Desktops
+  'xl': 1200px,      // Large desktops
+  'xxl': 1400px      // Extra large screens
+);
+
+// Media query for max-width (smaller than breakpoint)
+@mixin respond-to($breakpoint) {
+  @media (max-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+// Media query for min-width (larger than breakpoint)
+@mixin respond-from($breakpoint) {
+  @media (min-width: map-get($breakpoints, $breakpoint)) {
+    @content;
+  }
+}
+
+// Media query for range between two breakpoints
+@mixin respond-between($min, $max) {
+  @media (min-width: map-get($breakpoints, $min)) and (max-width: map-get($breakpoints, $max)) {
+    @content;
+  }
+}
+
+// Media query for specific device orientations
+@mixin respond-orientation($orientation) {
+  @media (orientation: $orientation) {
+    @content;
+  }
+}
+
+// Media query for high-density (retina) displays
+@mixin respond-retina {
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    @content;
+  }
+}

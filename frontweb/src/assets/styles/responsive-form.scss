@@ -1,0 +1,66 @@
+@import '../../assets/styles/breakpoints.scss';
+
+.responsive-form {
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -0.5rem;
+    margin-left: -0.5rem;
+    
+    @include respond-to('mobile') {
+      flex-direction: column;
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    
+    @include respond-to('mobile') {
+      width: 100% !important;
+    }
+  }
+  
+  .form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    
+    @include respond-to('mobile') {
+      font-size: 0.875rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    
+    @include respond-to('mobile') {
+      flex-direction: column;
+      
+      button, .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    
+    @include respond-to('tablet') {
+      button, .btn {
+        margin-left: 0.5rem;
+        
+        &:first-child {
+          margin-left: 0;
+        }
+      }
+    }
+  }
+}
