@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Notification, NotificationInsertDTO } from 'types/notification';
 import { markNotificationAsReadAPI } from 'api/requestsApi';
 import { toast } from 'react-toastify';
@@ -28,10 +28,10 @@ const getNotificationColor = (type: string) => {
     PROJETO_EDITADO: '#FEF3C7',
     PROJETO_ATUALIZADO: '#FEF3C7',
     PROJETO_CONCLUIDO: '#BBF7D0',
-    PROJETO_REMOVIDO: '#FECACA'
+    PROJETO_REMOVIDO: '#FECACA',
     //DEFAULT: '#E2E8F0',
   };
-  return colors[type] || colors.DEFAULT;
+  return colors[type] || '#E2E8F0';
 };
 
 const getNotificationTitle = (type: string) => {
@@ -75,18 +75,39 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   notification,
   onMarkAsRead,
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Add responsive detection
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleMarkAsRead = useCallback(async () => {
-    if (isNotification(notification)) {
+    if (isNotification(notification) && !isSubmitting) {
+      setIsSubmitting(true);
       try {
         await markNotificationAsReadAPI(notification.id);
         onMarkAsRead(notification.id);
-        toast.success('Notificação marcada como lida');
+        toast.success('Notificação marcada como lida', {
+          position: isMobile ? 'bottom-center' : 'top-right',
+          autoClose: 2000,
+        });
       } catch (error) {
         console.error('Error marking notification as read:', error);
-        toast.error('Erro ao marcar notificação como lida');
+        toast.error('Erro ao marcar notificação como lida', {
+          position: isMobile ? 'bottom-center' : 'top-right',
+        });
+      } finally {
+        setIsSubmitting(false);
       }
     }
-  }, [notification, onMarkAsRead]);
+  }, [notification, onMarkAsRead, isSubmitting, isMobile]);
 
   return (
     <div
@@ -105,11 +126,9 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
           {new Date(notification.createdAt).toLocaleDateString('pt-PT')}
         </span>
       </div>
-
       <p className="notification-content">
         {formatNotificationContent(notification.content)}
       </p>
-
       {isNotification(notification) && (
         <div className="notification-details">
           {notification.tarefa && (
@@ -124,14 +143,14 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
           )}
         </div>
       )}
-
       {!notification.isRead && (
         <button
           onClick={handleMarkAsRead}
           className="mark-read-button"
+          disabled={isSubmitting}
           aria-label={`Mark notification as read: ${notification.content}`}
         >
-          Marcar como lida
+          {isSubmitting ? 'A processar...' : 'Marcar como lida'}
         </button>
       )}
     </div>

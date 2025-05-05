@@ -5,7 +5,7 @@ import NotificationDisplay from './NotificationDisplay';
 import { NotificationType } from 'types/notification';
 import { ResourceNotFoundException } from '../../types/exceptions';
 import { toast } from 'react-toastify';
-import './styles.css';
+import './styles.scss';
 
 interface NotificationBoxProps {
   userId: number;
@@ -20,8 +20,18 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   } = useNotification();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const { messages } = useWebSocket(userId);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Add responsive detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const loadInitialNotifications = async () => {
@@ -51,7 +61,7 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
           handleNewNotification(latestMessage);
           // Only show toast if notification handling succeeds
           toast.info(`Nova notificação: ${latestMessage.content}`, {
-            position: 'top-right',
+            position: isMobile ? 'bottom-center' : 'top-right',
             autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
@@ -66,19 +76,62 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
         }
       }
     }
-  }, [messages, handleNewNotification]);
+  }, [messages, handleNewNotification, isMobile]);
 
-  
-const unreadNotifications = notifications.filter((n) => !n.isRead);
+  const unreadNotifications = notifications.filter((n) => !n.isRead);
   const readNotifications = notifications.filter((n) => {
     if (!n.isRead) return false;
     // Filter out notifications older than 7 days - adjust here if needed
     const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  return new Date(n.createdAt) > sevenDaysAgo;
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return new Date(n.createdAt) > sevenDaysAgo;
   });
-  if (isLoading) return <p>Loading notifications...</p>;
-  if (error) return <p className="error-message">{error}</p>;
+
+  if (isLoading) {
+    return (
+      <div
+        className="notification-container"
+        style={{ gridTemplateColumns: '1fr' }}
+      >
+        <div className="notifications-section">
+          <h2 className="notifications-title">Carregando notificações...</h2>
+          <div className="notifications-list">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="notification-card"
+                style={{ opacity: 0.7 }}
+              >
+                <div
+                  className="loading-placeholder"
+                  style={{ width: '60%' }}
+                ></div>
+                <div
+                  className="loading-placeholder"
+                  style={{ width: '80%' }}
+                ></div>
+                <div
+                  className="loading-placeholder"
+                  style={{ width: '40%' }}
+                ></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="notification-container"
+        style={{ gridTemplateColumns: '1fr' }}
+      >
+        <div className="notification-error">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="notification-container">
@@ -101,7 +154,6 @@ const unreadNotifications = notifications.filter((n) => !n.isRead);
           )}
         </div>
       </div>
-
       {/* Read Notifications Section */}
       <div className="notifications-section">
         <h2 className="notifications-title">

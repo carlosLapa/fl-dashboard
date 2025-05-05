@@ -227,16 +227,13 @@
 }
 
 // User info container
-.user-info-container {
-  display: flex;
-  align-items: center;
-  
-  @include respond-to('lg') {
-    width: 100%;
-    margin-top: 0.5rem;
-    padding: 0.625rem 0;
-  }
-}
+// .user-info-container {
+//   @include respond-to('lg') {
+//     width: 100%;
+//     margin-top: 0.5rem;
+//     padding: 0.625rem 0;
+//   }
+// }
 
 // Safe area adjustments for notched phones
 @supports (padding: max(0px)) {

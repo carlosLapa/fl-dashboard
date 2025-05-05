@@ -9,12 +9,12 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './styles.scss';
 
-function NavbarFL() {
+const NavbarFL: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expanded, setExpanded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
   // Check if we're on a mobile device
   useEffect(() => {
@@ -67,6 +67,7 @@ function NavbarFL() {
         <Navbar.Toggle
           aria-controls="navbarScroll"
           className="navbar-toggler-custom"
+          aria-label="Toggle navigation menu"
         />
 
         <Navbar.Collapse id="navbarScroll" className="navbar-collapse-custom">
@@ -77,7 +78,7 @@ function NavbarFL() {
                   type="search"
                   placeholder="Search"
                   className="search-textarea"
-                  aria-label="Search"
+                  aria-label="Search input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -113,10 +114,7 @@ function NavbarFL() {
                 Portfolio
               </a>
               {user && (
-                <div
-                  className="user-info-container"
-                  onClick={handleNavLinkClick}
-                >
+                <div onClick={handleNavLinkClick}>
                   <UserInfo />
                 </div>
               )}
@@ -126,6 +124,6 @@ function NavbarFL() {
       </Container>
     </Navbar>
   );
-}
+};
 
 export default NavbarFL;
