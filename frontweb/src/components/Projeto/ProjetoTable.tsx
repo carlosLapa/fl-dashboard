@@ -1,13 +1,15 @@
 import React from 'react';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
-import { Pagination, Table } from 'react-bootstrap';
+import { Pagination, Table, Form, Button, Row, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
   faTrashAlt,
   faEye,
   faInfoCircle,
+  faFilter,
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -23,13 +25,46 @@ interface ProjetoTableProps {
   totalPages: number;
   statusFilter: string;
   onStatusFilterChange: (status: string) => void;
-}const ProjetoTable: React.FC<ProjetoTableProps> = ({
+  // Date filter props
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+  // Text filter props
+  designacaoFilter: string;
+  entidadeFilter: string;
+  prioridadeFilter: string;
+  onDesignacaoFilterChange: (value: string) => void;
+  onEntidadeFilterChange: (value: string) => void;
+  onPrioridadeFilterChange: (value: string) => void;
+  // Filter actions
+  onApplyFilters: () => void;
+  onClearFilters: () => void;
+  isLoading?: boolean;
+}
+
+const ProjetoTable: React.FC<ProjetoTableProps> = ({
   projetos,
   onEditProjeto,
   onDeleteProjeto,
   page,
   onPageChange,
   totalPages,
+  statusFilter,
+  onStatusFilterChange,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  designacaoFilter,
+  entidadeFilter,
+  prioridadeFilter,
+  onDesignacaoFilterChange,
+  onEntidadeFilterChange,
+  onPrioridadeFilterChange,
+  onApplyFilters,
+  onClearFilters,
+  isLoading,
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -44,8 +79,117 @@ interface ProjetoTableProps {
     return users.map((user) => user.name).join(', ');
   };
 
+  if (isLoading) {
+    return <div className="text-center">Carregando projetos...</div>;
+  }
+
   return (
     <div className="projeto-container">
+      {/* Enhanced Filter Section */}
+      <div className="filter-container mb-4 p-3 border rounded bg-light">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="mb-0">
+            <FontAwesomeIcon icon={faFilter} className="me-2" />
+            Filtros
+          </h5>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={onClearFilters}
+            className="clear-filters-btn"
+          >
+            <FontAwesomeIcon icon={faTimes} className="me-1" />
+            Limpar Filtros
+          </Button>
+        </div>
+
+        <Row className="g-3">
+          {/* Text Filters */}
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Designação</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Filtrar por designação"
+                value={designacaoFilter}
+                onChange={(e) => onDesignacaoFilterChange(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Entidade</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Filtrar por entidade"
+                value={entidadeFilter}
+                onChange={(e) => onEntidadeFilterChange(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Prioridade</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Filtrar por prioridade"
+                value={prioridadeFilter}
+                onChange={(e) => onPrioridadeFilterChange(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+
+          {/* Date Filters */}
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Data Inicial</Form.Label>
+              <Form.Control
+                type="date"
+                value={startDate}
+                onChange={(e) => onStartDateChange(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Data Final</Form.Label>
+              <Form.Control
+                type="date"
+                value={endDate}
+                onChange={(e) => onEndDateChange(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+
+          {/* Status Filter */}
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Status</Form.Label>
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => onStatusFilterChange(e.target.value)}
+              >
+                <option value="ALL">Todos</option>
+                <option value="ATIVO">Ativo</option>
+                <option value="EM_PROGRESSO">Em Progresso</option>
+                <option value="CONCLUIDO">Concluído</option>
+                <option value="SUSPENSO">Suspenso</option>
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+
+        <div className="d-flex justify-content-end mt-3">
+          <Button
+            variant="primary"
+            onClick={onApplyFilters}
+            className="apply-filters-btn"
+          >
+            Aplicar Filtros
+          </Button>
+        </div>
+      </div>
+
       {projetos.length > 0 ? (
         <Table striped bordered hover>
           <thead>
@@ -140,28 +284,31 @@ interface ProjetoTableProps {
       ) : (
         <p>Não foram encontrados projetos.</p>
       )}
-      <div className="d-flex justify-content-center mt-3">
-        <Pagination>
-          <Pagination.Prev 
-            onClick={() => onPageChange(page - 1)}
-            disabled={page === 0}
-          />
-          {[...Array(totalPages)].map((_, idx) => (
-            <Pagination.Item
-              key={idx}
-              active={idx === page}
-              onClick={() => onPageChange(idx)}
-            >
-              {idx + 1}
-            </Pagination.Item>
-          ))}
-          <Pagination.Next 
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages - 1}
-          />
-        </Pagination>
-      </div>
+      {totalPages > 0 && (
+        <div className="d-flex justify-content-center mt-3">
+          <Pagination>
+            <Pagination.Prev
+              onClick={() => onPageChange(page - 1)}
+              disabled={page === 0}
+            />
+            {[...Array(totalPages)].map((_, idx) => (
+              <Pagination.Item
+                key={idx}
+                active={idx === page}
+                onClick={() => onPageChange(idx)}
+              >
+                {idx + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              onClick={() => onPageChange(page + 1)}
+              disabled={page >= totalPages - 1}
+            />
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };
+
 export default ProjetoTable;

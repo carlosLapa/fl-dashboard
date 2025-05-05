@@ -234,4 +234,32 @@ public class ProjetoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Page<ProjetoWithUsersDTO> filterProjetos(
+            String designacao,
+            String entidade,
+            String prioridade,
+            Date startDate,
+            Date endDate,
+            String status,
+            Pageable pageable) {
+
+        // If endDate is provided, add one day to make the range inclusive
+        Date adjustedEndDate = null;
+        if (endDate != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(endDate);
+            calendar.add(Calendar.DATE, 1);
+            adjustedEndDate = calendar.getTime();
+        }
+
+        // Only pass status if it's not "ALL"
+        String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
+
+        Page<Projeto> result = projetoRepository.findByFilters(
+                designacao, entidade, prioridade, startDate, adjustedEndDate, statusFilter, pageable);
+
+        return result.map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()));
+    }
+
 }

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,5 +48,31 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
     @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL")
     List<Projeto> findAllActive();
+
+    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL " +
+            "AND (:startDate IS NULL OR p.prazo >= :startDate) " +
+            "AND (:endDate IS NULL OR p.prazo <= :endDate)")
+    Page<Projeto> findByPrazoRange(
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate,
+            Pageable pageable);
+
+    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL " +
+            "AND (:designacao IS NULL OR LOWER(p.designacao) LIKE LOWER(CONCAT('%', :designacao, '%'))) " +
+            "AND (:entidade IS NULL OR LOWER(p.entidade) LIKE LOWER(CONCAT('%', :entidade, '%'))) " +
+            "AND (:prioridade IS NULL OR LOWER(p.prioridade) LIKE LOWER(CONCAT('%', :prioridade, '%'))) " +
+            "AND (:startDate IS NULL OR p.prazo >= :startDate) " +
+            "AND (:endDate IS NULL OR p.prazo <= :endDate) " +
+            "AND (:status IS NULL OR p.status = :status)")
+    Page<Projeto> findByFilters(
+            @Param("designacao") String designacao,
+            @Param("entidade") String entidade,
+            @Param("prioridade") String prioridade,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate,
+            @Param("status") String status,
+            Pageable pageable);
 
 }

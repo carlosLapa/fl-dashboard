@@ -172,6 +172,71 @@ export const getTarefaWithUsersAndProjetoAPI = async (
   }
 };
 
+export const getProjetosByDateRangeAPI = async (
+  startDate: string,
+  endDate: string,
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedProjetos> => {
+  try {
+    let url = `/projetos/date-range?page=${page}&size=${size}`;
+    if (startDate) {
+      url += `&startDate=${startDate}`;
+    }
+    if (endDate) {
+      url += `&endDate=${endDate}`;
+    }
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projetos by date range:', error);
+    throw error;
+  }
+};
+
+export const getProjetosWithFiltersAPI = async (
+  filters: {
+    designacao?: string;
+    entidade?: string;
+    prioridade?: string;
+    startDate?: string;
+    endDate?: string;
+    status?: string;
+  },
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedProjetos> => {
+  try {
+    let url = `/projetos/filter?page=${page}&size=${size}`;
+
+    // Add all filters to the URL
+    if (filters.designacao) {
+      url += `&designacao=${encodeURIComponent(filters.designacao)}`;
+    }
+    if (filters.entidade) {
+      url += `&entidade=${encodeURIComponent(filters.entidade)}`;
+    }
+    if (filters.prioridade) {
+      url += `&prioridade=${encodeURIComponent(filters.prioridade)}`;
+    }
+    if (filters.startDate) {
+      url += `&startDate=${filters.startDate}`;
+    }
+    if (filters.endDate) {
+      url += `&endDate=${filters.endDate}`;
+    }
+    if (filters.status && filters.status !== 'ALL') {
+      url += `&status=${filters.status}`;
+    }
+
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projetos with filters:', error);
+    throw error;
+  }
+};
+
 export const getTarefaWithUsersAPI = async (
   tarefaId: number
 ): Promise<TarefaWithUsersDTO> => {

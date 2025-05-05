@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { getProjetos } from '../../services/projetoService';
+import {
+  getProjetos,
+  getProjetosWithFilters,
+} from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
@@ -13,7 +16,9 @@ import {
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import { useNotification } from 'NotificationContext';
 import { useAuth } from '../../AuthContext';
+import { toast } from 'react-toastify';
 import './styles.css';
+
 const ProjetosPage: React.FC = () => {
   const { user } = useAuth();
   const [projetos, setProjetos] = useState<Projeto[]>([]);
@@ -25,34 +30,112 @@ const ProjetosPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const { sendNotification } = useNotification();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filter states
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [designacaoFilter, setDesignacaoFilter] = useState('');
+  const [entidadeFilter, setEntidadeFilter] = useState('');
+  const [prioridadeFilter, setPrioridadeFilter] = useState('');
+  const [isFiltered, setIsFiltered] = useState(false);
 
   const fetchProjetos = async () => {
-    const response = await getProjetos(page, pageSize);
-    setProjetos(response.content);
-    setTotalPages(response.totalPages);
+    setIsLoading(true);
+    try {
+      const response = await getProjetos(page, pageSize);
+      setProjetos(response.content);
+      setTotalPages(response.totalPages);
+    } catch (error) {
+      console.error('Erro ao buscar projetos:', error);
+      toast.error('Erro ao carregar projetos');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchFilteredProjetos = async () => {
+    setIsLoading(true);
+    try {
+      const filters = {
+        designacao: designacaoFilter,
+        entidade: entidadeFilter,
+        prioridade: prioridadeFilter,
+        startDate,
+        endDate,
+        status: statusFilter,
+      };
+
+      const response = await getProjetosWithFilters(filters, page, pageSize);
+      setProjetos(response.content);
+      setTotalPages(response.totalPages);
+    } catch (error) {
+      console.error('Erro ao filtrar projetos:', error);
+      toast.error('Erro ao filtrar projetos');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setPage(0);
-    const response = await searchProjetosAPI(
-      query,
-      statusFilter,
-      page,
-      pageSize
-    );
-    setProjetos(response.content);
-    setTotalPages(response.totalPages);
+    setIsLoading(true);
+    try {
+      const response = await searchProjetosAPI(
+        query,
+        statusFilter,
+        page,
+        pageSize
+      );
+      setProjetos(response.content);
+      setTotalPages(response.totalPages);
+    } catch (error) {
+      console.error('Erro ao buscar projetos:', error);
+      toast.error('Erro ao buscar projetos');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     if (searchQuery) {
       handleSearch(searchQuery);
+    } else if (isFiltered) {
+      fetchFilteredProjetos();
     } else {
       fetchProjetos();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, isFiltered]);
+
+  const handleApplyFilters = () => {
+    const hasFilters =
+      !!designacaoFilter ||
+      !!entidadeFilter ||
+      !!prioridadeFilter ||
+      !!startDate ||
+      !!endDate ||
+      statusFilter !== 'ALL';
+
+    if (!hasFilters) {
+      toast.warning('Por favor, selecione pelo menos um filtro para aplicar');
+      return;
+    }
+
+    setPage(0); // Reset to first page when applying filters
+    setIsFiltered(true);
+  };
+
+  const handleClearFilters = () => {
+    setDesignacaoFilter('');
+    setEntidadeFilter('');
+    setPrioridadeFilter('');
+    setStartDate('');
+    setEndDate('');
+    setStatusFilter('ALL');
+    setIsFiltered(false);
+  };
 
   const handleEditProjeto = (id: number) => {
     const projeto = projetos.find((p) => p.id === id);
@@ -70,9 +153,15 @@ const ProjetosPage: React.FC = () => {
   const handleDeleteProjeto = async (id: number) => {
     try {
       await deleteProjetoAPI(id);
-      await fetchProjetos();
+      if (isFiltered) {
+        await fetchFilteredProjetos();
+      } else {
+        await fetchProjetos();
+      }
+      toast.success('Projeto excluído com sucesso');
     } catch (error) {
       console.error('Error deleting project:', error);
+      toast.error('Erro ao excluir projeto');
     }
   };
 
@@ -95,6 +184,7 @@ const ProjetosPage: React.FC = () => {
             sendNotification(notification);
           });
         }, 500);
+        toast.success('Projeto atualizado com sucesso');
       } else {
         const newProjeto = await addProjetoAPI(formData);
         if (newProjeto && newProjeto.id) {
@@ -109,10 +199,19 @@ const ProjetosPage: React.FC = () => {
             createdAt: new Date().toISOString(),
           });
         }
+        toast.success('Projeto criado com sucesso');
       }
-      await fetchProjetos();
+
+      if (isFiltered) {
+        await fetchFilteredProjetos();
+      } else {
+        await fetchProjetos();
+      }
+
+      setShowModal(false);
     } catch (error) {
       console.error('Error adding/updating project:', error);
+      toast.error('Erro ao salvar projeto');
     }
   };
 
@@ -137,6 +236,19 @@ const ProjetosPage: React.FC = () => {
         totalPages={totalPages}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        designacaoFilter={designacaoFilter}
+        entidadeFilter={entidadeFilter}
+        prioridadeFilter={prioridadeFilter}
+        onDesignacaoFilterChange={setDesignacaoFilter}
+        onEntidadeFilterChange={setEntidadeFilter}
+        onPrioridadeFilterChange={setPrioridadeFilter}
+        onApplyFilters={handleApplyFilters}
+        onClearFilters={handleClearFilters}
+        isLoading={isLoading}
       />
       <ProjetoModal
         show={showModal}

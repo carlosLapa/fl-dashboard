@@ -11,11 +11,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -130,5 +132,19 @@ public class ProjetoResource {
         return ResponseEntity.ok().body(updatedProjeto);
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<Page<ProjetoWithUsersDTO>> filterProjetos(
+            @RequestParam(required = false) String designacao,
+            @RequestParam(required = false) String entidade,
+            @RequestParam(required = false) String prioridade,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
+
+        Page<ProjetoWithUsersDTO> result = projetoService.filterProjetos(
+                designacao, entidade, prioridade, startDate, endDate, status, pageable);
+        return ResponseEntity.ok().body(result);
+    }
 
 }
