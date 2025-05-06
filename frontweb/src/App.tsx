@@ -5,7 +5,7 @@ import AppRoutes from 'routes/AppRoutes';
 import { AuthProvider, useAuth } from './AuthContext';
 import { BrowserRouter } from 'react-router-dom';
 import { NotificationProvider } from 'NotificationContext';
-import NavbarFL from './components/Navbar/indexNavbarRB';
+import Layout from './components/Layout/Layout';
 import DebugInfo from 'components/DebugInfo';
 
 const AppContent: React.FC = () => {
@@ -13,13 +13,15 @@ const AppContent: React.FC = () => {
 
   return (
     <NotificationProvider userId={user?.id ?? 0}>
-      {user && <NavbarFL />}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={true}
-      />
-      <AppRoutes />
+      <Layout>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={true}
+        />
+        <AppRoutes />
+      </Layout>
+      <DebugInfo />
     </NotificationProvider>
   );
 };
@@ -29,7 +31,6 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <AppContent />
-        <DebugInfo />
       </AuthProvider>
     </BrowserRouter>
   );

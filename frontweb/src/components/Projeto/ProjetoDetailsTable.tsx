@@ -1,8 +1,9 @@
 import React from 'react';
-import { Table, Form } from 'react-bootstrap';
+import { Form, Row, Col, Card } from 'react-bootstrap';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
 import ProjetoStatusBadge from './ProjetoStatusBadge';
+import './ProjetoDetailsTable.scss';
 
 interface ProjetoDetailsTableProps {
   projeto: Projeto;
@@ -27,54 +28,86 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
   };
 
   return (
-    <Table striped bordered hover className="projeto-details-table">
-      <tbody>
-        <tr>
-          <th className="detail-label">Ano</th>
-          <td className="detail-value">{projeto.projetoAno}</td>
-        </tr>
-        <tr>
-          <th className="detail-label">Designação</th>
-          <td className="detail-value">{projeto.designacao}</td>
-        </tr>
-        <tr>
-          <th className="detail-label">Entidade</th>
-          <td className="detail-value">{projeto.entidade}</td>
-        </tr>
-        <tr>
-          <th className="detail-label">Prioridade</th>
-          <td className="detail-value">{projeto.prioridade}</td>
-        </tr>
-        <tr>
-          <th className="detail-label">Observação</th>
-          <td className="detail-value">{projeto.observacao}</td>
-        </tr>
-        <tr>
-          <th className="detail-label">Prazo</th>
-          <td className="detail-value">{formatDate(projeto.prazo)}</td>
-        </tr>
-        <tr>
-          <th className="detail-label">Status</th>
-          <td className="detail-value">
-            <Form.Select
-              value={projeto.status}
-              onChange={(e) => onStatusChange(e.target.value)}
-              className="status-select"
-            >
-              <option value="ATIVO">Ativo</option>
-              <option value="EM_PROGRESSO">Em Progresso</option>
-              <option value="CONCLUIDO">Concluído</option>
-              <option value="SUSPENSO">Suspenso</option>
-            </Form.Select>
-            <ProjetoStatusBadge status={projeto.status} />
-          </td>
-        </tr>
-        <tr>
-          <th className="detail-label">Colaboradores</th>
-          <td className="detail-value">{renderUserNames(projeto.users)}</td>
-        </tr>
-      </tbody>
-    </Table>
+    <Card className="projeto-details-card">
+      <Card.Body>
+        <Row className="mb-3">
+          <Col xs={12} md={6} className="mb-3 mb-md-0">
+            <div className="detail-item">
+              <div className="detail-label">Ano</div>
+              <div className="detail-value">{projeto.projetoAno}</div>
+            </div>
+          </Col>
+          <Col xs={12} md={6}>
+            <div className="detail-item">
+              <div className="detail-label">Designação</div>
+              <div className="detail-value">{projeto.designacao}</div>
+            </div>
+          </Col>
+        </Row>
+
+        <Row className="mb-3">
+          <Col xs={12} md={6} className="mb-3 mb-md-0">
+            <div className="detail-item">
+              <div className="detail-label">Entidade</div>
+              <div className="detail-value">{projeto.entidade}</div>
+            </div>
+          </Col>
+          <Col xs={12} md={6}>
+            <div className="detail-item">
+              <div className="detail-label">Prioridade</div>
+              <div className="detail-value">{projeto.prioridade}</div>
+            </div>
+          </Col>
+        </Row>
+
+        <Row className="mb-3">
+          <Col xs={12}>
+            <div className="detail-item">
+              <div className="detail-label">Observação</div>
+              <div className="detail-value">{projeto.observacao}</div>
+            </div>
+          </Col>
+        </Row>
+
+        <Row className="mb-3">
+          <Col xs={12} md={6} className="mb-3 mb-md-0">
+            <div className="detail-item">
+              <div className="detail-label">Prazo</div>
+              <div className="detail-value">{formatDate(projeto.prazo)}</div>
+            </div>
+          </Col>
+          <Col xs={12} md={6}>
+            <div className="detail-item">
+              <div className="detail-label">Status</div>
+              <div className="detail-value status-container">
+                <Form.Select
+                  value={projeto.status}
+                  onChange={(e) => onStatusChange(e.target.value)}
+                  className="status-select me-2"
+                >
+                  <option value="ATIVO">Ativo</option>
+                  <option value="EM_PROGRESSO">Em Progresso</option>
+                  <option value="CONCLUIDO">Concluído</option>
+                  <option value="SUSPENSO">Suspenso</option>
+                </Form.Select>
+                <ProjetoStatusBadge status={projeto.status} />
+              </div>
+            </div>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col xs={12}>
+            <div className="detail-item">
+              <div className="detail-label">Colaboradores</div>
+              <div className="detail-value">
+                {renderUserNames(projeto.users)}
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Card.Body>
+    </Card>
   );
 };
 

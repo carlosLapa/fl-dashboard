@@ -1,0 +1,30 @@
+@import '../../assets/styles/breakpoints.scss';
+
+.notifications-page {
+  padding: 15px;
+  width: 100%;
+
+  @include respond-from('md') {
+    padding: 20px;
+  }
+}
+
+.notifications-title {
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+
+  @include respond-to('sm') {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  @include respond-from('md') {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @include respond-from('lg') {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+}

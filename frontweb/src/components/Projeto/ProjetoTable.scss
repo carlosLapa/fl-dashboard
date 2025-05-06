@@ -1,0 +1,74 @@
+.projeto-container {
+  width: 100%;
+  overflow-x: auto; // Add horizontal scrolling if needed
+  padding-left: 0; // Reset any padding that might be causing issues
+
+  // Add responsive adjustments for sidebar
+  @media (min-width: 992px) {
+    // Ensure content doesn't get hidden behind sidebar
+    width: 100%;
+  }
+}
+
+// Action icons styling
+.action-icons {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 10px; // Add gap between icons
+
+  .edit-icon {
+    cursor: pointer;
+    color: #007bff;
+    padding: 2px; // Add padding for better touch target
+    &:hover {
+      color: #0056b3;
+    }
+  }
+
+  .delete-icon {
+    cursor: pointer;
+    color: #dc3545;
+    padding: 2px; // Add padding for better touch target
+    &:hover {
+      color: #c82333;
+    }
+  }
+
+  .view-icon,
+  .info-icon {
+    color: #17a2b8;
+    cursor: pointer;
+    padding: 2px; // Add padding for better touch target
+    &:hover {
+      color: #138496;
+    }
+  }
+}
+
+// Filter section styling
+.filter-container {
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .action-icons {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start; // Align to start on mobile
+  }
+
+  .table-responsive {
+    font-size: 0.9rem;
+  }
+}
+
+// Add this to ensure tables are fully visible
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

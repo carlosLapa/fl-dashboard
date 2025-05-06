@@ -5,7 +5,7 @@ import {
   getProjetosWithFilters,
 } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
-import { Button } from 'react-bootstrap';
+import { Button, Container, Row, Col } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
 import {
   addProjetoAPI,
@@ -17,7 +17,9 @@ import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import { useNotification } from 'NotificationContext';
 import { useAuth } from '../../AuthContext';
 import { toast } from 'react-toastify';
-import './styles.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import './ProjetosPage.scss';
 
 const ProjetosPage: React.FC = () => {
   const { user } = useAuth();
@@ -65,7 +67,6 @@ const ProjetosPage: React.FC = () => {
         endDate,
         status: statusFilter,
       };
-
       const response = await getProjetosWithFilters(filters, page, pageSize);
       setProjetos(response.content);
       setTotalPages(response.totalPages);
@@ -117,12 +118,10 @@ const ProjetosPage: React.FC = () => {
       !!startDate ||
       !!endDate ||
       statusFilter !== 'ALL';
-
     if (!hasFilters) {
       toast.warning('Por favor, selecione pelo menos um filtro para aplicar');
       return;
     }
-
     setPage(0); // Reset to first page when applying filters
     setIsFiltered(true);
   };
@@ -201,13 +200,11 @@ const ProjetosPage: React.FC = () => {
         }
         toast.success('Projeto criado com sucesso');
       }
-
       if (isFiltered) {
         await fetchFilteredProjetos();
       } else {
         await fetchProjetos();
       }
-
       setShowModal(false);
     } catch (error) {
       console.error('Error adding/updating project:', error);
@@ -216,40 +213,49 @@ const ProjetosPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container">
-      <h2 className="text-center mb-4">Projetos</h2>
-      <div className="d-flex justify-content-end mb-4">
-        <Button
-          variant="primary"
-          onClick={handleAddNewProjeto}
-          className="add-project-btn"
-        >
-          Adicionar Projeto
-        </Button>
-      </div>
-      <ProjetoTable
-        projetos={projetos}
-        onEditProjeto={handleEditProjeto}
-        onDeleteProjeto={handleDeleteProjeto}
-        page={page}
-        onPageChange={setPage}
-        totalPages={totalPages}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        designacaoFilter={designacaoFilter}
-        entidadeFilter={entidadeFilter}
-        prioridadeFilter={prioridadeFilter}
-        onDesignacaoFilterChange={setDesignacaoFilter}
-        onEntidadeFilterChange={setEntidadeFilter}
-        onPrioridadeFilterChange={setPrioridadeFilter}
-        onApplyFilters={handleApplyFilters}
-        onClearFilters={handleClearFilters}
-        isLoading={isLoading}
-      />
+    <Container fluid className="projeto-page py-3">
+      <Row className="mb-4 align-items-center">
+        <Col>
+          <h2 className="page-title">Gestão de Projetos</h2>
+        </Col>
+        <Col xs="auto">
+          <Button
+            variant="primary"
+            onClick={handleAddNewProjeto}
+            className="create-button"
+          >
+            <FontAwesomeIcon icon={faPlus} className="me-2" />
+            Adicionar Projeto
+          </Button>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <ProjetoTable
+            projetos={projetos}
+            onEditProjeto={handleEditProjeto}
+            onDeleteProjeto={handleDeleteProjeto}
+            page={page}
+            onPageChange={setPage}
+            totalPages={totalPages}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            designacaoFilter={designacaoFilter}
+            entidadeFilter={entidadeFilter}
+            prioridadeFilter={prioridadeFilter}
+            onDesignacaoFilterChange={setDesignacaoFilter}
+            onEntidadeFilterChange={setEntidadeFilter}
+            onPrioridadeFilterChange={setPrioridadeFilter}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            isLoading={isLoading}
+          />
+        </Col>
+      </Row>
       <ProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}
@@ -257,7 +263,7 @@ const ProjetosPage: React.FC = () => {
         onSave={handleAddOrUpdateProjeto}
         isEditing={!!projetoToEdit}
       />
-    </div>
+    </Container>
   );
 };
 

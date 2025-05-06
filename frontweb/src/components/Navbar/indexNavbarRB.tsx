@@ -9,7 +9,12 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './styles.scss';
 
-const NavbarFL: React.FC = () => {
+// Make sure this interface includes onMenuClick
+interface NavbarProps {
+  onMenuClick: () => void;
+}
+
+const NavbarFL: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -21,13 +26,10 @@ const NavbarFL: React.FC = () => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 992);
     };
-
     // Initial check
     checkIfMobile();
-
     // Add event listener for window resize
     window.addEventListener('resize', checkIfMobile);
-
     // Cleanup
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
@@ -60,16 +62,25 @@ const NavbarFL: React.FC = () => {
       onToggle={setExpanded}
     >
       <Container fluid className="navbar-container">
+        {/* Only show menu toggle on mobile */}
+        {isMobile && (
+          <Button
+            variant="outline-light"
+            className="menu-toggle-btn me-2"
+            onClick={onMenuClick}
+            aria-label="Toggle sidebar menu"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </Button>
+        )}
         <Navbar.Brand href="#" className="text-light brand-container">
           <h3 className="fl-brand">Ferreira Lapa</h3>
         </Navbar.Brand>
-
         <Navbar.Toggle
           aria-controls="navbarScroll"
           className="navbar-toggler-custom"
           aria-label="Toggle navigation menu"
         />
-
         <Navbar.Collapse id="navbarScroll" className="navbar-collapse-custom">
           <div className="search-container">
             <Form className="search-form" onSubmit={handleSearch}>
@@ -92,7 +103,6 @@ const NavbarFL: React.FC = () => {
               </div>
             </Form>
           </div>
-
           <Nav className="nav-links-container" navbarScroll>
             <div className="nav-item-container">
               <a

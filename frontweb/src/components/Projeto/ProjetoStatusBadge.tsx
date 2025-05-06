@@ -6,34 +6,31 @@ interface ProjetoStatusBadgeProps {
 }
 
 const ProjetoStatusBadge: React.FC<ProjetoStatusBadgeProps> = ({ status }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ATIVO':
-        return 'primary';
-      case 'EM_PROGRESSO':
-        return 'warning';
-      case 'CONCLUIDO':
-        return 'success';
-      case 'SUSPENSO':
-        return 'danger';
-      default:
-        return 'secondary';
-    }
-  };
+  let variant = 'secondary';
+  let displayText = status;
 
-  const formatStatus = (status: string) => {
-    const formattedStatus =
-      {
-        ATIVO: 'Ativo',
-        EM_PROGRESSO: 'Em Progresso',
-        CONCLUIDO: 'Concluído',
-        SUSPENSO: 'Suspenso',
-      }[status] || status;
+  switch (status) {
+    case 'ATIVO':
+      variant = 'success';
+      displayText = 'Ativo';
+      break;
+    case 'EM_PROGRESSO':
+      variant = 'primary';
+      displayText = 'Em Progresso';
+      break;
+    case 'CONCLUIDO':
+      variant = 'info';
+      displayText = 'Concluído';
+      break;
+    case 'SUSPENSO':
+      variant = 'warning';
+      displayText = 'Suspenso';
+      break;
+    default:
+      displayText = status;
+  }
 
-    return formattedStatus;
-  };
-
-  return <Badge bg={getStatusColor(status)}>{formatStatus(status)}</Badge>;
+  return <Badge bg={variant}>{displayText}</Badge>;
 };
 
 export default ProjetoStatusBadge;

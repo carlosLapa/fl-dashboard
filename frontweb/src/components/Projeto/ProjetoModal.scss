@@ -1,0 +1,56 @@
+.modal-content {
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  border-bottom: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+}
+
+.modal-title {
+  color: #495057;
+  font-weight: 600;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.basic-multi-select {
+  width: 100%;
+}
+
+// Custom styling for react-select
+.select {
+  &__control {
+    border-color: #ced4da !important;
+    box-shadow: none !important;
+
+    &:hover {
+      border-color: #adb5bd !important;
+    }
+
+    &--is-focused {
+      border-color: #86b7fe !important;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+  }
+
+  &__menu {
+    z-index: 1000 !important;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .modal-body {
+    padding: 1rem;
+  }
+}

@@ -1,4 +1,19 @@
 /* Botão a rever - criar um componente de botões*/
+.projeto-page {
+  padding: 1.5rem;
+
+  .page-title {
+    color: #343a40;
+    font-weight: 600;
+  }
+
+  .create-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
 .page-container {
   margin-top: 1%;
   margin-left: 2%;

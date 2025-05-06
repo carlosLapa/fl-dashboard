@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from 'react-bootstrap';
+import {
+  Button,
+  Container,
+  Row,
+  Col,
+  Spinner,
+  Alert,
+  Card,
+} from 'react-bootstrap';
 import {
   getProjetoWithUsersAndTarefasAPI,
   updateProjetoStatusAPI,
@@ -11,39 +19,47 @@ import ProjetoTarefasTable from 'components/Projeto/ProjetoTarefasTable';
 import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
 import { useNotification } from 'NotificationContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 const ProjetoDetailsPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
   const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { sendNotification } = useNotification();
 
   const fetchProjeto = async () => {
     if (projetoId) {
+      setIsLoading(true);
       try {
         const fetchedProjeto = await getProjetoWithUsersAndTarefasAPI(
           Number(projetoId)
         );
         setProjeto(fetchedProjeto);
+        setError(null);
       } catch (error) {
         console.error('Error fetching projeto details:', error);
+        setError('Erro ao carregar detalhes do projeto');
         toast.error('Erro ao carregar detalhes do projeto');
+      } finally {
+        setIsLoading(false);
       }
     }
   };
 
   useEffect(() => {
     fetchProjeto();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projetoId]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (projetoId && projeto) {
       try {
         await updateProjetoStatusAPI(Number(projetoId), newStatus);
-
         projeto.users.forEach((user) => {
           const notification = {
             type: NotificationType.PROJETO_ATUALIZADO,
@@ -57,7 +73,6 @@ const ProjetoDetailsPage: React.FC = () => {
           };
           sendNotification(notification);
         });
-
         await fetchProjeto();
         toast.success('Status do projeto atualizado com sucesso!');
       } catch (error) {
@@ -71,23 +86,75 @@ const ProjetoDetailsPage: React.FC = () => {
     navigate('/projetos');
   };
 
+  if (isLoading) {
+    return (
+      <Container
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: '200px' }}
+      >
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="py-4">
+        <Alert variant="danger">{error}</Alert>
+        <Button variant="primary" onClick={handleGoBack}>
+          Voltar para Lista de Projetos
+        </Button>
+      </Container>
+    );
+  }
+
   if (!projeto) {
-    return <div>Loading...</div>;
+    return (
+      <Container className="py-4">
+        <Alert variant="warning">Projeto não encontrado</Alert>
+        <Button variant="primary" onClick={handleGoBack}>
+          Voltar para Lista de Projetos
+        </Button>
+      </Container>
+    );
   }
 
   return (
-    <div className="projeto-details-container">
-      <h2>Detalhes do Projeto</h2>
-      <ProjetoDetailsTable
-        projeto={projeto}
-        onStatusChange={handleStatusChange}
-      />
-      <h3>Tarefas Associadas</h3>
-      <ProjetoTarefasTable tarefas={projeto.tarefas} />
-      <Button variant="primary" onClick={handleGoBack}>
-         Voltar para Lista de Projetos
-      </Button>
-    </div>
+    <Container fluid className="py-3">
+      <Row className="mb-4">
+        <Col>
+          <Button
+            variant="outline-secondary"
+            onClick={handleGoBack}
+            className="mb-3"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+            Voltar para Lista de Projetos
+          </Button>
+          <h2 className="page-title">Detalhes do Projeto</h2>
+        </Col>
+      </Row>
+      <Row className="mb-4">
+        <Col>
+          <ProjetoDetailsTable
+            projeto={projeto}
+            onStatusChange={handleStatusChange}
+          />
+        </Col>
+      </Row>
+      <Row className="mb-4">
+        <Col>
+          <Card>
+            <Card.Header as="h5">Tarefas Associadas</Card.Header>
+            <Card.Body>
+              <ProjetoTarefasTable tarefas={projeto.tarefas} />
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
