@@ -1,0 +1,56 @@
+@import '../../assets/styles/breakpoints.scss';
+
+// User component styles
+.user-container {
+  margin-left: 7%;
+  min-width: 100%;
+}
+
+// Action icons
+.view-tasks-icon,
+.view-notifications-icon {
+  cursor: pointer;
+  color: #28a745;
+
+  &:hover {
+    color: #218838;
+  }
+}
+
+.edit-icon {
+  cursor: pointer;
+  color: #007bff;
+
+  &:hover {
+    color: #0056b3;
+  }
+}
+
+.delete-icon {
+  cursor: pointer;
+  color: #dc3545;
+
+  &:hover {
+    color: #c82333;
+  }
+}
+
+// User table styles
+.user-table {
+  th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+// Profile image in table
+.profile-image {
+  max-width: 90px;
+  max-height: 90px;
+  object-fit: cover;
+  border-radius: 4px;
+}

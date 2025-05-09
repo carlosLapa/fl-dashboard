@@ -5,13 +5,12 @@ import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import { getTarefasWithUsersAndProjetoByUser } from 'api/requestsApi';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
-
-import './styles.css';
+import './styles.scss';
 
 const UserCalendarPage: React.FC = () => {
-  const [userTarefas, setUserTarefas] = useState<
-    TarefaWithUserAndProjetoDTO[]
-  >([]);
+  const [userTarefas, setUserTarefas] = useState<TarefaWithUserAndProjetoDTO[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
   // Verifica se poderá ser necessário ainda
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,18 +43,20 @@ const UserCalendarPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="loading-container">Loading...</div>;
   }
 
   return (
     <div className="my-calendar-container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="my-calendar-text-title">O Meu Calendário</h2>
+      <div className="d-flex justify-content-start align-items-center mb-3">
+        <h2 className="my-calendar-text-title me-auto">O Meu Calendário</h2>
         <Button variant="primary" onClick={handleGoBack}>
           Ver Tabela
         </Button>
       </div>
-      <TarefasCalendar tarefas={userTarefas} />
+      <div className="calendar-wrapper">
+        <TarefasCalendar tarefas={userTarefas} />
+      </div>
     </div>
   );
 };

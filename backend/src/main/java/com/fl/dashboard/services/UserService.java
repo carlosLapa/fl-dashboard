@@ -7,9 +7,11 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Role;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.RoleType;
 import com.fl.dashboard.projections.UserDetailsProjection;
 import com.fl.dashboard.repositories.NotificationRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
+import com.fl.dashboard.repositories.RoleRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
@@ -19,6 +21,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -43,23 +45,47 @@ public class UserService implements UserDetailsService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    /* No caso de paginação
-    public Page<UserDTO> findAllPaged(Pageable pageable) {
-        Page<User> users = userRepository.findAll(pageable);
-        return users.map(UserDTO::new);
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    // Helper method to assign default role
+    private void assignDefaultRole(User entity) {
+        // Use the EMPLOYEE enum value as the default role
+        String defaultRoleName = "ROLE_" + RoleType.EMPLOYEE.name();
+
+        Role defaultRole = roleRepository.findByAuthority(defaultRoleName)
+                .orElse(null);
+
+        // If not found with ROLE_ prefix, try without it
+        if (defaultRole == null) {
+            defaultRole = roleRepository.findByAuthority(RoleType.EMPLOYEE.name())
+                    .orElse(null);
+        }
+
+        // If still not found, create the role
+        if (defaultRole == null) {
+            defaultRole = new Role();
+            defaultRole.setAuthority(defaultRoleName);
+            defaultRole = roleRepository.save(defaultRole);
+            System.out.println("Created new role: " + defaultRoleName);
+        }
+
+        entity.addRole(defaultRole);
     }
-    */
 
     @Transactional(readOnly = true)
     public List<UserDTO> findAll() {
         List<User> list = userRepository.findAll();
-        return list.stream().map(UserDTO::new).collect(Collectors.toList());
+        return list.stream().map(UserDTO::new).toList();
     }
 
     @Transactional(readOnly = true)
     public List<UserWithProjetosDTO> findAllWithProjetos() {
         List<User> list = userRepository.findAll();
-        return list.stream().map(UserWithProjetosDTO::new).collect(Collectors.toList());
+        return list.stream().map(UserWithProjetosDTO::new).toList();
     }
 
     @Transactional(readOnly = true)
@@ -80,19 +106,27 @@ public class UserService implements UserDetailsService {
     public List<TarefaDTO> getTarefasByUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
-
         Set<Tarefa> assignedTarefas = user.getTarefas();
-
         return assignedTarefas.stream()
                 .map(TarefaDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
     public UserWithProjetosDTO insertWithProjetos(UserWithProjetosDTO userDTO, MultipartFile imageFile) {
         User entity = new User();
         copyDTOtoEntity(userDTO, entity);
+
+        // Encode password for new users
+        if (entity.getPassword() != null && !entity.getPassword().isEmpty()) {
+            entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+        }
+
         copyProjetosToEntity(userDTO, entity);
+
+        // Assign default role
+        assignDefaultRole(entity);
+
         if (imageFile != null && !imageFile.isEmpty()) {
             processImageFile(entity, imageFile);
         }
@@ -105,6 +139,14 @@ public class UserService implements UserDetailsService {
         User entity = new User();
         copyDTOtoEntity(userDTO, entity);
 
+        // Encode password for new users
+        if (entity.getPassword() != null && !entity.getPassword().isEmpty()) {
+            entity.setPassword(passwordEncoder.encode(entity.getPassword()));
+        }
+
+        // Assign default role
+        assignDefaultRole(entity);
+
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
                 entity.setProfileImage(imageFile.getBytes());
@@ -112,7 +154,6 @@ public class UserService implements UserDetailsService {
                 throw new RuntimeException("Error processing image file", e);
             }
         }
-
         entity = userRepository.save(entity);
         return new UserDTO(entity);
     }
@@ -121,17 +162,29 @@ public class UserService implements UserDetailsService {
     public UserDTO update(Long id, UserDTO userDTO, MultipartFile imageFile) {
         try {
             User entity = userRepository.getReferenceById(id);
+
+            // Store the current password
+            String currentPassword = entity.getPassword();
+
             copyDTOtoEntity(userDTO, entity);
+
+            // Handle password update
+            if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
+                // Encode the new password
+                entity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+            } else {
+                // Keep the current password if none provided
+                entity.setPassword(currentPassword);
+            }
+
             if (imageFile != null && !imageFile.isEmpty()) {
                 try {
                     entity.setProfileImage(imageFile.getBytes());
                 } catch (IOException e) {
                     throw new RuntimeException("Error processing image file", e);
                 }
-            } else {
-                // If no new image file is provided, preserve the existing profileImage
-                entity.setProfileImage(entity.getProfileImage());
             }
+
             entity = userRepository.save(entity);
             return new UserDTO(entity);
         } catch (EntityNotFoundException e) {
@@ -147,10 +200,8 @@ public class UserService implements UserDetailsService {
         try {
             // Delete all notifications for this user
             notificationRepository.deleteAllByUserId(id);
-
             // Delete all task-user associations for this user
             userRepository.deleteTaskUserAssociationsByUserId(id);
-
             // Finally delete the user
             userRepository.deleteById(id);
         } catch (DataIntegrityViolationException e) {
@@ -179,7 +230,21 @@ public class UserService implements UserDetailsService {
     public UserWithProjetosDTO updateWithProjetos(Long id, UserWithProjetosDTO userDTO, MultipartFile imageFile) {
         try {
             User entity = userRepository.getReferenceById(id);
+
+            // Store the current password
+            String currentPassword = entity.getPassword();
+
             copyDTOtoEntity(userDTO, entity);
+
+            // Handle password update
+            if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
+                // Encode the new password
+                entity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+            } else {
+                // Keep the current password if none provided
+                entity.setPassword(currentPassword);
+            }
+
             copyProjetosToEntity(userDTO, entity);
             if (imageFile != null && !imageFile.isEmpty()) {
                 processImageFile(entity, imageFile);
@@ -202,22 +267,6 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    /*
-    public void uploadUserImage(Long userId, MultipartFile imageFile) throws IOException {
-        validateImage(imageFile);
-
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setProfileImage(imageFile.getBytes());
-            userRepository.save(user);
-        } else {
-            throw new ResourceNotFoundException("Utilizador com o id: " + userId + " não encontrado");
-        }
-    }
-    */
-
-    // Posteriormente, colocar um pré-alerta, no FRONTEND, caso o ficheiro carregado - mas antes de mandar persistir - exceda o tamanho máximo
     private void validateImage(MultipartFile imageFile) {
         if (!ALLOWED_CONTENT_TYPES.contains(imageFile.getContentType())) {
             throw new IllegalArgumentException("Ficheiro inválido. São permitidos JPEG e PNG");
@@ -239,7 +288,6 @@ public class UserService implements UserDetailsService {
         for (UserDetailsProjection projection : result) {
             user.addRole(new Role(projection.getRoleId(), projection.getAuthority()));
         }
-
         return user;
     }
 
@@ -251,5 +299,4 @@ public class UserService implements UserDetailsService {
                 .map(UserWithProjetosDTO::new)
                 .toList();
     }
-
 }

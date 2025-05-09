@@ -13,7 +13,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from 'NotificationContext';
 import NotificationBadge from './../NotificationBox/NotificationBadge';
-import './styles.css';
+import './styles.scss';
 
 interface UserTableProps {
   users: User[];
@@ -43,118 +43,131 @@ const UserTable: React.FC<UserTableProps> = ({
   };
 
   return (
-    <div className="user-container">
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Função</th>
-            <th>Cargo</th>
-            <th>Email</th>
-            <th>Imagem de perfil</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Array.isArray(users) ? (
-            users.map((user) => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.funcao}</td>
-                <td>{user.cargo}</td>
-                <td>{user.email}</td>
-                <td>
-                  {user.profileImage ? (
-                    <img
-                      src={`data:image/jpeg;base64,${user.profileImage}`}
-                      alt={`${user.name}`}
-                      style={{
-                        maxWidth: '90px',
-                        maxHeight: '90px',
-                        marginLeft: '25%',
-                      }}
-                    />
-                  ) : (
-                    <span>Sem imagem</span>
-                  )}
-                </td>
-                <td>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`edit-tooltip-${user.id}`}>Editar</Tooltip>
-                    }
-                  >
-                    <FontAwesomeIcon
-                      icon={faPencilAlt}
-                      onClick={() => onEditUser(user.id)}
-                      className="edit-icon"
-                      style={{ marginRight: '8px' }}
-                    />
-                  </OverlayTrigger>
-
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`delete-tooltip-${user.id}`}>
-                        Eliminar
-                      </Tooltip>
-                    }
-                  >
-                    <FontAwesomeIcon
-                      icon={faTrashAlt}
-                      onClick={() => onDeleteUser(user.id)}
-                      className="delete-icon"
-                      style={{ marginRight: '8px' }}
-                    />
-                  </OverlayTrigger>
-
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`tasks-tooltip-${user.id}`}>
-                        Ver Tarefas atribuídas
-                      </Tooltip>
-                    }
-                  >
-                    <FontAwesomeIcon
-                      icon={faTasks}
-                      onClick={() => onViewTasks(user.id)}
-                      className="view-tasks-icon"
-                      style={{ marginRight: '8px' }}
-                    />
-                  </OverlayTrigger>
-
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`notifications-tooltip-${user.id}`}>
-                        Ver Notificações
-                      </Tooltip>
-                    }
-                  >
-                    <div
-                      style={{ position: 'relative', display: 'inline-block' }}
-                    >
-                      <FontAwesomeIcon
-                        icon={faBell}
-                        onClick={() => handleNavigateToNotifications(user.id)}
-                        className="view-notifications-icon"
-                      />
-                      <NotificationBadge userId={user.id} />
+    <div className="user-table-container">
+      <div className="table-responsive">
+        <Table striped bordered hover className="user-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th className="d-none d-md-table-cell">Função</th>
+              <th className="d-none d-md-table-cell">Cargo</th>
+              <th className="d-none d-lg-table-cell">Email</th>
+              <th className="d-none d-lg-table-cell">Imagem de perfil</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.isArray(users) && users.length > 0 ? (
+              users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.name}</td>
+                  <td className="d-none d-md-table-cell">{user.funcao}</td>
+                  <td className="d-none d-md-table-cell">{user.cargo}</td>
+                  <td className="d-none d-lg-table-cell">{user.email}</td>
+                  <td className="d-none d-lg-table-cell">
+                    {user.profileImage ? (
+                      <div className="profile-image-cell">
+                        <img
+                          src={`data:image/jpeg;base64,${user.profileImage}`}
+                          alt={`${user.name}`}
+                          className="profile-image"
+                          style={{
+                            maxWidth: '90px',
+                            maxHeight: '90px',
+                            marginLeft: '25%',
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <span>Sem imagem</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="action-icons">
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`edit-tooltip-${user.id}`}>
+                            Editar
+                          </Tooltip>
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faPencilAlt}
+                          onClick={() => onEditUser(user.id)}
+                          className="action-icon edit-icon"
+                          style={{ marginRight: '8px' }}
+                        />
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`delete-tooltip-${user.id}`}>
+                            Eliminar
+                          </Tooltip>
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faTrashAlt}
+                          onClick={() => onDeleteUser(user.id)}
+                          className="action-icon delete-icon"
+                          style={{ marginRight: '8px' }}
+                        />
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`tasks-tooltip-${user.id}`}>
+                            Ver Tarefas atribuídas
+                          </Tooltip>
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faTasks}
+                          onClick={() => onViewTasks(user.id)}
+                          className="action-icon view-tasks-icon"
+                          style={{ marginRight: '8px' }}
+                        />
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`notifications-tooltip-${user.id}`}>
+                            Ver Notificações
+                          </Tooltip>
+                        }
+                      >
+                        <div
+                          style={{
+                            position: 'relative',
+                            display: 'inline-block',
+                          }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faBell}
+                            onClick={() =>
+                              handleNavigateToNotifications(user.id)
+                            }
+                            className="action-icon view-notifications-icon"
+                          />
+                          <NotificationBadge userId={user.id} />
+                        </div>
+                      </OverlayTrigger>
                     </div>
-                  </OverlayTrigger>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center">
+                  Não foram encontrados Colaboradores
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={6}>Não foram encontrados Colaboradores</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
-      <div className="d-flex justify-content-center mt-3">
+            )}
+          </tbody>
+        </Table>
+      </div>
+      <div className="pagination-container">
         <Pagination>
           <Pagination.Prev
             onClick={() => onPageChange(page - 1)}
@@ -165,6 +178,7 @@ const UserTable: React.FC<UserTableProps> = ({
               key={idx}
               active={idx === page}
               onClick={() => onPageChange(idx)}
+              className="d-none d-sm-block"
             >
               {idx + 1}
             </Pagination.Item>
@@ -174,6 +188,9 @@ const UserTable: React.FC<UserTableProps> = ({
             disabled={page >= totalPages - 1}
           />
         </Pagination>
+        <div className="page-info d-block d-sm-none">
+          Página {page + 1} de {totalPages}
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,318 @@
+@import '../../assets/styles/breakpoints.scss';
+
+// UsersPage styles
+.users-page-container {
+  padding: 1rem;
+
+  @include respond-from('md') {
+    padding: 1.5rem;
+  }
+}
+
+.users-page-content {
+  width: 100%;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+
+  @include respond-from('md') {
+    font-size: 1.75rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.action-buttons-container {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+
+  @include respond-from('md') {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.add-user-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  background-color: rgb(209, 205, 205);
+  border-color: aliceblue;
+
+  @include respond-from('md') {
+    padding: 0.5rem 1.25rem;
+    font-size: 1rem;
+  }
+}
+
+// UserTable styles
+.user-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.user-table {
+  min-width: 100%;
+}
+
+.profile-image-cell {
+  text-align: center;
+}
+
+.profile-image {
+  max-width: 90px;
+  max-height: 90px;
+  object-fit: cover;
+}
+
+.action-icons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.action-icon {
+  cursor: pointer;
+  font-size: 1rem;
+
+  &.edit-icon {
+    color: #007bff;
+  }
+
+  &.delete-icon {
+    color: #dc3545;
+  }
+
+  &.view-tasks-icon,
+  &.view-notifications-icon {
+    color: #28a745;
+  }
+}
+
+.notification-icon-container {
+  position: relative;
+  display: inline-block;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+  flex-direction: column;
+
+  @include respond-from('sm') {
+    flex-direction: row;
+  }
+}
+
+.page-info {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+// UsersTarefasPage styles
+.user-tarefas-page {
+  width: 100%;
+  padding: 1rem;
+
+  @include respond-from('md') {
+    padding: 1.5rem;
+  }
+}
+
+.user-tarefas-container {
+  width: 100%;
+}
+
+.user-info-section {
+  margin-bottom: 1.5rem;
+}
+
+.user-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  @include respond-from('md') {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.user-image-container {
+  margin-bottom: 1rem;
+
+  @include respond-from('md') {
+    margin-right: 1.5rem;
+    margin-bottom: 0;
+  }
+}
+
+.user-profile-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  @include respond-from('md') {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+.user-profile-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+
+  @include respond-from('md') {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+.user-details {
+  text-align: center;
+
+  @include respond-from('md') {
+    text-align: left;
+  }
+}
+
+.user-name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+
+  @include respond-from('md') {
+    font-size: 1.5rem;
+  }
+}
+
+.user-email {
+  font-size: 0.9rem;
+  color: #666;
+
+  @include respond-from('md') {
+    font-size: 1rem;
+  }
+}
+
+.tarefas-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  @include respond-from('md') {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.tarefas-title {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+
+  @include respond-from('md') {
+    margin-bottom: 0;
+    font-size: 1.5rem;
+  }
+}
+
+.calendar-button-container {
+  margin-bottom: 1rem;
+
+  @include respond-from('md') {
+    margin-bottom: 0;
+  }
+}
+
+// UserTarefaTable styles
+.tarefa-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tarefa-table {
+  min-width: 100%;
+}
+
+// UserCalendarPage styles
+.my-calendar-container {
+  width: 100%;
+  padding: 1rem;
+  height: calc(100vh - 120px); // Adjust based on your header/navbar height
+  display: flex;
+  flex-direction: column;
+
+  @include respond-from('md') {
+    padding: 1.5rem;
+    height: calc(100vh - 140px);
+  }
+}
+
+.my-calendar-text-title {
+  font-size: 1.25rem;
+
+  @include respond-from('md') {
+    font-size: 1.5rem;
+  }
+}
+
+.calendar-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  overflow-x: auto;
+  flex: 1; // Take remaining vertical space
+  min-height: 650px; // Minimum height to show calendar properly
+
+  & > div {
+    width: 100%;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  // Target the FullCalendar component
+  .fc {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0 !important;
+    height: 100%; // Make calendar take full height of wrapper
+  }
+
+  // Target the calendar container
+  .fc-view-container {
+    margin-left: 0 !important;
+    height: 100%;
+  }
+
+  // Ensure the calendar view takes full height
+  .fc-view {
+    height: 100%;
+  }
+
+  // Loading, error, and not found states
+  .loading-container,
+  .error-container,
+  .not-found-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    width: 100%;
+    font-size: 1.25rem;
+  }
+}

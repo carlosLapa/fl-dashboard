@@ -7,8 +7,7 @@ import { User } from 'types/user';
 import Button from 'react-bootstrap/Button';
 import AddUserModal from 'components/User/AddUserModal';
 import EditUserModal from 'components/User/EditUserModal';
-
-import './styles.css';
+import './styles.scss';
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -29,6 +28,7 @@ const UsersPage: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
   const handleAddUser = () => {
@@ -72,26 +72,30 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="container my-4">
-      <h2 className="text-center mb-4">Colaboradores</h2>
-      <div className="d-flex justify-content-end mb-4">
-        <Button
-          variant="primary"
-          onClick={handleAddUser}
-          className="add-user-btn"
-        >
-          Adicionar Utilizador
-        </Button>
+    <div className="users-page-container">
+      <div className="users-page-content">
+        <h2 className="page-title">Colaboradores</h2>
+        <div className="action-buttons-container">
+          <Button
+            variant="primary"
+            onClick={handleAddUser}
+            className="add-user-btn"
+          >
+            Adicionar Utilizador
+          </Button>
+        </div>
+        <div className="table-responsive">
+          <UserTable
+            users={users}
+            onEditUser={handleEditUser}
+            onDeleteUser={handleDeleteUser}
+            onViewTasks={handleViewTasks}
+            page={page}
+            onPageChange={setPage}
+            totalPages={totalPages}
+          />
+        </div>
       </div>
-      <UserTable
-        users={users}
-        onEditUser={handleEditUser}
-        onDeleteUser={handleDeleteUser}
-        onViewTasks={handleViewTasks}
-        page={page}
-        onPageChange={setPage}
-        totalPages={totalPages}
-      />
       <AddUserModal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getUserById } from 'services/userService';
 import {
   getTarefasWithUsersAndProjetoByUser,
@@ -13,10 +13,8 @@ import {
 } from 'types/tarefa';
 import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
-import { useNavigate } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
-
-import './styles.css';
+import './styles.scss';
 
 const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +27,6 @@ const UsersTarefasPage: React.FC = () => {
   const [selectedTarefa, setSelectedTarefa] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
 
-  //Note: This function runs twice in StrictMode
   useEffect(() => {
     const fetchUserAndTarefas = async () => {
       try {
@@ -51,6 +48,7 @@ const UsersTarefasPage: React.FC = () => {
         setLoading(false);
       }
     };
+
     fetchUserAndTarefas();
   }, [userId]);
 
@@ -98,61 +96,67 @@ const UsersTarefasPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div>A carregar...</div>;
+    return <div className="loading-container">A carregar...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="error-container">Error: {error}</div>;
   }
 
   if (!user) {
-    return <div>Colaborador não encontrado</div>;
+    return (
+      <div className="not-found-container">Colaborador não encontrado</div>
+    );
   }
 
   return (
-    <>
-      <div className="users-tarefas-page-container">
-        <div className="user-info-container">
-          <div className="user-image-container">
-            {user.profileImage ? (
-              <img
-                src={`data:image/jpeg;base64,${user.profileImage}`}
-                alt={`${user.name}`}
-                className="user-profile-image"
-              />
-            ) : (
-              <div className="user-profile-placeholder">No Image</div>
-            )}
+    <div className="user-tarefas-page">
+      <div className="user-tarefas-container">
+        <div className="user-info-section">
+          <div className="user-info-container">
+            <div className="user-image-container">
+              {user.profileImage ? (
+                <img
+                  src={`data:image/jpeg;base64,${user.profileImage}`}
+                  alt={`${user.name}`}
+                  className="user-profile-image"
+                />
+              ) : (
+                <div className="user-profile-placeholder">No Image</div>
+              )}
+            </div>
+            <div className="user-details">
+              <p className="user-name">{user.name}</p>
+              <p className="user-email">{user.email}</p>
+            </div>
           </div>
-          <div className="user-details">
-            <p className="user-name">{user.name}</p>
-            <p className="user-email">{user.email}</p>
+          <div className="tarefas-header">
+            <h2 className="tarefas-title">Tarefas atribuídas</h2>
+            <div className="calendar-button-container">
+              <Button variant="primary" onClick={handleNavigateToCalendar}>
+                Ver Calendário
+              </Button>
+            </div>
           </div>
         </div>
-        <h2 className="tarefas-title">Tarefas atribuídas</h2>
-        <div className="mt-2">
-          <Button variant="primary" onClick={handleNavigateToCalendar}>
-            Ver Calendário
-          </Button>
-        </div>
-      </div>
-      <div className="tarefas-table-container">
-        <UserTarefaTable
-          tarefas={tarefas}
-          onEditTarefa={handleEditTarefa}
-          onDeleteTarefa={handleDeleteTarefa}
-        />
-        {showTarefaModal && selectedTarefa && (
-          <TarefaModal
-            show={showTarefaModal}
-            onHide={handleCloseTarefaModal}
-            tarefa={selectedTarefa}
-            onSave={handleSaveTarefa}
-            isEditing={true}
+        <div className="tarefas-table-section">
+          <UserTarefaTable
+            tarefas={tarefas}
+            onEditTarefa={handleEditTarefa}
+            onDeleteTarefa={handleDeleteTarefa}
           />
-        )}
+        </div>
       </div>
-    </>
+      {showTarefaModal && selectedTarefa && (
+        <TarefaModal
+          show={showTarefaModal}
+          onHide={handleCloseTarefaModal}
+          tarefa={selectedTarefa}
+          onSave={handleSaveTarefa}
+          isEditing={true}
+        />
+      )}
+    </div>
   );
 };
 
