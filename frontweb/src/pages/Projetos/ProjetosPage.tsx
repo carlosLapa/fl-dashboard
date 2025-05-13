@@ -33,6 +33,7 @@ const ProjetosPage: React.FC = () => {
   const { sendNotification } = useNotification();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
   // Filter states
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -226,7 +227,6 @@ const ProjetosPage: React.FC = () => {
           </Button>
         </div>
       </div>
-
       <Row className="mt-4">
         <Col>
           <div className="table-container">
@@ -256,7 +256,6 @@ const ProjetosPage: React.FC = () => {
           </div>
         </Col>
       </Row>
-
       <ProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}
