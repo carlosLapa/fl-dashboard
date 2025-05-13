@@ -16,8 +16,10 @@ import {
   Pagination,
   Form,
   Button,
+  Row,
+  Col,
 } from 'react-bootstrap';
-import './styles.css';
+import './styles.scss';
 
 interface TarefaTableProps {
   tarefas: TarefaWithUserAndProjetoDTO[];
@@ -102,11 +104,11 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
 
   return (
     <div className="tarefa-container">
-      {/* Date Filter Section */}
+      {/* Date Filter Section - Improved for responsiveness */}
       <div className="date-filter-container mb-4 p-3 border rounded bg-light">
         <h5 className="mb-3">Filtrar por Data</h5>
-        <div className="row g-3">
-          <div className="col-md-3">
+        <Row className="g-3">
+          <Col xs={12} md={3}>
             <Form.Group>
               <Form.Label>Campo de Data</Form.Label>
               <Form.Select
@@ -117,8 +119,8 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 <option value="prazoReal">Prazo Real</option>
               </Form.Select>
             </Form.Group>
-          </div>
-          <div className="col-md-3">
+          </Col>
+          <Col xs={12} md={3}>
             <Form.Group>
               <Form.Label>Data Inicial</Form.Label>
               <Form.Control
@@ -127,8 +129,8 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 onChange={(e) => onStartDateChange(e.target.value)}
               />
             </Form.Group>
-          </div>
-          <div className="col-md-3">
+          </Col>
+          <Col xs={12} md={3}>
             <Form.Group>
               <Form.Label>Data Final</Form.Label>
               <Form.Control
@@ -137,8 +139,12 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 onChange={(e) => onEndDateChange(e.target.value)}
               />
             </Form.Group>
-          </div>
-          <div className="col-md-3 d-flex align-items-end">
+          </Col>
+          <Col
+            xs={12}
+            md={3}
+            className="d-flex align-items-end date-filter-actions"
+          >
             <Button
               variant="primary"
               onClick={onApplyDateFilter}
@@ -149,104 +155,109 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
             <Button variant="outline-secondary" onClick={onClearDateFilter}>
               Limpar
             </Button>
-          </div>
-        </div>
+          </Col>
+        </Row>
       </div>
 
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            {renderSortableHeader('descricao', 'Descrição')}
-            {renderSortableHeader('status', 'Status')}
-            {renderSortableHeader(
-              'prazoEstimado',
-              'Prazo Estimado',
-              'prazo-column'
-            )}
-            {renderSortableHeader('prazoReal', 'Prazo Real', 'prazo-column')}
-            <th>Atribuição</th>
-            {renderSortableHeader('projeto.designacao', 'Projeto')}
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {hasTarefas ? (
-            tarefas.map((tarefa) => (
-              <tr key={tarefa.id}>
-                <td>{tarefa.descricao}</td>
-                <td>{tarefa.status}</td>
-                <td className="prazo-column">
-                  {tarefa.prazoEstimado
-                    ? new Date(tarefa.prazoEstimado).toLocaleDateString()
-                    : '-'}
-                </td>
-                <td className="prazo-column">
-                  {tarefa.prazoReal
-                    ? new Date(tarefa.prazoReal).toLocaleDateString()
-                    : '-'}
-                </td>
-                <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
-                <td>{tarefa.projeto.designacao}</td>
-                <td>
-                  <div className="d-flex justify-content-center gap-4">
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={
-                        <Tooltip id={`edit-tooltip-${tarefa.id}`}>
-                          Editar
-                        </Tooltip>
-                      }
-                    >
-                      <FontAwesomeIcon
-                        icon={faPencilAlt}
-                        onClick={() => onEditTarefa(tarefa.id)}
-                        className="action-icon"
-                      />
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={
-                        <Tooltip id={`delete-tooltip-${tarefa.id}`}>
-                          Apagar
-                        </Tooltip>
-                      }
-                    >
-                      <FontAwesomeIcon
-                        icon={faTrashAlt}
-                        onClick={() => onDeleteTarefa(tarefa.id)}
-                        className="action-icon delete-icon"
-                      />
-                    </OverlayTrigger>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={
-                        <Tooltip id={`details-tooltip-${tarefa.id}`}>
-                          Ver Detalhes
-                        </Tooltip>
-                      }
-                    >
-                      <FontAwesomeIcon
-                        icon={faInfoCircle}
-                        onClick={() => onViewDetails(tarefa.id)}
-                        className="action-icon"
-                      />
-                    </OverlayTrigger>
-                  </div>
+      <div className="table-responsive">
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              {renderSortableHeader('descricao', 'Descrição')}
+              {renderSortableHeader('status', 'Status')}
+              {renderSortableHeader(
+                'prazoEstimado',
+                'Prazo Estimado',
+                'prazo-column'
+              )}
+              {renderSortableHeader('prazoReal', 'Prazo Real', 'prazo-column')}
+              <th>Atribuição</th>
+              {renderSortableHeader('projeto.designacao', 'Projeto')}
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {hasTarefas ? (
+              tarefas.map((tarefa) => (
+                <tr key={tarefa.id}>
+                  <td>{tarefa.descricao}</td>
+                  <td>{tarefa.status}</td>
+                  <td className="prazo-column">
+                    {tarefa.prazoEstimado
+                      ? new Date(tarefa.prazoEstimado).toLocaleDateString()
+                      : '-'}
+                  </td>
+                  <td className="prazo-column">
+                    {tarefa.prazoReal
+                      ? new Date(tarefa.prazoReal).toLocaleDateString()
+                      : '-'}
+                  </td>
+                  <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
+                  <td>{tarefa.projeto.designacao}</td>
+                  <td>
+                    <div className="action-icons">
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`edit-tooltip-${tarefa.id}`}>
+                            Editar
+                          </Tooltip>
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faPencilAlt}
+                          onClick={() => onEditTarefa(tarefa.id)}
+                          className="action-icon edit-icon"
+                          style={{ marginRight: '8px' }}
+                        />
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`delete-tooltip-${tarefa.id}`}>
+                            Apagar
+                          </Tooltip>
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faTrashAlt}
+                          onClick={() => onDeleteTarefa(tarefa.id)}
+                          className="action-icon delete-icon"
+                          style={{ marginRight: '8px' }}
+                        />
+                      </OverlayTrigger>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id={`details-tooltip-${tarefa.id}`}>
+                            Ver Detalhes
+                          </Tooltip>
+                        }
+                      >
+                        <FontAwesomeIcon
+                          icon={faInfoCircle}
+                          onClick={() => onViewDetails(tarefa.id)}
+                          className="action-icon view-details-icon"
+                        />
+                      </OverlayTrigger>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="text-center">
+                  Não existem tarefas
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={7} className="text-center">
-                Não existem tarefas
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+            )}
+          </tbody>
+        </Table>
+      </div>
+
       {totalPages > 0 && (
         <div className="d-flex justify-content-center mt-3">
-          <Pagination>
+          <Pagination className="flex-wrap">
             <Pagination.Prev
               onClick={() => onPageChange(page - 1)}
               disabled={page === 0}

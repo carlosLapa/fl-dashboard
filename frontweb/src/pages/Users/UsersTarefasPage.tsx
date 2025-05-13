@@ -14,7 +14,7 @@ import {
 import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import Button from 'react-bootstrap/Button';
-import './styles.scss';
+import './userStyles.scss';
 
 const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();

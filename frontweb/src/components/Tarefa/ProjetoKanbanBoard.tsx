@@ -10,6 +10,8 @@ import {
   updateTarefaStatus,
 } from 'services/tarefaService';
 import { ColunaWithProjetoDTO } from '../../types/coluna';
+import { Spinner } from 'react-bootstrap';
+import './styles.scss';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
@@ -48,8 +50,12 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     'DONE',
   ]);
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchColumnsAndTarefas = async () => {
+      setIsLoading(true);
       try {
         const fetchedColumns = await getColumnsForProject(projeto.id);
         const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
@@ -65,6 +71,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
             updatedColumns[column.status as TarefaStatus] = [];
           }
         });
+
         for (const tarefa of projeto.tarefas) {
           try {
             const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
@@ -92,8 +99,12 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         }
 
         setColumns(updatedColumns);
+        setError(null);
       } catch (error) {
         console.error('Error fetching columns and tarefas:', error);
+        setError('Erro ao carregar dados do quadro Kanban');
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -103,7 +114,10 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
 
+    // If dropped outside a droppable area
     if (!destination) return;
+
+    // If dropped in the same position
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -113,9 +127,17 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
     const sourceColumn = columns[source.droppableId as TarefaStatus];
     const destColumn = columns[destination.droppableId as TarefaStatus];
-    const [removed] = sourceColumn.splice(source.index, 1);
-    destColumn.splice(destination.index, 0, removed);
 
+    // Remove from source column
+    const [removed] = sourceColumn.splice(source.index, 1);
+
+    // Add to destination column
+    destColumn.splice(destination.index, 0, {
+      ...removed,
+      status: destination.droppableId as TarefaStatus,
+    });
+
+    // Update state
     const newColumns = {
       ...columns,
       [source.droppableId]: sourceColumn,
@@ -124,6 +146,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
     setColumns(newColumns);
 
+    // Update in backend
     try {
       await updateTarefaStatus(
         removed.id,
@@ -131,13 +154,31 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       );
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
+      // Revert changes on error
       setColumns(columns);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: '300px' }}
+      >
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Carregando...</span>
+        </Spinner>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div className="kanban-board-container">
         {columnsOrder.map((columnId) => (
           <TarefaColumn
             key={columnId}

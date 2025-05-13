@@ -1,6 +1,9 @@
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import './styles.scss';
 
 interface TarefaCardProps {
   tarefa: KanbanTarefa;
@@ -41,7 +44,7 @@ const getPriorityStyle = (priority: string) => {
 const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
   return (
     <Draggable draggableId={tarefa.uniqueId} index={index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
@@ -52,33 +55,46 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
             margin: '0 0 8px 0',
             borderRadius: '6px',
             backgroundColor: getStatusColor(tarefa.status),
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            boxShadow: snapshot.isDragging
+              ? '0 5px 10px rgba(0,0,0,0.2)'
+              : '0 2px 4px rgba(0,0,0,0.1)',
             fontFamily: 'Roboto, sans-serif',
+            transform: snapshot.isDragging ? 'rotate(2deg)' : 'none',
+            opacity: snapshot.isDragging ? 0.9 : 1,
             ...provided.draggableProps.style,
           }}
+          className="tarefa-card-wrapper"
         >
           <h3
             style={{ fontSize: '16px', marginBottom: '8px', color: '#1F2937' }}
+            className="tarefa-title"
           >
             {tarefa.descricao}
           </h3>
 
-          <div style={{ fontSize: '14px', color: '#4B5563' }}>
+          <div
+            style={{ fontSize: '14px', color: '#4B5563' }}
+            className="tarefa-content"
+          >
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 marginBottom: '4px',
               }}
+              className="tarefa-meta"
             >
               <span style={getPriorityStyle(tarefa.prioridade)}>
                 {tarefa.prioridade}
               </span>
-              <span>Prazo: {formatDate(tarefa.prazoReal)}</span>
+              <span className="tarefa-date">
+                <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
+                Prazo: {formatDate(tarefa.prazoReal)}
+              </span>
             </div>
 
-            <div style={{ marginTop: '8px' }}>
-              <div>{tarefa.projeto.designacao}</div>
+            <div style={{ marginTop: '8px' }} className="tarefa-footer">
+              <div className="tarefa-projeto">{tarefa.projeto.designacao}</div>
               <div
                 style={{
                   fontSize: '13px',
@@ -88,8 +104,11 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                 }}
+                className="tarefa-users"
               >
-                {tarefa.users.map((user) => user.name).join(', ')}
+                {tarefa.users && tarefa.users.length > 0
+                  ? tarefa.users.map((user) => user.name).join(', ')
+                  : 'Não atribuída'}
               </div>
             </div>
           </div>

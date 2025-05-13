@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import NotificationBox from '../../components/NotificationBox/NotificationBox';
-import './styles.scss';
+import './notificationStyles.scss';
 
 const NotificationsPage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();

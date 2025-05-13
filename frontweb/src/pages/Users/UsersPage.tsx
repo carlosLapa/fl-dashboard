@@ -7,7 +7,9 @@ import { User } from 'types/user';
 import Button from 'react-bootstrap/Button';
 import AddUserModal from 'components/User/AddUserModal';
 import EditUserModal from 'components/User/EditUserModal';
-import './styles.scss';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import './userStyles.scss';
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -72,18 +74,22 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="users-page-container">
-      <div className="users-page-content">
+    <div className="page-container">
+      <div className="page-title-container">
         <h2 className="page-title">Colaboradores</h2>
-        <div className="action-buttons-container">
+        <div className="page-actions">
           <Button
             variant="primary"
             onClick={handleAddUser}
-            className="add-user-btn"
+            className="create-button"
           >
+            <FontAwesomeIcon icon={faPlus} className="me-2" />
             Adicionar Utilizador
           </Button>
         </div>
+      </div>
+
+      <div className="mt-4">
         <div className="table-responsive">
           <UserTable
             users={users}

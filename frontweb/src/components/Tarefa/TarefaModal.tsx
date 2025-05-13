@@ -1,7 +1,5 @@
-// src/components/Tarefa/TarefaModal.tsx
-
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Button } from 'react-bootstrap';
+import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
 import {
   Tarefa,
   TarefaInsertFormData,
@@ -44,24 +42,35 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     projetoId: 0,
     userIds: [],
   });
-
   const [users, setUsers] = useState<User[]>([]);
   const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchUsersAndProjetos = async () => {
-      const usersData = await getUsersAPI();
-      const projetosData = await getProjetosAPI();
-      setUsers(usersData);
-      setProjetos(projetosData.content);
+      setIsLoading(true);
+      try {
+        const usersData = await getUsersAPI();
+        const projetosData = await getProjetosAPI();
+        setUsers(usersData);
+        setProjetos(projetosData.content);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Erro ao carregar dados');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    fetchUsersAndProjetos();
-  }, []);
+    if (show) {
+      fetchUsersAndProjetos();
+    }
+  }, [show]);
 
   useEffect(() => {
     if (isEditing && tarefa) {
       setFormData({
+        id: tarefa.id,
         descricao: tarefa.descricao,
         prioridade: tarefa.prioridade,
         prazoEstimado: tarefa.prazoEstimado
@@ -85,7 +94,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         userIds: [],
       });
     }
-  }, [isEditing, tarefa]);
+  }, [isEditing, tarefa, show]);
 
   const handleInputChange = (
     event: React.ChangeEvent<
@@ -95,7 +104,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     const { name, value } = event.target;
     if (name === 'status' && isEditing && tarefa) {
       onStatusChange?.(tarefa.id, value as TarefaStatus);
-
       const notification = {
         type: NotificationType.TAREFA_STATUS_ALTERADO,
         content: `Status da tarefa "${tarefa.descricao}" alterado para ${value}`,
@@ -122,12 +130,17 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 
   const handleSave = () => {
     if (formData.projetoId === 0) {
-      alert('Please select a valid project');
+      toast.warning('Por favor, selecione um projeto válido');
       return;
     }
+
+    if (!formData.descricao.trim()) {
+      toast.warning('Por favor, forneça uma descrição para a tarefa');
+      return;
+    }
+
     if (isEditing && tarefa) {
       onSave({ ...formData, id: tarefa.id } as TarefaUpdateFormData);
-
       const notification = {
         type: NotificationType.TAREFA_STATUS_ALTERADO,
         content: `Tarefa "${formData.descricao}" foi atualizada`,
@@ -139,10 +152,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         createdAt: new Date().toISOString(),
       };
       sendNotification(notification);
-      toast.success('Tarefa atualizada com sucesso!');
     } else {
       onSave(formData as TarefaInsertFormData);
-
       formData.userIds.forEach((userId) => {
         const notification = {
           type: NotificationType.TAREFA_ATRIBUIDA,
@@ -156,117 +167,152 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         };
         sendNotification(notification);
       });
-      toast.success('Nova tarefa criada com sucesso!');
     }
     onHide();
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} size="lg">
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditing ? 'Editar Tarefa' : 'Criar Nova Tarefa'}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Form>
-          <Form.Group controlId="formDescricao">
-            <Form.Label>Descrição</Form.Label>
-            <Form.Control
-              type="text"
-              name="descricao"
-              value={formData.descricao}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
+        {isLoading ? (
+          <div className="text-center py-4">Carregando dados...</div>
+        ) : (
+          <Form>
+            <Row>
+              <Col xs={12}>
+                <Form.Group controlId="formDescricao" className="mb-3">
+                  <Form.Label>Descrição</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="descricao"
+                    value={formData.descricao}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
 
-          <Form.Group controlId="formPrioridade">
-            <Form.Label>Prioridade</Form.Label>
-            <Form.Control
-              type="text"
-              name="prioridade"
-              value={formData.prioridade}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
+            <Row>
+              <Col xs={12} md={6}>
+                <Form.Group controlId="formPrioridade" className="mb-3">
+                  <Form.Label>Prioridade</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="prioridade"
+                    value={formData.prioridade}
+                    onChange={handleInputChange}
+                    placeholder="Alta, Média, Baixa"
+                  />
+                </Form.Group>
+              </Col>
+              <Col xs={12} md={6}>
+                <Form.Group controlId="formStatus" className="mb-3">
+                  <Form.Label>Status</Form.Label>
+                  <Form.Select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                  >
+                    <option value="BACKLOG">Backlog</option>
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="IN_REVIEW">In Review</option>
+                    <option value="DONE">Done</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
 
-          <Form.Group controlId="formStatus">
-            <Form.Label>Status</Form.Label>
-            <Form.Control
-              as="select"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-            >
-              <option value="BACKLOG">Backlog</option>
-              <option value="TODO">To Do</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="IN_REVIEW">In Review</option>
-              <option value="DONE">Done</option>
-            </Form.Control>
-          </Form.Group>
+            <Row>
+              <Col xs={12} md={6}>
+                <Form.Group controlId="formPrazoEstimado" className="mb-3">
+                  <Form.Label>Prazo Estimado</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="prazoEstimado"
+                    value={formData.prazoEstimado}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+              </Col>
+              <Col xs={12} md={6}>
+                <Form.Group controlId="formPrazoReal" className="mb-3">
+                  <Form.Label>Prazo Real</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="prazoReal"
+                    value={formData.prazoReal}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
 
-          <Form.Group controlId="formPrazoEstimado">
-            <Form.Label>Prazo Estimado</Form.Label>
-            <Form.Control
-              type="date"
-              name="prazoEstimado"
-              value={formData.prazoEstimado}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
+            <Row>
+              <Col xs={12}>
+                <Form.Group controlId="formProjeto" className="mb-3">
+                  <Form.Label>Projeto</Form.Label>
+                  <Form.Select
+                    name="projetoId"
+                    value={formData.projetoId}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    <option value={0}>Selecione um projeto</option>
+                    {Array.isArray(projetos) &&
+                      projetos.map((projeto) => (
+                        <option key={projeto.id} value={projeto.id}>
+                          {projeto.designacao}
+                        </option>
+                      ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
 
-          <Form.Group controlId="formPrazoReal">
-            <Form.Label>Prazo Real</Form.Label>
-            <Form.Control
-              type="date"
-              name="prazoReal"
-              value={formData.prazoReal}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-
-          <Form.Group controlId="formProjeto">
-            <Form.Label>Projeto</Form.Label>
-            <Form.Control
-              as="select"
-              name="projetoId"
-              value={formData.projetoId}
-              onChange={handleInputChange}
-            >
-              <option value={0}>Selecione um projeto</option>
-              {Array.isArray(projetos) &&
-                projetos.map((projeto) => (
-                  <option key={projeto.id} value={projeto.id}>
-                    {projeto.designacao}
-                  </option>
-                ))}
-            </Form.Control>
-          </Form.Group>
-
-          <Form.Group controlId="formUsers">
-            <Form.Label>Usuários Atribuídos</Form.Label>
-            {Array.isArray(users) ? (
-              users.map((user) => (
-                <Form.Check
-                  key={user.id}
-                  type="checkbox"
-                  label={user.name}
-                  checked={formData.userIds.includes(user.id)}
-                  onChange={() => handleUserSelect(user.id)}
-                />
-              ))
-            ) : (
-              <p>Não foram encontrados Colaboradores</p>
-            )}
-          </Form.Group>
-        </Form>
+            <Row>
+              <Col xs={12}>
+                <Form.Group controlId="formUsers" className="mb-3">
+                  <Form.Label>Usuários Atribuídos</Form.Label>
+                  <div
+                    className="user-checkbox-container"
+                    style={{ maxHeight: '200px', overflowY: 'auto' }}
+                  >
+                    {Array.isArray(users) && users.length > 0 ? (
+                      <Row>
+                        {users.map((user) => (
+                          <Col xs={12} md={6} key={user.id}>
+                            <Form.Check
+                              type="checkbox"
+                              label={user.name}
+                              checked={formData.userIds.includes(user.id)}
+                              onChange={() => handleUserSelect(user.id)}
+                              className="mb-2"
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    ) : (
+                      <p>Não foram encontrados Colaboradores</p>
+                    )}
+                  </div>
+                </Form.Group>
+              </Col>
+            </Row>
+          </Form>
+        )}
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onHide}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSave}>
+        <Button variant="primary" onClick={handleSave} disabled={isLoading}>
           {isEditing ? 'Salvar Alterações' : 'Criar Tarefa'}
         </Button>
       </Modal.Footer>

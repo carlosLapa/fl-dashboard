@@ -5,7 +5,7 @@ import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import { getTarefasWithUsersAndProjetoByUser } from 'api/requestsApi';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
-import './styles.scss';
+import './userStyles.scss';
 
 const UserCalendarPage: React.FC = () => {
   const [userTarefas, setUserTarefas] = useState<TarefaWithUserAndProjetoDTO[]>(

@@ -1,23 +1,35 @@
 .prazo-column {
-  width: 150px; /* Adjust this value as needed */
+  min-width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tarefa-container {
-  /*border: 2px solid red;*/
-  margin-left: 5%;
-  min-width: 105%;
+  width: 100%;
+  overflow-x: auto;
 }
 
+/* Responsive table styles */
+@media (max-width: 992px) {
+  .tarefa-container {
+    margin-left: 0;
+    min-width: 100%;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+  }
+}
+
+/* Details card styles */
 .tarefa-details-card {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1000;
-  width: 80%;
+  width: 90%;
   max-width: 500px;
   background-color: white;
   border-radius: 8px;
@@ -50,4 +62,15 @@
 
 .delete-icon:hover {
   color: #c82333;
+}
+
+/* Date filter responsive styles */
+.date-filter-container {
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .date-filter-actions {
+    margin-top: 1rem;
+  }
 }

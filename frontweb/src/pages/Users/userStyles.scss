@@ -15,34 +15,14 @@
 
 .page-title {
   text-align: center;
+  color: #343a40;
+  font-weight: 600;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 
   @include respond-from('md') {
     font-size: 1.75rem;
     margin-bottom: 2rem;
-  }
-}
-
-.action-buttons-container {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 1rem;
-
-  @include respond-from('md') {
-    margin-bottom: 1.5rem;
-  }
-}
-
-.add-user-btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  background-color: rgb(209, 205, 205);
-  border-color: aliceblue;
-
-  @include respond-from('md') {
-    padding: 0.5rem 1.25rem;
-    font-size: 1rem;
   }
 }
 

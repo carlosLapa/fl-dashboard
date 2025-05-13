@@ -7,7 +7,6 @@ import {
   TarefaStatus,
 } from 'types/tarefa';
 import {
-  getAllTarefasWithUsersAndProjeto,
   addTarefa,
   updateTarefa,
   deleteTarefa,
@@ -16,12 +15,14 @@ import {
   getTarefasSorted, // Import the new sorting function
 } from 'services/tarefaService';
 import { useNotification } from '../../hooks/useNotification';
-import Button from 'react-bootstrap/Button';
+import { Button, Row, Col, Spinner } from 'react-bootstrap';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
 import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
 import { toast } from 'react-toastify';
-import './styles.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import './tarefaStyles.scss';
 
 const TarefaPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
@@ -43,7 +44,6 @@ const TarefaPage: React.FC = () => {
   const [endDate, setEndDate] = useState('');
   const [dateFilterField, setDateFilterField] = useState('prazoEstimado');
   const [isFiltered, setIsFiltered] = useState(false);
-
   // Sorting states
   const [sortField, setSortField] = useState<string>('id');
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
@@ -116,7 +116,6 @@ const TarefaPage: React.FC = () => {
       setSortDirection('ASC');
     }
     setPage(0); // Reset to first page when sorting changes
-
     // Clear filters when sorting
     if (isFiltered) {
       setIsFiltered(false);
@@ -144,7 +143,6 @@ const TarefaPage: React.FC = () => {
     try {
       // Pass the sendNotification function to the service
       await addTarefa(formData, sendNotification);
-
       if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
@@ -162,7 +160,6 @@ const TarefaPage: React.FC = () => {
     try {
       // Pass the sendNotification function to the service
       await updateTarefa(formData.id, formData, sendNotification);
-
       if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
@@ -225,9 +222,7 @@ const TarefaPage: React.FC = () => {
     try {
       // Find the tarefa for notification details
       const tarefa = tarefas.find((t) => t.id === tarefaId);
-
       await updateTarefaStatus(tarefaId, newStatus, sendNotification, tarefa);
-
       if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
@@ -245,61 +240,72 @@ const TarefaPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: '200px' }}
+      >
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
   }
 
   return (
-    /* Teste */
-    <div className="container my-4">
-      <h2 className="text-center mb-4">Tarefas</h2>
-      <div
-        className="d-flex align-items-center gap-2 mb-4"
-        style={{ marginLeft: '5%' }}
-      >
-        <Button
-          variant="primary"
-          onClick={() => {
-            setTarefaToEdit(null);
-            setShowModal(true);
-          }}
-          className="add-tarefa-btn"
-          style={{ whiteSpace: 'nowrap' }}
-        >
-          Adicionar Tarefa
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={toggleViewMode}
-          style={{ whiteSpace: 'nowrap' }}
-        >
-          {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
-        </Button>
+    <div className="page-container">
+      <div className="page-title-container">
+        <h2 className="page-title">Tarefas</h2>
+        <div className="page-actions">
+          <Button
+            variant="primary"
+            onClick={() => {
+              setTarefaToEdit(null);
+              setShowModal(true);
+            }}
+            className="create-button me-3" // Added Bootstrap's me-3 class for margin-right
+          >
+            <FontAwesomeIcon icon={faPlus} className="me-2" />
+            Adicionar Tarefa
+          </Button>
+          <Button variant="secondary" onClick={toggleViewMode}>
+            {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
+          </Button>
+        </div>
       </div>
-      {viewMode === 'table' ? (
-        <TarefaTable
-          tarefas={tarefas}
-          onEditTarefa={handleEditTarefa}
-          onDeleteTarefa={handleDeleteTarefa}
-          onViewDetails={handleViewDetails}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          isLoading={isLoading}
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={setStartDate}
-          onEndDateChange={setEndDate}
-          onApplyDateFilter={handleApplyDateFilter}
-          onClearDateFilter={handleClearDateFilter}
-          dateFilterField={dateFilterField}
-          onDateFilterFieldChange={setDateFilterField}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-        />
-      ) : (
-        <TarefasCalendar tarefas={tarefas} />
-      )}
+
+      <Row className="mt-4">
+        <Col xs={12}>
+          {viewMode === 'table' ? (
+            <div className="table-responsive">
+              <TarefaTable
+                tarefas={tarefas}
+                onEditTarefa={handleEditTarefa}
+                onDeleteTarefa={handleDeleteTarefa}
+                onViewDetails={handleViewDetails}
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                isLoading={isLoading}
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                onApplyDateFilter={handleApplyDateFilter}
+                onClearDateFilter={handleClearDateFilter}
+                dateFilterField={dateFilterField}
+                onDateFilterFieldChange={setDateFilterField}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              />
+            </div>
+          ) : (
+            <TarefasCalendar tarefas={tarefas} />
+          )}
+        </Col>
+      </Row>
+
       <TarefaModal
         show={showModal}
         onHide={() => {
@@ -311,6 +317,7 @@ const TarefaPage: React.FC = () => {
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />
+
       {showDetailsCard && selectedTarefa && (
         <TarefaDetailsCard
           tarefa={selectedTarefa}

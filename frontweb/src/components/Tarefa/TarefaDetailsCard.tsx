@@ -1,6 +1,9 @@
 import React from 'react';
 import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 interface TarefaDetailsCardProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -16,23 +19,50 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
       <div className="tarefa-details-card-overlay" onClick={onClose}></div>
       <div className="tarefa-details-card">
         <Card>
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">Detalhes da Tarefa</h5>
+            <Button variant="link" className="p-0" onClick={onClose}>
+              <FontAwesomeIcon icon={faTimes} />
+            </Button>
+          </Card.Header>
           <Card.Body>
             <Card.Title>{tarefa.descricao}</Card.Title>
-            <Card.Text>
-              <strong>Prazo Real:</strong>{' '}
-              {new Date(tarefa.prazoReal).toLocaleDateString()}
-            </Card.Text>
-            <Card.Text>
-              <strong>Status:</strong> {tarefa.status}
-            </Card.Text>
-            <Card.Text>
-              <strong>Projeto:</strong> {tarefa.projeto?.designacao || 'N/A'}
-            </Card.Text>
-            <Card.Text>
-              <strong>Atribuição:</strong>{' '}
-              {tarefa.users.map((user) => user.name).join(', ') || 'N/A'}
-            </Card.Text>
+            <div className="mt-3">
+              <p className="mb-2">
+                <strong>Prazo Estimado:</strong>{' '}
+                {tarefa.prazoEstimado
+                  ? new Date(tarefa.prazoEstimado).toLocaleDateString()
+                  : 'Não definido'}
+              </p>
+              <p className="mb-2">
+                <strong>Prazo Real:</strong>{' '}
+                {tarefa.prazoReal
+                  ? new Date(tarefa.prazoReal).toLocaleDateString()
+                  : 'Não definido'}
+              </p>
+              <p className="mb-2">
+                <strong>Status:</strong> {tarefa.status}
+              </p>
+              <p className="mb-2">
+                <strong>Prioridade:</strong>{' '}
+                {tarefa.prioridade || 'Não definida'}
+              </p>
+              <p className="mb-2">
+                <strong>Projeto:</strong> {tarefa.projeto?.designacao || 'N/A'}
+              </p>
+              <p className="mb-2">
+                <strong>Atribuição:</strong>{' '}
+                {tarefa.users && tarefa.users.length > 0
+                  ? tarefa.users.map((user) => user.name).join(', ')
+                  : 'Não atribuída'}
+              </p>
+            </div>
           </Card.Body>
+          <Card.Footer className="text-end">
+            <Button variant="secondary" onClick={onClose}>
+              Fechar
+            </Button>
+          </Card.Footer>
         </Card>
       </div>
     </>

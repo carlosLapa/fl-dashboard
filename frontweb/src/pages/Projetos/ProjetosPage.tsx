@@ -5,7 +5,7 @@ import {
   getProjetosWithFilters,
 } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
-import { Button, Container, Row, Col } from 'react-bootstrap';
+import { Button, Row, Col } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
 import {
   addProjetoAPI,
@@ -19,7 +19,7 @@ import { useAuth } from '../../AuthContext';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import './ProjetosPage.scss';
+import './projetosPage.scss';
 
 const ProjetosPage: React.FC = () => {
   const { user } = useAuth();
@@ -33,7 +33,6 @@ const ProjetosPage: React.FC = () => {
   const { sendNotification } = useNotification();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-
   // Filter states
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -213,12 +212,10 @@ const ProjetosPage: React.FC = () => {
   };
 
   return (
-    <Container fluid className="projeto-page py-3">
-      <Row className="mb-4 align-items-center">
-        <Col>
-          <h2 className="page-title">Gestão de Projetos</h2>
-        </Col>
-        <Col xs="auto">
+    <div className="page-container">
+      <div className="page-title-container">
+        <h2 className="page-title">Gestão de Projetos</h2>
+        <div className="page-actions">
           <Button
             variant="primary"
             onClick={handleAddNewProjeto}
@@ -227,35 +224,39 @@ const ProjetosPage: React.FC = () => {
             <FontAwesomeIcon icon={faPlus} className="me-2" />
             Adicionar Projeto
           </Button>
-        </Col>
-      </Row>
-      <Row>
+        </div>
+      </div>
+
+      <Row className="mt-4">
         <Col>
-          <ProjetoTable
-            projetos={projetos}
-            onEditProjeto={handleEditProjeto}
-            onDeleteProjeto={handleDeleteProjeto}
-            page={page}
-            onPageChange={setPage}
-            totalPages={totalPages}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            designacaoFilter={designacaoFilter}
-            entidadeFilter={entidadeFilter}
-            prioridadeFilter={prioridadeFilter}
-            onDesignacaoFilterChange={setDesignacaoFilter}
-            onEntidadeFilterChange={setEntidadeFilter}
-            onPrioridadeFilterChange={setPrioridadeFilter}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            isLoading={isLoading}
-          />
+          <div className="table-container">
+            <ProjetoTable
+              projetos={projetos}
+              onEditProjeto={handleEditProjeto}
+              onDeleteProjeto={handleDeleteProjeto}
+              page={page}
+              onPageChange={setPage}
+              totalPages={totalPages}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              designacaoFilter={designacaoFilter}
+              entidadeFilter={entidadeFilter}
+              prioridadeFilter={prioridadeFilter}
+              onDesignacaoFilterChange={setDesignacaoFilter}
+              onEntidadeFilterChange={setEntidadeFilter}
+              onPrioridadeFilterChange={setPrioridadeFilter}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              isLoading={isLoading}
+            />
+          </div>
         </Col>
       </Row>
+
       <ProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}
@@ -263,7 +264,7 @@ const ProjetosPage: React.FC = () => {
         onSave={handleAddOrUpdateProjeto}
         isEditing={!!projetoToEdit}
       />
-    </Container>
+    </div>
   );
 };
 
