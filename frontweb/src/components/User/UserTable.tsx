@@ -1,6 +1,6 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
-import { Pagination } from 'react-bootstrap';
+import { Pagination, Spinner } from 'react-bootstrap';
 import { User } from '../../types/user';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -23,6 +23,7 @@ interface UserTableProps {
   page: number;
   onPageChange: (page: number) => void;
   totalPages: number;
+  isLoading?: boolean;
 }
 
 const UserTable: React.FC<UserTableProps> = ({
@@ -33,6 +34,7 @@ const UserTable: React.FC<UserTableProps> = ({
   page,
   onPageChange,
   totalPages,
+  isLoading = false,
 }) => {
   const navigate = useNavigate();
   const { loadStoredNotifications } = useNotification();
@@ -41,6 +43,18 @@ const UserTable: React.FC<UserTableProps> = ({
     await loadStoredNotifications(userId);
     navigate(`/notifications/${userId}`);
   };
+
+  // Show spinner when loading
+  if (isLoading) {
+    return (
+      <div className="text-center p-4">
+        <Spinner animation="border" role="status">
+          <span className="visually-hidden">Carregando colaboradores...</span>
+        </Spinner>
+        <p className="mt-2">Carregando colaboradores...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="user-table-container">

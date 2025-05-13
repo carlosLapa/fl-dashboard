@@ -19,13 +19,21 @@ const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
-    const response = await getUsers(page, pageSize);
-    console.log('Users response:', response);
-    setUsers(response.content);
-    setTotalPages(response.totalPages);
+    setIsLoading(true);
+    try {
+      const response = await getUsers(page, pageSize);
+      console.log('Users response:', response);
+      setUsers(response.content);
+      setTotalPages(response.totalPages);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -99,6 +107,7 @@ const UsersPage: React.FC = () => {
             page={page}
             onPageChange={setPage}
             totalPages={totalPages}
+            isLoading={isLoading}
           />
         </div>
       </div>
