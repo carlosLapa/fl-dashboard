@@ -11,7 +11,6 @@
 .view-notifications-icon {
   cursor: pointer;
   color: #28a745;
-
   &:hover {
     color: #218838;
   }
@@ -20,7 +19,6 @@
 .edit-icon {
   cursor: pointer;
   color: #007bff;
-
   &:hover {
     color: #0056b3;
   }
@@ -29,7 +27,6 @@
 .delete-icon {
   cursor: pointer;
   color: #dc3545;
-
   &:hover {
     color: #c82333;
   }
@@ -40,8 +37,10 @@
   th {
     background-color: #f8f9fa;
     font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
-
   td {
     vertical-align: middle;
   }

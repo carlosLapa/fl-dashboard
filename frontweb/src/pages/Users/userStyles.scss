@@ -26,10 +26,29 @@
   }
 }
 
-// UserTable styles
+// Add these new styles for the table container
 .user-table-container {
   width: 100%;
   overflow-x: auto;
+  max-height: calc(100vh - 220px); /* Adjust based on your layout */
+  overflow-y: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.table-responsive {
+  min-width: 100%;
+  margin-bottom: 0;
+}
+
+/* Ensure the pagination stays at the bottom */
+.pagination-container {
+  margin-top: 1rem;
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  padding-top: 0.5rem;
+  z-index: 1;
 }
 
 .user-table {

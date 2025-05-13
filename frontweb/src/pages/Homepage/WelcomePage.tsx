@@ -11,24 +11,23 @@ const WelcomePage = () => {
   const handleHideLoginModal = () => setShowLoginModal(false);
 
   return (
-    <div className="hero-container">
-      <video autoPlay loop muted className="hero-video">
-        <source src={backgroundVideo} type="video/mp4" />
-      </video>
-
-      <div className="hero-overlay">
-        <div className="hero-content">
-          
-          <Button
-            variant="primary"
-            onClick={handleShowLoginModal}
-            className="login-button"
-          >
-            Login
-          </Button>
+    <div className="welcome-page-container">
+      <div className="hero-container">
+        <video autoPlay loop muted className="hero-video" data-video="0">
+          <source src={backgroundVideo} type="video/mp4" />
+        </video>
+        <div className="hero-overlay">
+          <div className="hero-content">
+            <Button
+              variant="primary"
+              onClick={handleShowLoginModal}
+              className="login-button"
+            >
+              Login
+            </Button>
+          </div>
         </div>
       </div>
-
       <LoginModal show={showLoginModal} onHide={handleHideLoginModal} />
     </div>
   );

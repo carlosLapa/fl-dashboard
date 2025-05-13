@@ -1,5 +1,41 @@
 @import '../../assets/styles/breakpoints.scss';
 
+// Sidebar handle - visible edge when collapsed on mobile
+.sidebar-handle {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 20px; // Increased width for better touch target
+  height: 120px; // Increased height for better touch target
+  background-color: rgba(33, 37, 41, 0.9); // Dark color matching sidebar
+  border-radius: 0 5px 5px 0;
+  z-index: 1029;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+
+  // Visual indicator inside the handle
+  .handle-indicator {
+    width: 4px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+  }
+
+  &:hover .handle-indicator {
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+
+  // Ensure handle is clickable on mobile
+  @media (pointer: coarse) {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    touch-action: manipulation;
+  }
+}
+
 .sidebar-wrapper {
   // Default styles for desktop
   position: fixed;
@@ -108,6 +144,7 @@
   // Ensure links are clickable
   pointer-events: auto;
   touch-action: manipulation; // Improve touch behavior
+  cursor: pointer; // Add cursor pointer to indicate clickable
 
   &:hover {
     text-decoration: none;

@@ -9,12 +9,13 @@ import { useAuth } from '../../AuthContext';
 import { useNavigate } from 'react-router-dom';
 import './styles.scss';
 
-// Make sure this interface includes onMenuClick
+// We can keep the onMenuClick prop for backward compatibility
+// but we won't use it anymore
 interface NavbarProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
 }
 
-const NavbarFL: React.FC<NavbarProps> = ({ onMenuClick }) => {
+const NavbarFL: React.FC<NavbarProps> = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -62,17 +63,7 @@ const NavbarFL: React.FC<NavbarProps> = ({ onMenuClick }) => {
       onToggle={setExpanded}
     >
       <Container fluid className="navbar-container">
-        {/* Only show menu toggle on mobile */}
-        {isMobile && (
-          <Button
-            variant="outline-light"
-            className="menu-toggle-btn me-2"
-            onClick={onMenuClick}
-            aria-label="Toggle sidebar menu"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </Button>
-        )}
+        {/* Removed the burger menu button */}
         <Navbar.Brand href="#" className="text-light brand-container">
           <h3 className="fl-brand">Ferreira Lapa</h3>
         </Navbar.Brand>

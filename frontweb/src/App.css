@@ -1,7 +1,42 @@
-/* Estilos globais */
+/* Global styles */
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
 
 * {
   font-family: 'Open Sans', sans-serif;
 }
 
+/* Reset margins and paddings for key elements */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure the app container takes full height */
+.app-container {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Special styles for welcome page */
+.welcome-page-active .content-wrapper,
+.welcome-page-active .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Fix for any potential overflow issues */
+.welcome-page {
+  overflow: hidden !important;
+  height: calc(100vh - 60px) !important; /* Adjust based on navbar height */
+}

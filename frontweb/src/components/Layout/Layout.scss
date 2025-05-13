@@ -2,12 +2,16 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 .content-wrapper {
   display: flex;
   flex: 1;
   position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 .main-content {
@@ -25,17 +29,31 @@
   // Mobile adjustments
   &.mobile {
     margin-left: 0;
-
     &.sidebar-open {
       // Optional: add a slight margin on mobile when sidebar is open
       // margin-left: 0;
     }
   }
+
+  // No sidebar case (logged out)
+  &.no-sidebar {
+    margin-left: 0 !important; // Override any other margin settings
+  }
+
+  // Welcome page specific styles
+  &.welcome-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: calc(100vh - 60px) !important; /* Adjust based on navbar height */
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
 }
 
 // Safe area adjustments for notched phones
 @supports (padding: max(0px)) {
-  .main-content {
+  .main-content:not(.welcome-page) {
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1rem, env(safe-area-inset-right));
     padding-bottom: max(1rem, env(safe-area-inset-bottom));
@@ -44,7 +62,13 @@
 
 // Fix for iOS Safari to ensure content is scrollable
 @media (pointer: coarse) {
-  .main-content {
+  .main-content:not(.welcome-page) {
     -webkit-overflow-scrolling: touch;
   }
+}
+
+// Special styles for the app container when on welcome page
+.app-container.welcome-page-active {
+  height: 100vh;
+  overflow: hidden;
 }
