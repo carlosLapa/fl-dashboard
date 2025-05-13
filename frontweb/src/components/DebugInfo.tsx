@@ -8,13 +8,13 @@ const DebugInfo: React.FC = () => {
     envVar: '',
   });
 
-  useEffect(() => {
+  /*useEffect(() => {
     setInfo({
       apiUrl: axios.defaults.baseURL || 'Not set',
       baseUrl: window.location.origin,
       envVar: process.env.REACT_APP_API_URL || 'Not set',
     });
-  }, []);
+  }, []);*/
 
   return (
     <div
