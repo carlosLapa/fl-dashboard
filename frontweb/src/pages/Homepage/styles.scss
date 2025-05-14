@@ -1,0 +1,186 @@
+@import '../../assets/styles/breakpoints.scss';
+
+/* Base styles for all devices */
+.welcome-page-container {
+  position: relative;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100vh; /* Use full viewport height */
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0;
+  padding: 0;
+}
+
+/* Mobile logo container - NEW */
+.mobile-logo-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 30vh; /* Push logo up to make room for login button */
+  background-color: #ffffff; /* White background for mobile */
+}
+
+/* Logo image - NEW */
+.logo-image {
+  max-width: 80%;
+  height: auto;
+  max-height: 40vh;
+  object-fit: contain;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-content {
+  text-align: center;
+  color: white;
+  z-index: 1;
+  margin-top: 30vh; /* This will push the content lower */
+
+  @include respond-to('sm') {
+    margin-top: 25vh; /* Adjust for smaller screens */
+  }
+}
+
+.hero-content h1 {
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+  @include respond-to('sm') {
+    font-size: 2.5rem;
+  }
+}
+
+.login-button,
+.login-button:active,
+.login-button:focus,
+.login-button.active {
+  background: transparent !important;
+  border: none !important;
+  color: rgb(0, 0, 0) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-weight: bold;
+  font-size: 1.3rem;
+  margin-top: 10rem;
+
+  @include respond-to('sm') {
+    margin-top: 8rem; /* Adjust for smaller screens */
+    font-size: 1.2rem;
+  }
+}
+
+.login-button:hover {
+  transform: scale(1.5);
+
+  @include respond-to('sm') {
+    transform: scale(1.3); /* Smaller scale on mobile */
+  }
+}
+
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Fix for any potential body/html margins */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* Prevent scrolling on welcome page */
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 767px) and (orientation: landscape) {
+  .hero-content {
+    margin-top: 15vh; /* Adjust for landscape orientation */
+  }
+
+  .login-button,
+  .login-button:active,
+  .login-button:focus,
+  .login-button.active {
+    margin-top: 5rem; /* Reduce top margin in landscape */
+  }
+
+  /* NEW - Landscape adjustments for logo */
+  .mobile-logo-container {
+    padding-bottom: 15vh; /* Adjust for landscape */
+  }
+
+  .logo-image {
+    max-height: 30vh; /* Smaller logo in landscape */
+  }
+}
+
+/* Safe area insets for notched phones */
+@supports (padding: max(0px)) {
+  .hero-content {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* NEW - Safe area for logo */
+  .mobile-logo-container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Fix for iOS video playback */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+/* Improve video performance */
+.hero-video {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+}
