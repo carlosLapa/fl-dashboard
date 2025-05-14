@@ -1,81 +1,6 @@
 @import '../../assets/styles/breakpoints.scss';
 
-// Sidebar handle - visible edge when collapsed on mobile
-.sidebar-handle {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  width: 20px; // Increased width for better touch target
-  height: 120px; // Increased height for better touch target
-  background-color: rgba(33, 37, 41, 0.9); // Dark color matching sidebar
-  border-radius: 0 5px 5px 0;
-  z-index: 1029;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-
-  // Visual indicator inside the handle
-  .handle-indicator {
-    width: 4px;
-    height: 40px;
-    background-color: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
-  }
-
-  &:hover .handle-indicator {
-    background-color: rgba(255, 255, 255, 0.5);
-  }
-
-  // Ensure handle is clickable on mobile
-  @media (pointer: coarse) {
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    touch-action: manipulation;
-  }
-}
-
-.sidebar-wrapper {
-  // Default styles for desktop
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  z-index: 1031; // Higher than the backdrop
-
-  // Mobile styles
-  &.mobile {
-    // Hide by default on mobile
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    width: 80%;
-    max-width: 300px;
-
-    // Show when open
-    &.open {
-      transform: translateX(0);
-      // Fix for iOS Safari
-      -webkit-transform: translateX(0) translateZ(0);
-      transform: translateX(0) translateZ(0);
-      will-change: transform; // Optimize for animations
-    }
-  }
-}
-
-.sidebar-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1030;
-  // Ensure the backdrop is clickable
-  cursor: pointer;
-  touch-action: auto; // Ensure touch events work
-}
-
+// Sidebar styles for desktop only
 .sidebar {
   position: fixed;
   top: 60px; // Adjust based on navbar height
@@ -87,8 +12,7 @@
   overflow-x: hidden;
   overflow-y: auto;
   transition: all 0.3s ease;
-  // Ensure content is clickable
-  pointer-events: auto;
+  z-index: 1000;
 
   @include respond-from('md') {
     top: 70px; // Adjust based on navbar height at this breakpoint
@@ -101,38 +25,6 @@
   @include respond-from('xl') {
     top: 80px; // Adjust based on navbar height at this breakpoint
   }
-
-  // Mobile sidebar styles
-  .mobile & {
-    top: 0;
-    width: 100%; // Take full width of the sidebar-wrapper
-    height: 100%;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    // Ensure content is clickable on mobile
-    touch-action: auto;
-    -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
-  }
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: flex-end;
-  padding: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.close-sidebar {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  // Ensure button is clickable
-  pointer-events: auto;
-
-  &:focus {
-    outline: none;
-  }
 }
 
 .sidebar-link {
@@ -141,14 +33,15 @@
   padding: 12px 15px;
   border-radius: 4px;
   transition: all 0.2s ease;
-  // Ensure links are clickable
-  pointer-events: auto;
-  touch-action: manipulation; // Improve touch behavior
-  cursor: pointer; // Add cursor pointer to indicate clickable
+  cursor: pointer;
 
   &:hover {
     text-decoration: none;
     background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:active {
+    background-color: rgba(255, 255, 255, 0.2);
   }
 
   &.active {
@@ -162,24 +55,5 @@
   .sidebar {
     padding-left: max(15px, env(safe-area-inset-left));
     padding-bottom: max(15px, env(safe-area-inset-bottom));
-  }
-}
-
-// Fix for iOS Safari to ensure sidebar is clickable
-@media (pointer: coarse) {
-  .sidebar-wrapper.mobile.open {
-    .sidebar,
-    .sidebar-link,
-    .close-sidebar {
-      cursor: pointer;
-      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    }
-  }
-
-  // Add this to improve touch behavior on mobile
-  .sidebar-link {
-    min-height: 44px; // Apple's recommended minimum touch target size
-    display: flex;
-    align-items: center;
   }
 }

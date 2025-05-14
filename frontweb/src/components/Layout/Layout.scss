@@ -29,10 +29,6 @@
   // Mobile adjustments
   &.mobile {
     margin-left: 0;
-    &.sidebar-open {
-      // Optional: add a slight margin on mobile when sidebar is open
-      // margin-left: 0;
-    }
   }
 
   // No sidebar case (logged out)

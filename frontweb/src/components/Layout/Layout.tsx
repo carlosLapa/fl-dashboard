@@ -10,7 +10,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   const { user } = useAuth();
   const location = useLocation();
@@ -24,32 +23,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 992);
     };
-
     // Initial check
     checkIfMobile();
-
     // Add event listener for window resize
     window.addEventListener('resize', checkIfMobile);
-
     // Cleanup
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
-
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setSidebarOpen((prevState) => !prevState);
-  };
-
-  // Close sidebar
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
 
   // Determine main content classes
   const mainContentClasses = [
     'main-content',
     isMobile ? 'mobile' : '',
-    sidebarOpen && isMobile ? 'sidebar-open' : '',
     !user ? 'no-sidebar' : '',
     isWelcomePage ? 'welcome-page' : '',
   ]
@@ -66,17 +51,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className={appContainerClasses}>
-      <NavbarFL />
+      {/* Pass isMobile to NavbarFL so it knows when to show sidebar links */}
+      <NavbarFL isMobile={isMobile} />
       <div className="content-wrapper">
-        {/* Only render sidebar if user is logged in */}
-        {user && (
-          <SidebarFL
-            isOpen={sidebarOpen}
-            isMobile={isMobile}
-            onClose={closeSidebar}
-            onToggle={toggleSidebar}
-          />
-        )}
+        {/* Only render sidebar if user is logged in AND we're not on mobile */}
+        {user && !isMobile && <SidebarFL />}
         <div className={mainContentClasses}>{children}</div>
       </div>
     </div>

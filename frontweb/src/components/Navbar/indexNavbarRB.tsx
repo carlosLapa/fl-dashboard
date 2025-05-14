@@ -6,21 +6,21 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import UserInfo from '../User/UserInfo';
 import { useAuth } from '../../AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './styles.scss';
 
-// We can keep the onMenuClick prop for backward compatibility
-// but we won't use it anymore
 interface NavbarProps {
   onMenuClick?: () => void;
+  isMobile?: boolean;
 }
 
-const NavbarFL: React.FC<NavbarProps> = () => {
+const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(propIsMobile || false);
 
   // Check if we're on a mobile device
   useEffect(() => {
@@ -33,7 +33,7 @@ const NavbarFL: React.FC<NavbarProps> = () => {
     window.addEventListener('resize', checkIfMobile);
     // Cleanup
     return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
+  }, [propIsMobile]);
 
   if (!user) return null;
 
@@ -48,11 +48,21 @@ const NavbarFL: React.FC<NavbarProps> = () => {
     }
   };
 
-  const handleNavLinkClick = () => {
+  const handleNavLinkClick = (path?: string) => {
     // Close mobile navbar when a link is clicked
     if (isMobile) {
       setExpanded(false);
     }
+
+    // If a path is provided, navigate to it
+    if (path) {
+      navigate(path);
+    }
+  };
+
+  // Check if a path is active
+  const isActive = (path: string) => {
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -63,7 +73,6 @@ const NavbarFL: React.FC<NavbarProps> = () => {
       onToggle={setExpanded}
     >
       <Container fluid className="navbar-container">
-        {/* Removed the burger menu button */}
         <Navbar.Brand href="#" className="text-light brand-container">
           <h3 className="fl-brand">Ferreira Lapa</h3>
         </Navbar.Brand>
@@ -96,12 +105,13 @@ const NavbarFL: React.FC<NavbarProps> = () => {
           </div>
           <Nav className="nav-links-container" navbarScroll>
             <div className="nav-item-container">
+              {/* External links */}
               <a
                 href="https://www.ferreiralapa.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="custom-navbar-link text-light"
-                onClick={handleNavLinkClick}
+                onClick={() => handleNavLinkClick()}
               >
                 Home
               </a>
@@ -110,12 +120,52 @@ const NavbarFL: React.FC<NavbarProps> = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="custom-navbar-link text-light"
-                onClick={handleNavLinkClick}
+                onClick={() => handleNavLinkClick()}
               >
                 Portfolio
               </a>
+
+              {/* Sidebar links - only shown on mobile */}
+              {isMobile && user && (
+                <>
+                  <div className="sidebar-links-divider"></div>
+                  <div
+                    className={`custom-navbar-link text-light ${
+                      isActive('/users') ? 'active' : ''
+                    }`}
+                    onClick={() => handleNavLinkClick('/users')}
+                  >
+                    Colaboradores
+                  </div>
+                  <div
+                    className={`custom-navbar-link text-light ${
+                      isActive('/projetos') ? 'active' : ''
+                    }`}
+                    onClick={() => handleNavLinkClick('/projetos')}
+                  >
+                    Projetos
+                  </div>
+                  <div
+                    className={`custom-navbar-link text-light ${
+                      isActive('/tarefas') ? 'active' : ''
+                    }`}
+                    onClick={() => handleNavLinkClick('/tarefas')}
+                  >
+                    Tarefas
+                  </div>
+                  <div
+                    className={`custom-navbar-link text-light ${
+                      isActive('/placeholder') ? 'active' : ''
+                    }`}
+                    onClick={() => handleNavLinkClick('/placeholder')}
+                  >
+                    Placeholder
+                  </div>
+                </>
+              )}
+
               {user && (
-                <div onClick={handleNavLinkClick}>
+                <div onClick={() => handleNavLinkClick()}>
                   <UserInfo />
                 </div>
               )}
