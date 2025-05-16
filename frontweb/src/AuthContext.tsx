@@ -13,6 +13,7 @@ import { getApiUrl } from 'api/apiConfig';
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean; // Add loading state
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -23,6 +24,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Add loading state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,29 +38,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
     window.addEventListener('storage', handleStorageChange);
 
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      const tokenType = 'Bearer';
-      axios.defaults.headers.common['Authorization'] = `${tokenType} ${token}`;
+    const initializeAuth = async () => {
+      setLoading(true); // Start loading
+      const token = localStorage.getItem('access_token');
 
-      getUsersAPI().then((response) => {
-        const email = localStorage.getItem('user_email');
-        const users = Array.isArray(response) ? response : response.content;
-        const currentUser = users?.find((u: User) => u.email === email);
-        if (currentUser) {
-          setUser({
-            ...currentUser,
-            profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
-          });
+      if (token) {
+        const tokenType = 'Bearer';
+        axios.defaults.headers.common[
+          'Authorization'
+        ] = `${tokenType} ${token}`;
+
+        try {
+          const response = await getUsersAPI();
+          const email = localStorage.getItem('user_email');
+          const users = Array.isArray(response) ? response : response.content;
+          const currentUser = users?.find((u: User) => u.email === email);
+
+          if (currentUser) {
+            setUser({
+              ...currentUser,
+              profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // If there's an error fetching user data, clear the token
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user_email');
+          delete axios.defaults.headers.common['Authorization'];
         }
-      });
-    }
+      }
+
+      setLoading(false); // End loading
+    };
+
+    initializeAuth();
 
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [navigate]);
 
   const login = async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
+    setLoading(true); // Start loading on login attempt
+
     try {
       // Get the API URL from our centralized config
       const apiUrl = getApiUrl();
@@ -86,14 +108,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const { access_token, token_type } = tokenResponse.data;
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('user_email', email);
+
       axios.defaults.headers.common[
         'Authorization'
       ] = `${token_type} ${access_token}`;
 
       const response = await getUsersAPI();
       console.log('Users API response:', response);
+
       const users = Array.isArray(response) ? response : response.content;
       console.log('Processed users array:', users);
+
       const currentUser = users?.find((u: User) => u.email === email);
       console.log('Found user:', currentUser, 'Searching for email:', email);
 
@@ -113,6 +138,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         console.error('Response data:', error.response?.data);
       }
       throw error;
+    } finally {
+      setLoading(false); // End loading regardless of outcome
     }
   };
 
@@ -127,6 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const value = {
     user,
+    loading, // Include loading in the context value
     login,
     logout,
   };
