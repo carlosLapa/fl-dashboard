@@ -4,7 +4,7 @@ import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import './styles.scss';
+import './userTarefaTable.scss';
 
 interface UserTarefaTableProps {
   tarefas: TarefaWithUserAndProjetoDTO[];

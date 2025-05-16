@@ -1,21 +1,39 @@
 .projeto-container {
   width: 100%;
-  overflow-x: auto; // Add horizontal scrolling if needed
   padding-left: 0; // Reset any padding that might be causing issues
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 230px); // Adjust based on your header/footer size
 
   // Add responsive adjustments for sidebar
   @media (min-width: 992px) {
     // Ensure content doesn't get hidden behind sidebar
     width: 100%;
   }
+
+  // Make the table-responsive selector specific to projeto-container
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto; // Add vertical scrolling
+    flex: 1; // Take available space
+    min-height: 0; // Important for flex child to scroll
+    -webkit-overflow-scrolling: touch;
+  }
+
+  // Ensure pagination is always visible
+  .d-flex.justify-content-center.mt-3 {
+    margin-top: 1rem;
+    flex-shrink: 0; // Prevent pagination from shrinking
+  }
 }
 
 // Action icons styling
 .action-icons {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between; // Changed from space-around to space-between
   align-items: center;
-  gap: 10px; // Add gap between icons
+  gap: 5px; // Reduced from 10px to 5px to bring icons closer
 
   .edit-icon {
     cursor: pointer;
@@ -51,24 +69,36 @@
   background-color: #f8f9fa;
   border-radius: 0.25rem;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  flex-shrink: 0; // Prevent filter from shrinking
+}
+
+// Card for filters should not shrink
+.mb-4 {
+  flex-shrink: 0;
 }
 
 // Responsive adjustments
 @media (max-width: 768px) {
   .action-icons {
     flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-start; // Align to start on mobile
+    gap: 5px; // Reduced from 10px to 5px
+    justify-content: center; // Changed to center for better mobile appearance
   }
 
-  .table-responsive {
-    font-size: 0.9rem;
+  .projeto-container {
+    height: calc(100vh - 150px); // Slightly smaller on mobile
+
+    .table-responsive {
+      font-size: 0.9rem;
+    }
   }
 }
 
-// Add this to ensure tables are fully visible
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+// Add sticky header styles
+.projeto-container table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }

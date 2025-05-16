@@ -111,11 +111,13 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       toast.error('Designação e Entidade são campos obrigatórios');
       return false;
     }
+    /*
     const currentYear = new Date().getFullYear();
     if (formData.projetoAno < currentYear) {
       toast.error('O ano do projeto não pode ser anterior ao ano atual');
       return false;
     }
+    */
     if (formData.prazo) {
       const prazoDate = new Date(formData.prazo);
       if (prazoDate < new Date()) {
@@ -151,12 +153,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         sendNotification(notification);
       });
     }
-
-    toast.success(
-      isEditing
-        ? 'Projeto atualizado com sucesso!'
-        : 'Novo projeto criado com sucesso!'
-    );
     onSave(formData);
     onHide();
   };
@@ -193,7 +189,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   name="projetoAno"
                   value={formData.projetoAno}
                   onChange={handleInputChange}
-                  min={new Date().getFullYear()}
+                  min={2020}
                   required
                 />
                 <Form.Control.Feedback type="invalid">
@@ -249,6 +245,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   <option value="BAIXA">Baixa</option>
                   <option value="MEDIA">Média</option>
                   <option value="ALTA">Alta</option>
+                  <option value="URGENTE">Urgente</option>
                 </Form.Select>
                 <Form.Control.Feedback type="invalid">
                   Por favor, selecione a prioridade.

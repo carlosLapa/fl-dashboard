@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Button,
-  Container,
-  Row,
-  Col,
-  Spinner,
-  Alert,
-  Card,
-} from 'react-bootstrap';
+import { Container, Row, Col, Spinner, Alert, Card } from 'react-bootstrap';
 import {
   getProjetoWithUsersAndTarefasAPI,
   updateProjetoStatusAPI,
@@ -19,8 +11,7 @@ import ProjetoTarefasTable from 'components/Projeto/ProjetoTarefasTable';
 import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
 import { useNotification } from 'NotificationContext';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import BackButton from 'components/Shared/BackButton';
 
 const ProjetoDetailsPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
@@ -82,10 +73,6 @@ const ProjetoDetailsPage: React.FC = () => {
     }
   };
 
-  const handleGoBack = () => {
-    navigate('/projetos');
-  };
-
   if (isLoading) {
     return (
       <Container
@@ -103,9 +90,7 @@ const ProjetoDetailsPage: React.FC = () => {
     return (
       <Container className="py-4">
         <Alert variant="danger">{error}</Alert>
-        <Button variant="primary" onClick={handleGoBack}>
-          Voltar para Lista de Projetos
-        </Button>
+        <BackButton to="/projetos" />
       </Container>
     );
   }
@@ -114,9 +99,7 @@ const ProjetoDetailsPage: React.FC = () => {
     return (
       <Container className="py-4">
         <Alert variant="warning">Projeto não encontrado</Alert>
-        <Button variant="primary" onClick={handleGoBack}>
-          Voltar para Lista de Projetos
-        </Button>
+        <BackButton to="/projetos" />
       </Container>
     );
   }
@@ -124,17 +107,14 @@ const ProjetoDetailsPage: React.FC = () => {
   return (
     <Container fluid className="py-3">
       <Row className="mb-4">
-        <Col>
-          <Button
-            variant="outline-secondary"
-            onClick={handleGoBack}
-            className="mb-3"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-            Voltar para Lista de Projetos
-          </Button>
-          <h2 className="page-title">Detalhes do Projeto</h2>
-        </Col>
+        <Row className="mb-4">
+          <Col className="text-center">
+            <h2 className="page-title mb-3">Detalhes do Projeto</h2>
+            <div className="d-flex justify-content-start">
+              <BackButton to="/projetos" />
+            </div>
+          </Col>
+        </Row>
       </Row>
       <Row className="mb-4">
         <Col>
