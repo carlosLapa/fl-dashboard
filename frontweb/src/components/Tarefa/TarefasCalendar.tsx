@@ -24,17 +24,118 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
 
   // Filter out tarefas without valid dates to prevent errors
   const validTarefas = tarefas.filter(
-    (tarefa) => tarefa.prazoReal && !isNaN(new Date(tarefa.prazoReal).getTime())
+    (tarefa) =>
+      // Ensure prazoReal exists and is valid
+      tarefa.prazoReal &&
+      !isNaN(new Date(tarefa.prazoReal).getTime()) &&
+      // If prazoEstimado exists, ensure it's valid
+      (!tarefa.prazoEstimado ||
+        !isNaN(new Date(tarefa.prazoEstimado).getTime()))
   );
 
-  const events = validTarefas.map((tarefa) => ({
-    id: tarefa.id,
-    title: tarefa.descricao,
-    start: new Date(tarefa.prazoReal),
-    end: new Date(tarefa.prazoReal),
-    allDay: true,
-    resource: tarefa, // Store the full tarefa object for potential tooltips or details
-  }));
+  // Helper function to check if a date is a weekend (Saturday or Sunday)
+  const isWeekend = (date: Date): boolean => {
+    const day = date.getDay();
+    return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+  };
+
+  // Helper function to get the next weekday (skip weekends)
+  const getNextWeekday = (date: Date): Date => {
+    const result = new Date(date);
+    result.setDate(result.getDate() + 1);
+
+    while (isWeekend(result)) {
+      result.setDate(result.getDate() + 1);
+    }
+
+    return result;
+  };
+
+  // Helper function to create event segments that exclude weekends
+  const createWeekdayEventSegments = (
+    tarefa: TarefaWithUserAndProjetoDTO,
+    startDate: Date,
+    endDate: Date
+  ) => {
+    const segments = [];
+    let segmentStart = new Date(startDate);
+    let segmentEnd;
+
+    // If start date is a weekend, move to next weekday
+    if (isWeekend(segmentStart)) {
+      segmentStart = getNextWeekday(segmentStart);
+    }
+
+    // If start date is after end date, return empty array
+    if (segmentStart > endDate) {
+      return [];
+    }
+
+    // Create segments for each work week
+    while (segmentStart <= endDate) {
+      // Find the end of the current work week (Friday) or the task end date, whichever comes first
+      segmentEnd = new Date(segmentStart);
+
+      // If we're not already at Friday, find the next Friday or the end date
+      if (segmentStart.getDay() !== 5) {
+        // 5 is Friday
+        // Calculate days until Friday
+        const daysUntilFriday =
+          segmentStart.getDay() <= 5
+            ? 5 - segmentStart.getDay()
+            : 5 + (7 - segmentStart.getDay());
+
+        segmentEnd.setDate(segmentStart.getDate() + daysUntilFriday);
+
+        // If Friday is after the end date, use the end date
+        if (segmentEnd > endDate) {
+          segmentEnd = new Date(endDate);
+        }
+      }
+
+      // Set end time to end of day
+      segmentEnd.setHours(23, 59, 59, 999);
+
+      // Add the segment
+      segments.push({
+        id: `${tarefa.id}-${segments.length}`,
+        title: tarefa.descricao,
+        start: new Date(segmentStart),
+        end: new Date(segmentEnd),
+        allDay: true,
+        resource: tarefa,
+        // Store original dates for tooltip
+        originalStart: tarefa.prazoEstimado
+          ? new Date(tarefa.prazoEstimado)
+          : new Date(tarefa.prazoReal),
+        originalEnd: new Date(tarefa.prazoReal),
+      });
+
+      // Move to the next Monday
+      segmentStart = new Date(segmentEnd);
+      segmentStart.setDate(segmentStart.getDate() + 3); // Skip to Monday (add 3 days from Friday)
+
+      // If we've gone past the end date, we're done
+      if (segmentStart > endDate) {
+        break;
+      }
+    }
+
+    return segments;
+  };
+
+  // Create events, splitting them to exclude weekends
+  const events = validTarefas.flatMap((tarefa) => {
+    // Use prazoEstimado as start date if available, otherwise use prazoReal for both
+    const startDate = tarefa.prazoEstimado
+      ? new Date(tarefa.prazoEstimado)
+      : new Date(tarefa.prazoReal);
+
+    const endDate = new Date(tarefa.prazoReal);
+
+    // Create segments that exclude weekends
+    return createWeekdayEventSegments(tarefa, startDate, endDate);
+  });
 
   const messages = {
     allDay: 'Dia inteiro',
@@ -69,8 +170,11 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
         case 'TODO':
           backgroundColor = '#dc3545'; // red for todo
           break;
+        case 'BACKLOG':
+          backgroundColor = '#6c757d'; // gray for backlog
+          break;
         default:
-          backgroundColor = '#6c757d'; // gray for backlog or others
+          backgroundColor = '#6c757d'; // gray for others
       }
     }
 
@@ -85,6 +189,21 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
         cursor: 'pointer', // Add cursor pointer to indicate clickable
       },
     };
+  };
+
+  // Custom date cell styling to highlight weekends
+  const dayPropGetter = (date: Date) => {
+    if (isWeekend(date)) {
+      return {
+        style: {
+          backgroundColor: '#f8f9fa', // Light gray background for weekends
+          borderLeft: '1px solid #dee2e6',
+          borderRight: '1px solid #dee2e6',
+        },
+        className: 'weekend-day', // Add a class for additional styling if needed
+      };
+    }
+    return {};
   };
 
   // Handle event click
@@ -107,10 +226,23 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
           startAccessor="start"
           endAccessor="end"
           eventPropGetter={eventStyleGetter}
+          dayPropGetter={dayPropGetter} // Add custom styling for date cells
           messages={messages}
           views={['month', 'week', 'day', 'agenda']}
           popup
-          tooltipAccessor={(event) => event.title}
+          tooltipAccessor={(event) => {
+            // Use original dates for tooltip
+            const startFormatted = moment(event.originalStart).format(
+              'DD/MM/YYYY'
+            );
+            const endFormatted = moment(event.originalEnd).format('DD/MM/YYYY');
+
+            if (startFormatted === endFormatted) {
+              return `${event.title} (${startFormatted})`;
+            }
+
+            return `${event.title} (${startFormatted} - ${endFormatted})`;
+          }}
           onSelectEvent={handleEventClick}
         />
       </div>

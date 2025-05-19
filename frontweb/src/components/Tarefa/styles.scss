@@ -120,6 +120,26 @@
   text-overflow: ellipsis;
 }
 
+.weekend-day {
+  color: #ff051a !important; /* Reddish text for weekend days */
+  font-style: italic;
+  
+  /* Make the day number smaller and lighter */
+  .rbc-date-cell {
+    opacity: 0.8;
+    font-weight: bold;
+  }
+  
+  /* Add a subtle pattern or texture */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 77, 79, 0.05) 10px,
+    rgba(255, 77, 79, 0.05) 20px
+  );
+}
+
 /* Kanban Board Styles */
 .kanban-board-container {
   display: flex;
