@@ -143,13 +143,44 @@ export const searchProjetosAPI = async (
   page: number = 0,
   size: number = 10
 ) => {
-  const endpoint =
-    status && status !== 'ALL'
-      ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
-      : `/projetos/search?query=${query}&page=${page}&size=${size}`;
+  try {
+    const endpoint =
+      status && status !== 'ALL'
+        ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
+        : `/projetos/search?query=${query}&page=${page}&size=${size}`;
 
-  const response = await axios.get(endpoint);
-  return response.data;
+    console.log('Searching projects with endpoint:', endpoint);
+
+    const response = await axios.get(endpoint);
+    console.log('Raw search response:', response.data);
+
+    // Handle both array response and paginated response
+    if (Array.isArray(response.data)) {
+      // If the response is a direct array of projects
+      return {
+        content: response.data,
+        totalPages: 1,
+        totalElements: response.data.length,
+        size: response.data.length,
+        number: 0,
+      };
+    } else if (response.data && response.data.content) {
+      // If the response is a paginated object
+      return response.data;
+    } else {
+      console.warn('Unexpected response structure:', response.data);
+      return {
+        content: [],
+        totalPages: 0,
+        totalElements: 0,
+        size: 0,
+        number: 0,
+      };
+    }
+  } catch (error) {
+    console.error('Error searching projects:', error);
+    throw error;
+  }
 };
 
 export const getTarefaWithUsersAndProjetoAPI = async (

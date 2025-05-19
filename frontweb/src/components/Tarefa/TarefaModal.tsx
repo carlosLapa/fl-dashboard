@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
+import { Modal, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
 import {
   Tarefa,
   TarefaInsertFormData,
@@ -9,8 +9,7 @@ import {
 import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
-import { Projeto } from 'types/projeto';
-import { getUsersAPI, getProjetosAPI } from '../../api/requestsApi';
+import { getUsersAPI, searchProjetosAPI } from '../../api/requestsApi';
 import { toast } from 'react-toastify';
 
 interface TarefaModalProps {
@@ -43,30 +42,37 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     userIds: [],
   });
   const [users, setUsers] = useState<User[]>([]);
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Project search state
+  const [projectSearchQuery, setProjectSearchQuery] = useState('');
+  const [projectSearchResults, setProjectSearchResults] = useState<
+    Array<{ id: number; designacao: string }>
+  >([]);
+  const [isSearchingProjects, setIsSearchingProjects] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
+
+  // Fetch users when modal opens
   useEffect(() => {
-    const fetchUsersAndProjetos = async () => {
+    const fetchUsers = async () => {
       setIsLoading(true);
       try {
         const usersData = await getUsersAPI();
-        const projetosData = await getProjetosAPI();
         setUsers(usersData);
-        setProjetos(projetosData.content);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Erro ao carregar dados');
+        console.error('Error fetching users:', error);
+        toast.error('Erro ao carregar colaboradores');
       } finally {
         setIsLoading(false);
       }
     };
 
     if (show) {
-      fetchUsersAndProjetos();
+      fetchUsers();
     }
   }, [show]);
 
+  // Set form data when editing
   useEffect(() => {
     if (isEditing && tarefa) {
       setFormData({
@@ -83,6 +89,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         projetoId: tarefa.projeto.id,
         userIds: tarefa.users.map((user) => user.id),
       });
+
+      // Set the selected project name for display
+      setSelectedProjectName(tarefa.projeto.designacao);
     } else {
       setFormData({
         descricao: '',
@@ -93,6 +102,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         projetoId: 0,
         userIds: [],
       });
+      setSelectedProjectName('');
     }
   }, [isEditing, tarefa, show]);
 
@@ -119,6 +129,47 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  // Handle project search
+  const handleProjectSearch = async () => {
+    if (!projectSearchQuery.trim()) {
+      setProjectSearchResults([]);
+      return;
+    }
+
+    setIsSearchingProjects(true);
+    try {
+      const response = await searchProjetosAPI(projectSearchQuery);
+      console.log('Project search response:', response);
+
+      if (response && response.content && response.content.length > 0) {
+        setProjectSearchResults(response.content);
+        console.log('Setting project results:', response.content);
+      } else {
+        setProjectSearchResults([]);
+        toast.info('Nenhum projeto encontrado com esse termo de busca');
+      }
+    } catch (error) {
+      console.error('Error searching projects:', error);
+      toast.error('Erro ao pesquisar projetos');
+      setProjectSearchResults([]);
+    } finally {
+      setIsSearchingProjects(false);
+    }
+  };
+
+  // Handle project selection
+  const handleSelectProject = (projeto: any) => {
+    console.log('Selected project:', projeto);
+
+    setFormData((prevData) => ({
+      ...prevData,
+      projetoId: projeto.id,
+    }));
+    setSelectedProjectName(projeto.designacao);
+    setProjectSearchResults([]);
+    setProjectSearchQuery('');
+  };
+
   const handleUserSelect = (userId: number) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -133,7 +184,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       toast.warning('Por favor, selecione um projeto válido');
       return;
     }
-
     if (!formData.descricao.trim()) {
       toast.warning('Por favor, forneça uma descrição para a tarefa');
       return;
@@ -197,7 +247,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Form.Group>
               </Col>
             </Row>
-
             <Row>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrioridade" className="mb-3">
@@ -207,7 +256,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     name="prioridade"
                     value={formData.prioridade}
                     onChange={handleInputChange}
-                    placeholder="Alta, Média, Baixa"
+                    placeholder="Urgente, Alta, Média, Baixa"
                   />
                 </Form.Group>
               </Col>
@@ -228,7 +277,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Form.Group>
               </Col>
             </Row>
-
             <Row>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrazoEstimado" className="mb-3">
@@ -254,28 +302,65 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
               </Col>
             </Row>
 
+            {/* Project search field */}
             <Row>
               <Col xs={12}>
                 <Form.Group controlId="formProjeto" className="mb-3">
                   <Form.Label>Projeto</Form.Label>
-                  <Form.Select
-                    name="projetoId"
-                    value={formData.projetoId}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value={0}>Selecione um projeto</option>
-                    {Array.isArray(projetos) &&
-                      projetos.map((projeto) => (
-                        <option key={projeto.id} value={projeto.id}>
-                          {projeto.designacao}
-                        </option>
-                      ))}
-                  </Form.Select>
+                  <InputGroup>
+                    <Form.Control
+                      type="text"
+                      placeholder="Pesquisar projeto..."
+                      value={projectSearchQuery}
+                      onChange={(e) => setProjectSearchQuery(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleProjectSearch();
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline-secondary"
+                      onClick={handleProjectSearch}
+                      disabled={isSearchingProjects}
+                    >
+                      {isSearchingProjects ? 'Buscando...' : 'Buscar'}
+                    </Button>
+                  </InputGroup>
+
+                  {selectedProjectName && (
+                    <div className="mt-2">
+                      <strong>Projeto selecionado:</strong>{' '}
+                      {selectedProjectName}
+                    </div>
+                  )}
+
+                  {projectSearchResults.length > 0 && (
+                    <div
+                      className="mt-2 border rounded p-2"
+                      style={{ maxHeight: '200px', overflowY: 'auto' }}
+                    >
+                      <h6>Resultados da busca:</h6>
+                      <ul className="list-group">
+                        {projectSearchResults.map((projeto) => (
+                          <li
+                            key={projeto.id}
+                            className="list-group-item list-group-item-action"
+                            onClick={() => handleSelectProject(projeto)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            {projeto.designacao}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </Form.Group>
               </Col>
             </Row>
 
+            {/* Users section */}
             <Row>
               <Col xs={12}>
                 <Form.Group controlId="formUsers" className="mb-3">
@@ -299,7 +384,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                         ))}
                       </Row>
                     ) : (
-                      <p>Não foram encontrados Colaboradores</p>
+                      <p>Nenhum usuário disponível</p>
                     )}
                   </div>
                 </Form.Group>
@@ -312,8 +397,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         <Button variant="secondary" onClick={onHide}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSave} disabled={isLoading}>
-          {isEditing ? 'Salvar Alterações' : 'Criar Tarefa'}
+        <Button variant="primary" onClick={handleSave}>
+          {isEditing ? 'Atualizar' : 'Criar'}
         </Button>
       </Modal.Footer>
     </Modal>
