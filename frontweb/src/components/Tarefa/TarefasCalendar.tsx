@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'moment/locale/pt-br';
 import './styles.scss';
+import TarefaDetailsCard from './TarefaDetailsCard';
 
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
@@ -18,6 +19,9 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
   tarefas,
   title = 'Calendário de Tarefas',
 }) => {
+  const [selectedTarefa, setSelectedTarefa] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
+
   // Filter out tarefas without valid dates to prevent errors
   const validTarefas = tarefas.filter(
     (tarefa) => tarefa.prazoReal && !isNaN(new Date(tarefa.prazoReal).getTime())
@@ -78,8 +82,19 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
         color: 'white',
         border: '0',
         display: 'block',
+        cursor: 'pointer', // Add cursor pointer to indicate clickable
       },
     };
+  };
+
+  // Handle event click
+  const handleEventClick = (event: any) => {
+    setSelectedTarefa(event.resource);
+  };
+
+  // Close the details card
+  const handleCloseDetails = () => {
+    setSelectedTarefa(null);
   };
 
   return (
@@ -96,8 +111,16 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
           views={['month', 'week', 'day', 'agenda']}
           popup
           tooltipAccessor={(event) => event.title}
+          onSelectEvent={handleEventClick}
         />
       </div>
+
+      {selectedTarefa && (
+        <TarefaDetailsCard
+          tarefa={selectedTarefa}
+          onClose={handleCloseDetails}
+        />
+      )}
     </div>
   );
 };
