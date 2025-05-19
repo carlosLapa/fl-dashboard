@@ -1,0 +1,110 @@
+.search-results-container {
+  padding: 20px;
+  transition: all 0.3s ease;
+
+  @media (min-width: 992px) {
+    margin-left: 220px; /* Matches the content margin from sidebar on larger screens */
+  }
+
+  @media (max-width: 991px) {
+    margin-left: 0; /* No margin on smaller screens */
+  }
+}
+
+.search-results-content {
+  max-width: 1200px; /* Limit the maximum width */
+  padding-left: 0; /* Remove left padding to align more to the left */
+  margin-right: auto; /* Keep right margin auto */
+  margin-left: 0; /* Set left margin to 0 to align more to the left */
+}
+
+.search-card {
+  width: 100%;
+  transition: transform 0.2s ease, box-shadow 0.3s ease-in-out;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.search-title {
+  font-size: 1.8rem;
+
+  @media (max-width: 576px) {
+    font-size: 1.5rem;
+  }
+}
+
+.section-title {
+  font-size: 1.5rem;
+  position: relative;
+  padding-bottom: 8px;
+
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: var(--bs-primary);
+  }
+
+  @media (max-width: 576px) {
+    font-size: 1.3rem;
+  }
+}
+
+/* Add animation for cards */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-card {
+  animation: fadeIn 0.3s ease-in-out;
+  animation-fill-mode: both;
+}
+
+/* Stagger the animations */
+.search-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.search-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.search-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.search-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.search-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* Adjust column padding for better left alignment */
+.row {
+  margin-left: -10px;
+}
+
+@media (min-width: 992px) {
+  .col-lg-4 {
+    padding-left: 10px;
+    padding-right: 20px;
+  }
+}
