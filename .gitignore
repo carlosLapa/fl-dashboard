@@ -1,1 +1,15 @@
 backend/.env
+
+# database
+/backups
+
+# Flyway configuration with credentials
+flyway.conf
+backend/flyway.conf
+flyway-local.conf
+backend/flyway-local.conf
+
+# Database backups
+/backups
+backups/
+backups/*.sql
