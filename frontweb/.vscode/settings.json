@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/backups/**": true,
+        "**/flyway.conf": true
+    }
+}
