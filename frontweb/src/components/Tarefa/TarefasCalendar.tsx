@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
@@ -10,28 +10,27 @@ import TarefaDetailsCard from './TarefaDetailsCard';
 moment.locale('pt-br');
 const localizer = momentLocalizer(moment);
 
+// Define an extended type that includes workingDays
+interface TarefaWithWorkingDays extends TarefaWithUserAndProjetoDTO {
+  workingDays?: number;
+}
+
 interface TarefasCalendarProps {
   tarefas: TarefaWithUserAndProjetoDTO[];
   title?: string;
+  onWorkingDaysCalculated?: (tarefaId: number, workingDays: number) => void;
 }
 
 const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
   tarefas,
   title = 'Calendário de Tarefas',
+  onWorkingDaysCalculated,
 }) => {
   const [selectedTarefa, setSelectedTarefa] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
-
-  // Filter out tarefas without valid dates to prevent errors
-  const validTarefas = tarefas.filter(
-    (tarefa) =>
-      // Ensure prazoReal exists and is valid
-      tarefa.prazoReal &&
-      !isNaN(new Date(tarefa.prazoReal).getTime()) &&
-      // If prazoEstimado exists, ensure it's valid
-      (!tarefa.prazoEstimado ||
-        !isNaN(new Date(tarefa.prazoEstimado).getTime()))
-  );
+  const [tarefasWithWorkingDays, setTarefasWithWorkingDays] = useState<
+    TarefaWithWorkingDays[]
+  >([]);
 
   // Helper function to check if a date is a weekend (Saturday or Sunday)
   const isWeekend = (date: Date): boolean => {
@@ -51,9 +50,69 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
     return result;
   };
 
+  // Helper function to calculate working days between two dates
+  const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
+    let workingDays = 0;
+    let currentDate = new Date(startDate);
+
+    // Set both dates to midnight to ensure we're only comparing dates, not times
+    currentDate.setHours(0, 0, 0, 0);
+    const endDateMidnight = new Date(endDate);
+    endDateMidnight.setHours(0, 0, 0, 0);
+
+    // Count working days
+    while (currentDate <= endDateMidnight) {
+      if (!isWeekend(currentDate)) {
+        workingDays++;
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return workingDays;
+  };
+
+  // Calculate working days for each tarefa
+  useEffect(() => {
+    // Filter out tarefas without valid dates to prevent errors
+    const validTarefas = tarefas.filter(
+      (tarefa) =>
+        // Ensure prazoReal exists and is valid
+        tarefa.prazoReal &&
+        !isNaN(new Date(tarefa.prazoReal).getTime()) &&
+        // If prazoEstimado exists, ensure it's valid
+        (!tarefa.prazoEstimado ||
+          !isNaN(new Date(tarefa.prazoEstimado).getTime()))
+    );
+
+    const tarefasWithDays = validTarefas.map((tarefa) => {
+      // Use prazoEstimado as start date if available, otherwise use prazoReal for both
+      const startDate = tarefa.prazoEstimado
+        ? new Date(tarefa.prazoEstimado)
+        : new Date(tarefa.prazoReal);
+
+      const endDate = new Date(tarefa.prazoReal);
+
+      // Calculate working days
+      const workingDays = calculateWorkingDays(startDate, endDate);
+
+      // Call the callback if provided
+      if (onWorkingDaysCalculated) {
+        onWorkingDaysCalculated(tarefa.id, workingDays);
+      }
+
+      return {
+        ...tarefa,
+        workingDays,
+      };
+    });
+
+    setTarefasWithWorkingDays(tarefasWithDays);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Helper function to create event segments that exclude weekends
   const createWeekdayEventSegments = (
-    tarefa: TarefaWithUserAndProjetoDTO,
+    tarefa: TarefaWithWorkingDays,
     startDate: Date,
     endDate: Date
   ) => {
@@ -109,6 +168,8 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
           ? new Date(tarefa.prazoEstimado)
           : new Date(tarefa.prazoReal),
         originalEnd: new Date(tarefa.prazoReal),
+        // Store working days
+        workingDays: tarefa.workingDays,
       });
 
       // Move to the next Monday
@@ -125,7 +186,7 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
   };
 
   // Create events, splitting them to exclude weekends
-  const events = validTarefas.flatMap((tarefa) => {
+  const events = tarefasWithWorkingDays.flatMap((tarefa) => {
     // Use prazoEstimado as start date if available, otherwise use prazoReal for both
     const startDate = tarefa.prazoEstimado
       ? new Date(tarefa.prazoEstimado)
@@ -196,9 +257,9 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
     if (isWeekend(date)) {
       return {
         style: {
-          backgroundColor: '#f8f9fa', // Light gray background for weekends
-          borderLeft: '1px solid #dee2e6',
-          borderRight: '1px solid #dee2e6',
+          backgroundColor: '#fff1f0', // Light reddish background for weekends
+          borderLeft: '1px solid #ffccc7',
+          borderRight: '1px solid #ffccc7',
         },
         className: 'weekend-day', // Add a class for additional styling if needed
       };
@@ -226,7 +287,7 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
           startAccessor="start"
           endAccessor="end"
           eventPropGetter={eventStyleGetter}
-          dayPropGetter={dayPropGetter} // Add custom styling for date cells
+          dayPropGetter={dayPropGetter}
           messages={messages}
           views={['month', 'week', 'day', 'agenda']}
           popup
@@ -236,12 +297,13 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
               'DD/MM/YYYY'
             );
             const endFormatted = moment(event.originalEnd).format('DD/MM/YYYY');
+            const workingDays = event.workingDays || 0;
 
             if (startFormatted === endFormatted) {
-              return `${event.title} (${startFormatted})`;
+              return `${event.title} (${startFormatted}) - ${workingDays} dia(s) útil(eis)`;
             }
 
-            return `${event.title} (${startFormatted} - ${endFormatted})`;
+            return `${event.title} (${startFormatted} - ${endFormatted}) - ${workingDays} dia(s) útil(eis)`;
           }}
           onSelectEvent={handleEventClick}
         />
