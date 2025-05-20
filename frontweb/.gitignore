@@ -29,3 +29,12 @@ yarn-error.log*
 
 # Keep template files
 !.env.template
+
+# Flyway configuration with credentials
+flyway.conf
+backend/flyway.conf
+
+# Database backups
+/backups
+backups/
+backups/*.sql
