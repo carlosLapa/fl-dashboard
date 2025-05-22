@@ -48,6 +48,10 @@ public class Tarefa {
     Set<User> users = new HashSet<>();
 
     @JsonBackReference
+    @ManyToMany(mappedBy = "tarefas")
+    private Set<Externo> externos = new HashSet<>();
+
+    @JsonBackReference
     @OneToMany(mappedBy = "tarefa")
     private List<Notification> notifications = new ArrayList<>();
 

@@ -31,6 +31,10 @@ public class Projeto {
     @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
     private Set<Tarefa> tarefas = new HashSet<>();
 
+    @JsonBackReference
+    @ManyToMany(mappedBy = "projetos")
+    private Set<Externo> externos = new HashSet<>();
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -146,6 +150,14 @@ public class Projeto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Set<Externo> getExternos() {
+        return externos;
+    }
+
+    public void setExternos(Set<Externo> externos) {
+        this.externos = externos;
     }
 
     public List<Coluna> getColunas() {

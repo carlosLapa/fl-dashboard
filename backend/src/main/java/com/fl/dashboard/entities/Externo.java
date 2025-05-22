@@ -1,5 +1,7 @@
 package com.fl.dashboard.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fl.dashboard.enums.EspecialidadesExterno;
 import com.fl.dashboard.enums.FaseProjeto;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -27,8 +29,6 @@ public class Externo {
 
     private String telemovel;
 
-    private String especialidade;
-
     private BigDecimal preco;
 
     @Enumerated(EnumType.STRING)
@@ -38,6 +38,16 @@ public class Externo {
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
 
+    @ElementCollection(targetClass = EspecialidadesExterno.class)
+    @CollectionTable(
+            name = "tb_externo_especialidades",
+            joinColumns = @JoinColumn(name = "externo_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "especialidade")
+    private Set<EspecialidadesExterno> especialidades = new HashSet<>();
+
+    @JsonBackReference
     @ManyToMany
     @JoinTable(
             name = "tb_projeto_externo",
@@ -46,6 +56,7 @@ public class Externo {
     )
     private Set<Projeto> projetos = new HashSet<>();
 
+    @JsonBackReference
     @ManyToMany
     @JoinTable(
             name = "tb_tarefa_externo",
