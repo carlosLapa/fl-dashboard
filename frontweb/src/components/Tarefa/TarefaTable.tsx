@@ -115,8 +115,9 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 value={dateFilterField}
                 onChange={(e) => onDateFilterFieldChange(e.target.value)}
               >
-                <option value="prazoEstimado">Prazo Estimado</option>
-                <option value="prazoReal">Prazo Real</option>
+                {/* Changed label from "Prazo Estimado" to "Início" */}
+                <option value="prazoEstimado">Início</option>
+                <option value="prazoReal">Prazo</option>
               </Form.Select>
             </Form.Group>
           </Col>
@@ -164,12 +165,10 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
             <tr>
               {renderSortableHeader('descricao', 'Descrição')}
               {renderSortableHeader('status', 'Status')}
-              {renderSortableHeader(
-                'prazoEstimado',
-                'Prazo Estimado',
-                'prazo-column'
-              )}
-              {renderSortableHeader('prazoReal', 'Prazo Real', 'prazo-column')}
+              {/* Changed label from "Prazo Estimado" to "Início" */}
+              {renderSortableHeader('prazoEstimado', 'Início', 'prazo-column')}
+              {/* Changed label from "Prazo Real" to "Prazo" */}
+              {renderSortableHeader('prazoReal', 'Prazo', 'prazo-column')}
               {renderSortableHeader(
                 'workingDays',
                 'Dias Úteis',

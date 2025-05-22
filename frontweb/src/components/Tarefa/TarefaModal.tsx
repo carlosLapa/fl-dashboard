@@ -344,7 +344,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
             <Row>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrazoEstimado" className="mb-3">
-                  <Form.Label>Prazo Estimado</Form.Label>
+                  <Form.Label>Início</Form.Label>{' '}
+                  {/* Changed from "Prazo Estimado" */}
                   <Form.Control
                     type="date"
                     name="prazoEstimado"
@@ -355,7 +356,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
               </Col>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrazoReal" className="mb-3">
-                  <Form.Label>Prazo Real</Form.Label>
+                  <Form.Label>Prazo</Form.Label>{' '}
+                  {/* Changed from "Prazo Real" */}
                   <Form.Control
                     type="date"
                     name="prazoReal"
@@ -365,7 +367,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Form.Group>
               </Col>
             </Row>
-            {/* Working Days display */}
+            {/* Working Days display - update the description text */}
             {formData.prazoEstimado && formData.prazoReal && (
               <Row>
                 <Col xs={12}>
@@ -378,7 +380,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       disabled
                     />
                     <Form.Text className="text-muted">
-                      Número de dias úteis entre o prazo estimado e o prazo real
+                      Número de dias úteis entre a data de início e o prazo
                       (excluindo fins de semana).
                     </Form.Text>
                   </Form.Group>

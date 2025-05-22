@@ -44,6 +44,7 @@ const TarefaPage: React.FC = () => {
   // Date filter states
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  // 'prazoEstimado' for Início, 'prazoReal' for Prazo
   const [dateFilterField, setDateFilterField] = useState('prazoEstimado');
   const [isFiltered, setIsFiltered] = useState(false);
 

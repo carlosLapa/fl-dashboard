@@ -324,7 +324,8 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
               return `${event.title} (${startFormatted}) - ${workingDays} dia(s) útil(eis)`;
             }
 
-            return `${event.title} (${startFormatted} - ${endFormatted}) - ${workingDays} dia(s) útil(eis)`;
+            // Change the tooltip text format to use "Início" and "Prazo"
+            return `${event.title} (Início: ${startFormatted} - Prazo: ${endFormatted}) - ${workingDays} dia(s) útil(eis)`;
           }}
           onSelectEvent={handleEventClick}
         />

@@ -29,13 +29,13 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
             <Card.Title>{tarefa.descricao}</Card.Title>
             <div className="mt-3">
               <p className="mb-2">
-                <strong>Prazo Estimado:</strong>{' '}
+                <strong>Início:</strong> {/* Changed from "Prazo Estimado" */}
                 {tarefa.prazoEstimado
                   ? new Date(tarefa.prazoEstimado).toLocaleDateString()
                   : 'Não definido'}
               </p>
               <p className="mb-2">
-                <strong>Prazo Real:</strong>{' '}
+                <strong>Prazo:</strong> {/* Changed from "Prazo Real" */}
                 {tarefa.prazoReal
                   ? new Date(tarefa.prazoReal).toLocaleDateString()
                   : 'Não definido'}
