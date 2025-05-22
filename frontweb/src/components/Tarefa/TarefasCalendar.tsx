@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
@@ -32,47 +32,66 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
     TarefaWithWorkingDays[]
   >([]);
 
+  // Use ref to prevent infinite loop
+  const calculationsPerformedRef = useRef(false);
+  const previousTarefasLengthRef = useRef(tarefas.length);
+
   // Helper function to check if a date is a weekend (Saturday or Sunday)
-  const isWeekend = (date: Date): boolean => {
+  const isWeekend = useCallback((date: Date): boolean => {
     const day = date.getDay();
     return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
-  };
+  }, []);
 
   // Helper function to get the next weekday (skip weekends)
-  const getNextWeekday = (date: Date): Date => {
-    const result = new Date(date);
-    result.setDate(result.getDate() + 1);
-
-    while (isWeekend(result)) {
+  const getNextWeekday = useCallback(
+    (date: Date): Date => {
+      const result = new Date(date);
       result.setDate(result.getDate() + 1);
-    }
-
-    return result;
-  };
+      while (isWeekend(result)) {
+        result.setDate(result.getDate() + 1);
+      }
+      return result;
+    },
+    [isWeekend]
+  );
 
   // Helper function to calculate working days between two dates
-  const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
-    let workingDays = 0;
-    let currentDate = new Date(startDate);
+  const calculateWorkingDays = useCallback(
+    (startDate: Date, endDate: Date): number => {
+      let workingDays = 0;
+      let currentDate = new Date(startDate);
 
-    // Set both dates to midnight to ensure we're only comparing dates, not times
-    currentDate.setHours(0, 0, 0, 0);
-    const endDateMidnight = new Date(endDate);
-    endDateMidnight.setHours(0, 0, 0, 0);
+      // Set both dates to midnight to ensure we're only comparing dates, not times
+      currentDate.setHours(0, 0, 0, 0);
+      const endDateMidnight = new Date(endDate);
+      endDateMidnight.setHours(0, 0, 0, 0);
 
-    // Count working days
-    while (currentDate <= endDateMidnight) {
-      if (!isWeekend(currentDate)) {
-        workingDays++;
+      // Count working days
+      while (currentDate <= endDateMidnight) {
+        if (!isWeekend(currentDate)) {
+          workingDays++;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
       }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
 
-    return workingDays;
-  };
+      return workingDays;
+    },
+    [isWeekend]
+  );
+
+  // Reset calculations when tarefas array length changes
+  useEffect(() => {
+    if (previousTarefasLengthRef.current !== tarefas.length) {
+      calculationsPerformedRef.current = false;
+      previousTarefasLengthRef.current = tarefas.length;
+    }
+  }, [tarefas.length]);
 
   // Calculate working days for each tarefa
   useEffect(() => {
+    // Only perform calculations once
+    if (calculationsPerformedRef.current) return;
+
     // Filter out tarefas without valid dates to prevent errors
     const validTarefas = tarefas.filter(
       (tarefa) =>
@@ -107,83 +126,82 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
     });
 
     setTarefasWithWorkingDays(tarefasWithDays);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    calculationsPerformedRef.current = true;
+  }, [tarefas, onWorkingDaysCalculated, calculateWorkingDays]);
 
   // Helper function to create event segments that exclude weekends
-  const createWeekdayEventSegments = (
-    tarefa: TarefaWithWorkingDays,
-    startDate: Date,
-    endDate: Date
-  ) => {
-    const segments = [];
-    let segmentStart = new Date(startDate);
-    let segmentEnd;
+  const createWeekdayEventSegments = useCallback(
+    (tarefa: TarefaWithWorkingDays, startDate: Date, endDate: Date) => {
+      const segments = [];
+      let segmentStart = new Date(startDate);
+      let segmentEnd;
 
-    // If start date is a weekend, move to next weekday
-    if (isWeekend(segmentStart)) {
-      segmentStart = getNextWeekday(segmentStart);
-    }
+      // If start date is a weekend, move to next weekday
+      if (isWeekend(segmentStart)) {
+        segmentStart = getNextWeekday(segmentStart);
+      }
 
-    // If start date is after end date, return empty array
-    if (segmentStart > endDate) {
-      return [];
-    }
+      // If start date is after end date, return empty array
+      if (segmentStart > endDate) {
+        return [];
+      }
 
-    // Create segments for each work week
-    while (segmentStart <= endDate) {
-      // Find the end of the current work week (Friday) or the task end date, whichever comes first
-      segmentEnd = new Date(segmentStart);
+      // Create segments for each work week
+      while (segmentStart <= endDate) {
+        // Find the end of the current work week (Friday) or the task end date, whichever comes first
+        segmentEnd = new Date(segmentStart);
 
-      // If we're not already at Friday, find the next Friday or the end date
-      if (segmentStart.getDay() !== 5) {
-        // 5 is Friday
-        // Calculate days until Friday
-        const daysUntilFriday =
-          segmentStart.getDay() <= 5
-            ? 5 - segmentStart.getDay()
-            : 5 + (7 - segmentStart.getDay());
+        // If we're not already at Friday, find the next Friday or the end date
+        if (segmentStart.getDay() !== 5) {
+          // 5 is Friday
+          // Calculate days until Friday
+          const daysUntilFriday =
+            segmentStart.getDay() <= 5
+              ? 5 - segmentStart.getDay()
+              : 5 + (7 - segmentStart.getDay());
 
-        segmentEnd.setDate(segmentStart.getDate() + daysUntilFriday);
+          segmentEnd.setDate(segmentStart.getDate() + daysUntilFriday);
 
-        // If Friday is after the end date, use the end date
-        if (segmentEnd > endDate) {
-          segmentEnd = new Date(endDate);
+          // If Friday is after the end date, use the end date
+          if (segmentEnd > endDate) {
+            segmentEnd = new Date(endDate);
+          }
+        }
+
+        // Set end time to end of day
+        segmentEnd.setHours(23, 59, 59, 999);
+
+        // Add the segment
+        segments.push({
+          id: `${tarefa.id}-${segments.length}`,
+          title: tarefa.descricao,
+          start: new Date(segmentStart),
+          end: new Date(segmentEnd),
+          allDay: true,
+          resource: tarefa,
+          // Store original dates for tooltip
+          originalStart: tarefa.prazoEstimado
+            ? new Date(tarefa.prazoEstimado)
+            : new Date(tarefa.prazoReal),
+          originalEnd: new Date(tarefa.prazoReal),
+          // Store working days
+          workingDays: tarefa.workingDays,
+        });
+
+        // Move to the next Monday
+        segmentStart = new Date(segmentEnd);
+        segmentStart.setDate(segmentStart.getDate() + 3); // Skip to Monday (add 3 days from Friday)
+
+        // If we've gone past the end date, we're done
+        if (segmentStart > endDate) {
+          break;
         }
       }
 
-      // Set end time to end of day
-      segmentEnd.setHours(23, 59, 59, 999);
-
-      // Add the segment
-      segments.push({
-        id: `${tarefa.id}-${segments.length}`,
-        title: tarefa.descricao,
-        start: new Date(segmentStart),
-        end: new Date(segmentEnd),
-        allDay: true,
-        resource: tarefa,
-        // Store original dates for tooltip
-        originalStart: tarefa.prazoEstimado
-          ? new Date(tarefa.prazoEstimado)
-          : new Date(tarefa.prazoReal),
-        originalEnd: new Date(tarefa.prazoReal),
-        // Store working days
-        workingDays: tarefa.workingDays,
-      });
-
-      // Move to the next Monday
-      segmentStart = new Date(segmentEnd);
-      segmentStart.setDate(segmentStart.getDate() + 3); // Skip to Monday (add 3 days from Friday)
-
-      // If we've gone past the end date, we're done
-      if (segmentStart > endDate) {
-        break;
-      }
-    }
-
-    return segments;
-  };
+      return segments;
+    },
+    [isWeekend, getNextWeekday]
+  );
 
   // Create events, splitting them to exclude weekends
   const events = tarefasWithWorkingDays.flatMap((tarefa) => {
@@ -213,7 +231,7 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
   };
 
   // Custom event styling based on tarefa status
-  const eventStyleGetter = (event: any) => {
+  const eventStyleGetter = useCallback((event: any) => {
     const tarefa = event.resource;
     let backgroundColor = '#3174ad'; // default color
 
@@ -250,32 +268,35 @@ const TarefasCalendar: React.FC<TarefasCalendarProps> = ({
         cursor: 'pointer', // Add cursor pointer to indicate clickable
       },
     };
-  };
+  }, []);
 
   // Custom date cell styling to highlight weekends
-  const dayPropGetter = (date: Date) => {
-    if (isWeekend(date)) {
-      return {
-        style: {
-          backgroundColor: '#fff1f0', // Light reddish background for weekends
-          borderLeft: '1px solid #ffccc7',
-          borderRight: '1px solid #ffccc7',
-        },
-        className: 'weekend-day', // Add a class for additional styling if needed
-      };
-    }
-    return {};
-  };
+  const dayPropGetter = useCallback(
+    (date: Date) => {
+      if (isWeekend(date)) {
+        return {
+          style: {
+            backgroundColor: '#fff1f0', // Light reddish background for weekends
+            borderLeft: '1px solid #ffccc7',
+            borderRight: '1px solid #ffccc7',
+          },
+          className: 'weekend-day', // Add a class for additional styling if needed
+        };
+      }
+      return {};
+    },
+    [isWeekend]
+  );
 
   // Handle event click
-  const handleEventClick = (event: any) => {
+  const handleEventClick = useCallback((event: any) => {
     setSelectedTarefa(event.resource);
-  };
+  }, []);
 
   // Close the details card
-  const handleCloseDetails = () => {
+  const handleCloseDetails = useCallback(() => {
     setSelectedTarefa(null);
-  };
+  }, []);
 
   return (
     <div className="calendar-container">

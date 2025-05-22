@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping(value = "/tarefas")
 public class TarefaResource {
+
     @Autowired
     private TarefaService tarefaService;
 
@@ -94,7 +95,6 @@ public class TarefaResource {
         tarefaService.updateTarefaProjeto(id, projetoId);
         return ResponseEntity.noContent().build();
     }
-    ////
 
     @PutMapping("/with-associations/{id}")
     public ResponseEntity<TarefaWithUserAndProjetoDTO> updateWithAssociations(
@@ -125,7 +125,7 @@ public class TarefaResource {
         return ResponseEntity.ok().body(results);
     }
 
-    // Keeping this endpoint for backward compatibility but marked as deprecated
+    // Keeping this endpoint for backward compatibility but marked as deprecated - since V2 migration
     @Deprecated
     @GetMapping("/user/{userId}/tasks")
     public ResponseEntity<List<TarefaWithUserAndProjetoDTO>> getAllUserTasks(@PathVariable Long userId) {
@@ -153,16 +153,13 @@ public class TarefaResource {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
         // Add one day to endDate to make the range inclusive
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(endDate);
         calendar.add(Calendar.DATE, 1);
         Date adjustedEndDate = calendar.getTime();
-
         Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findByDateRange(
                 dateField, startDate, adjustedEndDate, page, size);  // Changed from 'field' to 'dateField'
-
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
                 .body(result);
@@ -174,13 +171,32 @@ public class TarefaResource {
             @RequestParam(defaultValue = "ASC") String direction,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
         Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findAllSorted(
                 sort, direction, page, size);
-
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
                 .body(result);
     }
 
+    // New endpoints for working days functionality
+
+    /**
+     * Recalculate working days for a specific tarefa
+     */
+    @PostMapping("/{id}/recalculate-working-days")
+    public ResponseEntity<Void> recalculateWorkingDays(@PathVariable Long id) {
+        tarefaService.recalculateWorkingDays(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Update working days for a specific tarefa
+     */
+    @PutMapping("/{id}/working-days")
+    public ResponseEntity<TarefaDTO> updateWorkingDays(
+            @PathVariable Long id,
+            @RequestBody Integer workingDays) {
+        TarefaDTO updatedTarefa = tarefaService.updateWorkingDays(id, workingDays);
+        return ResponseEntity.ok().body(updatedTarefa);
+    }
 }

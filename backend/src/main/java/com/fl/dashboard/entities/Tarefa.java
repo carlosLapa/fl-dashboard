@@ -24,6 +24,9 @@ public class Tarefa {
     private Date prazoEstimado;
     private Date prazoReal;
 
+    @Column(name = "working_days")
+    private Integer workingDays;
+
     @Enumerated(EnumType.STRING)
     private TarefaStatus status = TarefaStatus.BACKLOG;
 
@@ -62,12 +65,23 @@ public class Tarefa {
     public Tarefa() {
     }
 
+    // Kept the existing constructor for backward compatibility
     public Tarefa(Long id, String descricao, String prioridade, Date prazoEstimado, Date prazoReal) {
         this.id = id;
         this.descricao = descricao;
         this.prioridade = prioridade;
         this.prazoEstimado = prazoEstimado;
         this.prazoReal = prazoReal;
+    }
+
+    // Added a new constructor with workingDays - since V2 migration
+    public Tarefa(Long id, String descricao, String prioridade, Date prazoEstimado, Date prazoReal, Integer workingDays) {
+        this.id = id;
+        this.descricao = descricao;
+        this.prioridade = prioridade;
+        this.prazoEstimado = prazoEstimado;
+        this.prazoReal = prazoReal;
+        this.workingDays = workingDays;
     }
 
     @Override

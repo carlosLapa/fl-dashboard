@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TarefaTable from 'components/Tarefa/TarefaTable';
 import {
   TarefaWithUserAndProjetoDTO,
@@ -13,6 +13,7 @@ import {
   updateTarefaStatus,
   getTarefasByDateRange,
   getTarefasSorted, // Import the new sorting function
+  calculateWorkingDays, // Import the working days calculation function
 } from 'services/tarefaService';
 import { useNotification } from '../../hooks/useNotification';
 import { Button, Row, Col, Spinner } from 'react-bootstrap';
@@ -39,14 +40,38 @@ const TarefaPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const { sendNotification } = useNotification();
+
   // Date filter states
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [dateFilterField, setDateFilterField] = useState('prazoEstimado');
   const [isFiltered, setIsFiltered] = useState(false);
+
   // Sorting states
   const [sortField, setSortField] = useState<string>('id');
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+
+  // Working days tracking
+  const [workingDaysMap, setWorkingDaysMap] = useState<Record<number, number>>(
+    {}
+  );
+
+  // Optimize the handleWorkingDaysCalculated callback
+  const handleWorkingDaysCalculated = useCallback(
+    (tarefaId: number, workingDays: number) => {
+      setWorkingDaysMap((prev) => {
+        // Only update if the value is different
+        if (prev[tarefaId] === workingDays) {
+          return prev; // Return the same object to avoid a re-render
+        }
+        return {
+          ...prev,
+          [tarefaId]: workingDays,
+        };
+      });
+    },
+    []
+  );
 
   const fetchTarefas = async () => {
     setIsLoading(true);
@@ -105,6 +130,32 @@ const TarefaPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, isFiltered, sortField, sortDirection]);
 
+  // Update the working days effect to prevent infinite loops
+  useEffect(() => {
+    if (Object.keys(workingDaysMap).length > 0) {
+      // Check if we actually need to update any tasks
+      let needsUpdate = false;
+      const updatedTarefas = tarefas.map((tarefa) => {
+        if (
+          workingDaysMap[tarefa.id] !== undefined &&
+          tarefa.workingDays !== workingDaysMap[tarefa.id]
+        ) {
+          needsUpdate = true;
+          return {
+            ...tarefa,
+            workingDays: workingDaysMap[tarefa.id],
+          };
+        }
+        return tarefa;
+      });
+
+      // Only update state if there are actual changes
+      if (needsUpdate) {
+        setTarefas(updatedTarefas);
+      }
+    }
+  }, [workingDaysMap]);
+
   // Handle sorting
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -141,6 +192,15 @@ const TarefaPage: React.FC = () => {
 
   const handleAddTarefa = async (formData: TarefaInsertFormData) => {
     try {
+      // Calculate working days if both dates are provided
+      if (formData.prazoEstimado && formData.prazoReal) {
+        const workingDays = calculateWorkingDays(
+          formData.prazoEstimado,
+          formData.prazoReal
+        );
+        formData = { ...formData, workingDays };
+      }
+
       // Pass the sendNotification function to the service
       await addTarefa(formData, sendNotification);
       if (isFiltered) {
@@ -158,6 +218,15 @@ const TarefaPage: React.FC = () => {
 
   const handleUpdateTarefa = async (formData: TarefaUpdateFormData) => {
     try {
+      // Calculate working days if both dates are provided
+      if (formData.prazoEstimado && formData.prazoReal) {
+        const workingDays = calculateWorkingDays(
+          formData.prazoEstimado,
+          formData.prazoReal
+        );
+        formData = { ...formData, workingDays };
+      }
+
       // Pass the sendNotification function to the service
       await updateTarefa(formData.id, formData, sendNotification);
       if (isFiltered) {
@@ -273,7 +342,6 @@ const TarefaPage: React.FC = () => {
           </Button>
         </div>
       </div>
-
       <Row className="mt-4">
         <Col xs={12}>
           {viewMode === 'table' ? (
@@ -301,11 +369,13 @@ const TarefaPage: React.FC = () => {
               />
             </div>
           ) : (
-            <TarefasCalendar tarefas={tarefas} />
+            <TarefasCalendar
+              tarefas={tarefas}
+              onWorkingDaysCalculated={handleWorkingDaysCalculated}
+            />
           )}
         </Col>
       </Row>
-
       <TarefaModal
         show={showModal}
         onHide={() => {
@@ -317,7 +387,6 @@ const TarefaPage: React.FC = () => {
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />
-
       {showDetailsCard && selectedTarefa && (
         <TarefaDetailsCard
           tarefa={selectedTarefa}

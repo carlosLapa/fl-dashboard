@@ -2,7 +2,7 @@ import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faBriefcase } from '@fortawesome/free-solid-svg-icons';
 import './styles.scss';
 
 interface TarefaCardProps {
@@ -71,7 +71,6 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
           >
             {tarefa.descricao}
           </h3>
-
           <div
             style={{ fontSize: '14px', color: '#4B5563' }}
             className="tarefa-content"
@@ -92,6 +91,17 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
                 Prazo: {formatDate(tarefa.prazoReal)}
               </span>
             </div>
+
+            {/* Add working days information */}
+            {tarefa.workingDays !== undefined && (
+              <div
+                className="tarefa-working-days"
+                style={{ marginTop: '4px', fontSize: '13px' }}
+              >
+                <FontAwesomeIcon icon={faBriefcase} className="me-1" />
+                {tarefa.workingDays} dia(s) útil(eis)
+              </div>
+            )}
 
             <div style={{ marginTop: '8px' }} className="tarefa-footer">
               <div className="tarefa-projeto">{tarefa.projeto.designacao}</div>

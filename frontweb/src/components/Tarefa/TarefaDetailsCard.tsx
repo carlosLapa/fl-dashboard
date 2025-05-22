@@ -40,6 +40,13 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
                   ? new Date(tarefa.prazoReal).toLocaleDateString()
                   : 'Não definido'}
               </p>
+              {/* Add working days information */}
+              <p className="mb-2">
+                <strong>Dias Úteis:</strong>{' '}
+                {tarefa.workingDays !== undefined
+                  ? `${tarefa.workingDays} dia(s)`
+                  : 'Não calculado'}
+              </p>
               <p className="mb-2">
                 <strong>Status:</strong> {tarefa.status}
               </p>

@@ -39,6 +39,43 @@ public class TarefaService {
     @Autowired
     private NotificationService notificationService;
 
+    // Method to calculate working days
+    private Integer calculateWorkingDays(Date startDate, Date endDate) {
+        if (startDate == null || endDate == null) {
+            return null;
+        }
+
+        Calendar start = Calendar.getInstance();
+        start.setTime(startDate);
+
+        Calendar end = Calendar.getInstance();
+        end.setTime(endDate);
+
+        int workingDays = 0;
+
+        // Set both calendars to midnight to ensure we're only comparing dates
+        start.set(Calendar.HOUR_OF_DAY, 0);
+        start.set(Calendar.MINUTE, 0);
+        start.set(Calendar.SECOND, 0);
+        start.set(Calendar.MILLISECOND, 0);
+
+        end.set(Calendar.HOUR_OF_DAY, 0);
+        end.set(Calendar.MINUTE, 0);
+        end.set(Calendar.SECOND, 0);
+        end.set(Calendar.MILLISECOND, 0);
+
+        // Count working days
+        while (!start.after(end)) {
+            int dayOfWeek = start.get(Calendar.DAY_OF_WEEK);
+            if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
+                workingDays++;
+            }
+            start.add(Calendar.DATE, 1);
+        }
+
+        return workingDays;
+    }
+
     @Transactional(readOnly = true)
     public List<TarefaDTO> findAll() {
         List<Tarefa> list = tarefaRepository.findAllActive();
@@ -90,6 +127,12 @@ public class TarefaService {
     public TarefaDTO insert(TarefaDTO tarefaDTO) {
         Tarefa entity = new Tarefa();
         copyDTOtoEntity(tarefaDTO, entity);
+
+        // Calculate working days if both dates are available
+        if (entity.getPrazoEstimado() != null && entity.getPrazoReal() != null) {
+            entity.setWorkingDays(calculateWorkingDays(entity.getPrazoEstimado(), entity.getPrazoReal()));
+        }
+
         entity = tarefaRepository.save(entity);
         return new TarefaDTO(entity);
     }
@@ -100,6 +143,12 @@ public class TarefaService {
             Tarefa entity = tarefaRepository.findByIdActive(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Id: " + id + " não foi encontrado"));
             copyDTOtoEntity(tarefaDTO, entity);
+
+            // Calculate working days if both dates are available
+            if (entity.getPrazoEstimado() != null && entity.getPrazoReal() != null) {
+                entity.setWorkingDays(calculateWorkingDays(entity.getPrazoEstimado(), entity.getPrazoReal()));
+            }
+
             entity = tarefaRepository.save(entity);
             return new TarefaDTO(entity);
         } catch (EntityNotFoundException e) {
@@ -182,13 +231,16 @@ public class TarefaService {
     public TarefaWithUserAndProjetoDTO updateWithAssociations(TarefaUpdateDTO dto) {
         Tarefa tarefa = tarefaRepository.findByIdActive(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
-
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
-
         tarefa.setDescricao(dto.getDescricao());
         tarefa.setPrioridade(dto.getPrioridade());
         tarefa.setPrazoEstimado(dto.getPrazoEstimado());
         tarefa.setPrazoReal(dto.getPrazoReal());
+
+        // Calculate working days if both dates are available
+        if (tarefa.getPrazoEstimado() != null && tarefa.getPrazoReal() != null) {
+            tarefa.setWorkingDays(calculateWorkingDays(tarefa.getPrazoEstimado(), tarefa.getPrazoReal()));
+        }
 
         // Update projeto association
         if (dto.getProjetoId() != null) {
@@ -206,7 +258,6 @@ public class TarefaService {
                     .map(userId -> {
                         User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Utilizador não foi encontrado: " + userId));
-
                         if (!previousUsers.contains(user)) {
                             NotificationInsertDTO notification = NotificationInsertDTO.builder()
                                     .type("TAREFA_ATRIBUIDA")
@@ -251,6 +302,15 @@ public class TarefaService {
         tarefa.setPrazoEstimado(dto.getPrazoEstimado());
         tarefa.setPrazoReal(dto.getPrazoReal());
 
+        // Set working days if provided in the DTO
+        if (dto.getWorkingDays() != null) {
+            tarefa.setWorkingDays(dto.getWorkingDays());
+        }
+        // Otherwise, calculate working days if both dates are available
+        else if (tarefa.getPrazoEstimado() != null && tarefa.getPrazoReal() != null) {
+            tarefa.setWorkingDays(calculateWorkingDays(tarefa.getPrazoEstimado(), tarefa.getPrazoReal()));
+        }
+
         // Associate Projeto only if projetoId is provided
         if (dto.getProjetoId() != null) {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
@@ -280,7 +340,6 @@ public class TarefaService {
                         .createdAt(new Date())
                         .tarefaId(savedTarefa.getId())
                         .build();
-
                 notificationService.processNotification(notification);
             });
         }
@@ -292,13 +351,10 @@ public class TarefaService {
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
-
         TarefaStatus previousStatus = tarefa.getStatus();
         String descricao = tarefa.getDescricao();
         Long tarefaId = tarefa.getId();
-
         tarefa.setStatus(newStatus);
-
         tarefa.getUsers().forEach(user -> {
             NotificationInsertDTO notification = NotificationInsertDTO.builder()
                     .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
@@ -308,10 +364,8 @@ public class TarefaService {
                     .createdAt(new Date())
                     .tarefaId(tarefaId)
                     .build();
-
             notificationService.processNotification(notification);
         });
-
         tarefa = tarefaRepository.save(tarefa);
         return new TarefaDTO(tarefa);
     }
@@ -328,13 +382,18 @@ public class TarefaService {
         entity.setPrioridade(tarefaDTO.getPrioridade());
         entity.setPrazoEstimado(tarefaDTO.getPrazoEstimado());
         entity.setPrazoReal(tarefaDTO.getPrazoReal());
+        entity.setWorkingDays(tarefaDTO.getWorkingDays());  // Copy working days from DTO
+
+        // Calculate working days if not provided and both dates are available
+        if (entity.getWorkingDays() == null && entity.getPrazoEstimado() != null && entity.getPrazoReal() != null) {
+            entity.setWorkingDays(calculateWorkingDays(entity.getPrazoEstimado(), entity.getPrazoReal()));
+        }
 
         // Check for changes and notify users
         if (!entity.getDescricao().equals(oldDescricao) ||
                 !entity.getPrioridade().equals(oldPrioridade) ||
                 !Objects.equals(entity.getPrazoEstimado(), oldPrazoEstimado) ||
                 !Objects.equals(entity.getPrazoReal(), oldPrazoReal)) {
-
             entity.getUsers().forEach(user -> {
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
                         .type(NotificationType.TAREFA_EDITADA.name())
@@ -344,7 +403,6 @@ public class TarefaService {
                         .createdAt(new Date())
                         .tarefaId(entity.getId())
                         .build();
-
                 notificationService.processNotification(notification);
             });
         }
@@ -401,14 +459,11 @@ public class TarefaService {
     public Page<TarefaWithUserAndProjetoDTO> findAllActiveByUserIdPaginated(Long userId, int page, int size) {
         // Get paginated tasks without eager loading collections
         PageRequest pageRequest = PageRequest.of(page, size);
-
         // Use a query that doesn't trigger the in-memory pagination warning
         Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveByUserIdPaginated(userId, pageRequest);
-
         if (tarefaPage.isEmpty()) {
             return Page.empty(pageRequest);
         }
-
         // Convert to DTOs using the constructor
         List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
                 .map(tarefa -> {
@@ -420,7 +475,6 @@ public class TarefaService {
                     return new TarefaWithUserAndProjetoDTO(tarefa);
                 })
                 .collect(Collectors.toList());
-
         return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
     }
 
@@ -433,6 +487,7 @@ public class TarefaService {
         dto.setPrioridade(tarefa.getPrioridade());
         dto.setPrazoEstimado(tarefa.getPrazoEstimado());
         dto.setPrazoReal(tarefa.getPrazoReal());
+        dto.setWorkingDays(tarefa.getWorkingDays()); // Add working days to DTO
 
         // Map users (these will be loaded lazily)
         Set<UserDTO> userDtos = tarefa.getUsers().stream()
@@ -469,7 +524,6 @@ public class TarefaService {
     @Transactional(readOnly = true)
     public Page<TarefaWithUserAndProjetoDTO> findByDateRange(String dateField, Date startDate, Date endDate, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
-
         // If dates are not provided, return empty result
         if (startDate == null || endDate == null) {
             return Page.empty(pageRequest);
@@ -481,7 +535,6 @@ public class TarefaService {
         }
 
         Page<Tarefa> tarefaPage = tarefaRepository.findByDateRange(dateField, startDate, endDate, pageRequest);
-
         if (tarefaPage.isEmpty()) {
             return Page.empty(pageRequest);
         }
@@ -504,7 +557,6 @@ public class TarefaService {
     public Page<TarefaWithUserAndProjetoDTO> findAllSorted(String sortField, String sortDirection, int page, int size) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-
         Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveSorted(pageRequest);
 
         List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
@@ -519,5 +571,30 @@ public class TarefaService {
 
         return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
     }
+
+    // Add a method to recalculate working days for a specific tarefa
+    @Transactional
+    public void recalculateWorkingDays(Long tarefaId) {
+        Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        if (tarefa.getPrazoEstimado() != null && tarefa.getPrazoReal() != null) {
+            tarefa.setWorkingDays(calculateWorkingDays(tarefa.getPrazoEstimado(), tarefa.getPrazoReal()));
+            tarefaRepository.save(tarefa);
+        }
+    }
+
+    // Add a method to update just the working days field
+    @Transactional
+    public TarefaDTO updateWorkingDays(Long id, Integer workingDays) {
+        Tarefa tarefa = tarefaRepository.findByIdActive(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        tarefa.setWorkingDays(workingDays);
+        tarefa = tarefaRepository.save(tarefa);
+
+        return new TarefaDTO(tarefa);
+    }
+
 
 }

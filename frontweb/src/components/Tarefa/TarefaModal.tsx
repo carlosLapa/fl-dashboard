@@ -21,6 +21,39 @@ interface TarefaModalProps {
   onStatusChange?: (tarefaId: number, newStatus: TarefaStatus) => void;
 }
 
+// Helper function to calculate working days between two dates
+const calculateWorkingDays = (
+  startDateStr: string,
+  endDateStr: string
+): number => {
+  if (!startDateStr || !endDateStr) return 0;
+
+  const startDate = new Date(startDateStr);
+  const endDate = new Date(endDateStr);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return 0;
+
+  let workingDays = 0;
+  let currentDate = new Date(startDate);
+
+  // Set both dates to midnight to ensure we're only comparing dates, not times
+  currentDate.setHours(0, 0, 0, 0);
+  const endDateMidnight = new Date(endDate);
+  endDateMidnight.setHours(0, 0, 0, 0);
+
+  // Count working days
+  while (currentDate <= endDateMidnight) {
+    const day = currentDate.getDay();
+    if (day !== 0 && day !== 6) {
+      // 0 is Sunday, 6 is Saturday
+      workingDays++;
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return workingDays;
+};
+
 const TarefaModal: React.FC<TarefaModalProps> = ({
   show,
   onHide,
@@ -43,7 +76,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
   // Project search state
   const [projectSearchQuery, setProjectSearchQuery] = useState('');
   const [projectSearchResults, setProjectSearchResults] = useState<
@@ -51,6 +83,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   >([]);
   const [isSearchingProjects, setIsSearchingProjects] = useState(false);
   const [selectedProjectName, setSelectedProjectName] = useState('');
+  // Working days state
+  const [workingDays, setWorkingDays] = useState<number>(0);
 
   // Fetch users when modal opens
   useEffect(() => {
@@ -66,7 +100,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         setIsLoading(false);
       }
     };
-
     if (show) {
       fetchUsers();
     }
@@ -75,16 +108,19 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   // Set form data when editing
   useEffect(() => {
     if (isEditing && tarefa) {
+      const prazoEstimado = tarefa.prazoEstimado
+        ? new Date(tarefa.prazoEstimado).toISOString().split('T')[0]
+        : '';
+      const prazoReal = tarefa.prazoReal
+        ? new Date(tarefa.prazoReal).toISOString().split('T')[0]
+        : '';
+
       setFormData({
         id: tarefa.id,
         descricao: tarefa.descricao,
         prioridade: tarefa.prioridade,
-        prazoEstimado: tarefa.prazoEstimado
-          ? new Date(tarefa.prazoEstimado).toISOString().split('T')[0]
-          : '',
-        prazoReal: tarefa.prazoReal
-          ? new Date(tarefa.prazoReal).toISOString().split('T')[0]
-          : '',
+        prazoEstimado: prazoEstimado,
+        prazoReal: prazoReal,
         status: tarefa.status,
         projetoId: tarefa.projeto.id,
         userIds: tarefa.users.map((user) => user.id),
@@ -92,6 +128,18 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 
       // Set the selected project name for display
       setSelectedProjectName(tarefa.projeto.designacao);
+
+      // Calculate working days if both dates are available
+      if (prazoEstimado && prazoReal) {
+        // Use existing workingDays if available, otherwise calculate
+        if (tarefa.workingDays !== undefined) {
+          setWorkingDays(tarefa.workingDays);
+        } else {
+          setWorkingDays(calculateWorkingDays(prazoEstimado, prazoReal));
+        }
+      } else {
+        setWorkingDays(0);
+      }
     } else {
       setFormData({
         descricao: '',
@@ -103,8 +151,20 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         userIds: [],
       });
       setSelectedProjectName('');
+      setWorkingDays(0);
     }
   }, [isEditing, tarefa, show]);
+
+  // Calculate working days when dates change
+  useEffect(() => {
+    if (formData.prazoEstimado && formData.prazoReal) {
+      setWorkingDays(
+        calculateWorkingDays(formData.prazoEstimado, formData.prazoReal)
+      );
+    } else {
+      setWorkingDays(0);
+    }
+  }, [formData.prazoEstimado, formData.prazoReal]);
 
   const handleInputChange = (
     event: React.ChangeEvent<
@@ -135,12 +195,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       setProjectSearchResults([]);
       return;
     }
-
     setIsSearchingProjects(true);
     try {
       const response = await searchProjetosAPI(projectSearchQuery);
       console.log('Project search response:', response);
-
       if (response && response.content && response.content.length > 0) {
         setProjectSearchResults(response.content);
         console.log('Setting project results:', response.content);
@@ -160,7 +218,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   // Handle project selection
   const handleSelectProject = (projeto: any) => {
     console.log('Selected project:', projeto);
-
     setFormData((prevData) => ({
       ...prevData,
       projetoId: projeto.id,
@@ -189,8 +246,15 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       return;
     }
 
+    // Include workingDays in the form data if both dates are available
+    const updatedFormData = {
+      ...formData,
+      workingDays:
+        formData.prazoEstimado && formData.prazoReal ? workingDays : undefined,
+    };
+
     if (isEditing && tarefa) {
-      onSave({ ...formData, id: tarefa.id } as TarefaUpdateFormData);
+      onSave({ ...updatedFormData, id: tarefa.id } as TarefaUpdateFormData);
       const notification = {
         type: NotificationType.TAREFA_STATUS_ALTERADO,
         content: `Tarefa "${formData.descricao}" foi atualizada`,
@@ -203,7 +267,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       };
       sendNotification(notification);
     } else {
-      onSave(formData as TarefaInsertFormData);
+      onSave(updatedFormData as TarefaInsertFormData);
       formData.userIds.forEach((userId) => {
         const notification = {
           type: NotificationType.TAREFA_ATRIBUIDA,
@@ -301,7 +365,26 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Form.Group>
               </Col>
             </Row>
-
+            {/* Working Days display */}
+            {formData.prazoEstimado && formData.prazoReal && (
+              <Row>
+                <Col xs={12}>
+                  <Form.Group controlId="formWorkingDays" className="mb-3">
+                    <Form.Label>Dias Úteis</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={`${workingDays} dia(s)`}
+                      readOnly
+                      disabled
+                    />
+                    <Form.Text className="text-muted">
+                      Número de dias úteis entre o prazo estimado e o prazo real
+                      (excluindo fins de semana).
+                    </Form.Text>
+                  </Form.Group>
+                </Col>
+              </Row>
+            )}
             {/* Project search field */}
             <Row>
               <Col xs={12}>
@@ -328,14 +411,12 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       {isSearchingProjects ? 'Buscando...' : 'Buscar'}
                     </Button>
                   </InputGroup>
-
                   {selectedProjectName && (
                     <div className="mt-2">
                       <strong>Projeto selecionado:</strong>{' '}
                       {selectedProjectName}
                     </div>
                   )}
-
                   {projectSearchResults.length > 0 && (
                     <div
                       className="mt-2 border rounded p-2"
@@ -359,7 +440,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Form.Group>
               </Col>
             </Row>
-
             {/* Users section */}
             <Row>
               <Col xs={12}>

@@ -452,3 +452,39 @@ export const getTarefasSortedAPI = async (
     throw error;
   }
 };
+
+/**
+ * Recalculate working days for a specific tarefa
+ * @param tarefaId The ID of the tarefa to recalculate working days for
+ */
+export const recalculateWorkingDaysAPI = async (
+  tarefaId: number
+): Promise<void> => {
+  try {
+    await axios.post(`/tarefas/${tarefaId}/recalculate-working-days`);
+  } catch (error) {
+    console.error('Error recalculating working days:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update working days for a specific tarefa
+ * @param tarefaId The ID of the tarefa to update
+ * @param workingDays The number of working days to set
+ */
+export const updateWorkingDaysAPI = async (
+  tarefaId: number,
+  workingDays: number
+) => {
+  try {
+    const response = await axios.put(
+      `/tarefas/${tarefaId}/working-days`,
+      workingDays
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating working days:', error);
+    throw error;
+  }
+};

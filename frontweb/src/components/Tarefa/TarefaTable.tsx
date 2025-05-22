@@ -158,7 +158,6 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           </Col>
         </Row>
       </div>
-
       <div className="table-responsive">
         <Table striped bordered hover>
           <thead>
@@ -171,6 +170,11 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 'prazo-column'
               )}
               {renderSortableHeader('prazoReal', 'Prazo Real', 'prazo-column')}
+              {renderSortableHeader(
+                'workingDays',
+                'Dias Úteis',
+                'prazo-column'
+              )}
               <th>Atribuição</th>
               {renderSortableHeader('projeto.designacao', 'Projeto')}
               <th>Ações</th>
@@ -190,6 +194,11 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                   <td className="prazo-column">
                     {tarefa.prazoReal
                       ? new Date(tarefa.prazoReal).toLocaleDateString()
+                      : '-'}
+                  </td>
+                  <td className="prazo-column">
+                    {tarefa.workingDays !== undefined
+                      ? `${tarefa.workingDays} dia(s)`
                       : '-'}
                   </td>
                   <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
@@ -246,7 +255,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center">
+                <td colSpan={8} className="text-center">
                   Não existem tarefas
                 </td>
               </tr>
@@ -254,7 +263,6 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           </tbody>
         </Table>
       </div>
-
       {totalPages > 0 && (
         <div className="d-flex justify-content-center mt-3">
           <Pagination className="flex-wrap">

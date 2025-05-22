@@ -23,6 +23,29 @@ function isTarefaStatus(status: any): status is TarefaStatus {
   );
 }
 
+// Helper function to calculate working days between two dates
+const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
+  let workingDays = 0;
+  let currentDate = new Date(startDate);
+
+  // Set both dates to midnight to ensure we're only comparing dates, not times
+  currentDate.setHours(0, 0, 0, 0);
+  const endDateMidnight = new Date(endDate);
+  endDateMidnight.setHours(0, 0, 0, 0);
+
+  // Count working days
+  while (currentDate <= endDateMidnight) {
+    const day = currentDate.getDay();
+    if (day !== 0 && day !== 6) {
+      // 0 is Sunday, 6 is Saturday
+      workingDays++;
+    }
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return workingDays;
+};
+
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   const statusTranslations: { [key in TarefaStatus]: string } = {
     BACKLOG: 'Backlog',
@@ -75,11 +98,30 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         for (const tarefa of projeto.tarefas) {
           try {
             const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
+
+            // Calculate working days if prazoEstimado and prazoReal exist
+            let workingDays: number | undefined = undefined;
+            if (tarefaWithUsers.workingDays !== undefined) {
+              // Use existing workingDays if available
+              workingDays = tarefaWithUsers.workingDays;
+            } else if (
+              tarefaWithUsers.prazoEstimado &&
+              tarefaWithUsers.prazoReal &&
+              !isNaN(new Date(tarefaWithUsers.prazoEstimado).getTime()) &&
+              !isNaN(new Date(tarefaWithUsers.prazoReal).getTime())
+            ) {
+              // Calculate workingDays if not available
+              const startDate = new Date(tarefaWithUsers.prazoEstimado);
+              const endDate = new Date(tarefaWithUsers.prazoReal);
+              workingDays = calculateWorkingDays(startDate, endDate);
+            }
+
             const kanbanTarefa: KanbanTarefa = {
               ...tarefaWithUsers,
               column: tarefaWithUsers.status as TarefaStatus,
               projeto: { id: projeto.id, designacao: projeto.designacao },
               uniqueId: `${tarefa.id}-${Date.now()}`,
+              workingDays: workingDays,
             };
 
             if (

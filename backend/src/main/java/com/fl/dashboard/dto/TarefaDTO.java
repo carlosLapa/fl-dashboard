@@ -32,6 +32,8 @@ public class TarefaDTO {
 
     private TarefaStatus status;
 
+    private Integer workingDays;
+
     public TarefaDTO() {
     }
 
@@ -44,6 +46,17 @@ public class TarefaDTO {
         this.status = status;
     }
 
+    // Add a new constructor with workingDays - since V2 migration
+    public TarefaDTO(Long id, String descricao, String prioridade, Date prazoEstimado, Date prazoReal, TarefaStatus status, Integer workingDays) {
+        this.id = id;
+        this.descricao = descricao;
+        this.prioridade = prioridade;
+        this.prazoEstimado = prazoEstimado;
+        this.prazoReal = prazoReal;
+        this.status = status;
+        this.workingDays = workingDays;
+    }
+
     public TarefaDTO(Tarefa entity) {
         this.id = entity.getId();
         this.descricao = entity.getDescricao();
@@ -51,6 +64,7 @@ public class TarefaDTO {
         this.prazoEstimado = entity.getPrazoEstimado();
         this.prazoReal = entity.getPrazoReal();
         this.status = entity.getStatus();
+        this.workingDays = entity.getWorkingDays();
     }
 
 }

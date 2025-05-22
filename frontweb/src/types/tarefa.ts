@@ -15,6 +15,8 @@ export interface Tarefa {
   prazoEstimado: string;
   prazoReal: string;
   status: TarefaStatus;
+  // Calculated field: number of working days between prazoEstimado and prazoReal (excludes weekends)
+  workingDays?: number;
   projeto: {
     id: number;
     designacao: string;
@@ -31,6 +33,7 @@ export interface TarefaFormData {
   prazoEstimado: string;
   prazoReal: string;
   status: TarefaStatus;
+  workingDays?: number;
   users: User[];
   projeto: Projeto;
 }
@@ -41,6 +44,7 @@ export interface TarefaInsertFormData {
   prazoEstimado: string;
   prazoReal: string;
   status: TarefaStatus;
+  workingDays?: number;
   projetoId: number;
   userIds: number[];
 }
@@ -52,6 +56,7 @@ export interface TarefaUpdateFormData {
   prazoEstimado: string;
   prazoReal: string;
   status: TarefaStatus;
+  workingDays?: number;
   projetoId: number;
   userIds: number[];
 }
