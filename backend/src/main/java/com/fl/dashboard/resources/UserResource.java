@@ -97,16 +97,4 @@ public class UserResource {
         return ResponseEntity.ok().body(results);
     }
 
-    /*
-    @PostMapping("/{id}/upload-image")
-    public ResponseEntity<String> uploadUserImage(@PathVariable Long id, @RequestParam("image") MultipartFile imageFile) {
-        try {
-            userService.uploadUserImage(id, imageFile);
-            return new ResponseEntity<>("Imagem carregada com sucesso", HttpStatus.OK);
-        } catch (IOException e) {
-            return new ResponseEntity<>("Falha no carregamento da imagem", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    */
-
 }
