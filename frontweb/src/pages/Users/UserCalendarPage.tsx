@@ -47,15 +47,38 @@ const UserCalendarPage: React.FC = () => {
   }
 
   return (
-    <div className="my-calendar-container">
-      <div className="d-flex justify-content-start align-items-center mb-3">
-        <h2 className="my-calendar-text-title me-auto">O Meu Calendário</h2>
-        <Button variant="primary" onClick={handleGoBack}>
-          Ver Tabela
-        </Button>
-      </div>
-      <div className="calendar-wrapper">
-        <TarefasCalendar tarefas={userTarefas} />
+    <div className="page-container" style={{ marginTop: '2rem' }}>
+      {/* Wrap the content in a div with consistent width and margins */}
+      <div
+        style={{
+          width: '98%',
+          marginLeft: '2%',
+          marginRight: '2%',
+          marginTop: '2rem',
+        }}
+      >
+        <div
+          className="page-title-container"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <h2 className="page-title">O Meu Calendário</h2>
+          <div className="page-actions">
+            <Button
+              variant="primary"
+              onClick={handleGoBack}
+              className="create-button"
+            >
+              Ver Tabela
+            </Button>
+          </div>
+        </div>
+
+        {/* Calendar wrapped in a div with the same width */}
+        <div style={{ width: '100%', marginTop: '3rem' }}>
+          <div className="calendar-wrapper">
+            <TarefasCalendar tarefas={userTarefas} />
+          </div>
+        </div>
       </div>
     </div>
   );

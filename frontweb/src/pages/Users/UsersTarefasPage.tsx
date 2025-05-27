@@ -48,7 +48,6 @@ const UsersTarefasPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchUserAndTarefas();
   }, [userId]);
 
@@ -110,43 +109,94 @@ const UsersTarefasPage: React.FC = () => {
   }
 
   return (
-    <div className="user-tarefas-page">
-      <div className="user-tarefas-container">
-        <div className="user-info-section">
-          <div className="user-info-container">
-            <div className="user-image-container">
+    <div className="page-container" style={{ marginTop: '2rem' }}>
+      {/* Wrap the content in a div with consistent width and margins */}
+      <div
+        style={{
+          width: '98%',
+          marginLeft: '2%',
+          marginRight: '2%',
+          marginTop: '2rem',
+        }}
+      >
+        <div
+          className="page-title-container"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <div
+            className="user-info-container"
+            style={{ display: 'flex', alignItems: 'center' }}
+          >
+            <div
+              className="user-image-container"
+              style={{ marginRight: '1.5rem' }}
+            >
               {user.profileImage ? (
                 <img
                   src={`data:image/jpeg;base64,${user.profileImage}`}
                   alt={`${user.name}`}
                   className="user-profile-image"
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                  }}
                 />
               ) : (
-                <div className="user-profile-placeholder">No Image</div>
+                <div
+                  className="user-profile-placeholder"
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    backgroundColor: '#e9ecef',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  No Image
+                </div>
               )}
             </div>
             <div className="user-details">
-              <p className="user-name">{user.name}</p>
-              <p className="user-email">{user.email}</p>
+              <h2 className="page-title" style={{ margin: 0 }}>
+                {user.name}
+              </h2>
+              <p className="user-email" style={{ margin: 0 }}>
+                {user.email}
+              </p>
             </div>
           </div>
-          <div className="tarefas-header">
-            <h2 className="tarefas-title">Tarefas atribuídas</h2>
-            <div className="calendar-button-container">
-              <Button variant="primary" onClick={handleNavigateToCalendar}>
-                Ver Calendário
-              </Button>
-            </div>
+          <div className="page-actions" style={{ alignSelf: 'flex-start' }}>
+            <Button variant="primary" onClick={handleNavigateToCalendar}>
+              Ver Calendário
+            </Button>
           </div>
         </div>
-        <div className="tarefas-table-section">
-          <UserTarefaTable
-            tarefas={tarefas}
-            onEditTarefa={handleEditTarefa}
-            onDeleteTarefa={handleDeleteTarefa}
-          />
+
+        {/* Content wrapped in a div with the same width */}
+        <div style={{ width: '100%', marginTop: '3rem' }}>
+          <h3
+            className="section-title user-tasks-section-title"
+            style={{
+              borderBottom: 'none',
+              paddingBottom: 0,
+              position: 'relative',
+            }}
+          >
+            Tarefas atribuídas
+          </h3>
+          <div className="table-responsive">
+            <UserTarefaTable
+              tarefas={tarefas}
+              onEditTarefa={handleEditTarefa}
+              onDeleteTarefa={handleDeleteTarefa}
+            />
+          </div>
         </div>
       </div>
+
       {showTarefaModal && selectedTarefa && (
         <TarefaModal
           show={showTarefaModal}
