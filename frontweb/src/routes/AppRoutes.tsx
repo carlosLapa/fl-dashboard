@@ -10,6 +10,9 @@ import UserCalendarPage from 'pages/Users/UserCalendarPage';
 import ProjetoDetailsPage from 'pages/Projetos/ProjetoDetailsPage';
 import NotificationsPage from 'pages/Notifications/NotificationsPage';
 import SearchResultsPage from 'pages/Search/SearchResultsPage';
+import ExternosPage from 'pages/Externos/ExternosPage';
+import ExternoTarefasPage from 'pages/Externos/ExternoTarefasPage';
+import ExternoProjetosPage from 'pages/Externos/ExternoProjetosPage';
 
 const AppRoutes = () => {
   return (
@@ -50,6 +53,18 @@ const AppRoutes = () => {
       <Route
         path="/search"
         element={<ProtectedRoute element={<SearchResultsPage />} />}
+      />
+      <Route
+        path="/externos"
+        element={<ProtectedRoute element={<ExternosPage />} />}
+      />
+      <Route
+        path="/externos/:externoId/tarefas"
+        element={<ProtectedRoute element={<ExternoTarefasPage />} />}
+      />
+      <Route
+        path="/externos/:externoId/projetos"
+        element={<ProtectedRoute element={<ExternoProjetosPage />} />}
       />
     </Routes>
   );

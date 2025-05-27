@@ -1,3 +1,6 @@
+@import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/layout.scss';
+
 .prazo-column {
   min-width: 120px;
   white-space: nowrap;
@@ -5,21 +8,19 @@
   text-overflow: ellipsis;
 }
 
-.tarefa-container {
-  width: 100%;
-  overflow-x: auto;
+.create-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  @include respond-from('md') {
+    padding: 0.5rem 1.25rem;
+  }
 }
 
-/* Responsive table styles */
-@media (max-width: 992px) {
-  .tarefa-container {
-    margin-left: 0;
-    min-width: 100%;
-  }
-  
-  .table-responsive {
-    overflow-x: auto;
-  }
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
 }
 
 /* Details card styles */
@@ -69,8 +70,13 @@
   margin-bottom: 1.5rem;
 }
 
+// Responsive adjustments
 @media (max-width: 768px) {
   .date-filter-actions {
     margin-top: 1rem;
+  }
+
+  .create-button {
+    width: 100%;
   }
 }

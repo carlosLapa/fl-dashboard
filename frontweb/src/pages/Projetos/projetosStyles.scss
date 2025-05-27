@@ -1,27 +1,25 @@
+@import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/layout.scss';
+
 /* Botão a rever - criar um componente de botões*/
-.projeto-page {
-  padding: 1.5rem;
-  .page-title {
-    color: #343a40;
-    font-weight: 600;
+.create-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  @include respond-from('md') {
+    padding: 0.5rem 1.25rem;
   }
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
   .create-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    width: 100%;
   }
 }
-
-.page-container {
-  margin-top: 1%;
-  margin-left: 2%;
-  width: 97%;
-}
-
-.projeto-details-container {
-  margin-top: 1%;
-  margin-left: 15%;
-  width: 83%;
-  /*border: 2px solid rgb(68, 255, 0);*/
-}
-

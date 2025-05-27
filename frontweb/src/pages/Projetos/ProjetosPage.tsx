@@ -5,7 +5,7 @@ import {
   getProjetosWithFilters,
 } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
-import { Button, Row, Col } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
 import {
   addProjetoAPI,
@@ -213,49 +213,60 @@ const ProjetosPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-title-container">
-        <h2 className="page-title">Gestão de Projetos</h2>
-        <div className="page-actions">
-          <Button
-            variant="primary"
-            onClick={handleAddNewProjeto}
-            className="create-button"
-          >
-            <FontAwesomeIcon icon={faPlus} className="me-2" />
-            Adicionar Projeto
-          </Button>
+    <div className="page-container" style={{ marginTop: '2rem' }}>
+      {/* Wrap the title container and table in a div with consistent width and margins */}
+      <div
+        style={{
+          width: '98%',
+          marginLeft: '2%',
+          marginRight: '2%',
+          marginTop: '2rem',
+        }}
+      >
+        <div
+          className="page-title-container"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <h2 className="page-title">Gestão de Projetos</h2>
+          <div className="page-actions">
+            <Button
+              variant="primary"
+              onClick={handleAddNewProjeto}
+              className="create-button"
+            >
+              <FontAwesomeIcon icon={faPlus} className="me-2" />
+              Adicionar Projeto
+            </Button>
+          </div>
+        </div>
+        {/* Table wrapped in a div with the same width */}
+        <div style={{ width: '100%', marginTop: '3rem' }}>
+          <ProjetoTable
+            projetos={projetos}
+            onEditProjeto={handleEditProjeto}
+            onDeleteProjeto={handleDeleteProjeto}
+            page={page}
+            onPageChange={setPage}
+            totalPages={totalPages}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            designacaoFilter={designacaoFilter}
+            entidadeFilter={entidadeFilter}
+            prioridadeFilter={prioridadeFilter}
+            onDesignacaoFilterChange={setDesignacaoFilter}
+            onEntidadeFilterChange={setEntidadeFilter}
+            onPrioridadeFilterChange={setPrioridadeFilter}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            isLoading={isLoading}
+          />
         </div>
       </div>
-      <Row className="mt-4">
-        <Col>
-          <div className="table-container">
-            <ProjetoTable
-              projetos={projetos}
-              onEditProjeto={handleEditProjeto}
-              onDeleteProjeto={handleDeleteProjeto}
-              page={page}
-              onPageChange={setPage}
-              totalPages={totalPages}
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-              designacaoFilter={designacaoFilter}
-              entidadeFilter={entidadeFilter}
-              prioridadeFilter={prioridadeFilter}
-              onDesignacaoFilterChange={setDesignacaoFilter}
-              onEntidadeFilterChange={setEntidadeFilter}
-              onPrioridadeFilterChange={setPrioridadeFilter}
-              onApplyFilters={handleApplyFilters}
-              onClearFilters={handleClearFilters}
-              isLoading={isLoading}
-            />
-          </div>
-        </Col>
-      </Row>
+
       <ProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}

@@ -82,23 +82,34 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container">
-      <div className="page-title-container">
-        <h2 className="page-title">Colaboradores</h2>
-        <div className="page-actions">
-          <Button
-            variant="primary"
-            onClick={handleAddUser}
-            className="create-button"
-          >
-            <FontAwesomeIcon icon={faPlus} className="me-2" />
-            Adicionar Utilizador
-          </Button>
+    <div className="page-container" style={{ marginTop: '2rem' }}>
+      {/* Wrap the title container and table in a div with consistent width and margins */}
+      <div
+        style={{
+          width: '98%',
+          marginLeft: '2%',
+          marginRight: '2%',
+          marginTop: '2rem',
+        }}
+      >
+        <div
+          className="page-title-container"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <h2 className="page-title">Colaboradores</h2>
+          <div className="page-actions">
+            <Button
+              variant="primary"
+              onClick={handleAddUser}
+              className="create-button"
+            >
+              <FontAwesomeIcon icon={faPlus} className="me-2" />
+              Adicionar Utilizador
+            </Button>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="table-responsive">
+        {/* Table wrapped in a div with the same width */}
+        <div style={{ width: '100%', marginTop: '3rem' }}>
           <UserTable
             users={users}
             onEditUser={handleEditUser}
@@ -111,6 +122,7 @@ const UsersPage: React.FC = () => {
           />
         </div>
       </div>
+      {/* Modals */}
       <AddUserModal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}

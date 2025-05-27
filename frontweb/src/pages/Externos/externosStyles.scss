@@ -1,0 +1,62 @@
+@import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/layout.scss';
+
+.page-container {
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.page-title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  @include respond-from('md') {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.page-title {
+  margin-bottom: 1rem;
+  color: #343a40;
+  font-weight: 600;
+
+  @include respond-from('md') {
+    margin-bottom: 0;
+  }
+}
+
+.page-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.create-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+
+  @include respond-from('md') {
+    padding: 0.5rem 1.25rem;
+  }
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .create-button {
+    width: 100%;
+  }
+}

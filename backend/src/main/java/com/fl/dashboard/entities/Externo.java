@@ -38,7 +38,7 @@ public class Externo {
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
 
-    @ElementCollection(targetClass = EspecialidadesExterno.class)
+    @ElementCollection(targetClass = EspecialidadesExterno.class, fetch = FetchType.EAGER)
     @CollectionTable(
             name = "tb_externo_especialidades",
             joinColumns = @JoinColumn(name = "externo_id")

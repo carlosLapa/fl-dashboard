@@ -1,14 +1,14 @@
 @import '../../assets/styles/breakpoints.scss';
 @import '../../assets/styles/tablePositioning.scss';
 
-// User table container styles - Make this more specific
-.user-table-container {
-  margin-top: 20px;
+// Externo table container styles
+.externo-table-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 220px); // Match the value from userStyles.scss
+  height: calc(100vh - 220px);
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
 
   // Add table-responsive styles for vertical scrolling
   .table-responsive {
@@ -17,10 +17,16 @@
     flex: 1; // Take available space
     min-height: 0; // Important for flex child to scroll properly
   }
+
+  // Action icons container
+  .action-icons {
+    display: flex;
+    align-items: center;
+  }
 }
 
-// User table styles
-.user-table {
+// Externo table styles
+.externo-table {
   width: 100%;
 
   th {
@@ -38,9 +44,11 @@
 
 // Action icons
 .view-tasks-icon,
-.view-notifications-icon {
+.view-projetos-icon {
   cursor: pointer;
   color: #28a745;
+  transition: color 0.2s;
+
   &:hover {
     color: #218838;
   }
@@ -49,6 +57,8 @@
 .edit-icon {
   cursor: pointer;
   color: #007bff;
+  transition: color 0.2s;
+
   &:hover {
     color: #0056b3;
   }
@@ -57,17 +67,11 @@
 .delete-icon {
   cursor: pointer;
   color: #dc3545;
+  transition: color 0.2s;
+
   &:hover {
     color: #c82333;
   }
-}
-
-// Profile image in table
-.profile-image {
-  max-width: 90px;
-  max-height: 90px;
-  object-fit: cover;
-  border-radius: 4px;
 }
 
 // Pagination container
@@ -80,9 +84,16 @@
   flex-shrink: 0; // Prevent pagination from shrinking
 }
 
+// Page info for mobile
+.page-info {
+  margin-top: 0.5rem;
+  text-align: center;
+  color: #6c757d;
+}
+
 // Responsive adjustments
 @media (max-width: 768px) {
-  .user-table-container {
+  .externo-table-container {
     height: calc(100vh - 180px); // Slightly smaller on mobile
 
     .table-responsive {

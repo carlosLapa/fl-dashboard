@@ -12,11 +12,11 @@ import {
   deleteTarefa,
   updateTarefaStatus,
   getTarefasByDateRange,
-  getTarefasSorted, // Import the new sorting function
-  calculateWorkingDays, // Import the working days calculation function
+  getTarefasSorted,
+  calculateWorkingDays,
 } from 'services/tarefaService';
 import { useNotification } from '../../hooks/useNotification';
-import { Button, Row, Col, Spinner } from 'react-bootstrap';
+import { Button, Spinner } from 'react-bootstrap';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
 import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
@@ -38,13 +38,13 @@ const TarefaPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const { sendNotification } = useNotification();
 
   // Date filter states
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  // 'prazoEstimado' for Início, 'prazoReal' for Prazo
   const [dateFilterField, setDateFilterField] = useState('prazoEstimado');
   const [isFiltered, setIsFiltered] = useState(false);
 
@@ -149,12 +149,12 @@ const TarefaPage: React.FC = () => {
         }
         return tarefa;
       });
-
       // Only update state if there are actual changes
       if (needsUpdate) {
         setTarefas(updatedTarefas);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingDaysMap]);
 
   // Handle sorting
@@ -201,7 +201,6 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-
       // Pass the sendNotification function to the service
       await addTarefa(formData, sendNotification);
       if (isFiltered) {
@@ -227,7 +226,6 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-
       // Pass the sendNotification function to the service
       await updateTarefa(formData.id, formData, sendNotification);
       if (isFiltered) {
@@ -323,28 +321,41 @@ const TarefaPage: React.FC = () => {
   }
 
   return (
-    <div className="page-container">
-      <div className="page-title-container">
-        <h2 className="page-title">Tarefas</h2>
-        <div className="page-actions">
-          <Button
-            variant="primary"
-            onClick={() => {
-              setTarefaToEdit(null);
-              setShowModal(true);
-            }}
-            className="create-button me-3" // Added Bootstrap's me-3 class for margin-right
-          >
-            <FontAwesomeIcon icon={faPlus} className="me-2" />
-            Adicionar Tarefa
-          </Button>
-          <Button variant="secondary" onClick={toggleViewMode}>
-            {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
-          </Button>
+    <div className="page-container" style={{ marginTop: '2rem' }}>
+      {/* Wrap the title container and content in a div with consistent width and margins */}
+      <div
+        style={{
+          width: '98%',
+          marginLeft: '2%',
+          marginRight: '2%',
+          marginTop: '2rem',
+        }}
+      >
+        <div
+          className="page-title-container"
+          style={{ width: '100%', margin: 0 }}
+        >
+          <h2 className="page-title">Tarefas</h2>
+          <div className="page-actions">
+            <Button
+              variant="primary"
+              onClick={() => {
+                setTarefaToEdit(null);
+                setShowModal(true);
+              }}
+              className="create-button me-3"
+            >
+              <FontAwesomeIcon icon={faPlus} className="me-2" />
+              Adicionar Tarefa
+            </Button>
+            <Button variant="secondary" onClick={toggleViewMode}>
+              {viewMode === 'table' ? 'Ver Calendário' : 'Ver Tabela'}
+            </Button>
+          </div>
         </div>
-      </div>
-      <Row className="mt-4">
-        <Col xs={12}>
+
+        {/* Content wrapped in a div with the same width */}
+        <div style={{ width: '100%', marginTop: '3rem' }}>
           {viewMode === 'table' ? (
             <div className="table-responsive">
               <TarefaTable
@@ -375,8 +386,9 @@ const TarefaPage: React.FC = () => {
               onWorkingDaysCalculated={handleWorkingDaysCalculated}
             />
           )}
-        </Col>
-      </Row>
+        </div>
+      </div>
+
       <TarefaModal
         show={showModal}
         onHide={() => {
@@ -388,6 +400,7 @@ const TarefaPage: React.FC = () => {
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />
+
       {showDetailsCard && selectedTarefa && (
         <TarefaDetailsCard
           tarefa={selectedTarefa}

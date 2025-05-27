@@ -1,0 +1,26 @@
+// Common table positioning styles
+.externo-table-container,
+.user-table-container,
+.projeto-container,
+.tarefa-container,
+.tarefa-table-container,
+.calendar-container,
+.kanban-board-container {
+  width: 98%;
+  margin-left: 0; // No left margin to position more to the left
+  margin-right: 2%; // Right margin only
+
+  // Make table-responsive take full width of its container
+  .table-responsive {
+    width: 100%;
+  }
+}
+
+// Additional specific overrides for tarefa components
+.tarefa-container {
+  min-width: 98% !important; // Override the min-width: 100% in styles.scss
+}
+
+.calendar-container {
+  padding: 0 !important; // Override the padding: 0 15px in styles.scss
+}

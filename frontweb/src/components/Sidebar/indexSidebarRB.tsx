@@ -29,6 +29,18 @@ const SidebarFL: React.FC = () => {
         <Nav.Item>
           <div
             className={`sidebar-link text-light mb-4 ${
+              location.pathname.startsWith('/externos') ? 'active' : ''
+            }`}
+            onClick={() => handleNavigation('/externos')}
+            role="button"
+            tabIndex={0}
+          >
+            Colaboradores Externos
+          </div>
+        </Nav.Item>
+        <Nav.Item>
+          <div
+            className={`sidebar-link text-light mb-4 ${
               location.pathname.startsWith('/projetos') ? 'active' : ''
             }`}
             onClick={() => handleNavigation('/projetos')}
@@ -50,6 +62,7 @@ const SidebarFL: React.FC = () => {
             Tarefas
           </div>
         </Nav.Item>
+
         <Nav.Item>
           <div
             className={`sidebar-link text-light mb-4 ${

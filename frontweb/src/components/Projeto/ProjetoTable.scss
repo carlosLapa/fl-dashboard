@@ -1,5 +1,8 @@
+@import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/tablePositioning.scss';
+
 .projeto-container {
-  width: 100%;
+  margin-top: 20px;
   padding-left: 0; // Reset any padding that might be causing issues
   display: flex;
   flex-direction: column;
