@@ -53,7 +53,6 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
     if (isMobile) {
       setExpanded(false);
     }
-
     // If a path is provided, navigate to it
     if (path) {
       navigate(path);
@@ -124,7 +123,6 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
               >
                 Portfolio
               </a>
-
               {/* Sidebar links - only shown on mobile */}
               {isMobile && user && (
                 <>
@@ -136,6 +134,14 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
                     onClick={() => handleNavLinkClick('/users')}
                   >
                     Colaboradores
+                  </div>
+                  <div
+                    className={`custom-navbar-link text-light ${
+                      isActive('/externos') ? 'active' : ''
+                    }`}
+                    onClick={() => handleNavLinkClick('/externos')}
+                  >
+                    Colaboradores Externos
                   </div>
                   <div
                     className={`custom-navbar-link text-light ${
@@ -163,7 +169,6 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
                   </div>
                 </>
               )}
-
               {user && (
                 <div onClick={() => handleNavLinkClick()}>
                   <UserInfo />
