@@ -159,6 +159,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           </Col>
         </Row>
       </div>
+
       <div className="table-responsive">
         <Table striped bordered hover>
           <thead>
@@ -175,6 +176,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                 'prazo-column'
               )}
               <th>Atribuição</th>
+              <th>Externos</th> {/* New column for Externos */}
               {renderSortableHeader('projeto.designacao', 'Projeto')}
               <th>Ações</th>
             </tr>
@@ -201,6 +203,14 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
                       : '-'}
                   </td>
                   <td>{tarefa.users.map((user) => user.name).join(', ')}</td>
+                  <td>
+                    {/* Display externos if they exist */}
+                    {tarefa.externos && tarefa.externos.length > 0
+                      ? tarefa.externos
+                          .map((externo) => externo.name)
+                          .join(', ')
+                      : '-'}
+                  </td>
                   <td>{tarefa.projeto.designacao}</td>
                   <td>
                     <div className="action-icons">
@@ -254,7 +264,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="text-center">
+                <td colSpan={9} className="text-center">
                   Não existem tarefas
                 </td>
               </tr>
@@ -262,6 +272,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           </tbody>
         </Table>
       </div>
+
       {totalPages > 0 && (
         <div className="d-flex justify-content-center mt-3">
           <Pagination className="flex-wrap">

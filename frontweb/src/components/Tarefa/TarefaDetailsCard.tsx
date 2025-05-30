@@ -63,6 +63,13 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
                   ? tarefa.users.map((user) => user.name).join(', ')
                   : 'Não atribuída'}
               </p>
+              {/* Add Externos information */}
+              <p className="mb-2">
+                <strong>Externos:</strong>{' '}
+                {tarefa.externos && tarefa.externos.length > 0
+                  ? tarefa.externos.map((externo) => externo.name).join(', ')
+                  : 'Nenhum externo associado'}
+              </p>
             </div>
           </Card.Body>
           <Card.Footer className="text-end">
