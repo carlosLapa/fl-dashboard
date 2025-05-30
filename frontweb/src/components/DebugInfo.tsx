@@ -9,6 +9,9 @@ const DebugInfo: React.FC = () => {
   });
 
   /*
+  Importado no App.tsx:
+  somente para debug de quais as vars do env de produção
+  
   useEffect(() => {
     setInfo({
       apiUrl: axios.defaults.baseURL || 'Not set',

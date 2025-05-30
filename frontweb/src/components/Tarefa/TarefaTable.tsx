@@ -164,7 +164,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           <thead>
             <tr>
               {renderSortableHeader('descricao', 'Descrição')}
-              {renderSortableHeader('status', 'Status')}
+              {renderSortableHeader('status', 'Estado')}
               {/* Changed label from "Prazo Estimado" to "Início" */}
               {renderSortableHeader('prazoEstimado', 'Início', 'prazo-column')}
               {/* Changed label from "Prazo Real" to "Prazo" */}

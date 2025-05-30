@@ -6,7 +6,6 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { BrowserRouter } from 'react-router-dom';
 import { NotificationProvider } from 'NotificationContext';
 import Layout from './components/Layout/Layout';
-import DebugInfo from 'components/DebugInfo';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -21,7 +20,6 @@ const AppContent: React.FC = () => {
         />
         <AppRoutes />
       </Layout>
-      <DebugInfo />
     </NotificationProvider>
   );
 };

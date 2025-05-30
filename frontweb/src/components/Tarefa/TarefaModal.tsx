@@ -326,7 +326,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
               </Col>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formStatus" className="mb-3">
-                  <Form.Label>Status</Form.Label>
+                  <Form.Label>Estado</Form.Label>
                   <Form.Select
                     name="status"
                     value={formData.status}
@@ -446,7 +446,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
             <Row>
               <Col xs={12}>
                 <Form.Group controlId="formUsers" className="mb-3">
-                  <Form.Label>Usuários Atribuídos</Form.Label>
+                  <Form.Label>Colaboradores Atribuídos</Form.Label>
                   <div
                     className="user-checkbox-container"
                     style={{ maxHeight: '200px', overflowY: 'auto' }}
@@ -466,7 +466,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                         ))}
                       </Row>
                     ) : (
-                      <p>Nenhum usuário disponível</p>
+                      <p>Nenhum colaborador disponível</p>
                     )}
                   </div>
                 </Form.Group>
