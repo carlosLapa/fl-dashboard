@@ -18,4 +18,5 @@ public class TarefaInsertDTO {
     private Set<Long> userIds;
     private TarefaStatus status;
     private Integer workingDays;
+    private Set<Long> externoIds;
 }

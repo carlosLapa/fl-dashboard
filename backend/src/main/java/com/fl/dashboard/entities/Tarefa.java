@@ -48,7 +48,12 @@ public class Tarefa {
     Set<User> users = new HashSet<>();
 
     @JsonBackReference
-    @ManyToMany(mappedBy = "tarefas")
+    @ManyToMany
+    @JoinTable(
+            name = "tb_tarefa_externo",
+            joinColumns = @JoinColumn(name = "tarefa_id"),
+            inverseJoinColumns = @JoinColumn(name = "externo_id")
+    )
     private Set<Externo> externos = new HashSet<>();
 
     @JsonBackReference

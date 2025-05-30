@@ -1,5 +1,6 @@
 import { User } from './user';
 import { Projeto } from './projeto';
+import { ExternoDTO } from './externo';
 
 export type TarefaStatus =
   | 'BACKLOG'
@@ -25,6 +26,12 @@ export interface Tarefa {
     id: number;
     name: string;
   }[];
+  externos?: {
+    // Add externos property as optional
+    id: number;
+    name: string;
+    especialidades?: string[];
+  }[];
 }
 
 export interface TarefaFormData {
@@ -47,6 +54,7 @@ export interface TarefaInsertFormData {
   workingDays?: number;
   projetoId: number;
   userIds: number[];
+  externoIds?: number[];
 }
 
 export interface TarefaUpdateFormData {
@@ -59,11 +67,18 @@ export interface TarefaUpdateFormData {
   workingDays?: number;
   projetoId: number;
   userIds: number[];
+  externoIds?: number[];
 }
 
 export type TarefaWithUserAndProjetoDTO = Tarefa & {
   projeto: Projeto;
   users: User[];
+  externos?: ExternoDTO[];
+};
+
+export type TarefaWithExternoAndProjetoDTO = Tarefa & {
+  projeto: Projeto;
+  externos: ExternoDTO[];
 };
 
 export type TarefaWithUsersDTO = Tarefa & {

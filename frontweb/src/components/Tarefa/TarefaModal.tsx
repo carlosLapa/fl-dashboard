@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Button, Row, Col, InputGroup } from 'react-bootstrap';
+import {
+  Modal,
+  Form,
+  Button,
+  Row,
+  Col,
+  InputGroup,
+  Tabs,
+  Tab,
+} from 'react-bootstrap';
 import {
   Tarefa,
   TarefaInsertFormData,
@@ -9,7 +18,9 @@ import {
 import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
+import { ExternoDTO } from 'types/externo';
 import { getUsersAPI, searchProjetosAPI } from '../../api/requestsApi';
+import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 
 interface TarefaModalProps {
@@ -73,6 +84,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     status: 'BACKLOG',
     projetoId: 0,
     userIds: [],
+    externoIds: [],
   });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -85,23 +97,29 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   const [selectedProjectName, setSelectedProjectName] = useState('');
   // Working days state
   const [workingDays, setWorkingDays] = useState<number>(0);
+  const [externos, setExternos] = useState<ExternoDTO[]>([]);
+  const [activeTab, setActiveTab] = useState('colaboradores');
 
-  // Fetch users when modal opens
+  // Fetch users and externos when modal opens
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const usersData = await getUsersAPI();
+        const [usersData, externosData] = await Promise.all([
+          getUsersAPI(),
+          getAllExternosAPI(),
+        ]);
         setUsers(usersData);
+        setExternos(externosData);
       } catch (error) {
-        console.error('Error fetching users:', error);
-        toast.error('Erro ao carregar colaboradores');
+        console.error('Error fetching data:', error);
+        toast.error('Erro ao carregar dados');
       } finally {
         setIsLoading(false);
       }
     };
     if (show) {
-      fetchUsers();
+      fetchData();
     }
   }, [show]);
 
@@ -124,6 +142,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         status: tarefa.status,
         projetoId: tarefa.projeto.id,
         userIds: tarefa.users.map((user) => user.id),
+        externoIds: tarefa.externos?.map((externo) => externo.id) || [],
       });
 
       // Set the selected project name for display
@@ -149,6 +168,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         status: 'BACKLOG',
         projetoId: 0,
         userIds: [],
+        externoIds: [],
       });
       setSelectedProjectName('');
       setWorkingDays(0);
@@ -233,6 +253,16 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       userIds: prevData.userIds.includes(userId)
         ? prevData.userIds.filter((id) => id !== userId)
         : [...prevData.userIds, userId],
+    }));
+  };
+
+  // Handle externo selection
+  const handleExternoSelect = (externoId: number) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      externoIds: prevData.externoIds?.includes(externoId)
+        ? prevData.externoIds.filter((id) => id !== externoId)
+        : [...(prevData.externoIds || []), externoId],
     }));
   };
 
@@ -442,34 +472,76 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Form.Group>
               </Col>
             </Row>
-            {/* Users section */}
+            {/* Users and Externos Tabs */}
             <Row>
               <Col xs={12}>
-                <Form.Group controlId="formUsers" className="mb-3">
-                  <Form.Label>Colaboradores Atribuídos</Form.Label>
-                  <div
-                    className="user-checkbox-container"
-                    style={{ maxHeight: '200px', overflowY: 'auto' }}
-                  >
-                    {Array.isArray(users) && users.length > 0 ? (
-                      <Row>
-                        {users.map((user) => (
-                          <Col xs={12} md={6} key={user.id}>
-                            <Form.Check
-                              type="checkbox"
-                              label={user.name}
-                              checked={formData.userIds.includes(user.id)}
-                              onChange={() => handleUserSelect(user.id)}
-                              className="mb-2"
-                            />
-                          </Col>
-                        ))}
-                      </Row>
-                    ) : (
-                      <p>Nenhum colaborador disponível</p>
-                    )}
-                  </div>
-                </Form.Group>
+                <Tabs
+                  activeKey={activeTab}
+                  onSelect={(k) => setActiveTab(k || 'colaboradores')}
+                  className="mb-3"
+                >
+                  <Tab eventKey="colaboradores" title="Colaboradores">
+                    <Form.Group controlId="formUsers" className="mb-3">
+                      <Form.Label>Colaboradores Atribuídos</Form.Label>
+                      <div
+                        className="user-checkbox-container"
+                        style={{ maxHeight: '200px', overflowY: 'auto' }}
+                      >
+                        {Array.isArray(users) && users.length > 0 ? (
+                          <Row>
+                            {users.map((user) => (
+                              <Col xs={12} md={6} key={user.id}>
+                                <Form.Check
+                                  type="checkbox"
+                                  label={user.name}
+                                  checked={formData.userIds.includes(user.id)}
+                                  onChange={() => handleUserSelect(user.id)}
+                                  className="mb-2"
+                                />
+                              </Col>
+                            ))}
+                          </Row>
+                        ) : (
+                          <p>Nenhum colaborador disponível</p>
+                        )}
+                      </div>
+                    </Form.Group>
+                  </Tab>
+                  <Tab eventKey="externos" title="Externos">
+                    <Form.Group controlId="formExternos" className="mb-3">
+                      <Form.Label>Externos Atribuídos</Form.Label>
+                      <div
+                        className="externo-checkbox-container"
+                        style={{ maxHeight: '200px', overflowY: 'auto' }}
+                      >
+                        {Array.isArray(externos) && externos.length > 0 ? (
+                          <Row>
+                            {externos.map((externo) => (
+                              <Col xs={12} md={6} key={externo.id}>
+                                <Form.Check
+                                  type="checkbox"
+                                  label={`${
+                                    externo.name
+                                  } (${externo.especialidades.join(', ')})`}
+                                  checked={
+                                    formData.externoIds?.includes(externo.id) ||
+                                    false
+                                  }
+                                  onChange={() =>
+                                    handleExternoSelect(externo.id)
+                                  }
+                                  className="mb-2"
+                                />
+                              </Col>
+                            ))}
+                          </Row>
+                        ) : (
+                          <p>Nenhum externo disponível</p>
+                        )}
+                      </div>
+                    </Form.Group>
+                  </Tab>
+                </Tabs>
               </Col>
             </Row>
           </Form>

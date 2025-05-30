@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class TarefaWithUserAndProjetoDTO extends TarefaDTO {
     private Set<UserDTO> users = new HashSet<>();
     private ProjetoDTO projeto;
+    private Set<ExternoDTO> externos;
 
     // Add a no-args constructor
     public TarefaWithUserAndProjetoDTO() {
@@ -36,5 +37,23 @@ public class TarefaWithUserAndProjetoDTO extends TarefaDTO {
             Hibernate.initialize(entity.getProjeto());
             this.projeto = new ProjetoDTO(entity.getProjeto());
         }
+
+        // Map externos
+        if (entity.getExternos() != null) {
+            this.externos = entity.getExternos().stream()
+                    .map(externo -> {
+                        ExternoDTO externoDTO = new ExternoDTO();
+                        externoDTO.setId(externo.getId());
+                        externoDTO.setName(externo.getName());
+                        externoDTO.setEmail(externo.getEmail());
+                        externoDTO.setTelemovel(externo.getTelemovel());
+                        externoDTO.setPreco(externo.getPreco());
+                        externoDTO.setFaseProjeto(externo.getFaseProjeto());
+                        externoDTO.setEspecialidades(externo.getEspecialidades());
+                        return externoDTO;
+                    })
+                    .collect(Collectors.toSet());
+        }
+
     }
 }

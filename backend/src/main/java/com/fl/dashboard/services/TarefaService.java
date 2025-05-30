@@ -1,11 +1,13 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.*;
+import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.enums.TarefaStatus;
+import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -35,6 +37,9 @@ public class TarefaService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ExternoRepository externoRepository;
 
     @Autowired
     private NotificationService notificationService;
@@ -231,7 +236,10 @@ public class TarefaService {
     public TarefaWithUserAndProjetoDTO updateWithAssociations(TarefaUpdateDTO dto) {
         Tarefa tarefa = tarefaRepository.findByIdActive(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
+        Set<Externo> previousExternos = new HashSet<>(tarefa.getExternos()); // Add this line
+
         tarefa.setDescricao(dto.getDescricao());
         tarefa.setPrioridade(dto.getPrioridade());
         tarefa.setPrazoEstimado(dto.getPrazoEstimado());
@@ -273,6 +281,16 @@ public class TarefaService {
                     })
                     .collect(Collectors.toSet());
             tarefa.setUsers(users);
+        }
+
+        // Update externo associations - ADD THIS SECTION
+        tarefa.getExternos().clear();
+        if (dto.getExternoIds() != null && !dto.getExternoIds().isEmpty()) {
+            Set<Externo> externos = dto.getExternoIds().stream()
+                    .map(externoId -> externoRepository.findByIdAndActiveStatus(externoId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Externo não foi encontrado: " + externoId)))
+                    .collect(Collectors.toSet());
+            tarefa.setExternos(externos);
         }
 
         // Notify users who were removed
@@ -325,6 +343,15 @@ public class TarefaService {
                             .orElseThrow(() -> new ResourceNotFoundException("Utilizador não foi encontrado: " + userId)))
                     .collect(Collectors.toSet());
             tarefa.setUsers(users);
+        }
+
+        // Associate Externos only if externoIds are provided - ADD THIS SECTION
+        if (dto.getExternoIds() != null && !dto.getExternoIds().isEmpty()) {
+            Set<Externo> externos = dto.getExternoIds().stream()
+                    .map(externoId -> externoRepository.findByIdAndActiveStatus(externoId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Externo não foi encontrado: " + externoId)))
+                    .collect(Collectors.toSet());
+            tarefa.setExternos(externos);
         }
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
