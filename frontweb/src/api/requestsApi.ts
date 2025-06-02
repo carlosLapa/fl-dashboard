@@ -488,3 +488,86 @@ export const updateWorkingDaysAPI = async (
     throw error;
   }
 };
+
+export const getTarefasFilteredAPI = async (params: {
+  page: number;
+  size: number;
+  sort: string;
+  direction?: string;
+  descricao?: string;
+  status?: string;
+  projeto?: string; // This will be the project ID
+  dateField?: string;
+  startDate?: string;
+  endDate?: string;
+}) => {
+  try {
+    console.log('API - getTarefasFilteredAPI called with params:', params);
+
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', params.page.toString());
+    queryParams.append('size', params.size.toString());
+    queryParams.append('sort', params.sort);
+
+    if (params.direction) {
+      queryParams.append('direction', params.direction);
+    } else {
+      queryParams.append('direction', 'ASC');
+    }
+
+    if (params.descricao) {
+      queryParams.append('descricao', params.descricao);
+      console.log('API - Adding descricao filter:', params.descricao);
+    }
+
+    if (params.status) {
+      queryParams.append('status', params.status);
+      console.log('API - Adding status filter:', params.status);
+    }
+
+    // FIXED: Use 'projetoId' parameter to match backend expectation
+    if (params.projeto) {
+      queryParams.append('projetoId', params.projeto);
+      console.log('API - Adding projetoId filter:', params.projeto);
+    }
+
+    // Add date filter params if they exist
+    if (params.dateField && (params.startDate || params.endDate)) {
+      queryParams.append('dateField', params.dateField);
+      if (params.startDate) {
+        queryParams.append('startDate', params.startDate);
+      }
+      if (params.endDate) {
+        queryParams.append('endDate', params.endDate);
+      }
+      console.log('API - Adding date filters:', {
+        dateField: params.dateField,
+        startDate: params.startDate,
+        endDate: params.endDate,
+      });
+    }
+
+    const finalUrl = `/tarefas/filter?${queryParams.toString()}`;
+    console.log('API - Final URL:', finalUrl);
+    console.log('API - Query params string:', queryParams.toString());
+
+    // Make the API call
+    const response = await axios.get(finalUrl);
+    console.log('API - Response status:', response.status);
+    console.log('API - Response data:', response.data);
+    console.log(
+      'API - Number of tarefas returned:',
+      response.data?.content?.length || 0
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching filtered tarefas:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('API - Error response:', error.response?.data);
+      console.error('API - Error status:', error.response?.status);
+    }
+    throw error;
+  }
+};

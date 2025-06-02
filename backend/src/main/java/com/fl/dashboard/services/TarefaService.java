@@ -623,5 +623,56 @@ public class TarefaService {
         return new TarefaDTO(tarefa);
     }
 
+    @Transactional(readOnly = true)
+    public Page<TarefaWithUserAndProjetoDTO> findWithFilters(
+            TarefaFilterDTO filterDTO,
+            int page,
+            int size,
+            String sortField,
+            String sortDirection) {
+
+        // Adjust end date to make the range inclusive
+        Date adjustedEndDate = null;
+        if (filterDTO.getEndDate() != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(filterDTO.getEndDate());
+            calendar.add(Calendar.DATE, 1);
+            adjustedEndDate = calendar.getTime();
+        }
+
+        // Create sort object
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+
+        // Execute query with filters
+        Page<Tarefa> tarefaPage = tarefaRepository.findWithFilters(
+                filterDTO.getDescricao(),
+                filterDTO.getStatus(),
+                filterDTO.getProjetoId(),
+                filterDTO.getDateField(),
+                filterDTO.getStartDate(),
+                adjustedEndDate,
+                pageRequest
+        );
+
+        if (tarefaPage.isEmpty()) {
+            return Page.empty(pageRequest);
+        }
+
+        // Convert to DTOs
+        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                .map(tarefa -> {
+                    // Ensure the collections are loaded within the transaction
+                    Hibernate.initialize(tarefa.getUsers());
+                    if (tarefa.getProjeto() != null) {
+                        Hibernate.initialize(tarefa.getProjeto());
+                    }
+                    return new TarefaWithUserAndProjetoDTO(tarefa);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+    }
+
 
 }

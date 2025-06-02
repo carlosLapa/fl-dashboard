@@ -12,6 +12,7 @@ import {
   addTarefaAPI,
   deleteTarefaAPI,
   getAllTarefasWithUsersAndProjetoAPI,
+  getTarefasFilteredAPI,
   getTarefasSortedAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
@@ -21,26 +22,35 @@ import {
 import { ColunaWithProjetoDTO } from 'types/coluna';
 import { getTarefasByDateRangeAPI } from 'api/requestsApi';
 
+// Define the interface for filter parameters
+export interface TarefaFilterParams {
+  page: number;
+  size: number;
+  sort: string;
+  direction?: string;
+  descricao?: string;
+  status?: string;
+  projeto?: string;
+  dateField?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 // Helper function to calculate working days between two dates
 export const calculateWorkingDays = (
   startDateStr: string,
   endDateStr: string
 ): number => {
   if (!startDateStr || !endDateStr) return 0;
-
   const startDate = new Date(startDateStr);
   const endDate = new Date(endDateStr);
-
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return 0;
-
   let workingDays = 0;
   let currentDate = new Date(startDate);
-
   // Set both dates to midnight to ensure we're only comparing dates, not times
   currentDate.setHours(0, 0, 0, 0);
   const endDateMidnight = new Date(endDate);
   endDateMidnight.setHours(0, 0, 0, 0);
-
   // Count working days
   while (currentDate <= endDateMidnight) {
     const day = currentDate.getDay();
@@ -50,7 +60,6 @@ export const calculateWorkingDays = (
     }
     currentDate.setDate(currentDate.getDate() + 1);
   }
-
   return workingDays;
 };
 
@@ -58,7 +67,6 @@ export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
   try {
     // Updated to use relative URL
     const response = await axios.get(`/tarefas?page=${page}&size=${pageSize}`);
-
     // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.data.content.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
@@ -72,7 +80,6 @@ export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
       }
       return tarefa;
     });
-
     return {
       content: tarefasWithWorkingDays,
       totalPages: response.data.totalPages,
@@ -96,7 +103,6 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   try {
     // Updated to use relative URL
     const response = await axios.get(`/tarefas/${id}`);
-
     // Calculate working days if both dates are available
     if (response.data.prazoEstimado && response.data.prazoReal) {
       return {
@@ -107,7 +113,6 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
         ),
       };
     }
-
     return response.data;
   } catch (error) {
     console.error(`Error fetching task with id ${id}:`, error);
@@ -126,7 +131,6 @@ export const getTarefasByUser = async (
     const response = await axios.get(
       `/tarefas/user/${userId}/tasks?page=${page}&size=${pageSize}`
     );
-
     // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.data.content.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
@@ -140,7 +144,6 @@ export const getTarefasByUser = async (
       }
       return tarefa;
     });
-
     return {
       content: tarefasWithWorkingDays,
       totalPages: response.data.totalPages,
@@ -166,7 +169,6 @@ export const getTarefasByProjeto = async (
   try {
     // Updated to use relative URL
     const response = await axios.get(`/projetos/${projetoId}/tarefas`);
-
     // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.data.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
@@ -180,7 +182,6 @@ export const getTarefasByProjeto = async (
       }
       return tarefa;
     });
-
     return tarefasWithWorkingDays;
   } catch (error) {
     console.error(
@@ -204,9 +205,7 @@ export const addTarefa = async (
         formData.prazoReal
       );
     }
-
     const response = await addTarefaAPI(dataToSend);
-
     // If a notification callback is provided and the task was created successfully
     if (onNotify && response) {
       // Create notifications for each assigned user
@@ -245,9 +244,7 @@ export const updateTarefa = async (
         data.prazoReal
       );
     }
-
     const updatedTarefa = await updateTarefaAPI(id, dataToSend);
-
     // If a notification callback is provided and the task was updated successfully
     if (onNotify && updatedTarefa) {
       // Create notifications for each assigned user
@@ -286,7 +283,6 @@ export const getTarefaWithUsersAndProjeto = async (
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAndProjetoAPI(id);
-
     // Calculate working days if both dates are available
     if (tarefaData.prazoEstimado && tarefaData.prazoReal) {
       return {
@@ -297,7 +293,6 @@ export const getTarefaWithUsersAndProjeto = async (
         ),
       };
     }
-
     return tarefaData;
   } catch (error) {
     console.error('Error in tarefa service:', error);
@@ -310,7 +305,6 @@ export const getTarefaWithUsers = async (
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAPI(id);
-
     // Calculate working days if both dates are available
     if (tarefaData.prazoEstimado && tarefaData.prazoReal) {
       return {
@@ -321,7 +315,6 @@ export const getTarefaWithUsers = async (
         ),
       };
     }
-
     return tarefaData;
   } catch (error) {
     console.error('Error in tarefa service:', error);
@@ -347,7 +340,6 @@ export const getAllTarefasWithUsersAndProjeto = async (
   size: number = 10
 ) => {
   const response = await getAllTarefasWithUsersAndProjetoAPI(page, size);
-
   // Process array response
   if (Array.isArray(response)) {
     // Calculate working days for each tarefa
@@ -363,13 +355,11 @@ export const getAllTarefasWithUsersAndProjeto = async (
       }
       return tarefa;
     });
-
     return {
       content: tarefasWithWorkingDays,
       totalPages: Math.ceil(tarefasWithWorkingDays.length / size),
     };
   }
-
   // Process paginated response
   if (response.content) {
     // Calculate working days for each tarefa
@@ -385,13 +375,11 @@ export const getAllTarefasWithUsersAndProjeto = async (
       }
       return tarefa;
     });
-
     return {
       ...response,
       content: tarefasWithWorkingDays,
     };
   }
-
   return response;
 };
 
@@ -403,7 +391,6 @@ export const updateTarefaStatus = async (
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
-
     // If a notification callback is provided and the status was updated successfully
     if (onNotify && updatedTarefa && tarefa) {
       // Create notifications for each assigned user
@@ -418,11 +405,9 @@ export const updateTarefaStatus = async (
           tarefaId: id,
           projetoId: tarefa.projeto.id,
         };
-
         await onNotify(notification);
       }
     }
-
     // Calculate working days if both dates are available
     if (updatedTarefa.prazoEstimado && updatedTarefa.prazoReal) {
       return {
@@ -433,7 +418,6 @@ export const updateTarefaStatus = async (
         ),
       };
     }
-
     return updatedTarefa;
   } catch (error) {
     console.error('Error in tarefa service:', error);
@@ -456,7 +440,6 @@ export const getTarefasByDateRange = async (
       page,
       size
     );
-
     // Handle both array and paginated response formats
     if (Array.isArray(response)) {
       // Calculate working days for each tarefa
@@ -472,7 +455,6 @@ export const getTarefasByDateRange = async (
         }
         return tarefa;
       });
-
       return {
         content: tarefasWithWorkingDays,
         totalPages: Math.ceil(tarefasWithWorkingDays.length / size),
@@ -481,7 +463,6 @@ export const getTarefasByDateRange = async (
         number: page,
       };
     }
-
     // Process paginated response
     if (response.content) {
       // Calculate working days for each tarefa
@@ -497,13 +478,11 @@ export const getTarefasByDateRange = async (
         }
         return tarefa;
       });
-
       return {
         ...response,
         content: tarefasWithWorkingDays,
       };
     }
-
     return response;
   } catch (error) {
     console.error('Error fetching tarefas by date range:', error);
@@ -530,7 +509,6 @@ export const getTarefasSorted = async (
       page,
       size
     );
-
     // Process paginated response
     if (response.content) {
       // Calculate working days for each tarefa
@@ -546,13 +524,11 @@ export const getTarefasSorted = async (
         }
         return tarefa;
       });
-
       return {
         ...response,
         content: tarefasWithWorkingDays,
       };
     }
-
     return response;
   } catch (error) {
     console.error('Error fetching sorted tarefas:', error);
@@ -562,6 +538,61 @@ export const getTarefasSorted = async (
       totalElements: 0,
       size: size,
       number: page,
+    };
+  }
+};
+
+// New function to fetch tarefas with advanced filtering
+export const getTarefasFiltered = async (params: TarefaFilterParams) => {
+  // Add debugging logs
+  console.log('Filter params before API call:', params);
+
+  try {
+    // Create a copy of params to avoid modifying the original
+    const apiParams = { ...params };
+
+    // Log specific project filter value if it exists
+    if (apiParams.projeto) {
+      console.log('Project filter value:', apiParams.projeto);
+    }
+
+    const response = await getTarefasFilteredAPI(apiParams);
+    console.log('API response:', response);
+
+    // Process the response
+    if (response.content) {
+      // Calculate working days for each tarefa
+      const tarefasWithWorkingDays = response.content.map((tarefa: any) => {
+        if (tarefa.prazoEstimado && tarefa.prazoReal) {
+          return {
+            ...tarefa,
+            workingDays: calculateWorkingDays(
+              tarefa.prazoEstimado,
+              tarefa.prazoReal
+            ),
+          };
+        }
+        return tarefa;
+      });
+      return {
+        ...response,
+        content: tarefasWithWorkingDays,
+      };
+    }
+    return response;
+  } catch (error) {
+    console.error('Error fetching filtered tarefas:', error);
+    // Log the actual error for debugging
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
+
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: params.size,
+      number: params.page,
     };
   }
 };

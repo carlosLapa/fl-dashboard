@@ -14,6 +14,7 @@ import {
   getTarefasByDateRange,
   getTarefasSorted,
   calculateWorkingDays,
+  getTarefasFiltered,
 } from 'services/tarefaService';
 import { useNotification } from '../../hooks/useNotification';
 import { Button, Spinner } from 'react-bootstrap';
@@ -57,13 +58,20 @@ const TarefaPage: React.FC = () => {
     {}
   );
 
+  // Enhanced filtering states - MODIFIED
+  const [descricaoFilter, setDescricaoFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [projetoFilter, setProjetoFilter] = useState(''); // This will store the PROJECT NAME
+  const [projetoFilterId, setProjetoFilterId] = useState(''); // NEW: This will store the PROJECT ID
+  const [isAdvancedFiltered, setIsAdvancedFiltered] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
   // Optimize the handleWorkingDaysCalculated callback
   const handleWorkingDaysCalculated = useCallback(
     (tarefaId: number, workingDays: number) => {
       setWorkingDaysMap((prev) => {
-        // Only update if the value is different
         if (prev[tarefaId] === workingDays) {
-          return prev; // Return the same object to avoid a re-render
+          return prev;
         }
         return {
           ...prev,
@@ -78,7 +86,6 @@ const TarefaPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Use the sorted API if not filtered
       const response = await getTarefasSorted(
         sortField,
         sortDirection,
@@ -122,19 +129,102 @@ const TarefaPage: React.FC = () => {
     }
   };
 
+  // MODIFIED: Updated to use both projetoFilter and projetoFilterId
+  const fetchAdvancedFilteredTarefas = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const filterParams = {
+        page,
+        size: pageSize,
+        sort: sortField,
+        direction: sortDirection,
+        descricao: descricaoFilter || undefined,
+        status: statusFilter || undefined,
+        projeto: projetoFilterId || projetoFilter || undefined, // Use ID first, then name
+        dateField: startDate || endDate ? dateFilterField : undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      };
+
+      console.log(
+        'fetchAdvancedFilteredTarefas - Filter params:',
+        filterParams
+      );
+
+      const response = await getTarefasFiltered(filterParams);
+      console.log('fetchAdvancedFilteredTarefas - API response:', response);
+
+      if (response && response.content) {
+        setTarefas(response.content);
+        setTotalPages(response.totalPages);
+      }
+    } catch (error) {
+      console.error('Erro ao filtrar tarefas:', error);
+      setError('Erro ao filtrar tarefas');
+      toast.error('Erro ao filtrar tarefas');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Effect for normal fetching
   useEffect(() => {
-    if (isFiltered) {
-      fetchFilteredTarefas();
-    } else {
+    if (!isFiltered && !isAdvancedFiltered) {
       fetchTarefas();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, isFiltered, sortField, sortDirection]);
+  }, [
+    page,
+    pageSize,
+    sortField,
+    sortDirection,
+    isFiltered,
+    isAdvancedFiltered,
+  ]);
+
+  // Effect for date filtering
+  useEffect(() => {
+    if (isFiltered && !isAdvancedFiltered) {
+      fetchFilteredTarefas();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    page,
+    pageSize,
+    isFiltered,
+    isAdvancedFiltered,
+    startDate,
+    endDate,
+    dateFilterField,
+    sortField,
+    sortDirection,
+  ]);
+
+  // MODIFIED: Updated dependency array to include projetoFilterId
+  useEffect(() => {
+    if (isAdvancedFiltered) {
+      fetchAdvancedFilteredTarefas();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    page,
+    pageSize,
+    isAdvancedFiltered,
+    descricaoFilter,
+    statusFilter,
+    projetoFilter,
+    projetoFilterId, // Added this
+    startDate,
+    endDate,
+    dateFilterField,
+    sortField,
+    sortDirection,
+  ]);
 
   // Update the working days effect to prevent infinite loops
   useEffect(() => {
     if (Object.keys(workingDaysMap).length > 0) {
-      // Check if we actually need to update any tasks
       let needsUpdate = false;
       const updatedTarefas = tarefas.map((tarefa) => {
         if (
@@ -149,31 +239,110 @@ const TarefaPage: React.FC = () => {
         }
         return tarefa;
       });
-      // Only update state if there are actual changes
+
       if (needsUpdate) {
         setTarefas(updatedTarefas);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingDaysMap]);
+
+  useEffect(() => {
+    console.log('Filter states changed:', {
+      descricaoFilter,
+      statusFilter,
+      projetoFilter,
+      projetoFilterId,
+      isAdvancedFiltered,
+      isFiltered,
+    });
+  }, [
+    descricaoFilter,
+    statusFilter,
+    projetoFilter,
+    projetoFilterId,
+    isAdvancedFiltered,
+    isFiltered,
+  ]);
 
   // Handle sorting
   const handleSort = (field: string) => {
     if (sortField === field) {
-      // Toggle direction if clicking the same field
       setSortDirection(sortDirection === 'ASC' ? 'DESC' : 'ASC');
     } else {
-      // Default to ASC for a new field
       setSortField(field);
       setSortDirection('ASC');
     }
-    setPage(0); // Reset to first page when sorting changes
-    // Clear filters when sorting
-    if (isFiltered) {
+    setPage(0);
+
+    if (isFiltered || isAdvancedFiltered) {
       setIsFiltered(false);
+      setIsAdvancedFiltered(false);
       setStartDate('');
       setEndDate('');
+      setDescricaoFilter('');
+      setStatusFilter('');
+      setProjetoFilter('');
+      setProjetoFilterId(''); // Clear the ID too
     }
+  };
+
+  // Handler functions for enhanced filters
+  const handleDescricaoFilterChange = (value: string) => {
+    setDescricaoFilter(value);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+  };
+
+  // MODIFIED: Updated to handle both name and ID
+  const handleProjetoFilterChange = (value: string, isId: boolean = false) => {
+    console.log(
+      'handleProjetoFilterChange called with value:',
+      value,
+      'isId:',
+      isId
+    );
+
+    if (isId) {
+      // This is an ID from project selection
+      setProjetoFilterId(value);
+      // Don't update projetoFilter here - let the child component handle the name
+    } else {
+      // This is a name from manual typing
+      setProjetoFilter(value);
+      setProjetoFilterId(''); // Clear ID when manually typing
+    }
+  };
+
+  const handleApplyFilters = () => {
+    console.log('handleApplyFilters called with filters:', {
+      descricao: descricaoFilter,
+      status: statusFilter,
+      projeto: projetoFilter,
+      projetoId: projetoFilterId,
+      startDate,
+      endDate,
+      dateFilterField,
+    });
+    setPage(0);
+    setIsAdvancedFiltered(true);
+    setIsFiltered(false);
+  };
+
+  // MODIFIED: Updated to clear both projeto states
+  const handleClearFilters = () => {
+    console.log('handleClearFilters called');
+    setDescricaoFilter('');
+    setStatusFilter('');
+    setProjetoFilter('');
+    setProjetoFilterId(''); // Clear the ID too
+    setStartDate('');
+    setEndDate('');
+    setPage(0);
+    setIsAdvancedFiltered(false);
+    setIsFiltered(false);
   };
 
   const handleApplyDateFilter = () => {
@@ -181,8 +350,9 @@ const TarefaPage: React.FC = () => {
       toast.warning('Por favor, selecione pelo menos uma data para filtrar');
       return;
     }
-    setPage(0); // Reset to first page when applying filter
+    setPage(0);
     setIsFiltered(true);
+    setIsAdvancedFiltered(false);
   };
 
   const handleClearDateFilter = () => {
@@ -191,9 +361,9 @@ const TarefaPage: React.FC = () => {
     setIsFiltered(false);
   };
 
+  // Rest of the handler functions remain the same...
   const handleAddTarefa = async (formData: TarefaInsertFormData) => {
     try {
-      // Calculate working days if both dates are provided
       if (formData.prazoEstimado && formData.prazoReal) {
         const workingDays = calculateWorkingDays(
           formData.prazoEstimado,
@@ -201,9 +371,11 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-      // Pass the sendNotification function to the service
+
       await addTarefa(formData, sendNotification);
-      if (isFiltered) {
+      if (isAdvancedFiltered) {
+        await fetchAdvancedFilteredTarefas();
+      } else if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
         await fetchTarefas();
@@ -218,7 +390,6 @@ const TarefaPage: React.FC = () => {
 
   const handleUpdateTarefa = async (formData: TarefaUpdateFormData) => {
     try {
-      // Calculate working days if both dates are provided
       if (formData.prazoEstimado && formData.prazoReal) {
         const workingDays = calculateWorkingDays(
           formData.prazoEstimado,
@@ -226,9 +397,11 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-      // Pass the sendNotification function to the service
+
       await updateTarefa(formData.id, formData, sendNotification);
-      if (isFiltered) {
+      if (isAdvancedFiltered) {
+        await fetchAdvancedFilteredTarefas();
+      } else if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
         await fetchTarefas();
@@ -263,7 +436,9 @@ const TarefaPage: React.FC = () => {
   const handleDeleteTarefa = async (tarefaId: number) => {
     try {
       await deleteTarefa(tarefaId);
-      if (isFiltered) {
+      if (isAdvancedFiltered) {
+        await fetchAdvancedFilteredTarefas();
+      } else if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
         await fetchTarefas();
@@ -288,10 +463,11 @@ const TarefaPage: React.FC = () => {
     newStatus: TarefaStatus
   ) => {
     try {
-      // Find the tarefa for notification details
       const tarefa = tarefas.find((t) => t.id === tarefaId);
       await updateTarefaStatus(tarefaId, newStatus, sendNotification, tarefa);
-      if (isFiltered) {
+      if (isAdvancedFiltered) {
+        await fetchAdvancedFilteredTarefas();
+      } else if (isFiltered) {
         await fetchFilteredTarefas();
       } else {
         await fetchTarefas();
@@ -353,7 +529,6 @@ const TarefaPage: React.FC = () => {
             </Button>
           </div>
         </div>
-
         {/* Content wrapped in a div with the same width */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
           {viewMode === 'table' ? (
@@ -378,6 +553,17 @@ const TarefaPage: React.FC = () => {
                 sortField={sortField}
                 sortDirection={sortDirection}
                 onSort={handleSort}
+                // Enhanced filter props
+                descricaoFilter={descricaoFilter}
+                statusFilter={statusFilter}
+                projetoFilter={projetoFilter}
+                onDescricaoFilterChange={handleDescricaoFilterChange}
+                onStatusFilterChange={handleStatusFilterChange}
+                onProjetoFilterChange={handleProjetoFilterChange}
+                onApplyFilters={handleApplyFilters}
+                onClearFilters={handleClearFilters}
+                showFilters={showFilters}
+                onToggleFilters={setShowFilters}
               />
             </div>
           ) : (

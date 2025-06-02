@@ -102,4 +102,22 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL")
     Page<Tarefa> findAllActiveSorted(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL " +
+            "AND (:descricao IS NULL OR LOWER(t.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
+            "AND (:status IS NULL OR t.status = :status) " +
+            "AND (:projetoId IS NULL OR t.projeto.id = :projetoId) " +
+            "AND ((:dateField IS NULL) OR " +
+            "     (:dateField = 'prazoEstimado' AND (:startDate IS NULL OR t.prazoEstimado >= :startDate) AND (:endDate IS NULL OR t.prazoEstimado <= :endDate)) OR " +
+            "     (:dateField = 'prazoReal' AND (:startDate IS NULL OR t.prazoReal >= :startDate) AND (:endDate IS NULL OR t.prazoReal <= :endDate)))")
+    Page<Tarefa> findWithFilters(
+            @Param("descricao") String descricao,
+            @Param("status") TarefaStatus status,
+            @Param("projetoId") Long projetoId,
+            @Param("dateField") String dateField,
+            @Param("startDate") Date startDate,
+            @Param("endDate") Date endDate,
+            Pageable pageable
+    );
+
 }

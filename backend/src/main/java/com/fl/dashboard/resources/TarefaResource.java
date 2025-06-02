@@ -1,6 +1,7 @@
 package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.*;
+import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.services.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -199,4 +200,35 @@ public class TarefaResource {
         TarefaDTO updatedTarefa = tarefaService.updateWorkingDays(id, workingDays);
         return ResponseEntity.ok().body(updatedTarefa);
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<TarefaWithUserAndProjetoDTO>> filterTarefas(
+            @RequestParam(required = false) String descricao,
+            @RequestParam(required = false) TarefaStatus status,
+            @RequestParam(required = false) Long projetoId,
+            @RequestParam(required = false) String dateField,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "ASC") String direction,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        TarefaFilterDTO filterDTO = new TarefaFilterDTO();
+        filterDTO.setDescricao(descricao);
+        filterDTO.setStatus(status);
+        filterDTO.setProjetoId(projetoId);
+        filterDTO.setDateField(dateField);
+        filterDTO.setStartDate(startDate);
+        filterDTO.setEndDate(endDate);
+
+        Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findWithFilters(
+                filterDTO, page, size, sort, direction);
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
+                .body(result);
+    }
+
+
 }

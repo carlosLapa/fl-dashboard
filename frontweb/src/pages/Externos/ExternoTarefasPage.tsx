@@ -18,6 +18,11 @@ const ExternoTarefasPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Add state for the new filter props
+  const [descricaoFilter, setDescricaoFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [projetoFilter, setProjetoFilter] = useState('');
+
   useEffect(() => {
     const fetchExternoWithTarefas = async () => {
       if (externoId) {
@@ -68,6 +73,31 @@ const ExternoTarefasPage: React.FC = () => {
     );
   };
 
+  // Add handlers for the new filter props
+  const handleDescricaoFilterChange = (value: string) => {
+    setDescricaoFilter(value);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+  };
+
+  const handleProjetoFilterChange = (value: string) => {
+    setProjetoFilter(value);
+  };
+
+  const handleApplyFilters = () => {
+    console.log('Apply filters - Not implemented in this view');
+    // In a real implementation, you would fetch filtered data here
+  };
+
+  const handleClearFilters = () => {
+    setDescricaoFilter('');
+    setStatusFilter('');
+    setProjetoFilter('');
+    console.log('Clear filters - Not implemented in this view');
+  };
+
   if (isLoading) {
     return (
       <div className="page-container" style={{ marginTop: '2rem' }}>
@@ -78,7 +108,7 @@ const ExternoTarefasPage: React.FC = () => {
             marginRight: '2%',
             marginTop: '2rem',
             textAlign: 'center',
-            padding: '2rem'
+            padding: '2rem',
           }}
         >
           <Spinner animation="border" role="status">
@@ -97,7 +127,7 @@ const ExternoTarefasPage: React.FC = () => {
             width: '98%',
             marginLeft: '2%',
             marginRight: '2%',
-            marginTop: '2rem'
+            marginTop: '2rem',
           }}
         >
           <Alert variant="danger">{error}</Alert>
@@ -118,7 +148,7 @@ const ExternoTarefasPage: React.FC = () => {
             width: '98%',
             marginLeft: '2%',
             marginRight: '2%',
-            marginTop: '2rem'
+            marginTop: '2rem',
           }}
         >
           <Alert variant="warning">Colaborador externo não encontrado.</Alert>
@@ -139,7 +169,7 @@ const ExternoTarefasPage: React.FC = () => {
           width: '98%',
           marginLeft: '2%',
           marginRight: '2%',
-          marginTop: '2rem'
+          marginTop: '2rem',
         }}
       >
         <div
@@ -157,7 +187,7 @@ const ExternoTarefasPage: React.FC = () => {
             </Button>
           </div>
         </div>
-        
+
         {/* Table wrapped in a div with the same width */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
           {externo.tarefas && externo.tarefas.length > 0 ? (
@@ -169,6 +199,7 @@ const ExternoTarefasPage: React.FC = () => {
               page={0}
               totalPages={1}
               onPageChange={() => {}}
+              isLoading={false}
               startDate={''}
               endDate={''}
               onStartDateChange={() => {}}
@@ -180,6 +211,15 @@ const ExternoTarefasPage: React.FC = () => {
               sortField={''}
               sortDirection={'ASC'}
               onSort={() => {}}
+              // Add the new required props
+              descricaoFilter={descricaoFilter}
+              statusFilter={statusFilter}
+              projetoFilter={projetoFilter}
+              onDescricaoFilterChange={handleDescricaoFilterChange}
+              onStatusFilterChange={handleStatusFilterChange}
+              onProjetoFilterChange={handleProjetoFilterChange}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
             />
           ) : (
             <Alert variant="info">
@@ -188,7 +228,7 @@ const ExternoTarefasPage: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {showDetails && externo && (
         <ExternoDetailsCard externo={externo} onClose={handleCloseDetails} />
       )}
