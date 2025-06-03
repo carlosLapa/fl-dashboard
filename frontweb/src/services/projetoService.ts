@@ -11,12 +11,15 @@ import {
   getProjetosWithFiltersAPI,
   getProjetoWithUsersAndTarefasAPI,
 } from '../api/requestsApi';
+
 export const getProjetos = async (
   page: number = 0,
-  pageSize: number = 10
+  pageSize: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ): Promise<PaginatedProjetos> => {
   try {
-    const response = await getProjetosAPI(page, pageSize);
+    const response = await getProjetosAPI(page, pageSize, sort, direction);
     return {
       content: response.content.map((projeto: Projeto) => ({
         ...projeto,
@@ -38,6 +41,7 @@ export const getProjetos = async (
     };
   }
 };
+
 export const addProjeto = async (data: ProjetoFormData): Promise<void> => {
   try {
     await addProjetoAPI(data);
@@ -47,7 +51,7 @@ export const addProjeto = async (data: ProjetoFormData): Promise<void> => {
   }
 };
 
-//For the kanban board
+// For the kanban board
 export const getProjetoWithUsersAndTarefas = async (
   id: number
 ): Promise<ProjetoWithUsersAndTarefasDTO> => {
@@ -65,14 +69,19 @@ export const getProjetosByDateRange = async (
   startDate: string,
   endDate: string,
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ) => {
   try {
+    // Note: You'll need to update getProjetosByDateRangeAPI to accept sort parameters
     const response = await getProjetosByDateRangeAPI(
       startDate,
       endDate,
       page,
-      size
+      size,
+      sort,
+      direction
     );
     return response;
   } catch (error) {
@@ -97,10 +106,18 @@ export const getProjetosWithFilters = async (
     status?: string;
   },
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ) => {
   try {
-    const response = await getProjetosWithFiltersAPI(filters, page, size);
+    const response = await getProjetosWithFiltersAPI(
+      filters,
+      page,
+      size,
+      sort,
+      direction
+    );
     return response;
   } catch (error) {
     console.error('Error fetching projetos with filters:', error);

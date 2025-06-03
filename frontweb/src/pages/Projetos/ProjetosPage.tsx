@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import {
-  getProjetos,
-  getProjetosWithFilters,
-} from '../../services/projetoService';
+import { getProjetosWithFilters } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
@@ -12,6 +9,7 @@ import {
   updateProjetoAPI,
   deleteProjetoAPI,
   searchProjetosAPI,
+  getProjetosAPI,
 } from 'api/requestsApi';
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import { useNotification } from 'NotificationContext';
@@ -41,11 +39,19 @@ const ProjetosPage: React.FC = () => {
   const [entidadeFilter, setEntidadeFilter] = useState('');
   const [prioridadeFilter, setPrioridadeFilter] = useState('');
   const [isFiltered, setIsFiltered] = useState(false);
+  const [sortField, setSortField] = useState<string>('designacao');
+  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
   const fetchProjetos = async () => {
     setIsLoading(true);
     try {
-      const response = await getProjetos(page, pageSize);
+      // Include sort parameters in the API call
+      const response = await getProjetosAPI(
+        page,
+        pageSize,
+        sortField,
+        sortDirection
+      );
       setProjetos(response.content);
       setTotalPages(response.totalPages);
     } catch (error) {
@@ -67,7 +73,13 @@ const ProjetosPage: React.FC = () => {
         endDate,
         status: statusFilter,
       };
-      const response = await getProjetosWithFilters(filters, page, pageSize);
+      const response = await getProjetosWithFilters(
+        filters,
+        page,
+        pageSize,
+        sortField,
+        sortDirection
+      );
       setProjetos(response.content);
       setTotalPages(response.totalPages);
     } catch (error) {
@@ -87,7 +99,9 @@ const ProjetosPage: React.FC = () => {
         query,
         statusFilter,
         page,
-        pageSize
+        pageSize,
+        sortField,
+        sortDirection
       );
       setProjetos(response.content);
       setTotalPages(response.totalPages);
@@ -108,7 +122,7 @@ const ProjetosPage: React.FC = () => {
       fetchProjetos();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, isFiltered]);
+  }, [page, pageSize, isFiltered, sortField, sortDirection]);
 
   const handleApplyFilters = () => {
     const hasFilters =
@@ -212,6 +226,17 @@ const ProjetosPage: React.FC = () => {
     }
   };
 
+  const handleSort = (field: string) => {
+    // If clicking the same field, toggle direction
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      // If clicking a new field, set it as the sort field and default to ASC
+      setSortField(field);
+      setSortDirection('ASC');
+    }
+  };
+
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
       {/* Wrap the title container and table in a div with consistent width and margins */}
@@ -263,6 +288,9 @@ const ProjetosPage: React.FC = () => {
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
             isLoading={isLoading}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
           />
         </div>
       </div>

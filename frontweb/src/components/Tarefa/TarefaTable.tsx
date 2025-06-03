@@ -13,6 +13,7 @@ import {
   faTimes,
   faChevronDown,
   faChevronUp,
+  faKeyboard,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   OverlayTrigger,
@@ -25,6 +26,7 @@ import {
   Card,
   Collapse,
   Spinner,
+  Badge,
 } from 'react-bootstrap';
 import './styles.scss';
 import { getProjetosAPI } from 'api/requestsApi';
@@ -247,6 +249,41 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
     [handleApplyFiltersClick, handleClearFiltersClick]
   );
 
+  // Add global keyboard event listener
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Alt+F to toggle filters
+      if (e.altKey && e.key === 'f') {
+        e.preventDefault();
+        setShowFilters(!actualShowFilters);
+      }
+
+      // Escape key to clear filters - works globally when filter card is visible
+      if (e.key === 'Escape' && actualShowFilters) {
+        e.preventDefault();
+        handleClearFiltersClick();
+      }
+
+      // Enter key to apply filters when filter card is visible and not in an input
+      if (
+        e.key === 'Enter' &&
+        actualShowFilters &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'SELECT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        e.preventDefault();
+        handleApplyFiltersClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actualShowFilters, handleClearFiltersClick, handleApplyFiltersClick]);
+
   if (isLoading) {
     return (
       <div className="text-center p-4">
@@ -297,10 +334,23 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
           className="d-flex justify-content-between align-items-center"
           onClick={() => setShowFilters(!actualShowFilters)}
           style={{ cursor: 'pointer' }}
+          aria-expanded={actualShowFilters}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowFilters(!actualShowFilters);
+            }
+          }}
         >
           <h5 className="mb-0">
             <FontAwesomeIcon icon={faFilter} className="me-2" />
             Filtros Avançados
+            <Badge bg="light" text="dark" className="ms-2">
+              <FontAwesomeIcon icon={faKeyboard} className="me-1" size="xs" />
+              Alt+F
+            </Badge>
           </h5>
           <FontAwesomeIcon
             icon={actualShowFilters ? faChevronUp : faChevronDown}

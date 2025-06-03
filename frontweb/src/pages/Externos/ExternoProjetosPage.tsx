@@ -142,17 +142,18 @@ const ExternoProjetosPage: React.FC = () => {
             // These props might be required by your ProjetoTable component
             startDate=""
             endDate=""
-            onStartDateChange={() => {}}
-            onEndDateChange={() => {}}
+            onStartDateChange={() => { } }
+            onEndDateChange={() => { } }
             designacaoFilter=""
             entidadeFilter=""
             prioridadeFilter=""
-            onDesignacaoFilterChange={() => {}}
-            onEntidadeFilterChange={() => {}}
-            onPrioridadeFilterChange={() => {}}
-            onApplyFilters={() => {}}
-            onClearFilters={() => {}}
-          />
+            onDesignacaoFilterChange={() => { } }
+            onEntidadeFilterChange={() => { } }
+            onPrioridadeFilterChange={() => { } }
+            onApplyFilters={() => { } }
+            onClearFilters={() => { } } sortField={''} sortDirection={'ASC'} onSort={function (field: string): void {
+              throw new Error('Function not implemented.');
+            } }          />
         ) : (
           <Alert variant="info">
             Este colaborador externo não está associado a nenhum projeto.

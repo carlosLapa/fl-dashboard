@@ -73,11 +73,21 @@ export const deleteUserAPI = async (id: number): Promise<void> => {
 
 export const getProjetosAPI = async (
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ): Promise<PaginatedProjetos> => {
-  const response = await axios.get(`/projetos?page=${page}&size=${size}`);
+  let url = `/projetos?page=${page}&size=${size}`;
+
+  if (sort) {
+    // Spring Data JPA expects sort parameter in format: sort=field,direction
+    url += `&sort=${sort},${direction || 'ASC'}`;
+  }
+
+  const response = await axios.get(url);
   return response.data;
 };
+
 export const addProjetoAPI = async (projeto: ProjetoFormData) => {
   const response = await axios.post('/projetos', projeto);
   return response.data;
@@ -141,13 +151,20 @@ export const searchProjetosAPI = async (
   query: string,
   status?: string,
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ) => {
   try {
-    const endpoint =
+    let endpoint =
       status && status !== 'ALL'
         ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
         : `/projetos/search?query=${query}&page=${page}&size=${size}`;
+
+    // Add sort parameters
+    if (sort) {
+      endpoint += `&sort=${sort},${direction || 'ASC'}`;
+    }
 
     console.log('Searching projects with endpoint:', endpoint);
 
@@ -207,7 +224,9 @@ export const getProjetosByDateRangeAPI = async (
   startDate: string,
   endDate: string,
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ): Promise<PaginatedProjetos> => {
   try {
     let url = `/projetos/date-range?page=${page}&size=${size}`;
@@ -216,6 +235,9 @@ export const getProjetosByDateRangeAPI = async (
     }
     if (endDate) {
       url += `&endDate=${endDate}`;
+    }
+    if (sort) {
+      url += `&sort=${sort},${direction || 'ASC'}`;
     }
     const response = await axios.get(url);
     return response.data;
@@ -235,7 +257,9 @@ export const getProjetosWithFiltersAPI = async (
     status?: string;
   },
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sort?: string,
+  direction?: 'ASC' | 'DESC'
 ): Promise<PaginatedProjetos> => {
   try {
     let url = `/projetos/filter?page=${page}&size=${size}`;
@@ -258,6 +282,11 @@ export const getProjetosWithFiltersAPI = async (
     }
     if (filters.status && filters.status !== 'ALL') {
       url += `&status=${filters.status}`;
+    }
+
+    // Add sort parameters
+    if (sort) {
+      url += `&sort=${sort},${direction || 'ASC'}`;
     }
 
     const response = await axios.get(url);
