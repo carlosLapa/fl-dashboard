@@ -39,13 +39,19 @@ const ProjetosPage: React.FC = () => {
   const [entidadeFilter, setEntidadeFilter] = useState('');
   const [prioridadeFilter, setPrioridadeFilter] = useState('');
   const [isFiltered, setIsFiltered] = useState(false);
+
+  // Sorting states
   const [sortField, setSortField] = useState<string>('designacao');
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+
+  // Add a state to track when filters should be applied
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
   const fetchProjetos = async () => {
     setIsLoading(true);
     try {
-      // Include sort parameters in the API call
+      console.log('Fetching projetos with sort:', sortField, sortDirection);
       const response = await getProjetosAPI(
         page,
         pageSize,
@@ -73,6 +79,10 @@ const ProjetosPage: React.FC = () => {
         endDate,
         status: statusFilter,
       };
+
+      console.log('Applying filters:', filters);
+      console.log('With sort:', sortField, sortDirection);
+
       const response = await getProjetosWithFilters(
         filters,
         page,
@@ -80,6 +90,7 @@ const ProjetosPage: React.FC = () => {
         sortField,
         sortDirection
       );
+
       setProjetos(response.content);
       setTotalPages(response.totalPages);
     } catch (error) {
@@ -113,18 +124,41 @@ const ProjetosPage: React.FC = () => {
     }
   };
 
+  // This effect handles data fetching based on current state
   useEffect(() => {
-    if (searchQuery) {
-      handleSearch(searchQuery);
-    } else if (isFiltered) {
-      fetchFilteredProjetos();
-    } else {
-      fetchProjetos();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, isFiltered, sortField, sortDirection]);
+    // Simple flag to prevent double fetching
+    let fetchStarted = false;
+
+    const doFetch = async () => {
+      if (fetchStarted) return;
+      fetchStarted = true;
+
+      if (searchQuery) {
+        console.log('Fetching projects with search query');
+        await handleSearch(searchQuery);
+      } else if (isFiltered) {
+        console.log('Fetching filtered projetos');
+        await fetchFilteredProjetos();
+      } else {
+        console.log('Fetching all projetos');
+        await fetchProjetos();
+      }
+    };
+
+    doFetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    page,
+    pageSize,
+    isFiltered,
+    sortField,
+    sortDirection,
+    searchQuery,
+  ]);
 
   const handleApplyFilters = () => {
+    console.log('handleApplyFilters called with prioridade:', prioridadeFilter);
+
     const hasFilters =
       !!designacaoFilter ||
       !!entidadeFilter ||
@@ -132,12 +166,17 @@ const ProjetosPage: React.FC = () => {
       !!startDate ||
       !!endDate ||
       statusFilter !== 'ALL';
+
     if (!hasFilters) {
       toast.warning('Por favor, selecione pelo menos um filtro para aplicar');
       return;
     }
-    setPage(0); // Reset to first page when applying filters
+
+    // Reset to page 0 when applying filters
+    setPage(0);
     setIsFiltered(true);
+    // Manually trigger a fetch
+    fetchFilteredProjetos();
   };
 
   const handleClearFilters = () => {
@@ -148,6 +187,8 @@ const ProjetosPage: React.FC = () => {
     setEndDate('');
     setStatusFilter('ALL');
     setIsFiltered(false);
+    // Manually trigger a fetch of unfiltered data
+    fetchProjetos();
   };
 
   const handleEditProjeto = (id: number) => {
@@ -237,6 +278,17 @@ const ProjetosPage: React.FC = () => {
     }
   };
 
+  const onPrioridadeFilterChange = (value: string) => {
+    console.log('Changing prioridade filter to:', value);
+    setPrioridadeFilter(value);
+  };
+
+  // Initial data load
+  useEffect(() => {
+    fetchProjetos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
       {/* Wrap the title container and table in a div with consistent width and margins */}
@@ -284,7 +336,7 @@ const ProjetosPage: React.FC = () => {
             prioridadeFilter={prioridadeFilter}
             onDesignacaoFilterChange={setDesignacaoFilter}
             onEntidadeFilterChange={setEntidadeFilter}
-            onPrioridadeFilterChange={setPrioridadeFilter}
+            onPrioridadeFilterChange={onPrioridadeFilterChange}
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
             isLoading={isLoading}
@@ -294,7 +346,6 @@ const ProjetosPage: React.FC = () => {
           />
         </div>
       </div>
-
       <ProjetoModal
         show={showModal}
         onHide={() => setShowModal(false)}

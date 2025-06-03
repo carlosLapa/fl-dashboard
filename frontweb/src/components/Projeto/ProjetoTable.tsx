@@ -63,6 +63,14 @@ interface ProjetoTableProps {
   onSort: (field: string) => void;
 }
 
+const PRIORITY_OPTIONS = [
+  { value: '', label: 'Todas' },
+  { value: 'BAIXA', label: 'Baixa' },
+  { value: 'MEDIA', label: 'Média' },
+  { value: 'ALTA', label: 'Alta' },
+  { value: 'URGENTE', label: 'Urgente' },
+];
+
 const ProjetoTable: React.FC<ProjetoTableProps> = ({
   projetos,
   onEditProjeto,
@@ -124,9 +132,20 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
 
   // Handle apply filters button click
   const handleApplyFiltersClick = useCallback(() => {
-    console.log('ProjetoTable - Apply filters clicked');
+    console.log(
+      'ProjetoTable - Apply filters clicked with prioridade:',
+      prioridadeFilter
+    );
     onApplyFilters();
-  }, [onApplyFilters]);
+  }, [onApplyFilters, prioridadeFilter]);
+
+  const handlePrioridadeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      console.log('Priority changed to:', e.target.value);
+      onPrioridadeFilterChange(e.target.value);
+    },
+    [onPrioridadeFilterChange]
+  );
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -299,13 +318,17 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                 <Col md={6} lg={4}>
                   <Form.Group>
                     <Form.Label>Prioridade</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Filtrar por prioridade"
+                    <Form.Select
                       value={prioridadeFilter}
-                      onChange={(e) => onPrioridadeFilterChange(e.target.value)}
+                      onChange={handlePrioridadeChange}
                       onKeyDown={handleFilterKeyDown}
-                    />
+                    >
+                      {PRIORITY_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Form.Select>
                   </Form.Group>
                 </Col>
                 {/* Date Filters */}
