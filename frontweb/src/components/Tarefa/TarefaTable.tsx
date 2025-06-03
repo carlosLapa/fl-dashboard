@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Table from 'react-bootstrap/Table';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -96,6 +96,8 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
   showFilters,
   onToggleFilters,
 }) => {
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const lastInputRef = useRef<HTMLButtonElement>(null);
   const actualShowFilters = showFilters ?? false;
   const setShowFilters = onToggleFilters ?? (() => {});
   const [projetos, setProjetos] = useState<Projeto[]>([]);
@@ -136,7 +138,6 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
     }
   }, [localProjetoFilter, projetos]);
 
-  // FIXED: Simplified sync logic without localProjetoFilter in dependencies
   useEffect(() => {
     console.log('TarefaTable - projetoFilter prop changed:', projetoFilter);
 
@@ -152,7 +153,17 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
         setLocalProjetoFilter(projeto.designacao);
       }
     }
-  }, [projetoFilter, projetos]); // Removed localProjetoFilter from dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projetoFilter, projetos]);
+
+  // Set focus to first input when filters are shown
+  useEffect(() => {
+    if (actualShowFilters && firstInputRef.current) {
+      setTimeout(() => {
+        firstInputRef.current?.focus();
+      }, 100); // Small delay to ensure the collapse animation has started
+    }
+  }, [actualShowFilters]);
 
   // Handler functions
   const handleDescricaoChange = useCallback(
@@ -184,7 +195,6 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
     [onProjetoFilterChange]
   );
 
-  // FIXED: Removed setTimeout
   const handleApplyFiltersClick = useCallback(() => {
     console.log('TarefaTable - Apply filters clicked');
     onApplyFilters?.();
@@ -195,7 +205,6 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
     onClearFilters?.();
   }, [onClearFilters]);
 
-  // FIXED: Simplified project selection
   const handleSelectProjeto = useCallback(
     (projeto: Projeto) => {
       console.log('TarefaTable - Selected projeto:', projeto);
@@ -204,6 +213,38 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
       setShowProjetoDropdown(false);
     },
     [onProjetoFilterChange]
+  );
+
+  const handleTabKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      if (e.shiftKey && document.activeElement === firstInputRef.current) {
+        e.preventDefault();
+        lastInputRef.current?.focus();
+      } else if (
+        !e.shiftKey &&
+        document.activeElement === lastInputRef.current
+      ) {
+        e.preventDefault();
+        firstInputRef.current?.focus();
+      }
+    }
+  };
+
+  const handleFilterKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      // Apply filters on Enter key
+      if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent form submission
+        handleApplyFiltersClick();
+      }
+
+      // Clear filters on Escape key
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClearFiltersClick();
+      }
+    },
+    [handleApplyFiltersClick, handleClearFiltersClick]
   );
 
   if (isLoading) {
@@ -248,7 +289,7 @@ const TarefaTable: React.FC<TarefaTableProps> = ({
     );
   };
 
-return (
+  return (
     <div className="tarefa-container">
       {/* Enhanced Filter Section */}
       <Card className="mb-4">
@@ -274,10 +315,15 @@ return (
                   <Form.Group>
                     <Form.Label>Descrição</Form.Label>
                     <Form.Control
+                      ref={firstInputRef}
                       type="text"
                       placeholder="Filtrar por descrição"
                       value={descricaoFilter || ''}
                       onChange={(e) => handleDescricaoChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        handleFilterKeyDown(e);
+                        handleTabKey(e);
+                      }}
                     />
                   </Form.Group>
                 </Col>
@@ -301,6 +347,7 @@ return (
                           // Delay hiding the dropdown to allow for clicks
                           setTimeout(() => setShowProjetoDropdown(false), 200);
                         }}
+                        onKeyDown={handleFilterKeyDown}
                       />
                       {showProjetoDropdown && (
                         <div
@@ -315,7 +362,7 @@ return (
                             <div
                               key={projeto.id}
                               className="p-2 border-bottom"
-                               style={{ cursor: 'pointer' }}
+                              style={{ cursor: 'pointer' }}
                               onMouseDown={() => handleSelectProjeto(projeto)}
                             >
                               {projeto.designacao}
@@ -333,6 +380,7 @@ return (
                     <Form.Select
                       value={statusFilter || ''}
                       onChange={(e) => handleStatusChange(e.target.value)}
+                      onKeyDown={handleFilterKeyDown}
                     >
                       <option value="">Todos</option>
                       <option value="BACKLOG">Backlog</option>
@@ -363,6 +411,7 @@ return (
                       type="date"
                       value={startDate}
                       onChange={(e) => onStartDateChange(e.target.value)}
+                      onKeyDown={handleFilterKeyDown}
                     />
                   </Form.Group>
                 </Col>
@@ -373,6 +422,7 @@ return (
                       type="date"
                       value={endDate}
                       onChange={(e) => onEndDateChange(e.target.value)}
+                      onKeyDown={handleFilterKeyDown}
                     />
                   </Form.Group>
                 </Col>
@@ -385,13 +435,20 @@ return (
                 >
                   <FontAwesomeIcon icon={faTimes} className="me-1" />
                   Limpar Filtros
+                  <small className="ms-1 text-muted">(Esc)</small>
                 </Button>
                 <Button
+                  ref={lastInputRef}
                   variant="primary"
                   onClick={handleApplyFiltersClick}
                   className="apply-filters-btn"
+                  onKeyDown={(e) => {
+                    handleFilterKeyDown(e);
+                    handleTabKey(e);
+                  }}
                 >
                   Aplicar Filtros
+                  <small className="ms-1 text-muted">(Enter)</small>
                 </Button>
               </div>
             </Card.Body>
