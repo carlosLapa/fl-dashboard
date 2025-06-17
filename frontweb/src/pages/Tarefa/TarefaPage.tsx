@@ -25,6 +25,7 @@ import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import './tarefaStyles.scss';
+import { useTarefaFilters } from 'hooks/useTarefaFilters';
 
 const TarefaPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table');
@@ -43,12 +44,6 @@ const TarefaPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { sendNotification } = useNotification();
 
-  // Date filter states
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [dateFilterField, setDateFilterField] = useState('prazoEstimado');
-  const [isFiltered, setIsFiltered] = useState(false);
-
   // Sorting states
   const [sortField, setSortField] = useState<string>('id');
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
@@ -58,13 +53,20 @@ const TarefaPage: React.FC = () => {
     {}
   );
 
-  // Enhanced filtering states - MODIFIED
-  const [descricaoFilter, setDescricaoFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [projetoFilter, setProjetoFilter] = useState(''); // This will store the PROJECT NAME
-  const [projetoFilterId, setProjetoFilterId] = useState(''); // NEW: This will store the PROJECT ID
-  const [isAdvancedFiltered, setIsAdvancedFiltered] = useState(false);
+  // UI state
   const [showFilters, setShowFilters] = useState(false);
+
+  // Filter state tracking
+  const [isFiltered, setIsFiltered] = useState(false);
+  const [isAdvancedFiltered, setIsAdvancedFiltered] = useState(false);
+
+  // Use our custom hook for filter management
+  const {
+    filters,
+    updateFilter,
+    applyFilters: applyFilterState,
+    clearFilters: clearFilterState,
+  } = useTarefaFilters();
 
   // Optimize the handleWorkingDaysCalculated callback
   const handleWorkingDaysCalculated = useCallback(
@@ -110,9 +112,9 @@ const TarefaPage: React.FC = () => {
     setError(null);
     try {
       const response = await getTarefasByDateRange(
-        dateFilterField,
-        startDate,
-        endDate,
+        filters.dateFilterField,
+        filters.startDate,
+        filters.endDate,
         page,
         pageSize
       );
@@ -129,7 +131,6 @@ const TarefaPage: React.FC = () => {
     }
   };
 
-  // MODIFIED: Updated to use both projetoFilter and projetoFilterId
   const fetchAdvancedFilteredTarefas = async () => {
     setIsLoading(true);
     setError(null);
@@ -139,12 +140,15 @@ const TarefaPage: React.FC = () => {
         size: pageSize,
         sort: sortField,
         direction: sortDirection,
-        descricao: descricaoFilter || undefined,
-        status: statusFilter || undefined,
-        projeto: projetoFilterId || projetoFilter || undefined, // Use ID first, then name
-        dateField: startDate || endDate ? dateFilterField : undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        descricao: filters.descricao || undefined,
+        status: filters.status || undefined,
+        projeto: filters.projetoId || undefined,
+        dateField:
+          filters.startDate || filters.endDate
+            ? filters.dateFilterField
+            : undefined,
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
       };
 
       console.log(
@@ -153,6 +157,7 @@ const TarefaPage: React.FC = () => {
       );
 
       const response = await getTarefasFiltered(filterParams);
+
       console.log('fetchAdvancedFilteredTarefas - API response:', response);
 
       if (response && response.content) {
@@ -194,33 +199,17 @@ const TarefaPage: React.FC = () => {
     pageSize,
     isFiltered,
     isAdvancedFiltered,
-    startDate,
-    endDate,
-    dateFilterField,
     sortField,
     sortDirection,
   ]);
 
-  // MODIFIED: Updated dependency array to include projetoFilterId
+  // Effect for advanced filtering
   useEffect(() => {
     if (isAdvancedFiltered) {
       fetchAdvancedFilteredTarefas();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    page,
-    pageSize,
-    isAdvancedFiltered,
-    descricaoFilter,
-    statusFilter,
-    projetoFilter,
-    projetoFilterId, // Added this
-    startDate,
-    endDate,
-    dateFilterField,
-    sortField,
-    sortDirection,
-  ]);
+  }, [page, pageSize, isAdvancedFiltered, sortField, sortDirection]);
 
   // Update the working days effect to prevent infinite loops
   useEffect(() => {
@@ -239,31 +228,12 @@ const TarefaPage: React.FC = () => {
         }
         return tarefa;
       });
-
       if (needsUpdate) {
         setTarefas(updatedTarefas);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workingDaysMap]);
-
-  useEffect(() => {
-    console.log('Filter states changed:', {
-      descricaoFilter,
-      statusFilter,
-      projetoFilter,
-      projetoFilterId,
-      isAdvancedFiltered,
-      isFiltered,
-    });
-  }, [
-    descricaoFilter,
-    statusFilter,
-    projetoFilter,
-    projetoFilterId,
-    isAdvancedFiltered,
-    isFiltered,
-  ]);
 
   // Handle sorting
   const handleSort = (field: string) => {
@@ -274,91 +244,31 @@ const TarefaPage: React.FC = () => {
       setSortDirection('ASC');
     }
     setPage(0);
-
     if (isFiltered || isAdvancedFiltered) {
       setIsFiltered(false);
       setIsAdvancedFiltered(false);
-      setStartDate('');
-      setEndDate('');
-      setDescricaoFilter('');
-      setStatusFilter('');
-      setProjetoFilter('');
-      setProjetoFilterId(''); // Clear the ID too
+      clearFilterState();
     }
   };
 
-  // Handler functions for enhanced filters
-  const handleDescricaoFilterChange = (value: string) => {
-    setDescricaoFilter(value);
-  };
-
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-  };
-
-  // MODIFIED: Updated to handle both name and ID
-  const handleProjetoFilterChange = (value: string, isId: boolean = false) => {
-    console.log(
-      'handleProjetoFilterChange called with value:',
-      value,
-      'isId:',
-      isId
-    );
-
-    if (isId) {
-      // This is an ID from project selection
-      setProjetoFilterId(value);
-      // Don't update projetoFilter here - let the child component handle the name
-    } else {
-      // This is a name from manual typing
-      setProjetoFilter(value);
-      setProjetoFilterId(''); // Clear ID when manually typing
-    }
-  };
-
+  // Apply filters handler
   const handleApplyFilters = () => {
-    console.log('handleApplyFilters called with filters:', {
-      descricao: descricaoFilter,
-      status: statusFilter,
-      projeto: projetoFilter,
-      projetoId: projetoFilterId,
-      startDate,
-      endDate,
-      dateFilterField,
-    });
+    console.log('handleApplyFilters called with filters:', filters);
     setPage(0);
     setIsAdvancedFiltered(true);
     setIsFiltered(false);
+    applyFilterState();
+    fetchAdvancedFilteredTarefas();
   };
 
-  // MODIFIED: Updated to clear both projeto states
+  // Clear filters handler
   const handleClearFilters = () => {
     console.log('handleClearFilters called');
-    setDescricaoFilter('');
-    setStatusFilter('');
-    setProjetoFilter('');
-    setProjetoFilterId(''); // Clear the ID too
-    setStartDate('');
-    setEndDate('');
+    clearFilterState();
     setPage(0);
     setIsAdvancedFiltered(false);
     setIsFiltered(false);
-  };
-
-  const handleApplyDateFilter = () => {
-    if (!startDate && !endDate) {
-      toast.warning('Por favor, selecione pelo menos uma data para filtrar');
-      return;
-    }
-    setPage(0);
-    setIsFiltered(true);
-    setIsAdvancedFiltered(false);
-  };
-
-  const handleClearDateFilter = () => {
-    setStartDate('');
-    setEndDate('');
-    setIsFiltered(false);
+    fetchTarefas();
   };
 
   // Rest of the handler functions remain the same...
@@ -371,7 +281,6 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-
       await addTarefa(formData, sendNotification);
       if (isAdvancedFiltered) {
         await fetchAdvancedFilteredTarefas();
@@ -397,7 +306,6 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-
       await updateTarefa(formData.id, formData, sendNotification);
       if (isAdvancedFiltered) {
         await fetchAdvancedFilteredTarefas();
@@ -542,26 +450,18 @@ const TarefaPage: React.FC = () => {
                 totalPages={totalPages}
                 onPageChange={setPage}
                 isLoading={isLoading}
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
-                onApplyDateFilter={handleApplyDateFilter}
-                onClearDateFilter={handleClearDateFilter}
-                dateFilterField={dateFilterField}
-                onDateFilterFieldChange={setDateFilterField}
+                // New filter props
+                filters={filters}
+                updateFilter={updateFilter}
+                onApplyFilters={handleApplyFilters}
+                onClearFilters={handleClearFilters}
+                // Sorting props
                 sortField={sortField}
                 sortDirection={sortDirection}
                 onSort={handleSort}
-                // Enhanced filter props
-                descricaoFilter={descricaoFilter}
-                statusFilter={statusFilter}
-                projetoFilter={projetoFilter}
-                onDescricaoFilterChange={handleDescricaoFilterChange}
-                onStatusFilterChange={handleStatusFilterChange}
-                onProjetoFilterChange={handleProjetoFilterChange}
-                onApplyFilters={handleApplyFilters}
-                onClearFilters={handleClearFilters}
+                // Status update prop
+                onStatusChange={handleStatusUpdate}
+                // UI state props
                 showFilters={showFilters}
                 onToggleFilters={setShowFilters}
               />
@@ -574,7 +474,6 @@ const TarefaPage: React.FC = () => {
           )}
         </div>
       </div>
-
       <TarefaModal
         show={showModal}
         onHide={() => {
@@ -586,7 +485,6 @@ const TarefaPage: React.FC = () => {
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />
-
       {showDetailsCard && selectedTarefa && (
         <TarefaDetailsCard
           tarefa={selectedTarefa}

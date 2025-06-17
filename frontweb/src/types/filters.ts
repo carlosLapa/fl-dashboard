@@ -13,7 +13,7 @@ export interface ProjetoFilterState extends BaseFilterState {
   endDate: string;
 }
 
-// Tarefa filter state (for future use)
+// Tarefa filter state
 export interface TarefaFilterState extends BaseFilterState {
   descricao: string;
   status: string;
@@ -23,7 +23,7 @@ export interface TarefaFilterState extends BaseFilterState {
   dateFilterField: string; // 'prazoEstimado' | 'dataCriacao' | 'dataAtualizacao'
 }
 
-// User filter state (for future use)
+// User filter state (for possible future use)
 export interface UserFilterState extends BaseFilterState {
   name: string;
   email: string;

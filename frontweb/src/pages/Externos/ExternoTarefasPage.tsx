@@ -9,6 +9,7 @@ import TarefaTable from 'components/Tarefa/TarefaTable';
 import ExternoDetailsCard from 'components/Externo/ExternoDetailsCard';
 import './externosStyles.scss'; // Using your existing styles
 import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
+import { useTarefaFilters } from 'hooks/useTarefaFilters';
 
 const ExternoTarefasPage: React.FC = () => {
   const { externoId } = useParams<{ externoId: string }>();
@@ -17,11 +18,11 @@ const ExternoTarefasPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Add state for the new filter props
-  const [descricaoFilter, setDescricaoFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [projetoFilter, setProjetoFilter] = useState('');
+  // Use our new hook for filter management
+  const { filters, updateFilter, applyFilters, clearFilters } =
+    useTarefaFilters();
 
   useEffect(() => {
     const fetchExternoWithTarefas = async () => {
@@ -43,6 +44,7 @@ const ExternoTarefasPage: React.FC = () => {
         }
       }
     };
+
     fetchExternoWithTarefas();
   }, [externoId]);
 
@@ -73,29 +75,17 @@ const ExternoTarefasPage: React.FC = () => {
     );
   };
 
-  // Add handlers for the new filter props
-  const handleDescricaoFilterChange = (value: string) => {
-    setDescricaoFilter(value);
-  };
-
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-  };
-
-  const handleProjetoFilterChange = (value: string) => {
-    setProjetoFilter(value);
-  };
-
+  // Handler for applying filters
   const handleApplyFilters = () => {
-    console.log('Apply filters - Not implemented in this view');
+    console.log('Apply filters - Not implemented in this view', filters);
+    applyFilters();
     // In a real implementation, you would fetch filtered data here
   };
 
+  // Handler for clearing filters
   const handleClearFilters = () => {
-    setDescricaoFilter('');
-    setStatusFilter('');
-    setProjetoFilter('');
     console.log('Clear filters - Not implemented in this view');
+    clearFilters();
   };
 
   if (isLoading) {
@@ -187,7 +177,6 @@ const ExternoTarefasPage: React.FC = () => {
             </Button>
           </div>
         </div>
-
         {/* Table wrapped in a div with the same width */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
           {externo.tarefas && externo.tarefas.length > 0 ? (
@@ -200,26 +189,18 @@ const ExternoTarefasPage: React.FC = () => {
               totalPages={1}
               onPageChange={() => {}}
               isLoading={false}
-              startDate={''}
-              endDate={''}
-              onStartDateChange={() => {}}
-              onEndDateChange={() => {}}
-              onApplyDateFilter={() => {}}
-              onClearDateFilter={() => {}}
-              dateFilterField={''}
-              onDateFilterFieldChange={() => {}}
+              // New filter props
+              filters={filters}
+              updateFilter={updateFilter}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              // Sorting props
               sortField={''}
               sortDirection={'ASC'}
               onSort={() => {}}
-              // Add the new required props
-              descricaoFilter={descricaoFilter}
-              statusFilter={statusFilter}
-              projetoFilter={projetoFilter}
-              onDescricaoFilterChange={handleDescricaoFilterChange}
-              onStatusFilterChange={handleStatusFilterChange}
-              onProjetoFilterChange={handleProjetoFilterChange}
-              onApplyFilters={handleApplyFilters}
-              onClearFilters={handleClearFilters}
+              // UI state props
+              showFilters={showFilters}
+              onToggleFilters={setShowFilters}
             />
           ) : (
             <Alert variant="info">
@@ -228,7 +209,6 @@ const ExternoTarefasPage: React.FC = () => {
           )}
         </div>
       </div>
-
       {showDetails && externo && (
         <ExternoDetailsCard externo={externo} onClose={handleCloseDetails} />
       )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StrictModeDroppable } from '../../util/strickModeDroppable';
+import { StrictModeDroppable } from '../../utils/strickModeDroppable';
 import TarefaCard from './TarefaCard';
 import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
 import { Badge } from 'react-bootstrap';

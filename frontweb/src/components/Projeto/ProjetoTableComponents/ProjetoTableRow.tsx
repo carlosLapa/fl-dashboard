@@ -11,7 +11,7 @@ import {
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import ProjetoStatusBadge from '../ProjetoStatusBadge';
-import { formatDate } from '../../../util/dateUtils';
+import { formatDate } from '../../../utils/dateUtils';
 
 interface ProjetoTableRowProps {
   projeto: Projeto;
