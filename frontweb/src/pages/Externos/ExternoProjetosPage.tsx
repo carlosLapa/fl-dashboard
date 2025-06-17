@@ -7,6 +7,7 @@ import { getExternoWithProjetosById } from 'services/externoService';
 import { ExternoWithProjetosDTO } from 'types/externo';
 import ProjetoTable from 'components/Projeto/ProjetoTable';
 import ExternoDetailsCard from 'components/Externo/ExternoDetailsCard';
+import { FilterState } from 'services/projetoService';
 import './externosStyles.scss'; // Using your existing styles
 
 const ExternoProjetosPage: React.FC = () => {
@@ -17,7 +18,20 @@ const ExternoProjetosPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [page, setPage] = useState(0);
-  const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Single filter state object
+  const [filters, setFilters] = useState<FilterState>({
+    designacao: '',
+    entidade: '',
+    prioridade: '',
+    status: 'ALL',
+    startDate: '',
+    endDate: '',
+  });
+
+  // Sorting states
+  const [sortField, setSortField] = useState<string>('designacao');
+  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
   useEffect(() => {
     const fetchExternoWithProjetos = async () => {
@@ -39,7 +53,6 @@ const ExternoProjetosPage: React.FC = () => {
         }
       }
     };
-
     fetchExternoWithProjetos();
   }, [externoId]);
 
@@ -68,8 +81,36 @@ const ExternoProjetosPage: React.FC = () => {
     setPage(newPage);
   };
 
-  const handleStatusFilterChange = (status: string) => {
-    setStatusFilter(status);
+  // Update a single filter value
+  const updateFilter = (name: keyof FilterState, value: string) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Apply filters (placeholder function)
+  const handleApplyFilters = () => {
+    console.log('Apply filters - Not implemented in this view');
+  };
+
+  // Clear filters (placeholder function)
+  const handleClearFilters = () => {
+    setFilters({
+      designacao: '',
+      entidade: '',
+      prioridade: '',
+      status: 'ALL',
+      startDate: '',
+      endDate: '',
+    });
+  };
+
+  // Handle sorting (placeholder function)
+  const handleSort = (field: string) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'ASC' ? 'DESC' : 'ASC');
+    } else {
+      setSortField(field);
+      setSortDirection('ASC');
+    }
   };
 
   if (isLoading) {
@@ -127,7 +168,6 @@ const ExternoProjetosPage: React.FC = () => {
           </Button>
         </div>
       </div>
-
       <div className="table-responsive mt-4">
         {externo.projetos && externo.projetos.length > 0 ? (
           <ProjetoTable
@@ -137,30 +177,21 @@ const ExternoProjetosPage: React.FC = () => {
             page={page}
             onPageChange={handlePageChange}
             totalPages={totalPages}
-            statusFilter={statusFilter}
-            onStatusFilterChange={handleStatusFilterChange}
-            // These props might be required by your ProjetoTable component
-            startDate=""
-            endDate=""
-            onStartDateChange={() => { } }
-            onEndDateChange={() => { } }
-            designacaoFilter=""
-            entidadeFilter=""
-            prioridadeFilter=""
-            onDesignacaoFilterChange={() => { } }
-            onEntidadeFilterChange={() => { } }
-            onPrioridadeFilterChange={() => { } }
-            onApplyFilters={() => { } }
-            onClearFilters={() => { } } sortField={''} sortDirection={'ASC'} onSort={function (field: string): void {
-              throw new Error('Function not implemented.');
-            } }          />
+            filters={filters}
+            updateFilter={updateFilter}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            isLoading={false}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+          />
         ) : (
           <Alert variant="info">
             Este colaborador externo não está associado a nenhum projeto.
           </Alert>
         )}
       </div>
-
       {showDetails && externo && (
         <ExternoDetailsCard externo={externo} onClose={handleCloseDetails} />
       )}

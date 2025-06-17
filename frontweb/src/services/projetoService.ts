@@ -12,6 +12,16 @@ import {
   getProjetoWithUsersAndTarefasAPI,
 } from '../api/requestsApi';
 
+// Define the filter state interface to match what the component uses
+export interface FilterState {
+  designacao: string;
+  entidade: string;
+  prioridade: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
 export const getProjetos = async (
   page: number = 0,
   pageSize: number = 10,
@@ -74,7 +84,6 @@ export const getProjetosByDateRange = async (
   direction?: 'ASC' | 'DESC'
 ) => {
   try {
-    // Note: You'll need to update getProjetosByDateRangeAPI to accept sort parameters
     const response = await getProjetosByDateRangeAPI(
       startDate,
       endDate,
@@ -96,23 +105,31 @@ export const getProjetosByDateRange = async (
   }
 };
 
+// Updated to use the FilterState interface
 export const getProjetosWithFilters = async (
-  filters: {
-    designacao?: string;
-    entidade?: string;
-    prioridade?: string;
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-  },
+  filters: FilterState,
   page: number = 0,
   size: number = 10,
   sort?: string,
   direction?: 'ASC' | 'DESC'
 ) => {
   try {
+    // Convert our FilterState to the format expected by the API
+    // The API expects undefined for empty values, not empty strings
+    const apiFilters = {
+      designacao: filters.designacao || undefined,
+      entidade: filters.entidade || undefined,
+      prioridade: filters.prioridade || undefined,
+      status: filters.status !== 'ALL' ? filters.status : undefined,
+      startDate: filters.startDate || undefined,
+      endDate: filters.endDate || undefined,
+    };
+
+    // Log the filters being sent to the API
+    console.log('Sending filters to API:', apiFilters);
+
     const response = await getProjetosWithFiltersAPI(
-      filters,
+      apiFilters,
       page,
       size,
       sort,

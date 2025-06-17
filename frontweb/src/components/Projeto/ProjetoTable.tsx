@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
+import { FilterState } from '../../services/projetoService';
 import {
   Pagination,
   Table,
@@ -40,21 +41,8 @@ interface ProjetoTableProps {
   page: number;
   onPageChange: (page: number) => void;
   totalPages: number;
-  statusFilter: string;
-  onStatusFilterChange: (status: string) => void;
-  // Date filter props
-  startDate: string;
-  endDate: string;
-  onStartDateChange: (date: string) => void;
-  onEndDateChange: (date: string) => void;
-  // Text filter props
-  designacaoFilter: string;
-  entidadeFilter: string;
-  prioridadeFilter: string;
-  onDesignacaoFilterChange: (value: string) => void;
-  onEntidadeFilterChange: (value: string) => void;
-  onPrioridadeFilterChange: (value: string) => void;
-  // Filter actions
+  filters: FilterState;
+  updateFilter: (name: keyof FilterState, value: string) => void;
   onApplyFilters: () => void;
   onClearFilters: () => void;
   isLoading?: boolean;
@@ -78,18 +66,8 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
   page,
   onPageChange,
   totalPages,
-  statusFilter,
-  onStatusFilterChange,
-  startDate,
-  endDate,
-  onStartDateChange,
-  onEndDateChange,
-  designacaoFilter,
-  entidadeFilter,
-  prioridadeFilter,
-  onDesignacaoFilterChange,
-  onEntidadeFilterChange,
-  onPrioridadeFilterChange,
+  filters,
+  updateFilter,
   onApplyFilters,
   onClearFilters,
   isLoading,
@@ -132,20 +110,9 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
 
   // Handle apply filters button click
   const handleApplyFiltersClick = useCallback(() => {
-    console.log(
-      'ProjetoTable - Apply filters clicked with prioridade:',
-      prioridadeFilter
-    );
+    console.log('ProjetoTable - Apply filters clicked');
     onApplyFilters();
-  }, [onApplyFilters, prioridadeFilter]);
-
-  const handlePrioridadeChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      console.log('Priority changed to:', e.target.value);
-      onPrioridadeFilterChange(e.target.value);
-    },
-    [onPrioridadeFilterChange]
-  );
+  }, [onApplyFilters]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -294,8 +261,10 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                       ref={firstInputRef}
                       type="text"
                       placeholder="Filtrar por designação"
-                      value={designacaoFilter}
-                      onChange={(e) => onDesignacaoFilterChange(e.target.value)}
+                      value={filters.designacao}
+                      onChange={(e) =>
+                        updateFilter('designacao', e.target.value)
+                      }
                       onKeyDown={(e) => {
                         handleFilterKeyDown(e);
                         handleTabKey(e);
@@ -309,8 +278,8 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                     <Form.Control
                       type="text"
                       placeholder="Filtrar por entidade"
-                      value={entidadeFilter}
-                      onChange={(e) => onEntidadeFilterChange(e.target.value)}
+                      value={filters.entidade}
+                      onChange={(e) => updateFilter('entidade', e.target.value)}
                       onKeyDown={handleFilterKeyDown}
                     />
                   </Form.Group>
@@ -319,8 +288,10 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                   <Form.Group>
                     <Form.Label>Prioridade</Form.Label>
                     <Form.Select
-                      value={prioridadeFilter}
-                      onChange={handlePrioridadeChange}
+                      value={filters.prioridade}
+                      onChange={(e) =>
+                        updateFilter('prioridade', e.target.value)
+                      }
                       onKeyDown={handleFilterKeyDown}
                     >
                       {PRIORITY_OPTIONS.map((option) => (
@@ -337,8 +308,10 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                     <Form.Label>Data Inicial</Form.Label>
                     <Form.Control
                       type="date"
-                      value={startDate}
-                      onChange={(e) => onStartDateChange(e.target.value)}
+                      value={filters.startDate}
+                      onChange={(e) =>
+                        updateFilter('startDate', e.target.value)
+                      }
                       onKeyDown={handleFilterKeyDown}
                     />
                   </Form.Group>
@@ -348,8 +321,8 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                     <Form.Label>Data Final</Form.Label>
                     <Form.Control
                       type="date"
-                      value={endDate}
-                      onChange={(e) => onEndDateChange(e.target.value)}
+                      value={filters.endDate}
+                      onChange={(e) => updateFilter('endDate', e.target.value)}
                       onKeyDown={handleFilterKeyDown}
                     />
                   </Form.Group>
@@ -359,8 +332,8 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                   <Form.Group>
                     <Form.Label>Status</Form.Label>
                     <Form.Select
-                      value={statusFilter}
-                      onChange={(e) => onStatusFilterChange(e.target.value)}
+                      value={filters.status}
+                      onChange={(e) => updateFilter('status', e.target.value)}
                       onKeyDown={handleFilterKeyDown}
                     >
                       <option value="ALL">Todos</option>
