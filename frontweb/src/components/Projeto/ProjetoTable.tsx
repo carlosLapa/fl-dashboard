@@ -1,23 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Projeto } from '../../types/projeto';
-import { User } from '../../types/user';
 import { ProjetoFilterState } from '../../types/filters';
-import { Pagination, Table, Spinner } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faPencilAlt,
-  faTrashAlt,
-  faEye,
-  faInfoCircle,
-  faSort,
-  faSortDown,
-  faSortUp,
-} from '@fortawesome/free-solid-svg-icons';
-import { Tooltip, OverlayTrigger } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import ProjetoStatusBadge from './ProjetoStatusBadge';
+import { Table } from 'react-bootstrap';
 import ProjetoFilterPanel from './ProjetoFilterPanel';
+import {
+  ProjetoTableHeader,
+  ProjetoTableRow,
+  ProjetoPagination,
+  ProjetoEmptyState,
+  ProjetoLoadingState,
+} from './ProjetoTableComponents';
 import './ProjetoTable.scss';
+import { hasActiveFilters } from './utils/filterUtils';
 
 interface ProjetoTableProps {
   projetos: Projeto[];
@@ -54,31 +48,6 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
 }) => {
   const [showFilters, setShowFilters] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-PT', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
-
-  const renderUserNames = (users: User[]) => {
-    return users.map((user) => user.name).join(', ');
-  };
-
-  // Handle apply filters button click
-  const handleApplyFiltersClick = useCallback(() => {
-    console.log('ProjetoTable - Apply filters clicked');
-    onApplyFilters();
-  }, [onApplyFilters]);
-
-  // Handle clear filters button click
-  const handleClearFiltersClick = useCallback(() => {
-    console.log('ProjetoTable - Clear filters clicked');
-    onClearFilters();
-  }, [onClearFilters]);
-
   // Global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -95,54 +64,18 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
     };
   }, [showFilters]);
 
-  // Add this helper function for sortable headers
-  const renderSortableHeader = (
-    field: string,
-    label: string,
-    className?: string
-  ) => {
-    return (
-      <th
-        className={className || ''}
-        onClick={() => onSort(field)}
-        style={{ cursor: 'pointer' }}
-      >
-        <div className="d-flex align-items-center justify-content-between">
-          <span>{label}</span>
-          <span className="ms-1">
-            {sortField === field ? (
-              <FontAwesomeIcon
-                icon={sortDirection === 'ASC' ? faSortUp : faSortDown}
-                size="sm"
-              />
-            ) : (
-              <FontAwesomeIcon icon={faSort} size="sm" opacity={0.3} />
-            )}
-          </span>
-        </div>
-      </th>
-    );
-  };
-
   if (isLoading) {
-    return (
-      <div className="text-center p-4">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Carregando projetos...</span>
-        </Spinner>
-        <p className="mt-2">Carregando projetos...</p>
-      </div>
-    );
+    return <ProjetoLoadingState />;
   }
 
   return (
     <div className="projeto-container">
-      {/* Use the new ProjetoFilterPanel component */}
+      {/* Filter Panel */}
       <ProjetoFilterPanel
         filters={filters}
         updateFilter={updateFilter}
-        onApplyFilters={handleApplyFiltersClick}
-        onClearFilters={handleClearFiltersClick}
+        onApplyFilters={onApplyFilters}
+        onClearFilters={onClearFilters}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
       />
@@ -151,138 +84,36 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
       <div className="table-responsive">
         {projetos.length > 0 ? (
           <Table striped bordered hover>
-            <thead>
-              <tr>
-                {renderSortableHeader('projetoAno', 'Ano')}
-                {renderSortableHeader('designacao', 'Designação')}
-                {renderSortableHeader('entidade', 'Entidade')}
-                {renderSortableHeader('prioridade', 'Prioridade')}
-                {renderSortableHeader(
-                  'observacao',
-                  'Observação',
-                  'd-none d-md-table-cell'
-                )}
-                {renderSortableHeader('prazo', 'Prazo')}
-                <th className="d-none d-lg-table-cell">Colaboradores</th>
-                {renderSortableHeader('status', 'Status')}
-                <th>Ações</th>
-              </tr>
-            </thead>
+            <ProjetoTableHeader
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
             <tbody>
               {projetos.map((projeto) => (
-                <tr key={projeto.id}>
-                  <td>{projeto.projetoAno}</td>
-                  <td>{projeto.designacao}</td>
-                  <td>{projeto.entidade}</td>
-                  <td>{projeto.prioridade}</td>
-                  <td className="d-none d-md-table-cell">
-                    {projeto.observacao}
-                  </td>
-                  <td>{formatDate(projeto.prazo)}</td>
-                  <td className="d-none d-lg-table-cell">
-                    {renderUserNames(projeto.users)}
-                  </td>
-                  <td>
-                    <ProjetoStatusBadge status={projeto.status} />
-                  </td>
-                  <td>
-                    <div className="action-icons">
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tooltip-edit-${projeto.id}`}>
-                            Editar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faPencilAlt}
-                          onClick={() => onEditProjeto(projeto.id)}
-                          className="mr-2 edit-icon"
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tooltip-delete-${projeto.id}`}>
-                            Apagar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faTrashAlt}
-                          onClick={() => onDeleteProjeto(projeto.id)}
-                          className="delete-icon"
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tooltip-kanban-${projeto.id}`}>
-                            Ver Kanban Board
-                          </Tooltip>
-                        }
-                      >
-                        <Link
-                          to={`/projetos/${projeto.id}/full`}
-                          className="view-icon"
-                        >
-                          <FontAwesomeIcon icon={faEye} />
-                        </Link>
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tooltip-details-${projeto.id}`}>
-                            Ver Detalhes do Projeto
-                          </Tooltip>
-                        }
-                      >
-                        <Link
-                          to={`/projetos/${projeto.id}/details`}
-                          className="info-icon"
-                          style={{ marginLeft: '2px' }}
-                        >
-                          <FontAwesomeIcon icon={faInfoCircle} />
-                        </Link>
-                      </OverlayTrigger>
-                    </div>
-                  </td>
-                </tr>
+                <ProjetoTableRow
+                  key={projeto.id}
+                  projeto={projeto}
+                  onEditProjeto={onEditProjeto}
+                  onDeleteProjeto={onDeleteProjeto}
+                />
               ))}
             </tbody>
           </Table>
         ) : (
-          <div className="text-center p-4">
-            <p>Não foram encontrados projetos.</p>
-          </div>
+          <ProjetoEmptyState
+            isFiltered={hasActiveFilters(filters)}
+            onClearFilters={onClearFilters}
+          />
         )}
       </div>
 
       {/* Pagination */}
-      {totalPages > 0 && (
-        <div className="d-flex justify-content-center mt-3">
-          <Pagination>
-            <Pagination.Prev
-              onClick={() => onPageChange(page - 1)}
-              disabled={page === 0}
-            />
-            {[...Array(totalPages)].map((_, idx) => (
-              <Pagination.Item
-                key={idx}
-                active={idx === page}
-                onClick={() => onPageChange(idx)}
-              >
-                {idx + 1}
-              </Pagination.Item>
-            ))}
-            <Pagination.Next
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages - 1}
-            />
-          </Pagination>
-        </div>
-      )}
+      <ProjetoPagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 };
