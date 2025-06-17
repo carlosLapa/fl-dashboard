@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import {
-  getProjetosWithFilters,
-  FilterState,
-} from '../../services/projetoService';
+import { getProjetosWithFilters } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
@@ -20,11 +17,24 @@ import { useAuth } from '../../AuthContext';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { useProjetoFilters } from '../../hooks/useFilterState';
+import { Badge } from 'react-bootstrap';
+import { hasActiveFilters } from '../../components/Projeto/utils/filterUtils';
 import './projetosStyles.scss';
 
 const ProjetosPage: React.FC = () => {
   const { user } = useAuth();
   const { sendNotification } = useNotification();
+
+  // Use our custom hook for filter state management
+  const {
+    filters,
+    appliedFilters,
+    isFiltered,
+    updateFilter,
+    applyFilters,
+    clearFilters,
+  } = useProjetoFilters();
 
   // Data state
   const [projetos, setProjetos] = useState<Projeto[]>([]);
@@ -42,36 +52,9 @@ const ProjetosPage: React.FC = () => {
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Single filter state object
-  const [filters, setFilters] = useState<FilterState>({
-    designacao: '',
-    entidade: '',
-    prioridade: '',
-    status: 'ALL',
-    startDate: '',
-    endDate: '',
-  });
-
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>({
-    designacao: '',
-    entidade: '',
-    prioridade: '',
-    status: 'ALL',
-    startDate: '',
-    endDate: '',
-  });
-
-  // Flag to indicate if filters are applied
-  const [isFiltered, setIsFiltered] = useState(false);
-
   // Sorting states
   const [sortField, setSortField] = useState<string>('designacao');
   const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
-
-  // Update a single filter value
-  const updateFilter = useCallback((name: keyof FilterState, value: string) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
-  }, []);
 
   // Data fetching function for all projetos
   const fetchProjetos = useCallback(async () => {
@@ -99,10 +82,10 @@ const ProjetosPage: React.FC = () => {
     setIsLoading(true);
     try {
       console.log('Fetching filtered projetos');
-      console.log('Applying filters:', appliedFilters); // Use appliedFilters here
+      console.log('Applying filters:', appliedFilters);
       console.log('With sort:', sortField, sortDirection);
       const response = await getProjetosWithFilters(
-        appliedFilters, // Use appliedFilters here
+        appliedFilters,
         page,
         pageSize,
         sortField,
@@ -122,17 +105,15 @@ const ProjetosPage: React.FC = () => {
   useEffect(() => {
     // Simple flag to prevent double fetching
     let isMounted = true;
-
     const doFetch = async () => {
       if (!isMounted) return;
       setIsLoading(true);
-
       try {
         if (searchQuery) {
           console.log('Fetching projects with search query');
           const response = await searchProjetosAPI(
             searchQuery,
-            filters.status,
+            appliedFilters.status,
             page,
             pageSize,
             sortField,
@@ -160,12 +141,10 @@ const ProjetosPage: React.FC = () => {
     };
 
     doFetch();
-
     // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     pageSize,
@@ -173,7 +152,7 @@ const ProjetosPage: React.FC = () => {
     sortField,
     sortDirection,
     searchQuery,
-    appliedFilters,
+    appliedFilters, // Use appliedFilters instead of filters
     fetchFilteredProjetos,
     fetchProjetos,
   ]);
@@ -181,46 +160,19 @@ const ProjetosPage: React.FC = () => {
   // Filter handlers
   const handleApplyFilters = useCallback(() => {
     console.log('handleApplyFilters called with filters:', filters);
+    const success = applyFilters();
 
-    const hasFilters = Object.values(filters).some(
-      (val, idx) => val !== '' && (idx !== 3 || val !== 'ALL')
-    );
-
-    if (!hasFilters) {
+    if (!success) {
       toast.warning('Por favor, selecione pelo menos um filtro para aplicar');
       return;
     }
-
-    // Set the applied filters to the current filter state
-    setAppliedFilters(filters);
 
     // Reset to page 0 when applying filters
     setPage(0);
 
     // Important: Clear search query when applying filters
     setSearchQuery('');
-
-    // Set isFiltered flag to trigger the useEffect
-    setIsFiltered(true);
-  }, [filters]);
-
-  // Clear filters handler
-  const handleClearFilters = useCallback(() => {
-    const emptyFilters = {
-      designacao: '',
-      entidade: '',
-      prioridade: '',
-      status: 'ALL',
-      startDate: '',
-      endDate: '',
-    };
-
-    setFilters(emptyFilters);
-    setAppliedFilters(emptyFilters);
-    setIsFiltered(false);
-    setPage(0); // Reset to first page
-    setSearchQuery(''); // Clear search query
-  }, []);
+  }, [filters, applyFilters]);
 
   // CRUD operations
   const handleEditProjeto = useCallback(
@@ -345,7 +297,18 @@ const ProjetosPage: React.FC = () => {
           className="page-title-container"
           style={{ width: '100%', margin: 0 }}
         >
-          <h2 className="page-title">Gestão de Projetos</h2>
+          <h2 className="page-title">
+            Gestão de Projetos
+            {hasActiveFilters(appliedFilters) && (
+              <Badge
+                bg="info"
+                className="ms-2"
+                style={{ fontSize: '0.6em', verticalAlign: 'middle' }}
+              >
+                Filtros Aplicados
+              </Badge>
+            )}
+          </h2>
           <div className="page-actions">
             <Button
               variant="primary"
@@ -369,7 +332,7 @@ const ProjetosPage: React.FC = () => {
             filters={filters}
             updateFilter={updateFilter}
             onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
+            onClearFilters={clearFilters}
             isLoading={isLoading}
             sortField={sortField}
             sortDirection={sortDirection}

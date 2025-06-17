@@ -11,16 +11,22 @@ import {
   getProjetosWithFiltersAPI,
   getProjetoWithUsersAndTarefasAPI,
 } from '../api/requestsApi';
+import { ProjetoFilterState } from '../types/filters';
 
-// Define the filter state interface to match what the component uses
-export interface FilterState {
-  designacao: string;
-  entidade: string;
-  prioridade: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-}
+// Use the ProjetoFilterState type from our filters.ts
+export type FilterState = ProjetoFilterState;
+
+// Function to build API-compatible filter object
+export const buildApiFilters = (filters: FilterState) => {
+  return {
+    designacao: filters.designacao || undefined,
+    entidade: filters.entidade || undefined,
+    prioridade: filters.prioridade || undefined,
+    status: filters.status !== 'ALL' ? filters.status : undefined,
+    startDate: filters.startDate || undefined,
+    endDate: filters.endDate || undefined,
+  };
+};
 
 export const getProjetos = async (
   page: number = 0,
@@ -105,7 +111,7 @@ export const getProjetosByDateRange = async (
   }
 };
 
-// Updated to use the FilterState interface
+// Updated to use the FilterState interface and the buildApiFilters helper
 export const getProjetosWithFilters = async (
   filters: FilterState,
   page: number = 0,
@@ -114,16 +120,8 @@ export const getProjetosWithFilters = async (
   direction?: 'ASC' | 'DESC'
 ) => {
   try {
-    // Convert our FilterState to the format expected by the API
-    // The API expects undefined for empty values, not empty strings
-    const apiFilters = {
-      designacao: filters.designacao || undefined,
-      entidade: filters.entidade || undefined,
-      prioridade: filters.prioridade || undefined,
-      status: filters.status !== 'ALL' ? filters.status : undefined,
-      startDate: filters.startDate || undefined,
-      endDate: filters.endDate || undefined,
-    };
+    // Use our helper function to build API-compatible filters
+    const apiFilters = buildApiFilters(filters);
 
     // Log the filters being sent to the API
     console.log('Sending filters to API:', apiFilters);
