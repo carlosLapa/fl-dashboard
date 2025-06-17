@@ -11,6 +11,7 @@ import {
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import ProjetoStatusBadge from '../ProjetoStatusBadge';
+import { formatDate } from '../../../util/dateUtils';
 
 interface ProjetoTableRowProps {
   projeto: Projeto;
@@ -23,15 +24,6 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
   onEditProjeto,
   onDeleteProjeto,
 }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-PT', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
-
   const renderUserNames = (users: User[]) => {
     return users.map((user) => user.name).join(', ');
   };
