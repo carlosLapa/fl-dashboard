@@ -1,6 +1,10 @@
 .search-results-container {
   padding: 20px;
   transition: all 0.3s ease;
+  height: calc(100vh - 80px); /* Adjust based on your header height */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   @media (min-width: 992px) {
     margin-left: 220px; /* Matches the content margin from sidebar on larger screens */
@@ -16,11 +20,49 @@
   padding-left: 0; /* Remove left padding to align more to the left */
   margin-right: auto; /* Keep right margin auto */
   margin-left: 0; /* Set left margin to 0 to align more to the left */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.search-results-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  padding-right: 0.5rem;
+  margin-top: 1rem;
+
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 0; /* Remove horizontal scrollbar height */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 }
 
 .search-card {
   width: 100%;
   transition: transform 0.2s ease, box-shadow 0.3s ease-in-out;
+  animation: fadeIn 0.3s ease-in-out;
+  animation-fill-mode: both;
 
   &:hover {
     transform: translateY(-2px);
@@ -37,7 +79,6 @@
 
 .search-title {
   font-size: 1.8rem;
-
   @media (max-width: 576px) {
     font-size: 1.5rem;
   }
@@ -47,6 +88,10 @@
   font-size: 1.5rem;
   position: relative;
   padding-bottom: 8px;
+  background-color: white;
+  z-index: 1;
+  position: sticky;
+  top: 0;
 
   &:after {
     content: '';
@@ -63,6 +108,36 @@
   }
 }
 
+.results-column {
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 0; /* Remove horizontal scrollbar height */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
 /* Add animation for cards */
 @keyframes fadeIn {
   from {
@@ -73,11 +148,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.search-card {
-  animation: fadeIn 0.3s ease-in-out;
-  animation-fill-mode: both;
 }
 
 /* Stagger the animations */
@@ -100,11 +170,24 @@
 /* Adjust column padding for better left alignment */
 .row {
   margin-left: -10px;
+  width: 100%; /* Ensure row takes full width */
+  margin-right: 0; /* Remove right margin to prevent overflow */
 }
 
 @media (min-width: 992px) {
   .col-lg-4 {
     padding-left: 10px;
     padding-right: 20px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .search-results-scrollable {
+    max-height: calc(100vh - 200px);
+  }
+
+  .results-column {
+    max-height: none;
   }
 }
