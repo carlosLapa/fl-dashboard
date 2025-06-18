@@ -120,7 +120,7 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
       {/* Status Filter */}
       <Col md={6} lg={4}>
         <Form.Group>
-          <Form.Label>Status</Form.Label>
+          <Form.Label>Estado</Form.Label>
           <Form.Select
             value={filters.status}
             onChange={(e) => updateFilter('status', e.target.value)}
