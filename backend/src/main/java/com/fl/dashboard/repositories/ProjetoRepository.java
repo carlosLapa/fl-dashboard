@@ -75,4 +75,5 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("status") String status,
             Pageable pageable);
 
+    List<Projeto> findByClienteId(Long id);
 }

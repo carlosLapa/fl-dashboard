@@ -55,6 +55,10 @@ public class Projeto {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
+
     public Projeto() {
     }
 
@@ -166,6 +170,14 @@ public class Projeto {
 
     public void setColunas(List<Coluna> colunas) {
         this.colunas = colunas;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
     }
 
     @Override
