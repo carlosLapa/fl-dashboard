@@ -114,6 +114,7 @@ const ClientePage: React.FC = () => {
               variant="primary"
               onClick={handleAddCliente}
               className="create-button"
+              style={{ position: 'relative', left: '20px' }}
             >
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Cliente
