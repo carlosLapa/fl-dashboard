@@ -1,4 +1,4 @@
-import { ProjetoMinDTO } from './projeto';
+import { Projeto, ProjetoMinDTO } from './projeto';
 
 // Base Cliente type
 export interface Cliente {
@@ -47,6 +47,11 @@ export interface ClienteUpdateDTO {
 // DTO for Cliente with related Projetos
 export interface ClienteWithProjetosDTO extends ClienteDTO {
   projetos: ProjetoMinDTO[];
+}
+
+// DTO for Cliente with related Projetos including Users
+export interface ClienteWithProjetosAndUsersDTO extends ClienteDTO {
+  projetos: Projeto[]; // This includes the full Projeto objects with users
 }
 
 // Interface for paginated Clientes response

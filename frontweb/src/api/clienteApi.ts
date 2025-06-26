@@ -3,6 +3,7 @@ import {
   ClienteDTO,
   ClienteInsertDTO,
   ClienteUpdateDTO,
+  ClienteWithProjetosAndUsersDTO,
   ClienteWithProjetosDTO,
   PaginatedClientes,
 } from '../types/cliente';
@@ -67,6 +68,24 @@ export const getProjetosWithUsersByClienteIdAPI = async (
   } catch (error) {
     console.error(
       `Error fetching projetos with users for cliente with id ${clienteId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+// Get cliente with projetos and users by ID
+export const getClienteWithProjetosAndUsersAPI = async (
+  clienteId: number
+): Promise<ClienteWithProjetosAndUsersDTO> => {
+  try {
+    const response = await axios.get(
+      `/clientes/${clienteId}/with-projetos-and-users`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching cliente with projetos and users for id ${clienteId}:`,
       error
     );
     throw error;

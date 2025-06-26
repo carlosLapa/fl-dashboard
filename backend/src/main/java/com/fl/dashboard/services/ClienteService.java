@@ -88,6 +88,14 @@ public class ClienteService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public ClienteWithProjetosAndUsersDTO getClienteWithProjetosAndUsers(Long clienteId) {
+        Cliente cliente = clienteRepository.findByIdWithProjetosAndUsers(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente not found with id: " + clienteId));
+
+        return new ClienteWithProjetosAndUsersDTO(cliente);
+    }
+
     @Transactional
     public ClienteDTO insert(ClienteInsertDTO dto) {
         Cliente entity = new Cliente();

@@ -40,4 +40,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
             "LOWER(c.nif) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(c.responsavel) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<Cliente> searchByNameOrNifOrResponsavel(@Param("query") String query);
+
+    @Query("SELECT c FROM Cliente c LEFT JOIN FETCH c.projetos p LEFT JOIN FETCH p.users WHERE c.id = :clienteId")
+    Optional<Cliente> findByIdWithProjetosAndUsers(@Param("clienteId") Long clienteId);
 }

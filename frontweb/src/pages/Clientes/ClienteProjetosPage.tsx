@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spinner, Alert, Row, Col } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faPlus } from '@fortawesome/free-solid-svg-icons';
 import {
-  getClienteByIdAPI,
-  getProjetosWithUsersByClienteIdAPI,
+  getClienteWithProjetosAndUsersAPI,
   associateProjetoWithClienteAPI,
 } from '../../api/clienteApi';
 import {
@@ -13,17 +12,28 @@ import {
   updateProjetoAPI,
   deleteProjetoAPI,
 } from '../../api/requestsApi';
-import { ClienteDTO } from '../../types/cliente';
+import { ClienteWithProjetosAndUsersDTO } from '../../types/cliente';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { ProjetoFilterState } from '../../types/filters';
 import ProjetoModal from '../../components/Projeto/ProjetoModal';
 import { toast } from 'react-toastify';
 
+// Create a cache object outside the component to persist across renders
+const apiCache = {
+  clienteData: null as ClienteWithProjetosAndUsersDTO | null,
+  lastFetchedId: null as number | null,
+  isFetching: false,
+  // Add a counter to track cache hits for debugging
+  cacheHits: 0,
+};
+
 const ClienteProjetosPage: React.FC = () => {
   const { clienteId } = useParams<{ clienteId: string }>();
   const navigate = useNavigate();
-  const [cliente, setCliente] = useState<ClienteDTO | null>(null);
+  const [cliente, setCliente] = useState<ClienteWithProjetosAndUsersDTO | null>(
+    null
+  );
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,53 +57,96 @@ const ClienteProjetosPage: React.FC = () => {
     cliente: '',
   });
 
-  // Fetch client data
-  const fetchClienteData = async (id: number) => {
+  // Use a ref to track component mount state
+  const isMountedRef = useRef(false);
+  // Use a ref to track if we've already logged cache hits for this render
+  const loggedCacheHitRef = useRef(false);
+
+  // Fetch client data with projects and users in a single call
+  const fetchClienteData = async (id: number, forceRefresh = false) => {
+    // Reset the logged cache hit flag on each fetch attempt
+    loggedCacheHitRef.current = false;
+
+    // If we're already fetching or have data for this ID and don't need to refresh, use cached data
+    if (
+      !forceRefresh &&
+      apiCache.lastFetchedId === id &&
+      apiCache.clienteData !== null &&
+      !apiCache.isFetching
+    ) {
+      // Only log once per component instance to reduce console spam
+      if (!loggedCacheHitRef.current) {
+        apiCache.cacheHits++;
+        console.log(`Using cached client data (hit #${apiCache.cacheHits})`);
+        loggedCacheHitRef.current = true;
+      }
+
+      setCliente(apiCache.clienteData);
+      setProjetos(apiCache.clienteData.projetos || []);
+      setTotalPages(
+        Math.ceil((apiCache.clienteData.projetos?.length || 0) / 10)
+      );
+      setLoading(false);
+      return;
+    }
+
+    // If we're already fetching, don't start another fetch
+    if (apiCache.isFetching) {
+      console.log('Already fetching data, skipping duplicate request');
+      return;
+    }
+
+    apiCache.isFetching = true;
     setLoading(true);
+
     try {
-      const clienteData = await getClienteByIdAPI(id);
+      console.log(`Fetching client data for ID: ${id}`);
+      const clienteData = await getClienteWithProjetosAndUsersAPI(id);
+
       if (clienteData) {
-        setCliente(clienteData);
-        console.log('Client data fetched:', clienteData);
+        // Update cache
+        apiCache.clienteData = clienteData;
+        apiCache.lastFetchedId = id;
+
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setCliente(clienteData);
+          setProjetos(clienteData.projetos || []);
+          setTotalPages(Math.ceil((clienteData.projetos?.length || 0) / 10));
+          console.log('Client data fetched successfully');
+        }
       } else {
-        setError('Cliente não encontrado');
+        if (isMountedRef.current) {
+          setError('Cliente não encontrado');
+        }
       }
     } catch (err) {
       console.error('Error fetching client data:', err);
-      setError('Erro ao carregar dados do cliente');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch projects by client ID with users
-  const fetchProjetosByClienteId = async (id: number) => {
-    try {
-      console.log(`Fetching projects with users for client ID: ${id}`);
-      const projetosData = await getProjetosWithUsersByClienteIdAPI(id);
-      console.log('Projects with users data received:', projetosData);
-
-      if (Array.isArray(projetosData)) {
-        setProjetos(projetosData);
-        setTotalPages(Math.ceil(projetosData.length / 10));
-      } else {
-        console.error('Expected array of projects but received:', projetosData);
-        setProjetos([]);
-        setTotalPages(1);
+      if (isMountedRef.current) {
+        setError('Erro ao carregar dados do cliente');
       }
-    } catch (err) {
-      console.error('Error fetching projects with users by client ID:', err);
-      setProjetos([]);
-      setTotalPages(1);
+    } finally {
+      apiCache.isFetching = false;
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
+  // Load data when component mounts or clienteId changes
   useEffect(() => {
+    // Set mounted flag
+    isMountedRef.current = true;
+
     if (clienteId) {
       const id = parseInt(clienteId);
       fetchClienteData(id);
-      fetchProjetosByClienteId(id);
     }
+
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [clienteId]);
 
   const handleBack = () => {
@@ -120,11 +173,11 @@ const ClienteProjetosPage: React.FC = () => {
       try {
         await deleteProjetoAPI(projetoId);
         toast.success('Projeto excluído com sucesso!');
-
-        // Refresh the projects list
+        // Refresh the data
         if (clienteId) {
           const id = parseInt(clienteId);
-          await fetchProjetosByClienteId(id);
+          // Force refresh
+          await fetchClienteData(id, true);
         }
       } catch (error) {
         console.error('Error deleting projeto:', error);
@@ -138,14 +191,12 @@ const ClienteProjetosPage: React.FC = () => {
       toast.error('ID do cliente não encontrado');
       return;
     }
-
     try {
       // Add clienteId to the formData
       const formDataWithClient: ProjetoFormData = {
         ...formData,
         clienteId: parseInt(clienteId),
       };
-
       if (selectedProjeto) {
         // Update existing projeto
         await updateProjetoAPI(selectedProjeto.id, formDataWithClient);
@@ -155,7 +206,6 @@ const ClienteProjetosPage: React.FC = () => {
         // Create new projeto with client ID already included
         const result = await addProjetoAPI(formDataWithClient);
         console.log('Project created with client ID');
-
         // If the backend doesn't automatically associate the project with the client,
         // we can explicitly do it here
         if (result && result.id) {
@@ -174,17 +224,15 @@ const ClienteProjetosPage: React.FC = () => {
             );
           }
         }
-
         toast.success('Projeto criado com sucesso!');
       }
-
       // Close the modal and reset selected project
       setShowProjetoModal(false);
       setSelectedProjeto(null);
-
-      // Refresh the projects list
+      // Refresh the data using the combined endpoint
       const id = parseInt(clienteId);
-      await fetchProjetosByClienteId(id);
+      // Force refresh
+      await fetchClienteData(id, true);
     } catch (error) {
       console.error('Error saving projeto:', error);
       toast.error('Erro ao salvar projeto');

@@ -70,6 +70,12 @@ public class ClienteResource {
         }
     }
 
+    @GetMapping("/{clienteId}/with-projetos-and-users")
+    public ResponseEntity<ClienteWithProjetosAndUsersDTO> getClienteWithProjetosAndUsers(@PathVariable Long clienteId) {
+        ClienteWithProjetosAndUsersDTO clienteDTO = clienteService.getClienteWithProjetosAndUsers(clienteId);
+        return ResponseEntity.ok(clienteDTO);
+    }
+
     @PostMapping
     public ResponseEntity<ClienteDTO> insert(@Valid @RequestBody ClienteInsertDTO dto) {
         ClienteDTO newDto = clienteService.insert(dto);
