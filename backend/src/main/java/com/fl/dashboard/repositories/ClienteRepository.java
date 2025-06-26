@@ -15,6 +15,8 @@ import java.util.Optional;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
+    Optional<Cliente> findByNif(String nif);
+
     @Query("SELECT c FROM Cliente c WHERE c.deletedAt IS NULL")
     Page<Cliente> findAllActive(Pageable pageable);
 

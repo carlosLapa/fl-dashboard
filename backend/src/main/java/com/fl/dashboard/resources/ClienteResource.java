@@ -1,8 +1,6 @@
 package com.fl.dashboard.resources;
 
-import com.fl.dashboard.dto.ClienteDTO;
-import com.fl.dashboard.dto.ClienteWithProjetosDTO;
-import com.fl.dashboard.dto.ProjetoDTO;
+import com.fl.dashboard.dto.*;
 import com.fl.dashboard.services.ClienteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +57,7 @@ public class ClienteResource {
     }
 
     @PostMapping
-    public ResponseEntity<ClienteDTO> insert(@Valid @RequestBody ClienteDTO dto) {
+    public ResponseEntity<ClienteDTO> insert(@Valid @RequestBody ClienteInsertDTO dto) {
         ClienteDTO newDto = clienteService.insert(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(newDto.getId()).toUri();
@@ -67,7 +65,7 @@ public class ClienteResource {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<ClienteDTO> update(@PathVariable Long id, @Valid @RequestBody ClienteDTO dto) {
+    public ResponseEntity<ClienteDTO> update(@PathVariable Long id, @Valid @RequestBody ClienteUpdateDTO dto) {
         ClienteDTO updatedDto = clienteService.update(id, dto);
         return ResponseEntity.ok().body(updatedDto);
     }
@@ -86,18 +84,18 @@ public class ClienteResource {
 
     @PostMapping("/with-projetos")
     public ResponseEntity<ClienteWithProjetosDTO> insertWithProjetos(@Valid @RequestBody ClienteWithProjetosDTO dto) {
-        dto = clienteService.insertWithProjetos(dto);
+        ClienteWithProjetosDTO newDto = clienteService.insertWithProjetos(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(dto.getId()).toUri();
-        return ResponseEntity.created(uri).body(dto);
+                .buildAndExpand(newDto.getId()).toUri();
+        return ResponseEntity.created(uri).body(newDto);
     }
 
     @PutMapping(value = "/{id}/with-projetos")
     public ResponseEntity<ClienteWithProjetosDTO> updateWithProjetos(
             @PathVariable Long id,
             @Valid @RequestBody ClienteWithProjetosDTO dto) {
-        dto = clienteService.updateWithProjetos(id, dto);
-        return ResponseEntity.ok().body(dto);
+        ClienteWithProjetosDTO updatedDto = clienteService.updateWithProjetos(id, dto);
+        return ResponseEntity.ok().body(updatedDto);
     }
 
     // endpoints for associating/disassociating individual projetos
@@ -116,6 +114,4 @@ public class ClienteResource {
         clienteService.disassociateProjetoFromCliente(clienteId, projetoId);
         return ResponseEntity.noContent().build();
     }
-
 }
-

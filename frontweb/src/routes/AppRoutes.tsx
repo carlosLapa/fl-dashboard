@@ -13,6 +13,8 @@ import SearchResultsPage from 'pages/Search/SearchResultsPage';
 import ExternosPage from 'pages/Externos/ExternosPage';
 import ExternoTarefasPage from 'pages/Externos/ExternoTarefasPage';
 import ExternoProjetosPage from 'pages/Externos/ExternoProjetosPage';
+import ClientePage from 'pages/Clientes/ClientePage';
+import ClienteProjetosPage from 'pages/Clientes/ClienteProjetosPage';
 
 const AppRoutes = () => {
   return (
@@ -65,6 +67,15 @@ const AppRoutes = () => {
       <Route
         path="/externos/:externoId/projetos"
         element={<ProtectedRoute element={<ExternoProjetosPage />} />}
+      />
+      {/* Add routes for Clientes */}
+      <Route
+        path="/clientes"
+        element={<ProtectedRoute element={<ClientePage />} />}
+      />
+      <Route
+        path="/clientes/:clienteId/projetos"
+        element={<ProtectedRoute element={<ClienteProjetosPage />} />}
       />
     </Routes>
   );

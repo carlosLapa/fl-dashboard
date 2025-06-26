@@ -1,0 +1,99 @@
+@import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/tablePositioning.scss';
+
+// Cliente table container styles
+.cliente-table-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 220px);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+
+  // Add table-responsive styles for vertical scrolling
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    flex: 1; // Take available space
+    min-height: 0; // Important for flex child to scroll properly
+  }
+
+  // Action icons container
+  .action-icons {
+    display: flex;
+    align-items: center;
+  }
+}
+
+// Cliente table styles
+.cliente-table {
+  width: 100%;
+
+  th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+// Action icons
+.view-projetos-icon {
+  cursor: pointer;
+  color: #28a745;
+  transition: color 0.2s;
+  &:hover {
+    color: #218838;
+  }
+}
+
+.edit-icon {
+  cursor: pointer;
+  color: #007bff;
+  transition: color 0.2s;
+  &:hover {
+    color: #0056b3;
+  }
+}
+
+.delete-icon {
+  cursor: pointer;
+  color: #dc3545;
+  transition: color 0.2s;
+  &:hover {
+    color: #c82333;
+  }
+}
+
+// Pagination container
+.pagination-container {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0; // Prevent pagination from shrinking
+}
+
+// Page info for mobile
+.page-info {
+  margin-top: 0.5rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .cliente-table-container {
+    height: calc(100vh - 180px); // Slightly smaller on mobile
+
+    .table-responsive {
+      font-size: 0.9rem;
+    }
+  }
+}

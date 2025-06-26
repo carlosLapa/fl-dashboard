@@ -24,6 +24,11 @@ export interface ProjetoFormData {
   status: string;
 }
 
+export interface ProjetoMinDTO {
+  id: number;
+  designacao: string;
+}
+
 export type ProjetoWithUsersAndTarefasDTO = Projeto & {
   tarefas: Tarefa[];
 };
