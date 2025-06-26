@@ -9,12 +9,19 @@ import { toast } from 'react-toastify';
 import Select from 'react-select';
 import './ProjetoModal.scss';
 
+// Add the ClienteInfo interface
+interface ClienteInfo {
+  id: number;
+  name: string;
+}
+
 interface ProjetoModalProps {
   show: boolean;
   onHide: () => void;
   projeto?: Projeto | null;
   onSave: (formData: ProjetoFormData) => void;
   isEditing: boolean;
+  clienteInfo?: ClienteInfo; // Add the clienteInfo prop
 }
 
 const ProjetoModal: React.FC<ProjetoModalProps> = ({
@@ -23,6 +30,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   projeto,
   onSave,
   isEditing,
+  clienteInfo, // Add the clienteInfo parameter
 }) => {
   const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<ProjetoFormData>({
@@ -54,7 +62,8 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
 
   useEffect(() => {
     if (!isEditing) {
-      setFormData({
+      // Reset form data when not editing
+      const newFormData: ProjetoFormData = {
         projetoAno: new Date().getFullYear(),
         designacao: '',
         entidade: '',
@@ -63,23 +72,39 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         prazo: '',
         users: [],
         status: 'ATIVO',
-      });
+      };
+
+      // Only add clienteId if clienteInfo is provided
+      if (clienteInfo) {
+        newFormData.clienteId = clienteInfo.id;
+      }
+
+      setFormData(newFormData);
       setValidated(false);
     }
-  }, [isEditing, show]);
+  }, [isEditing, show, clienteInfo]); // Add clienteInfo to dependencies
 
   useEffect(() => {
     if (isEditing && projeto) {
       const formattedPrazo = projeto.prazo
         ? new Date(projeto.prazo).toISOString().split('T')[0]
         : '';
-      setFormData({
+
+      // Create a new form data object from the projeto
+      const newFormData: ProjetoFormData = {
         ...projeto,
         prazo: formattedPrazo,
-      });
+      };
+
+      // Add clienteId if clienteInfo is provided
+      if (clienteInfo) {
+        newFormData.clienteId = clienteInfo.id;
+      }
+
+      setFormData(newFormData);
       setValidated(false);
     }
-  }, [projeto, isEditing, show]);
+  }, [projeto, isEditing, show, clienteInfo]); // Add clienteInfo to dependencies
 
   const handleUserSelect = (selectedOptions: any) => {
     const selectedUsers = selectedOptions
@@ -90,7 +115,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
           role: '',
         }))
       : [];
-
     setFormData((prevFormData) => ({
       ...prevFormData,
       users: selectedUsers,
@@ -132,6 +156,14 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     setValidated(true);
     if (!validateForm()) return;
 
+    // Create a copy of the form data to send
+    const formDataToSave = { ...formData };
+
+    // Add clienteId if clienteInfo is provided
+    if (clienteInfo) {
+      formDataToSave.clienteId = clienteInfo.id;
+    }
+
     if (formData.users.length > 0) {
       formData.users.forEach((user) => {
         const notificationType =
@@ -153,7 +185,8 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         sendNotification(notification);
       });
     }
-    onSave(formData);
+
+    onSave(formDataToSave);
     onHide();
   };
 
@@ -174,11 +207,16 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditing ? 'Editar Projeto' : 'Registar novo Projeto'}
+          {/* Add client name display if clienteInfo is provided */}
+          {clienteInfo && (
+            <span className="ms-2 text-muted fs-6">
+              para {clienteInfo.name}
+            </span>
+          )}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {error && <Alert variant="danger">{error}</Alert>}
-
         <Form noValidate validated={validated}>
           <Row className="mb-3">
             <Col md={6}>
@@ -197,7 +235,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
-
             <Col md={6}>
               <Form.Group controlId="formDesignacao">
                 <Form.Label>Designação</Form.Label>
@@ -214,7 +251,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               </Form.Group>
             </Col>
           </Row>
-
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group controlId="formEntidade">
@@ -231,7 +267,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
-
             <Col md={6}>
               <Form.Group controlId="formPrioridade">
                 <Form.Label>Prioridade</Form.Label>
@@ -253,7 +288,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               </Form.Group>
             </Col>
           </Row>
-
           <Form.Group className="mb-3" controlId="formObservacao">
             <Form.Label>Observação</Form.Label>
             <Form.Control
@@ -264,7 +298,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               onChange={handleInputChange}
             />
           </Form.Group>
-
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group controlId="formPrazo">
@@ -282,7 +315,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
-
             <Col md={6}>
               <Form.Group controlId="formStatus">
                 <Form.Label>Status</Form.Label>
@@ -303,7 +335,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               </Form.Group>
             </Col>
           </Row>
-
           <Form.Group className="mb-4" controlId="formUsers">
             <Form.Label>Colaboradores</Form.Label>
             <Select

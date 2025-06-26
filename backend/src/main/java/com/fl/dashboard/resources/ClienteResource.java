@@ -2,10 +2,12 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.services.ClienteService;
+import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -54,6 +56,18 @@ public class ClienteResource {
     public ResponseEntity<List<ProjetoDTO>> getProjetosByCliente(@PathVariable Long clienteId) {
         List<ProjetoDTO> projetoDTOs = clienteService.getProjetosByCliente(clienteId);
         return ResponseEntity.ok(projetoDTOs);
+    }
+
+    @GetMapping("/{clienteId}/projetos-with-users")
+    public ResponseEntity<List<ProjetoWithUsersDTO>> getProjetosWithUsersByClienteId(@PathVariable Long clienteId) {
+        try {
+            List<ProjetoWithUsersDTO> projetos = clienteService.getProjetosWithUsersByClienteId(clienteId);
+            return ResponseEntity.ok(projetos);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping

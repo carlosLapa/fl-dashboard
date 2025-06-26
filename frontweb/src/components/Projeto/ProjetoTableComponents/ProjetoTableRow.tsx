@@ -1,6 +1,5 @@
 import React from 'react';
 import { Projeto } from '../../../types/projeto';
-import { User } from '../../../types/user';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
@@ -24,8 +23,12 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
   onEditProjeto,
   onDeleteProjeto,
 }) => {
-  const renderUserNames = (users: User[]) => {
-    return users.map((user) => user.name).join(', ');
+  // Updated to safely handle undefined users
+  const renderUserNames = () => {
+    if (!projeto.users || !Array.isArray(projeto.users)) {
+      return 'N/A';
+    }
+    return projeto.users.map((user) => user.name).join(', ') || 'N/A';
   };
 
   return (
@@ -36,9 +39,7 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
       <td>{projeto.prioridade}</td>
       <td className="d-none d-md-table-cell">{projeto.observacao}</td>
       <td>{formatDate(projeto.prazo)}</td>
-      <td className="d-none d-lg-table-cell">
-        {renderUserNames(projeto.users)}
-      </td>
+      <td className="d-none d-lg-table-cell">{renderUserNames()}</td>
       <td>
         <ProjetoStatusBadge status={projeto.status} />
       </td>

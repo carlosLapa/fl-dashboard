@@ -22,6 +22,7 @@ export interface ProjetoFormData {
   prazo: string;
   users: User[];
   status: string;
+  clienteId?: number;
 }
 
 export interface ProjetoMinDTO {

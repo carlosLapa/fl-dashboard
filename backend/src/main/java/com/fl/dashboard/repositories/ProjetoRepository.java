@@ -76,4 +76,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             Pageable pageable);
 
     List<Projeto> findByClienteId(Long id);
+
+    @Query("SELECT p FROM Projeto p LEFT JOIN FETCH p.users WHERE p.cliente.id = :clienteId")
+    List<Projeto> findByClienteIdWithUsers(@Param("clienteId") Long clienteId);
+
 }

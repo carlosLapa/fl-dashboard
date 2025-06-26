@@ -72,6 +72,22 @@ public class ClienteService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ProjetoWithUsersDTO> getProjetosWithUsersByClienteId(Long clienteId) {
+        // First check if the client exists - just verify it exists without assigning to a variable
+        if (!clienteRepository.existsById(clienteId)) {
+            throw new ResourceNotFoundException("Cliente not found with id: " + clienteId);
+        }
+
+        // Get all projects for this client with eager loading of users
+        List<Projeto> projetos = projetoRepository.findByClienteIdWithUsers(clienteId);
+
+        // Map to ProjetoWithUsersDTO using your existing constructor
+        return projetos.stream()
+                .map(ProjetoWithUsersDTO::new)
+                .toList();
+    }
+
     @Transactional
     public ClienteDTO insert(ClienteInsertDTO dto) {
         Cliente entity = new Cliente();

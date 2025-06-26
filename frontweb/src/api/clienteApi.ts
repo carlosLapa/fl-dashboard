@@ -55,6 +55,24 @@ export const getClienteWithProjetosByIdAPI = async (
   }
 };
 
+// Get projetos with users by cliente ID
+export const getProjetosWithUsersByClienteIdAPI = async (
+  clienteId: number
+): Promise<Projeto[]> => {
+  try {
+    const response = await axios.get(
+      `/clientes/${clienteId}/projetos-with-users`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching projetos with users for cliente with id ${clienteId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
 // Get projetos by cliente ID
 export const getProjetosByClienteIdAPI = async (
   clienteId: number
