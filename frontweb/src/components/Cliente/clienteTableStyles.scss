@@ -40,6 +40,35 @@
   td {
     vertical-align: middle;
   }
+
+  // Expandable row styles
+  .expandable-row {
+    background-color: #f9f9f9;
+
+    td {
+      padding: 0;
+      border-top: none;
+    }
+  }
+
+  // Badge styles for indicating multiple items
+  .badge {
+    font-size: 0.7rem;
+    font-weight: normal;
+  }
+}
+
+// Detail list styles
+.detail-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+
+  .list-group-item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
 }
 
 // Action icons
@@ -95,5 +124,9 @@
     .table-responsive {
       font-size: 0.9rem;
     }
+  }
+
+  .detail-list {
+    max-height: 150px;
   }
 }

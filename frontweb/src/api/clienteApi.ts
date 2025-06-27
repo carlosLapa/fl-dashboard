@@ -222,3 +222,115 @@ export const disassociateProjetoFromClienteAPI = async (
     throw error;
   }
 };
+
+// New API functions for managing collections
+
+// Add a responsible to a client
+export const addResponsavelAPI = async (
+  clienteId: number,
+  responsavel: string
+): Promise<ClienteDTO> => {
+  try {
+    const response = await axios.post(
+      `/clientes/${clienteId}/responsaveis`,
+      responsavel,
+      {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error adding responsavel to cliente:', error);
+    throw error;
+  }
+};
+
+// Remove a responsible from a client
+export const removeResponsavelAPI = async (
+  clienteId: number,
+  index: number
+): Promise<ClienteDTO> => {
+  try {
+    const response = await axios.delete(
+      `/clientes/${clienteId}/responsaveis/${index}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error removing responsavel from cliente:', error);
+    throw error;
+  }
+};
+
+// Add a contact to a client
+export const addContactoAPI = async (
+  clienteId: number,
+  contacto: string
+): Promise<ClienteDTO> => {
+  try {
+    const response = await axios.post(
+      `/clientes/${clienteId}/contactos`,
+      contacto,
+      {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error adding contacto to cliente:', error);
+    throw error;
+  }
+};
+
+// Remove a contact from a client
+export const removeContactoAPI = async (
+  clienteId: number,
+  index: number
+): Promise<ClienteDTO> => {
+  try {
+    const response = await axios.delete(
+      `/clientes/${clienteId}/contactos/${index}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error removing contacto from cliente:', error);
+    throw error;
+  }
+};
+
+// Add an email to a client
+export const addEmailAPI = async (
+  clienteId: number,
+  email: string
+): Promise<ClienteDTO> => {
+  try {
+    const response = await axios.post(`/clientes/${clienteId}/emails`, email, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding email to cliente:', error);
+    throw error;
+  }
+};
+
+// Remove an email from a client
+export const removeEmailAPI = async (
+  clienteId: number,
+  index: number
+): Promise<ClienteDTO> => {
+  try {
+    const response = await axios.delete(
+      `/clientes/${clienteId}/emails/${index}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error removing email from cliente:', error);
+    throw error;
+  }
+};

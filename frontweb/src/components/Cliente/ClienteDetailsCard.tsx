@@ -1,7 +1,12 @@
 import React from 'react';
-import { Card, Button } from 'react-bootstrap';
+import { Card, Button, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import {
+  faTimes,
+  faPhone,
+  faUser,
+  faEnvelope,
+} from '@fortawesome/free-solid-svg-icons';
 import { ClienteDTO } from 'types/cliente';
 import './clienteDetailsCard.scss';
 
@@ -34,14 +39,89 @@ const ClienteDetailsCard: React.FC<ClienteDetailsCardProps> = ({
               <p className="mb-2">
                 <strong>NIF:</strong> {cliente.nif || 'Não disponível'}
               </p>
-              <p className="mb-2">
-                <strong>Contacto:</strong>{' '}
-                {cliente.contacto || 'Não disponível'}
-              </p>
-              <p className="mb-2">
-                <strong>Responsável:</strong>{' '}
-                {cliente.responsavel || 'Não disponível'}
-              </p>
+
+              <div className="detail-section mb-3">
+                <h6 className="detail-section-title">
+                  <FontAwesomeIcon icon={faPhone} className="me-2" />
+                  Contactos
+                </h6>
+                <ListGroup variant="flush" className="detail-list">
+                  {cliente.contacto && (
+                    <ListGroup.Item className="py-2">
+                      <strong>Principal:</strong> {cliente.contacto}
+                    </ListGroup.Item>
+                  )}
+
+                  {cliente.contactos && cliente.contactos.length > 0 ? (
+                    cliente.contactos
+                      .filter((c) => c !== cliente.contacto) // Filter out the main contact
+                      .map((contacto, index) => (
+                        <ListGroup.Item
+                          key={`contacto-${index}`}
+                          className="py-2"
+                        >
+                          {contacto}
+                        </ListGroup.Item>
+                      ))
+                  ) : cliente.contacto ? null : (
+                    <ListGroup.Item className="py-2 text-muted">
+                      Nenhum contacto disponível
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </div>
+
+              <div className="detail-section mb-3">
+                <h6 className="detail-section-title">
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Responsáveis
+                </h6>
+                <ListGroup variant="flush" className="detail-list">
+                  {cliente.responsavel && (
+                    <ListGroup.Item className="py-2">
+                      <strong>Principal:</strong> {cliente.responsavel}
+                    </ListGroup.Item>
+                  )}
+
+                  {cliente.responsaveis && cliente.responsaveis.length > 0 ? (
+                    cliente.responsaveis
+                      .filter((r) => r !== cliente.responsavel) // Filter out the main responsavel
+                      .map((responsavel, index) => (
+                        <ListGroup.Item
+                          key={`responsavel-${index}`}
+                          className="py-2"
+                        >
+                          {responsavel}
+                        </ListGroup.Item>
+                      ))
+                  ) : cliente.responsavel ? null : (
+                    <ListGroup.Item className="py-2 text-muted">
+                      Nenhum responsável disponível
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </div>
+
+              <div className="detail-section mb-3">
+                <h6 className="detail-section-title">
+                  <FontAwesomeIcon icon={faEnvelope} className="me-2" />
+                  Emails
+                </h6>
+                <ListGroup variant="flush" className="detail-list">
+                  {cliente.emails && cliente.emails.length > 0 ? (
+                    cliente.emails.map((email, index) => (
+                      <ListGroup.Item key={`email-${index}`} className="py-2">
+                        {email}
+                      </ListGroup.Item>
+                    ))
+                  ) : (
+                    <ListGroup.Item className="py-2 text-muted">
+                      Nenhum email disponível
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </div>
+
               {cliente.createdAt && (
                 <p className="mb-2">
                   <strong>Data de Criação:</strong>{' '}

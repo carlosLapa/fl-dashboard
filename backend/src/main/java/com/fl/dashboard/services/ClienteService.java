@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -78,10 +79,8 @@ public class ClienteService {
         if (!clienteRepository.existsById(clienteId)) {
             throw new ResourceNotFoundException("Cliente not found with id: " + clienteId);
         }
-
         // Get all projects for this client with eager loading of users
         List<Projeto> projetos = projetoRepository.findByClienteIdWithUsers(clienteId);
-
         // Map to ProjetoWithUsersDTO using your existing constructor
         return projetos.stream()
                 .map(ProjetoWithUsersDTO::new)
@@ -92,7 +91,6 @@ public class ClienteService {
     public ClienteWithProjetosAndUsersDTO getClienteWithProjetosAndUsers(Long clienteId) {
         Cliente cliente = clienteRepository.findByIdWithProjetosAndUsers(clienteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente not found with id: " + clienteId));
-
         return new ClienteWithProjetosAndUsersDTO(cliente);
     }
 
@@ -138,7 +136,8 @@ public class ClienteService {
         if (query == null || query.isEmpty()) {
             return findAll();
         }
-        List<Cliente> clientes = clienteRepository.searchByNameOrNifOrResponsavel(query);
+        // Updated to use the renamed repository method
+        List<Cliente> clientes = clienteRepository.searchByNameOrNifOrContacts(query);
         return clientes.stream()
                 .map(ClienteDTO::new)
                 .toList();
@@ -149,12 +148,10 @@ public class ClienteService {
         Cliente entity = new Cliente();
         copyDTOtoEntity(dto, entity);
         entity = clienteRepository.save(entity); // Save first to get an ID
-
         // Associate projetos with the cliente
         if (dto.getProjetos() != null && !dto.getProjetos().isEmpty()) {
             associateProjetosWithCliente(dto.getProjetos(), entity);
         }
-
         return new ClienteWithProjetosDTO(entity);
     }
 
@@ -165,7 +162,6 @@ public class ClienteService {
                     .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + id + NOT_FOUND_MSG));
             copyDTOtoEntity(dto, entity);
             entity = clienteRepository.save(entity);
-
             // Update projeto associations
             Set<ProjetoMinDTO> projetos = dto.getProjetos();
             if (projetos != null) {
@@ -182,19 +178,52 @@ public class ClienteService {
                 // Then associate the cliente with the projetos in the DTO
                 associateProjetosWithCliente(projetos, entity);
             }
-
             return new ClienteWithProjetosDTO(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
     }
 
+    // Updated to handle collections
     private void copyDTOtoEntity(ClienteDTO dto, Cliente entity) {
         entity.setName(dto.getName());
         entity.setMorada(dto.getMorada());
         entity.setNif(dto.getNif());
-        entity.setContacto(dto.getContacto());
-        entity.setResponsavel(dto.getResponsavel());
+
+        // Handle the new collection fields
+        if (dto.getContactos() != null) {
+            entity.setContactos(new ArrayList<>(dto.getContactos()));
+        } else {
+            entity.setContactos(new ArrayList<>());
+        }
+
+        if (dto.getResponsaveis() != null) {
+            entity.setResponsaveis(new ArrayList<>(dto.getResponsaveis()));
+        } else {
+            entity.setResponsaveis(new ArrayList<>());
+        }
+
+        if (dto.getEmails() != null) {
+            entity.setEmails(new ArrayList<>(dto.getEmails()));
+        } else {
+            entity.setEmails(new ArrayList<>());
+        }
+
+        // For backward compatibility with old DTOs that might still have the single fields
+        // This is temporary and can be removed once all DTOs are updated
+        if (dto.getContacto() != null && !dto.getContacto().isEmpty() &&
+                (entity.getContactos() == null || entity.getContactos().isEmpty())) {
+            List<String> contactos = new ArrayList<>();
+            contactos.add(dto.getContacto());
+            entity.setContactos(contactos);
+        }
+
+        if (dto.getResponsavel() != null && !dto.getResponsavel().isEmpty() &&
+                (entity.getResponsaveis() == null || entity.getResponsaveis().isEmpty())) {
+            List<String> responsaveis = new ArrayList<>();
+            responsaveis.add(dto.getResponsavel());
+            entity.setResponsaveis(responsaveis);
+        }
     }
 
     private void associateProjetosWithCliente(Set<ProjetoMinDTO> projetoDTOs, Cliente cliente) {
@@ -225,16 +254,104 @@ public class ClienteService {
         if (!clienteRepository.existsById(clienteId)) {
             throw new ResourceNotFoundException("Cliente not found with id: " + clienteId);
         }
-
         Projeto projeto = projetoRepository.findById(projetoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + projetoId));
-
         if (projeto.getCliente() != null && projeto.getCliente().getId().equals(clienteId)) {
             projeto.setCliente(null);
             projetoRepository.save(projeto);
         } else {
             throw new ResourceNotFoundException("Projeto is not associated with this Cliente");
         }
+    }
+
+    @Transactional
+    public ClienteDTO addResponsavel(Long clienteId, String responsavel) {
+        Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
+
+        if (cliente.getResponsaveis() == null) {
+            cliente.setResponsaveis(new ArrayList<>());
+        }
+
+        cliente.getResponsaveis().add(responsavel);
+        cliente = clienteRepository.save(cliente);
+
+        return new ClienteDTO(cliente);
+    }
+
+    @Transactional
+    public ClienteDTO removeResponsavel(Long clienteId, int index) {
+        Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
+
+        if (cliente.getResponsaveis() == null || index < 0 || index >= cliente.getResponsaveis().size()) {
+            throw new ResourceNotFoundException("Responsável não encontrado no índice: " + index);
+        }
+
+        cliente.getResponsaveis().remove(index);
+        cliente = clienteRepository.save(cliente);
+
+        return new ClienteDTO(cliente);
+    }
+
+    @Transactional
+    public ClienteDTO addContacto(Long clienteId, String contacto) {
+        Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
+
+        if (cliente.getContactos() == null) {
+            cliente.setContactos(new ArrayList<>());
+        }
+
+        cliente.getContactos().add(contacto);
+        cliente = clienteRepository.save(cliente);
+
+        return new ClienteDTO(cliente);
+    }
+
+    @Transactional
+    public ClienteDTO removeContacto(Long clienteId, int index) {
+        Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
+
+        if (cliente.getContactos() == null || index < 0 || index >= cliente.getContactos().size()) {
+            throw new ResourceNotFoundException("Contacto não encontrado no índice: " + index);
+        }
+
+        cliente.getContactos().remove(index);
+        cliente = clienteRepository.save(cliente);
+
+        return new ClienteDTO(cliente);
+    }
+
+    @Transactional
+    public ClienteDTO addEmail(Long clienteId, String email) {
+        Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
+
+        if (cliente.getEmails() == null) {
+            cliente.setEmails(new ArrayList<>());
+        }
+
+        cliente.getEmails().add(email);
+        cliente = clienteRepository.save(cliente);
+
+        return new ClienteDTO(cliente);
+    }
+
+    @Transactional
+    public ClienteDTO removeEmail(Long clienteId, int index) {
+        Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
+
+        if (cliente.getEmails() == null || index < 0 || index >= cliente.getEmails().size()) {
+            throw new ResourceNotFoundException("Email não encontrado no índice: " + index);
+        }
+
+        cliente.getEmails().remove(index);
+        cliente = clienteRepository.save(cliente);
+
+        return new ClienteDTO(cliente);
     }
 
 }

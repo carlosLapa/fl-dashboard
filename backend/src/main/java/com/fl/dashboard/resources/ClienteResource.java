@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/clientes")
 public class ClienteResource {
-
     @Autowired
     private ClienteService clienteService;
 
@@ -133,5 +132,61 @@ public class ClienteResource {
             @PathVariable Long projetoId) {
         clienteService.disassociateProjetoFromCliente(clienteId, projetoId);
         return ResponseEntity.noContent().build();
+    }
+
+    // New endpoints for managing responsibles, contacts, and emails
+
+    // Add a new responsible to a client
+    @PostMapping("/{clienteId}/responsaveis")
+    public ResponseEntity<ClienteDTO> addResponsavel(
+            @PathVariable Long clienteId,
+            @RequestBody String responsavel) {
+        ClienteDTO dto = clienteService.addResponsavel(clienteId, responsavel);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Remove a responsible from a client
+    @DeleteMapping("/{clienteId}/responsaveis/{index}")
+    public ResponseEntity<ClienteDTO> removeResponsavel(
+            @PathVariable Long clienteId,
+            @PathVariable int index) {
+        ClienteDTO dto = clienteService.removeResponsavel(clienteId, index);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Add a new contact to a client
+    @PostMapping("/{clienteId}/contactos")
+    public ResponseEntity<ClienteDTO> addContacto(
+            @PathVariable Long clienteId,
+            @RequestBody String contacto) {
+        ClienteDTO dto = clienteService.addContacto(clienteId, contacto);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Remove a contact from a client
+    @DeleteMapping("/{clienteId}/contactos/{index}")
+    public ResponseEntity<ClienteDTO> removeContacto(
+            @PathVariable Long clienteId,
+            @PathVariable int index) {
+        ClienteDTO dto = clienteService.removeContacto(clienteId, index);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Add a new email to a client
+    @PostMapping("/{clienteId}/emails")
+    public ResponseEntity<ClienteDTO> addEmail(
+            @PathVariable Long clienteId,
+            @RequestBody String email) {
+        ClienteDTO dto = clienteService.addEmail(clienteId, email);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Remove an email from a client
+    @DeleteMapping("/{clienteId}/emails/{index}")
+    public ResponseEntity<ClienteDTO> removeEmail(
+            @PathVariable Long clienteId,
+            @PathVariable int index) {
+        ClienteDTO dto = clienteService.removeEmail(clienteId, index);
+        return ResponseEntity.ok().body(dto);
     }
 }

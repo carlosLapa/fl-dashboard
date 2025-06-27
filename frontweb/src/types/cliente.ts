@@ -6,8 +6,16 @@ export interface Cliente {
   name: string;
   morada: string;
   nif: string;
-  contacto: string;
-  responsavel: string;
+
+  // Keep old fields for backward compatibility
+  contacto?: string;
+  responsavel?: string;
+
+  // New collection fields
+  contactos: string[];
+  responsaveis: string[];
+  emails: string[];
+
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string;
@@ -19,8 +27,16 @@ export interface ClienteDTO {
   name: string;
   morada: string;
   nif: string;
-  contacto: string;
-  responsavel: string;
+
+  // Keep old fields for backward compatibility
+  contacto?: string;
+  responsavel?: string;
+
+  // New collection fields
+  contactos: string[];
+  responsaveis: string[];
+  emails: string[];
+
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string;
@@ -31,8 +47,15 @@ export interface ClienteInsertDTO {
   name: string;
   morada: string;
   nif: string;
-  contacto: string;
-  responsavel: string;
+
+  // Keep old fields for backward compatibility
+  contacto?: string;
+  responsavel?: string;
+
+  // New collection fields
+  contactos: string[];
+  responsaveis: string[];
+  emails: string[];
 }
 
 // DTO for updating an existing Cliente
@@ -40,8 +63,15 @@ export interface ClienteUpdateDTO {
   name: string;
   morada: string;
   nif: string;
-  contacto: string;
-  responsavel: string;
+
+  // Keep old fields for backward compatibility
+  contacto?: string;
+  responsavel?: string;
+
+  // New collection fields
+  contactos: string[];
+  responsaveis: string[];
+  emails: string[];
 }
 
 // DTO for Cliente with related Projetos

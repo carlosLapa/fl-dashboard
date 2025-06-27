@@ -20,6 +20,12 @@ import {
   searchClientesAPI,
   associateProjetoWithClienteAPI,
   disassociateProjetoFromClienteAPI,
+  addResponsavelAPI,
+  removeResponsavelAPI,
+  addContactoAPI,
+  removeContactoAPI,
+  addEmailAPI,
+  removeEmailAPI,
 } from '../api/clienteApi';
 import { Projeto } from '../types/projeto';
 
@@ -33,7 +39,6 @@ export const getAllClientes = async (): Promise<ClienteDTO[]> => {
   }
 };
 
-// Get all clientes with pagination
 // Get all clientes with pagination
 export const getClientesPaged = async (
   page: number = 0,
@@ -226,5 +231,88 @@ export const disassociateProjetoFromCliente = async (
       error
     );
     return false;
+  }
+};
+
+// New service functions for managing collections
+
+// Add a responsible to a client
+export const addResponsavel = async (
+  clienteId: number,
+  responsavel: string
+): Promise<ClienteDTO | null> => {
+  try {
+    return await addResponsavelAPI(clienteId, responsavel);
+  } catch (error) {
+    console.error(`Error adding responsavel to cliente ${clienteId}:`, error);
+    return null;
+  }
+};
+
+// Remove a responsible from a client
+export const removeResponsavel = async (
+  clienteId: number,
+  index: number
+): Promise<ClienteDTO | null> => {
+  try {
+    return await removeResponsavelAPI(clienteId, index);
+  } catch (error) {
+    console.error(
+      `Error removing responsavel from cliente ${clienteId}:`,
+      error
+    );
+    return null;
+  }
+};
+
+// Add a contact to a client
+export const addContacto = async (
+  clienteId: number,
+  contacto: string
+): Promise<ClienteDTO | null> => {
+  try {
+    return await addContactoAPI(clienteId, contacto);
+  } catch (error) {
+    console.error(`Error adding contacto to cliente ${clienteId}:`, error);
+    return null;
+  }
+};
+
+// Remove a contact from a client
+export const removeContacto = async (
+  clienteId: number,
+  index: number
+): Promise<ClienteDTO | null> => {
+  try {
+    return await removeContactoAPI(clienteId, index);
+  } catch (error) {
+    console.error(`Error removing contacto from cliente ${clienteId}:`, error);
+    return null;
+  }
+};
+
+// Add an email to a client
+export const addEmail = async (
+  clienteId: number,
+  email: string
+): Promise<ClienteDTO | null> => {
+  try {
+    return await addEmailAPI(clienteId, email);
+  } catch (error) {
+    console.error(`Error adding email to cliente ${clienteId}:`, error);
+    return null;
+  }
+};
+
+// Remove an email from a client
+export const removeEmail = async (
+  clienteId: number,
+  index: number
+): Promise<ClienteDTO | null> => {
+  try {
+    return await removeEmailAPI(clienteId, index);
+  } catch (error) {
+    console.error(`Error removing email from cliente ${clienteId}:`, error);
+    return null;
   }
 };

@@ -6,12 +6,20 @@ import {
   Spinner,
   OverlayTrigger,
   Tooltip,
+  Collapse,
+  Badge,
+  ListGroup,
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
   faTrashAlt,
   faProjectDiagram,
+  faChevronDown,
+  faChevronUp,
+  faPhone,
+  faUser,
+  faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 import { ClienteDTO } from 'types/cliente';
 import './clienteTableStyles.scss';
@@ -40,6 +48,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
   const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(
     null
   );
+  const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
 
   const handleDeleteClick = (id: number) => {
     setShowConfirmDelete(id);
@@ -52,6 +61,13 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
 
   const handleCancelDelete = () => {
     setShowConfirmDelete(null);
+  };
+
+  const toggleRowExpand = (id: number) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   const renderPagination = () => {
@@ -151,6 +167,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
         <Table striped bordered hover className="cliente-table">
           <thead>
             <tr>
+              <th style={{ width: '40px' }}></th>
               <th>Nome</th>
               <th>Morada</th>
               <th>NIF</th>
@@ -161,80 +178,200 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
           </thead>
           <tbody>
             {clientes.map((cliente) => (
-              <tr key={cliente.id}>
-                <td>{cliente.name}</td>
-                <td>{cliente.morada}</td>
-                <td>{cliente.nif}</td>
-                <td>{cliente.contacto}</td>
-                <td>{cliente.responsavel}</td>
-                <td>
-                  {showConfirmDelete === cliente.id ? (
-                    <div className="d-flex gap-2">
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleConfirmDelete(cliente.id)}
-                      >
-                        Confirmar
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleCancelDelete}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="action-icons">
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`edit-tooltip-${cliente.id}`}>
-                            Editar
-                          </Tooltip>
+              <React.Fragment key={cliente.id}>
+                <tr>
+                  <td className="text-center">
+                    <Button
+                      variant="link"
+                      className="p-0 text-decoration-none"
+                      onClick={() => toggleRowExpand(cliente.id)}
+                      aria-label={
+                        expandedRows[cliente.id] ? 'Collapse row' : 'Expand row'
+                      }
+                    >
+                      <FontAwesomeIcon
+                        icon={
+                          expandedRows[cliente.id] ? faChevronUp : faChevronDown
                         }
-                      >
-                        <FontAwesomeIcon
-                          icon={faPencilAlt}
-                          onClick={() => onEditCliente(cliente.id)}
-                          className="edit-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`delete-tooltip-${cliente.id}`}>
-                            Eliminar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faTrashAlt}
-                          onClick={() => handleDeleteClick(cliente.id)}
-                          className="delete-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`projetos-tooltip-${cliente.id}`}>
-                            Ver Projetos
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faProjectDiagram}
-                          onClick={() => onViewProjetos(cliente.id)}
-                          className="view-projetos-icon"
-                        />
-                      </OverlayTrigger>
-                    </div>
-                  )}
-                </td>
-              </tr>
+                        className="text-secondary"
+                      />
+                    </Button>
+                  </td>
+                  <td>{cliente.name}</td>
+                  <td>{cliente.morada}</td>
+                  <td>{cliente.nif}</td>
+                  <td>
+                    {cliente.contacto}
+                    {cliente.contactos && cliente.contactos.length > 1 && (
+                      <Badge bg="info" className="ms-2">
+                        +{cliente.contactos.length - 1}
+                      </Badge>
+                    )}
+                  </td>
+                  <td>
+                    {cliente.responsavel}
+                    {cliente.responsaveis &&
+                      cliente.responsaveis.length > 1 && (
+                        <Badge bg="info" className="ms-2">
+                          +{cliente.responsaveis.length - 1}
+                        </Badge>
+                      )}
+                  </td>
+                  <td>
+                    {showConfirmDelete === cliente.id ? (
+                      <div className="d-flex gap-2">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleConfirmDelete(cliente.id)}
+                        >
+                          Confirmar
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleCancelDelete}
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="action-icons">
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`edit-tooltip-${cliente.id}`}>
+                              Editar
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faPencilAlt}
+                            onClick={() => onEditCliente(cliente.id)}
+                            className="edit-icon"
+                            style={{ marginRight: '8px' }}
+                          />
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`delete-tooltip-${cliente.id}`}>
+                              Eliminar
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrashAlt}
+                            onClick={() => handleDeleteClick(cliente.id)}
+                            className="delete-icon"
+                            style={{ marginRight: '8px' }}
+                          />
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`projetos-tooltip-${cliente.id}`}>
+                              Ver Projetos
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faProjectDiagram}
+                            onClick={() => onViewProjetos(cliente.id)}
+                            className="view-projetos-icon"
+                          />
+                        </OverlayTrigger>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                <tr className="expandable-row">
+                  <td colSpan={7} className="p-0">
+                    <Collapse in={expandedRows[cliente.id]}>
+                      <div className="p-3">
+                        <div className="row">
+                          <div className="col-md-4">
+                            <h6>
+                              <FontAwesomeIcon
+                                icon={faPhone}
+                                className="me-2"
+                              />
+                              Contactos
+                            </h6>
+                            <ListGroup variant="flush" className="detail-list">
+                              {cliente.contactos &&
+                              cliente.contactos.length > 0 ? (
+                                cliente.contactos.map((contacto, index) => (
+                                  <ListGroup.Item
+                                    key={`contacto-${index}`}
+                                    className="py-2"
+                                  >
+                                    {contacto}
+                                  </ListGroup.Item>
+                                ))
+                              ) : (
+                                <ListGroup.Item className="py-2 text-muted">
+                                  Nenhum contacto adicional
+                                </ListGroup.Item>
+                              )}
+                            </ListGroup>
+                          </div>
+                          <div className="col-md-4">
+                            <h6>
+                              <FontAwesomeIcon icon={faUser} className="me-2" />
+                              Responsáveis
+                            </h6>
+                            <ListGroup variant="flush" className="detail-list">
+                              {cliente.responsaveis &&
+                              cliente.responsaveis.length > 0 ? (
+                                cliente.responsaveis.map(
+                                  (responsavel, index) => (
+                                    <ListGroup.Item
+                                      key={`responsavel-${index}`}
+                                      className="py-2"
+                                    >
+                                      {responsavel}
+                                    </ListGroup.Item>
+                                  )
+                                )
+                              ) : (
+                                <ListGroup.Item className="py-2 text-muted">
+                                  Nenhum responsável adicional
+                                </ListGroup.Item>
+                              )}
+                            </ListGroup>
+                          </div>
+                          <div className="col-md-4">
+                            <h6>
+                              <FontAwesomeIcon
+                                icon={faEnvelope}
+                                className="me-2"
+                              />
+                              Emails
+                            </h6>
+                            <ListGroup variant="flush" className="detail-list">
+                              {cliente.emails && cliente.emails.length > 0 ? (
+                                cliente.emails.map((email, index) => (
+                                  <ListGroup.Item
+                                    key={`email-${index}`}
+                                    className="py-2"
+                                  >
+                                    {email}
+                                  </ListGroup.Item>
+                                ))
+                              ) : (
+                                <ListGroup.Item className="py-2 text-muted">
+                                  Nenhum email adicional
+                                </ListGroup.Item>
+                              )}
+                            </ListGroup>
+                          </div>
+                        </div>
+                      </div>
+                    </Collapse>
+                  </td>
+                </tr>
+              </React.Fragment>
             ))}
           </tbody>
         </Table>

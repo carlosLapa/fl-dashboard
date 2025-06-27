@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,18 +25,36 @@ public class ClienteDTO {
     @Size(max = 20, message = "NIF deve ter no máximo 20 caracteres")
     private String nif;
 
+    // Keep old fields for backward compatibility
     @Size(max = 50, message = "Contacto deve ter no máximo 50 caracteres")
     private String contacto;
 
     private String responsavel;
 
-    // Add constructor that takes a Cliente entity
+    // New collection fields
+    private List<String> contactos = new ArrayList<>();
+    private List<String> responsaveis = new ArrayList<>();
+    private List<String> emails = new ArrayList<>();
+
+    // Constructor that takes a Cliente entity
     public ClienteDTO(Cliente entity) {
         this.id = entity.getId();
         this.name = entity.getName();
         this.morada = entity.getMorada();
         this.nif = entity.getNif();
-        this.contacto = entity.getContacto();
-        this.responsavel = entity.getResponsavel();
+
+        // Handle new collection fields
+        this.contactos = entity.getContactos() != null ? new ArrayList<>(entity.getContactos()) : new ArrayList<>();
+        this.responsaveis = entity.getResponsaveis() != null ? new ArrayList<>(entity.getResponsaveis()) : new ArrayList<>();
+        this.emails = entity.getEmails() != null ? new ArrayList<>(entity.getEmails()) : new ArrayList<>();
+
+        // For backward compatibility, set the first item in each collection to the old single field
+        if (!this.contactos.isEmpty()) {
+            this.contacto = this.contactos.get(0);
+        }
+
+        if (!this.responsaveis.isEmpty()) {
+            this.responsavel = this.responsaveis.get(0);
+        }
     }
 }

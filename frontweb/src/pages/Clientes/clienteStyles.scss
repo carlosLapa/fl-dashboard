@@ -18,7 +18,7 @@
   align-items: center;
   width: 100%;
   margin-bottom: 2rem;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
@@ -35,7 +35,7 @@
 .page-actions {
   display: flex;
   gap: 0.5rem;
-  
+
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -46,11 +46,11 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
-  
+
   @include respond-from('md') {
     padding: 0.5rem 1.25rem;
   }
-  
+
   @media (max-width: 768px) {
     width: 100%;
   }
@@ -61,9 +61,203 @@
   overflow-x: auto;
 }
 
+// Cliente details card styles
+.cliente-details-card-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.cliente-details-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 1001;
+
+  .card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .card-title {
+    font-weight: 600;
+    color: #343a40;
+  }
+}
+
+// Detail sections for collections
+.detail-section {
+  margin-bottom: 1.5rem;
+
+  .detail-section-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+
+    svg {
+      margin-right: 0.5rem;
+      color: #6c757d;
+    }
+  }
+
+  .detail-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+
+    .list-group-item {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+
+      &.text-muted {
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// Cliente info card in projetos page
+.cliente-info {
+  background-color: #f8f9fa;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  .card-title {
+    color: #343a40;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Table expandable row styles
+.expandable-row {
+  background-color: #f8f9fa;
+
+  td {
+    padding: 0.75rem 1rem;
+  }
+
+  .collection-container {
+    padding: 0.5rem 0;
+
+    h6 {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #495057;
+      display: flex;
+      align-items: center;
+
+      svg {
+        margin-right: 0.5rem;
+        color: #6c757d;
+      }
+    }
+
+    .collection-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      .collection-item {
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Collection badge styles
+.collection-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  background-color: #e9ecef;
+  color: #495057;
+  margin-left: 0.5rem;
+
+  &:hover {
+    background-color: #dee2e6;
+  }
+}
+
+// Form styles for the collection fields in the modals
+.collection-item-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+
+  .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .btn-remove {
+      padding: 0;
+      color: #dc3545;
+      background: none;
+      border: none;
+
+      &:hover {
+        color: #bd2130;
+      }
+    }
+  }
+}
+
 // Responsive adjustments
 @media (max-width: 768px) {
   .page-container {
     padding: 1rem;
+  }
+
+  .cliente-details-card {
+    width: 95%;
+    max-width: none;
+
+    .detail-list {
+      max-height: 150px;
+    }
+  }
+
+  .detail-section {
+    margin-bottom: 1rem;
+  }
+
+  .cliente-info {
+    .row {
+      flex-direction: column;
+    }
+
+    .col-md-6 {
+      width: 100%;
+    }
   }
 }

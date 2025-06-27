@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Spinner, Alert, Row, Col } from 'react-bootstrap';
+import { Button, Spinner, Alert, Row, Col, ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faPlus } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowLeft,
+  faPlus,
+  faPhone,
+  faUser,
+  faEnvelope,
+} from '@fortawesome/free-solid-svg-icons';
 import {
   getClienteWithProjetosAndUsersAPI,
   associateProjetoWithClienteAPI,
@@ -12,14 +18,13 @@ import {
   updateProjetoAPI,
   deleteProjetoAPI,
 } from '../../api/requestsApi';
-import {
-  ClienteWithProjetosAndUsersDTO,
-} from '../../types/cliente';
+import { ClienteWithProjetosAndUsersDTO } from '../../types/cliente';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { ProjetoFilterState } from '../../types/filters';
 import ProjetoModal from '../../components/Projeto/ProjetoModal';
 import { toast } from 'react-toastify';
+import './clienteStyles.scss';
 
 // Create a cache object outside the component to persist across renders
 const apiCache = {
@@ -33,7 +38,9 @@ const apiCache = {
 const ClienteProjetosPage: React.FC = () => {
   const { clienteId } = useParams<{ clienteId: string }>();
   const navigate = useNavigate();
-  const [cliente, setCliente] = useState<ClienteWithProjetosAndUsersDTO | null>(null);
+  const [cliente, setCliente] = useState<ClienteWithProjetosAndUsersDTO | null>(
+    null
+  );
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +63,7 @@ const ClienteProjetosPage: React.FC = () => {
     endDate: '',
     cliente: '',
   });
-  
+
   // Use a ref to track component mount state
   const isMountedRef = useRef(false);
   // Use a ref to track if we've already logged cache hits for this render
@@ -66,11 +73,11 @@ const ClienteProjetosPage: React.FC = () => {
   const fetchClienteData = async (id: number, forceRefresh = false) => {
     // Reset the logged cache hit flag on each fetch attempt
     loggedCacheHitRef.current = false;
-    
+
     // If we're already fetching or have data for this ID and don't need to refresh, use cached data
     if (
-      !forceRefresh && 
-      apiCache.lastFetchedId === id && 
+      !forceRefresh &&
+      apiCache.lastFetchedId === id &&
       apiCache.clienteData !== null &&
       !apiCache.isFetching
     ) {
@@ -80,32 +87,34 @@ const ClienteProjetosPage: React.FC = () => {
         console.log(`Using cached client data (hit #${apiCache.cacheHits})`);
         loggedCacheHitRef.current = true;
       }
-      
+
       setCliente(apiCache.clienteData);
       setProjetos(apiCache.clienteData.projetos || []);
-      setTotalPages(Math.ceil((apiCache.clienteData.projetos?.length || 0) / 10));
+      setTotalPages(
+        Math.ceil((apiCache.clienteData.projetos?.length || 0) / 10)
+      );
       setLoading(false);
       return;
     }
-    
+
     // If we're already fetching, don't start another fetch
     if (apiCache.isFetching) {
       console.log('Already fetching data, skipping duplicate request');
       return;
     }
-    
+
     apiCache.isFetching = true;
     setLoading(true);
-    
+
     try {
       console.log(`Fetching client data for ID: ${id}`);
       const clienteData = await getClienteWithProjetosAndUsersAPI(id);
-      
+
       if (clienteData) {
         // Update cache
         apiCache.clienteData = clienteData;
         apiCache.lastFetchedId = id;
-        
+
         // Only update state if component is still mounted
         if (isMountedRef.current) {
           setCliente(clienteData);
@@ -135,12 +144,12 @@ const ClienteProjetosPage: React.FC = () => {
   useEffect(() => {
     // Set mounted flag
     isMountedRef.current = true;
-    
+
     if (clienteId) {
       const id = parseInt(clienteId);
       fetchClienteData(id);
     }
-    
+
     // Cleanup function
     return () => {
       isMountedRef.current = false;
@@ -305,22 +314,114 @@ const ClienteProjetosPage: React.FC = () => {
           Voltar para Clientes
         </Button>
       </div>
-      <div className="cliente-info mb-4">
-        <h5>Detalhes do Cliente</h5>
-        <p>
-          <strong>Morada:</strong> {cliente?.morada || 'Não disponível'}
-        </p>
-        <p>
-          <strong>NIF:</strong> {cliente?.nif || 'Não disponível'}
-        </p>
-        <p>
-          <strong>Contacto:</strong> {cliente?.contacto || 'Não disponível'}
-        </p>
-        <p>
-          <strong>Responsável:</strong>{' '}
-          {cliente?.responsavel || 'Não disponível'}
-        </p>
+
+      <div className="cliente-info mb-4 card">
+        <div className="card-body">
+          <h5 className="card-title mb-3">Detalhes do Cliente</h5>
+
+          <Row>
+            <Col md={6}>
+              <p>
+                <strong>Morada:</strong> {cliente?.morada || 'Não disponível'}
+              </p>
+              <p>
+                <strong>NIF:</strong> {cliente?.nif || 'Não disponível'}
+              </p>
+            </Col>
+
+            <Col md={6}>
+              <div className="detail-section mb-3">
+                <h6 className="detail-section-title">
+                  <FontAwesomeIcon icon={faPhone} className="me-2" />
+                  Contactos
+                </h6>
+                <ListGroup variant="flush" className="detail-list">
+                  {cliente?.contacto && (
+                    <ListGroup.Item className="py-2">
+                      <strong>Principal:</strong> {cliente.contacto}
+                    </ListGroup.Item>
+                  )}
+
+                  {cliente?.contactos && cliente.contactos.length > 0 ? (
+                    cliente.contactos
+                      .filter((c) => c !== cliente.contacto) // Filter out the main contact
+                      .map((contacto, index) => (
+                        <ListGroup.Item
+                          key={`contacto-${index}`}
+                          className="py-2"
+                        >
+                          {contacto}
+                        </ListGroup.Item>
+                      ))
+                  ) : cliente?.contacto ? null : (
+                    <ListGroup.Item className="py-2 text-muted">
+                      Nenhum contacto disponível
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </div>
+            </Col>
+          </Row>
+
+          <Row>
+            <Col md={6}>
+              <div className="detail-section mb-3">
+                <h6 className="detail-section-title">
+                  <FontAwesomeIcon icon={faUser} className="me-2" />
+                  Responsáveis
+                </h6>
+                <ListGroup variant="flush" className="detail-list">
+                  {cliente?.responsavel && (
+                    <ListGroup.Item className="py-2">
+                      <strong>Principal:</strong> {cliente.responsavel}
+                    </ListGroup.Item>
+                  )}
+
+                  {cliente?.responsaveis && cliente.responsaveis.length > 0 ? (
+                    cliente.responsaveis
+                      .filter((r) => r !== cliente.responsavel) // Filter out the main responsavel
+                      .map((responsavel, index) => (
+                        <ListGroup.Item
+                          key={`responsavel-${index}`}
+                          className="py-2"
+                        >
+                          {responsavel}
+                        </ListGroup.Item>
+                      ))
+                  ) : cliente?.responsavel ? null : (
+                    <ListGroup.Item className="py-2 text-muted">
+                      Nenhum responsável disponível
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </div>
+            </Col>
+
+            <Col md={6}>
+              <div className="detail-section mb-3">
+                <h6 className="detail-section-title">
+                  <FontAwesomeIcon icon={faEnvelope} className="me-2" />
+                  Emails
+                </h6>
+                <ListGroup variant="flush" className="detail-list">
+                  {cliente?.emails && cliente.emails.length > 0 ? (
+                    cliente.emails.map((email, index) => (
+                      <ListGroup.Item key={`email-${index}`} className="py-2">
+                        {email}
+                      </ListGroup.Item>
+                    ))
+                  ) : (
+                    <ListGroup.Item className="py-2 text-muted">
+                      Nenhum email disponível
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </div>
+            </Col>
+          </Row>
+        </div>
       </div>
+
       <Row className="mb-3">
         <Col>
           <h4>Projetos</h4>
@@ -332,6 +433,7 @@ const ClienteProjetosPage: React.FC = () => {
           </Button>
         </Col>
       </Row>
+
       {projetos.length === 0 ? (
         <Alert variant="info">
           Este cliente não tem projetos associados.{' '}
@@ -361,6 +463,7 @@ const ClienteProjetosPage: React.FC = () => {
           onSort={handleSort}
         />
       )}
+
       {/* Projeto Modal */}
       <ProjetoModal
         show={showProjetoModal}

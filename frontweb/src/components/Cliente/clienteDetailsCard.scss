@@ -14,7 +14,9 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
-  max-width: 500px;
+  max-width: 600px; // Increased from 500px to accommodate more content
+  max-height: 90vh;
+  overflow-y: auto;
   z-index: 1001;
 
   .card {
@@ -23,10 +25,84 @@
 
   .card-header {
     background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 
   .card-title {
     font-weight: 600;
     color: #343a40;
+  }
+
+  .detail-section {
+    margin-bottom: 1.5rem;
+
+    .detail-section-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #495057;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  .detail-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+
+    .list-group-item {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+
+      &.text-muted {
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// Form styles for the collection fields in the modals
+.collection-item-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+
+  .list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .btn-remove {
+      padding: 0;
+      color: #dc3545;
+      background: none;
+      border: none;
+
+      &:hover {
+        color: #bd2130;
+      }
+    }
+  }
+}
+
+// Styles for the form labels to make them more evident
+.form-label.primary-field {
+  font-weight: 700;
+  color: #0d6efd;
+  font-size: 1.05rem;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .cliente-details-card {
+    width: 95%;
+    max-width: none;
+
+    .detail-list {
+      max-height: 150px;
+    }
   }
 }
