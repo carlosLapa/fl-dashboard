@@ -242,24 +242,41 @@ public class ProjetoService {
             Date startDate,
             Date endDate,
             String status,
+            Long coordenadorId,
+            Date propostaStartDate,
+            Date propostaEndDate,
+            Date adjudicacaoStartDate,
+            Date adjudicacaoEndDate,
             Pageable pageable) {
 
-        // If endDate is provided, add one day to make the range inclusive
-        Date adjustedEndDate = null;
-        if (endDate != null) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(endDate);
-            calendar.add(Calendar.DATE, 1);
-            adjustedEndDate = calendar.getTime();
-        }
+        // Adjust end dates to be inclusive
+        Date adjustedEndDate = adjustEndDate(endDate);
+        Date adjustedPropostaEndDate = adjustEndDate(propostaEndDate);
+        Date adjustedAdjudicacaoEndDate = adjustEndDate(adjudicacaoEndDate);
 
         // Only pass status if it's not "ALL"
         String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
 
         Page<Projeto> result = projetoRepository.findByFilters(
-                designacao, entidade, prioridade, startDate, adjustedEndDate, statusFilter, pageable);
+                designacao, entidade, prioridade, startDate, adjustedEndDate, statusFilter,
+                coordenadorId, propostaStartDate, adjustedPropostaEndDate,
+                adjudicacaoStartDate, adjustedAdjudicacaoEndDate, pageable);
 
         return result.map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()));
     }
 
+    private Date adjustEndDate(Date endDate) {
+        if (endDate == null) return null;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(endDate);
+        calendar.add(Calendar.DATE, 1);
+        return calendar.getTime();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjetoWithUsersDTO> findByCoordenador(Long coordenadorId) {
+        return projetoRepository.findByCoordenadorId(coordenadorId).stream()
+                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
+                .collect(Collectors.toList());
+    }
 }

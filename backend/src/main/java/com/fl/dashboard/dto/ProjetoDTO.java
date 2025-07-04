@@ -32,6 +32,11 @@ public class ProjetoDTO {
 
     private String status;
 
+    private Long coordenadorId;
+    private UserDTO coordenador;
+    private Date dataProposta;
+    private Date dataAdjudicacao;
+
     public ProjetoDTO() {
     }
 
@@ -55,6 +60,14 @@ public class ProjetoDTO {
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
         this.status = entity.getStatus();
+
+        if (entity.getCoordenador() != null) {
+            this.coordenador = new UserDTO(entity.getCoordenador());
+            this.coordenadorId = entity.getCoordenador().getId();
+        }
+
+        this.dataProposta = entity.getDataProposta();
+        this.dataAdjudicacao = entity.getDataAdjudicacao();
     }
 
     public ProjetoDTO(Long id, String designacao) {

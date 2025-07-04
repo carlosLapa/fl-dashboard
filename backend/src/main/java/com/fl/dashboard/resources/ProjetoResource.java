@@ -140,11 +140,24 @@ public class ProjetoResource {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long coordenadorId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date propostaStartDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date propostaEndDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date adjudicacaoStartDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date adjudicacaoEndDate,
             Pageable pageable) {
 
         Page<ProjetoWithUsersDTO> result = projetoService.filterProjetos(
-                designacao, entidade, prioridade, startDate, endDate, status, pageable);
+                designacao, entidade, prioridade, startDate, endDate, status,
+                coordenadorId, propostaStartDate, propostaEndDate,
+                adjudicacaoStartDate, adjudicacaoEndDate, pageable);
         return ResponseEntity.ok().body(result);
+    }
+
+    @GetMapping("/by-coordenador/{coordenadorId}")
+    public ResponseEntity<List<ProjetoWithUsersDTO>> getProjetosByCoordenador(@PathVariable Long coordenadorId) {
+        List<ProjetoWithUsersDTO> projetos = projetoService.findByCoordenador(coordenadorId);
+        return ResponseEntity.ok(projetos);
     }
 
 }

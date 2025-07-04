@@ -35,6 +35,11 @@ public class Projeto {
     @ManyToMany(mappedBy = "projetos")
     private Set<Externo> externos = new HashSet<>();
 
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "coordenador_id")
+    private User coordenador;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -54,6 +59,12 @@ public class Projeto {
     private String status;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+    private Date dataProposta;
+
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+    private Date dataAdjudicacao;
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
@@ -154,6 +165,30 @@ public class Projeto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public User getCoordenador() {
+        return coordenador;
+    }
+
+    public void setCoordenador(User coordenador) {
+        this.coordenador = coordenador;
+    }
+
+    public Date getDataProposta() {
+        return dataProposta;
+    }
+
+    public void setDataProposta(Date dataProposta) {
+        this.dataProposta = dataProposta;
+    }
+
+    public Date getDataAdjudicacao() {
+        return dataAdjudicacao;
+    }
+
+    public void setDataAdjudicacao(Date dataAdjudicacao) {
+        this.dataAdjudicacao = dataAdjudicacao;
     }
 
     public Set<Externo> getExternos() {

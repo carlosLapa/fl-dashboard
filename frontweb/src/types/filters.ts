@@ -1,16 +1,23 @@
 // Define the base filter state interface
 export interface BaseFilterState {
-  [key: string]: string;
+  [key: string]: any;
 }
 
 // Projeto filter state
-export interface ProjetoFilterState extends BaseFilterState {
-  designacao: string;
-  entidade: string;
-  prioridade: string;
-  status: string;
-  startDate: string;
-  endDate: string;
+export interface ProjetoFilterState {
+  designacao?: string;
+  entidade?: string;
+  prioridade?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  // Add new filter fields
+  coordenadorId?: number;
+  propostaStartDate?: string;
+  propostaEndDate?: string;
+  adjudicacaoStartDate?: string;
+  adjudicacaoEndDate?: string;
+  cliente?: string;
 }
 
 // Tarefa filter state

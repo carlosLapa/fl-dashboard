@@ -255,6 +255,11 @@ export const getProjetosWithFiltersAPI = async (
     startDate?: string;
     endDate?: string;
     status?: string;
+    coordenadorId?: number; // Add this new filter
+    propostaStartDate?: string; // Add this new filter
+    propostaEndDate?: string; // Add this new filter
+    adjudicacaoStartDate?: string; // Add this new filter
+    adjudicacaoEndDate?: string; // Add this new filter
   },
   page: number = 0,
   size: number = 10,
@@ -282,6 +287,23 @@ export const getProjetosWithFiltersAPI = async (
     }
     if (filters.status && filters.status !== 'ALL') {
       url += `&status=${filters.status}`;
+    }
+
+    // Add new filters
+    if (filters.coordenadorId) {
+      url += `&coordenadorId=${filters.coordenadorId}`;
+    }
+    if (filters.propostaStartDate) {
+      url += `&propostaStartDate=${filters.propostaStartDate}`;
+    }
+    if (filters.propostaEndDate) {
+      url += `&propostaEndDate=${filters.propostaEndDate}`;
+    }
+    if (filters.adjudicacaoStartDate) {
+      url += `&adjudicacaoStartDate=${filters.adjudicacaoStartDate}`;
+    }
+    if (filters.adjudicacaoEndDate) {
+      url += `&adjudicacaoEndDate=${filters.adjudicacaoEndDate}`;
     }
 
     // Add sort parameters

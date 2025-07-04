@@ -53,6 +53,9 @@ const ProjetoTableHeader: React.FC<ProjetoTableHeaderProps> = ({
         {renderSortableHeader('designacao', 'Designação')}
         {renderSortableHeader('entidade', 'Entidade')}
         {renderSortableHeader('prioridade', 'Prioridade')}
+        {renderSortableHeader('coordenador.name', 'Coordenador')}
+        {renderSortableHeader('dataProposta', 'Data Proposta')}
+        {renderSortableHeader('dataAdjudicacao', 'Data Adjudicação')}
         {renderSortableHeader(
           'observacao',
           'Observação',

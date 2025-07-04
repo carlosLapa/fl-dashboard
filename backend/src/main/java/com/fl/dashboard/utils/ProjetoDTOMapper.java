@@ -38,6 +38,18 @@ public class ProjetoDTOMapper {
         entity.setPrioridade(projetoDTO.getPrioridade());
         entity.setObservacao(projetoDTO.getObservacao());
         entity.setStatus(projetoDTO.getStatus());
+
+        // Handle the coordenador field
+        if (projetoDTO.getCoordenadorId() != null) {
+            User coordenador = userRepository.findById(projetoDTO.getCoordenadorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Coordenador not found: " + projetoDTO.getCoordenadorId()));
+            entity.setCoordenador(coordenador);
+        } else {
+            entity.setCoordenador(null);
+        }
+
+        // Handle the date fields
+        entity.setDataProposta(projetoDTO.getDataProposta());
+        entity.setDataAdjudicacao(projetoDTO.getDataAdjudicacao());
     }
 }
-

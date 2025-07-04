@@ -25,6 +25,12 @@ export const buildApiFilters = (filters: FilterState) => {
     status: filters.status !== 'ALL' ? filters.status : undefined,
     startDate: filters.startDate || undefined,
     endDate: filters.endDate || undefined,
+    // Add the new filter fields
+    coordenadorId: filters.coordenadorId || undefined,
+    propostaStartDate: filters.propostaStartDate || undefined,
+    propostaEndDate: filters.propostaEndDate || undefined,
+    adjudicacaoStartDate: filters.adjudicacaoStartDate || undefined,
+    adjudicacaoEndDate: filters.adjudicacaoEndDate || undefined,
   };
 };
 

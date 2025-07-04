@@ -42,6 +42,9 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     prazo: '',
     users: [],
     status: 'ATIVO',
+    coordenadorId: undefined,
+    dataProposta: '',
+    dataAdjudicacao: '',
   });
   const [users, setUsers] = useState<User[]>([]);
   const [validated, setValidated] = useState(false);
@@ -72,6 +75,9 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         prazo: '',
         users: [],
         status: 'ATIVO',
+        coordenadorId: undefined,
+        dataProposta: '',
+        dataAdjudicacao: '',
       };
 
       // Only add clienteId if clienteInfo is provided
@@ -332,6 +338,49 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                 <Form.Control.Feedback type="invalid">
                   Por favor, selecione o status.
                 </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group controlId="formCoordenador">
+                <Form.Label>Coordenador</Form.Label>
+                <Form.Select
+                  name="coordenadorId"
+                  value={formData.coordenadorId || ''}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Selecione o coordenador</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group controlId="formDataProposta">
+                <Form.Label>Data da Proposta</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dataProposta"
+                  value={formData.dataProposta || ''}
+                  onChange={handleInputChange}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group controlId="formDataAdjudicacao">
+                <Form.Label>Data da Adjudicação</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dataAdjudicacao"
+                  value={formData.dataAdjudicacao || ''}
+                  onChange={handleInputChange}
+                />
               </Form.Group>
             </Col>
           </Row>

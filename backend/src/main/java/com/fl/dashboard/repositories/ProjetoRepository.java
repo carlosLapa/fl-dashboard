@@ -58,14 +58,18 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("endDate") Date endDate,
             Pageable pageable);
 
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
     @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL " +
             "AND (:designacao IS NULL OR LOWER(p.designacao) LIKE LOWER(CONCAT('%', :designacao, '%'))) " +
             "AND (:entidade IS NULL OR LOWER(p.entidade) LIKE LOWER(CONCAT('%', :entidade, '%'))) " +
             "AND (:prioridade IS NULL OR LOWER(p.prioridade) LIKE LOWER(CONCAT('%', :prioridade, '%'))) " +
             "AND (:startDate IS NULL OR p.prazo >= :startDate) " +
             "AND (:endDate IS NULL OR p.prazo <= :endDate) " +
-            "AND (:status IS NULL OR p.status = :status)")
+            "AND (:status IS NULL OR p.status = :status) " +
+            "AND (:coordenadorId IS NULL OR p.coordenador.id = :coordenadorId) " +
+            "AND (:propostaStartDate IS NULL OR p.dataProposta >= :propostaStartDate) " +
+            "AND (:propostaEndDate IS NULL OR p.dataProposta <= :propostaEndDate) " +
+            "AND (:adjudicacaoStartDate IS NULL OR p.dataAdjudicacao >= :adjudicacaoStartDate) " +
+            "AND (:adjudicacaoEndDate IS NULL OR p.dataAdjudicacao <= :adjudicacaoEndDate)")
     Page<Projeto> findByFilters(
             @Param("designacao") String designacao,
             @Param("entidade") String entidade,
@@ -73,6 +77,11 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
             @Param("status") String status,
+            @Param("coordenadorId") Long coordenadorId,
+            @Param("propostaStartDate") Date propostaStartDate,
+            @Param("propostaEndDate") Date propostaEndDate,
+            @Param("adjudicacaoStartDate") Date adjudicacaoStartDate,
+            @Param("adjudicacaoEndDate") Date adjudicacaoEndDate,
             Pageable pageable);
 
     List<Projeto> findByClienteId(Long id);
@@ -80,4 +89,6 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     @Query("SELECT p FROM Projeto p LEFT JOIN FETCH p.users WHERE p.cliente.id = :clienteId")
     List<Projeto> findByClienteIdWithUsers(@Param("clienteId") Long clienteId);
 
+    @Query("SELECT p FROM Projeto p WHERE p.coordenador.id = :coordenadorId AND p.deletedAt IS NULL")
+    List<Projeto> findByCoordenadorId(@Param("coordenadorId") Long coordenadorId);
 }

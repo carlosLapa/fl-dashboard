@@ -11,6 +11,9 @@ export type Projeto = {
   prazo: string;
   users: User[];
   status: string;
+  coordenador?: User;
+  dataProposta?: string;
+  dataAdjudicacao?: string;
 };
 
 export interface ProjetoFormData {
@@ -23,6 +26,9 @@ export interface ProjetoFormData {
   users: User[];
   status: string;
   clienteId?: number;
+  coordenadorId?: number;
+  dataProposta?: string;
+  dataAdjudicacao?: string;
 }
 
 export interface ProjetoMinDTO {
