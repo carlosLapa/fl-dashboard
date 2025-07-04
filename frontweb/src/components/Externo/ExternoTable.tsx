@@ -14,20 +14,25 @@ import {
   faTrashAlt,
   faProjectDiagram,
   faTasks,
+  faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { ExternoDTO, FaseProjeto } from 'types/externo';
+import { useNavigate } from 'react-router-dom';
 import './externoTableStyles.scss';
 
 interface ExternoTableProps {
   externos: ExternoDTO[];
-  onEditExterno: (id: number) => void;
-  onDeleteExterno: (id: number) => void;
-  onViewTasks: (id: number) => void;
-  onViewProjetos: (id: number) => void;
-  page: number;
-  onPageChange: (page: number) => void;
-  totalPages: number;
+  onEditExterno?: (id: number) => void;  // Make optional with ?
+  onDeleteExterno?: (id: number) => void; // Make optional with ?
+  onViewTasks?: (id: number) => void;    // Make optional with ?
+  onViewProjetos?: (id: number) => void; // Make optional with ?
+  // Make pagination props optional
+  page?: number;
+  onPageChange?: (page: number) => void;
+  totalPages?: number;
   isLoading?: boolean;
+  showPagination?: boolean; // New prop to control pagination visibility
+  simplified?: boolean; // Optional flag for simplified view (e.g. in project details)
 }
 
 const ExternoTable: React.FC<ExternoTableProps> = ({
@@ -36,26 +41,47 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
   onDeleteExterno,
   onViewTasks,
   onViewProjetos,
-  page,
+  page = 0,
   onPageChange,
-  totalPages,
+  totalPages = 1,
   isLoading = false,
+  showPagination = true,
+  simplified = false,
 }) => {
-  const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(
-    null
-  );
+  const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const handleDeleteClick = (id: number) => {
     setShowConfirmDelete(id);
   };
 
   const handleConfirmDelete = (id: number) => {
-    onDeleteExterno(id);
+    if (onDeleteExterno) {
+      onDeleteExterno(id);
+    }
     setShowConfirmDelete(null);
   };
 
   const handleCancelDelete = () => {
     setShowConfirmDelete(null);
+  };
+
+  const handleViewDetails = (id: number) => {
+    navigate(`/externos/${id}/details`);
+  };
+
+  const handleViewTasks = (id: number) => {
+    if (onViewTasks) {
+      onViewTasks(id);
+    } else {
+      // Default navigation with appropriate endpoint that returns full data
+      navigate(`/externos/${id}/tarefas`, {
+        state: { 
+          externoId: id,
+          useFull: true // Flag to indicate full data should be used
+        }
+      });
+    }
   };
 
   const renderFaseProjetoBadge = (fase: FaseProjeto) => {
@@ -95,6 +121,8 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
   };
 
   const renderPagination = () => {
+    if (!showPagination || !onPageChange) return null;
+    
     const items = [];
     const maxVisiblePages = 5;
     const startPage = Math.max(
@@ -186,7 +214,7 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
   }
 
   return (
-    <div className="externo-table-container">
+    <div className={simplified ? "" : "externo-table-container"}>
       <div className="table-responsive">
         <Table striped bordered hover className="externo-table">
           <thead>
@@ -194,7 +222,7 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
               <th>Nome</th>
               <th>Email</th>
               <th>Telemóvel</th>
-              <th>Preço (€/hora)</th>
+              <th>Preço {simplified ? "" : "(€/hora)"}</th>
               <th>Fase do Projeto</th>
               <th>Especialidades</th>
               <th>Ações</th>
@@ -206,7 +234,10 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
                 <td>{externo.name}</td>
                 <td>{externo.email}</td>
                 <td>{externo.telemovel}</td>
-                <td>{externo.preco.toFixed(2)} €</td>
+                <td>{simplified 
+                  ? new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(externo.preco)
+                  : externo.preco.toFixed(2) + ' €'
+                }</td>
                 <td>{renderFaseProjetoBadge(externo.faseProjeto)}</td>
                 <td>
                   <div className="d-flex flex-wrap">
@@ -233,65 +264,95 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
                     </div>
                   ) : (
                     <div className="action-icons">
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`edit-tooltip-${externo.id}`}>
-                            Editar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faPencilAlt}
-                          onClick={() => onEditExterno(externo.id)}
-                          className="edit-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`delete-tooltip-${externo.id}`}>
-                            Eliminar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faTrashAlt}
-                          onClick={() => handleDeleteClick(externo.id)}
-                          className="delete-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tasks-tooltip-${externo.id}`}>
-                            Ver Tarefas atribuídas
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faTasks}
-                          onClick={() => onViewTasks(externo.id)}
-                          className="view-tasks-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`projetos-tooltip-${externo.id}`}>
-                            Ver Projetos
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faProjectDiagram}
-                          onClick={() => onViewProjetos(externo.id)}
-                          className="view-projetos-icon"
-                        />
-                      </OverlayTrigger>
+                      {onEditExterno && (
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`edit-tooltip-${externo.id}`}>
+                              Editar
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faPencilAlt}
+                            onClick={() => onEditExterno(externo.id)}
+                            className="edit-icon"
+                            style={{ marginRight: '8px' }}
+                          />
+                        </OverlayTrigger>
+                      )}
+                      
+                      {onDeleteExterno && (
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`delete-tooltip-${externo.id}`}>
+                              Eliminar
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrashAlt}
+                            onClick={() => handleDeleteClick(externo.id)}
+                            className="delete-icon"
+                            style={{ marginRight: '8px' }}
+                          />
+                        </OverlayTrigger>
+                      )}
+                      
+                      {onViewTasks && (
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`tasks-tooltip-${externo.id}`}>
+                              Ver Tarefas atribuídas
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faTasks}
+                            onClick={() => handleViewTasks(externo.id)}
+                            className="view-tasks-icon"
+                            style={{ marginRight: '8px' }}
+                          />
+                        </OverlayTrigger>
+                      )}
+                      
+                      {onViewProjetos && (
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`projetos-tooltip-${externo.id}`}>
+                              Ver Projetos
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faProjectDiagram}
+                            onClick={() => onViewProjetos(externo.id)}
+                            className="view-projetos-icon"
+                            style={{ marginRight: simplified ? '0' : '8px' }}
+                          />
+                        </OverlayTrigger>
+                      )}
+                      
+                      {/* Always show details button if we're in simplified mode */}
+                      {simplified && (
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`details-tooltip-${externo.id}`}>
+                              Ver Detalhes
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faInfoCircle}
+                            onClick={() => handleViewDetails(externo.id)}
+                            className="info-icon"
+                          />
+                        </OverlayTrigger>
+                      )}
                     </div>
                   )}
                 </td>
@@ -300,12 +361,14 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
           </tbody>
         </Table>
       </div>
-      <div className="pagination-container">
-        {renderPagination()}
-        <div className="page-info d-block d-sm-none">
-          Página {page + 1} de {totalPages}
+      {showPagination && onPageChange && (
+        <div className="pagination-container">
+          {renderPagination()}
+          <div className="page-info d-block d-sm-none">
+            Página {page + 1} de {totalPages}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

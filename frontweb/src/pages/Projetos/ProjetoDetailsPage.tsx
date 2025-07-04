@@ -4,22 +4,29 @@ import { Container, Row, Col, Spinner, Alert, Card } from 'react-bootstrap';
 import {
   getProjetoWithUsersAndTarefasAPI,
   updateProjetoStatusAPI,
+  getExternosByProjetoIdAPI,
 } from 'api/requestsApi';
 import ProjetoDetailsTable from 'components/Projeto/ProjetoDetailsTable';
 import { ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import ProjetoTarefasTable from 'components/Projeto/ProjetoTarefasTable';
+import ExternoTable from 'components/Externo/ExternoTable';
 import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
 import { useNotification } from 'NotificationContext';
 import BackButton from 'components/Shared/BackButton';
+import { Externo } from 'types/externo';
+import './projetoDetailsPage.scss';
 
 const ProjetoDetailsPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
   const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
     null
   );
+  const [externos, setExternos] = useState<Externo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingExternos, setIsLoadingExternos] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [externosError, setExternosError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { sendNotification } = useNotification();
 
@@ -42,8 +49,29 @@ const ProjetoDetailsPage: React.FC = () => {
     }
   };
 
+  const fetchExternos = async () => {
+    if (projetoId) {
+      setIsLoadingExternos(true);
+      try {
+        console.log('Fetching externos for projeto:', projetoId);
+        const fetchedExternos = await getExternosByProjetoIdAPI(
+          Number(projetoId)
+        );
+        console.log('Fetched externos:', fetchedExternos);
+        setExternos(fetchedExternos);
+        setExternosError(null);
+      } catch (error) {
+        console.error('Error fetching externos for projeto:', error);
+        setExternosError('Erro ao carregar colaboradores externos');
+      } finally {
+        setIsLoadingExternos(false);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchProjeto();
+    fetchExternos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projetoId]);
 
@@ -105,8 +133,8 @@ const ProjetoDetailsPage: React.FC = () => {
   }
 
   return (
-    <Container fluid className="py-3">
-      <Row className="mb-4">
+    <div className="projeto-details-page-container">
+      <Container fluid className="py-3">
         <Row className="mb-4">
           <Col className="text-center">
             <h2 className="page-title mb-3">Detalhes do Projeto</h2>
@@ -115,26 +143,74 @@ const ProjetoDetailsPage: React.FC = () => {
             </div>
           </Col>
         </Row>
-      </Row>
-      <Row className="mb-4">
-        <Col>
-          <ProjetoDetailsTable
-            projeto={projeto}
-            onStatusChange={handleStatusChange}
-          />
-        </Col>
-      </Row>
-      <Row className="mb-4">
-        <Col>
-          <Card>
-            <Card.Header as="h5">Tarefas Associadas</Card.Header>
-            <Card.Body>
-              <ProjetoTarefasTable tarefas={projeto.tarefas} />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+
+        <Row className="mb-4">
+          <Col>
+            <div className="details-table-wrapper">
+              <ProjetoDetailsTable
+                projeto={projeto}
+                onStatusChange={handleStatusChange}
+              />
+            </div>
+          </Col>
+        </Row>
+
+        <Row className="mb-4">
+          <Col>
+            <Card>
+              <Card.Header as="h5">Tarefas Associadas</Card.Header>
+              <Card.Body className="p-0">
+                <div className="details-table-wrapper">
+                  <ProjetoTarefasTable tarefas={projeto.tarefas} />
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row className="mb-4">
+          <Col>
+            <Card>
+              <Card.Header as="h5">Colaboradores Externos Associados</Card.Header>
+              <Card.Body className="p-0">
+                {isLoadingExternos ? (
+                  <div className="text-center py-3">
+                    <Spinner animation="border" size="sm" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                    <span className="ms-2">
+                      Carregando colaboradores externos...
+                    </span>
+                  </div>
+                ) : externosError ? (
+                  <Alert variant="danger" className="m-3">
+                    {externosError}
+                  </Alert>
+                ) : (
+                  <div className="details-table-wrapper">
+                    <ExternoTable
+                      externos={externos}
+                      simplified={true}
+                      showPagination={false}
+                      onViewTasks={(id) => navigate(`/externos/${id}/tarefas`)}
+                      onViewProjetos={(id) => navigate(`/externos/${id}/projetos`)}
+                      // Uncomment these if you want edit/delete functionality in this view
+                      // onEditExterno={(id) => navigate(`/externos/${id}/edit`)}
+                      // onDeleteExterno={handleDeleteExterno}
+                    />
+                    <div className="mt-2 px-3 text-muted">
+                      <small>
+                        Colaboradores externos encontrados: {externos.length}
+                      </small>
+                    </div>
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

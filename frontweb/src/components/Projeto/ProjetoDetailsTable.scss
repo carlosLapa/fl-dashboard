@@ -1,3 +1,108 @@
+@import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/tablePositioning.scss';
+
+.projeto-details-container {
+  margin-bottom: 20px;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+
+  // Make the table-responsive selector specific
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .details-table {
+    min-width: 800px; // Force minimum width to ensure scrollbar appears
+
+    th {
+      width: 20%;
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+
+    td {
+      width: 30%;
+    }
+  }
+}
+
+// The detail items styling
+.detail-item {
+  margin-bottom: 1rem;
+
+  .detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+  }
+
+  .detail-value {
+    font-size: 1rem;
+    word-break: break-word; // Ensure long content doesn't overflow
+  }
+}
+
+// Status container styling
+.status-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  
+  .status-select {
+    width: auto;
+    min-width: 150px;
+    margin-right: 0.75rem;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .projeto-details-container {
+    .details-table {
+      font-size: 0.9rem;
+    }
+  }
+
+  // Make the vertical layout clearer on mobile
+  .detail-item {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  // Adjust status container for mobile
+  .status-container {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .status-select {
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
+  }
+}
+
+// Table responsive wrapper for the projeto details
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+
+  // Ensure minimum content width to trigger scrolling when needed
+  min-width: 100%;
+
+  // Add some padding to the bottom for scrollbar space
+  padding-bottom: 0.5rem;
+}
+
 .projeto-details-table-container {
   width: 100%;
   margin-bottom: 2rem;

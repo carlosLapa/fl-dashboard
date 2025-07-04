@@ -53,7 +53,11 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
           ? tarefa.externos.map((externo) => externo.name).join(', ')
           : '-'}
       </td>
-      <td>{tarefa.projeto.designacao}</td>
+      <td>
+        {tarefa.projeto 
+          ? tarefa.projeto.designacao 
+          : <span className="text-muted">Sem projeto</span>}
+      </td>
       <td>
         <div className="action-icons">
           <OverlayTrigger

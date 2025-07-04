@@ -319,6 +319,16 @@ export const getProjetosWithFiltersAPI = async (
   }
 };
 
+export const getExternosByProjetoIdAPI = async (projetoId: number) => {
+  try {
+    const response = await axios.get(`/externos/projeto/${projetoId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching externos for projeto:', error);
+    throw error;
+  }
+};
+
 export const getTarefaWithUsersAPI = async (
   tarefaId: number
 ): Promise<TarefaWithUsersDTO> => {
@@ -620,5 +630,37 @@ export const getTarefasFilteredAPI = async (params: {
       console.error('API - Error status:', error.response?.status);
     }
     throw error;
+  }
+};
+
+/**
+ * Fetch tarefas for a specific externo with full projeto information
+ * @param externoId The ID of the externo to fetch tarefas for
+ * @param page Page number for pagination
+ * @param size Items per page
+ */
+export const getTarefasByExternoIdWithFullProjetoAPI = async (
+  externoId: number,
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedTarefas> => {
+  try {
+    console.log(`Fetching tarefas for externo with ID ${externoId}`);
+    const response = await axios.get(`/tarefas/externo/${externoId}/full`, {
+      params: { page, size },
+    });
+
+    console.log('Tarefas by externo response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching tarefas for externo with ID ${externoId}:`, error);
+    // Return empty paginated result on error
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size,
+      number: page,
+    };
   }
 };
