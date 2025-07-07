@@ -1,5 +1,6 @@
 package com.fl.dashboard.repositories;
 
+import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -91,4 +92,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
 
     @Query("SELECT p FROM Projeto p WHERE p.coordenador.id = :coordenadorId AND p.deletedAt IS NULL")
     List<Projeto> findByCoordenadorId(@Param("coordenadorId") Long coordenadorId);
+
+    @Query("SELECT e FROM Externo e JOIN e.projetos p WHERE p.id = :projetoId AND e.deletedAt IS NULL")
+    List<Externo> findExternosByProjetoId(@Param("projetoId") Long projetoId);
 }

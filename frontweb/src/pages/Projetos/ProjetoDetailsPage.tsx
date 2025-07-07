@@ -58,8 +58,15 @@ const ProjetoDetailsPage: React.FC = () => {
           Number(projetoId)
         );
         console.log('Fetched externos:', fetchedExternos);
-        setExternos(fetchedExternos);
-        setExternosError(null);
+        if (Array.isArray(fetchedExternos)) {
+          console.log(`Received ${fetchedExternos.length} externos from the API`);
+          setExternos(fetchedExternos);
+          setExternosError(null);
+        } else {
+          console.error('Received non-array response for externos:', fetchedExternos);
+          setExternos([]);
+          setExternosError('Formato de resposta inválido para colaboradores externos');
+        }
       } catch (error) {
         console.error('Error fetching externos for projeto:', error);
         setExternosError('Erro ao carregar colaboradores externos');

@@ -1,6 +1,7 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.*;
+import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
@@ -278,5 +279,17 @@ public class ProjetoService {
         return projetoRepository.findByCoordenadorId(coordenadorId).stream()
                 .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExternoDTO> findExternosByProjetoId(Long projetoId) {
+        try {
+            List<Externo> externos = projetoRepository.findExternosByProjetoId(projetoId);
+            return externos.stream()
+                    .map(ExternoDTO::new)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 }

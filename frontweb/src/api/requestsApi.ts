@@ -321,11 +321,17 @@ export const getProjetosWithFiltersAPI = async (
 
 export const getExternosByProjetoIdAPI = async (projetoId: number) => {
   try {
-    const response = await axios.get(`/externos/projeto/${projetoId}`);
+    console.log(`Fetching externos for projeto ID: ${projetoId}`);
+    const response = await axios.get(`/projetos/${projetoId}/externos`);
+    console.log('Response data:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching externos for projeto:', error);
-    throw error;
+    console.error('Error fetching externos for projeto ID:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error details:', error.response.data);
+    }
+    return [];
   }
 };
 
