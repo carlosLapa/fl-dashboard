@@ -1,9 +1,6 @@
 package com.fl.dashboard.resources;
 
-import com.fl.dashboard.dto.ProjetoDTO;
-import com.fl.dashboard.dto.ProjetoWithTarefasDTO;
-import com.fl.dashboard.dto.ProjetoWithUsersAndTarefasDTO;
-import com.fl.dashboard.dto.ProjetoWithUsersDTO;
+import com.fl.dashboard.dto.*;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
@@ -158,6 +155,16 @@ public class ProjetoResource {
     public ResponseEntity<List<ProjetoWithUsersDTO>> getProjetosByCoordenador(@PathVariable Long coordenadorId) {
         List<ProjetoWithUsersDTO> projetos = projetoService.findByCoordenador(coordenadorId);
         return ResponseEntity.ok(projetos);
+    }
+
+    @GetMapping("/{id}/externos")
+    public ResponseEntity<List<ExternoDTO>> getExternosByProjetoId(@PathVariable Long id) {
+        try {
+            List<ExternoDTO> externos = projetoService.findExternosByProjetoId(id);
+            return ResponseEntity.ok(externos);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

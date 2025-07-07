@@ -229,23 +229,24 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {externos.map((externo) => (
-              <tr key={externo.id}>
-                <td>{externo.name}</td>
-                <td>{externo.email}</td>
-                <td>{externo.telemovel}</td>
-                <td>{simplified 
-                  ? new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(externo.preco)
-                  : externo.preco.toFixed(2) + ' €'
-                }</td>
-                <td>{renderFaseProjetoBadge(externo.faseProjeto)}</td>
-                <td>
-                  <div className="d-flex flex-wrap">
-                    {renderEspecialidades(externo.especialidades)}
-                  </div>
-                </td>
-                <td>
-                  {showConfirmDelete === externo.id ? (
+            {externos.length > 0 ? (
+              externos.map((externo) => (
+                <tr key={externo.id}>
+                  <td>{externo.name}</td>
+                  <td>{externo.email}</td>
+                  <td>{externo.telemovel}</td>
+                  <td>{simplified 
+                    ? new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(externo.preco)
+                    : externo.preco.toFixed(2) + ' €'
+                  }</td>
+                  <td>{renderFaseProjetoBadge(externo.faseProjeto)}</td>
+                  <td>
+                    <div className="d-flex flex-wrap">
+                      {renderEspecialidades(externo.especialidades)}
+                    </div>
+                  </td>
+                  <td>
+                    {showConfirmDelete === externo.id ? (
                     <div className="d-flex gap-2">
                       <Button
                         variant="danger"
@@ -357,7 +358,14 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
                   )}
                 </td>
               </tr>
-            ))}
+            ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="text-center py-3">
+                  Não há colaboradores externos associados a este projeto.
+                </td>
+              </tr>
+            )}
           </tbody>
         </Table>
       </div>

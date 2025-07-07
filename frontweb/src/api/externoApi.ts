@@ -48,6 +48,28 @@ export const getExternoWithProjetosByIdAPI = async (
   }
 };
 
+// Get externos by projeto ID
+export const getExternosByProjetoIdAPI = async (
+  projetoId: number
+): Promise<ExternoDTO[]> => {
+  try {
+    console.log(`Fetching externos for projeto ID: ${projetoId}`);
+    const response = await axios.get(`/projetos/${projetoId}/externos`);
+    console.log('Response data:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching externos for projeto ID ${projetoId}:`,
+      error
+    );
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error details:', error.response.data);
+    }
+    return [];
+  }
+};
+
 // Get externo with tarefas by ID
 export const getExternoWithTarefasByIdAPI = async (
   id: number
