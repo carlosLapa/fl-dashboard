@@ -16,13 +16,13 @@ UPDATE `tb_role` SET
     name = 'EMPLOYEE'
 WHERE id = 3;
 
--- Step 2: Clean up incorrect data from wrong table
-DELETE FROM `role` WHERE id IN (1, 2, 3);
+-- Step 2: Clean up incorrect data from wrong table (if it exists)
+DROP TABLE IF EXISTS `role`;
 
--- Step 3: Add missing index to correct table
-CREATE INDEX `idx_tb_role_authority` ON `tb_role` (`authority`);
+-- Step 3: Add missing index only if it doesn't exist (skip since V9 already created it)
+-- CREATE INDEX `idx_tb_role_authority` ON `tb_role` (`authority`); -- Already created in V9
 
--- Step 4: Create/update the view to use correct table
+-- Step 4: Update the view to use correct table
 DROP VIEW IF EXISTS `v_user_roles`;
 CREATE VIEW `v_user_roles` AS
 SELECT
