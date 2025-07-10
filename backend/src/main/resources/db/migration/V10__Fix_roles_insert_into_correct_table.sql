@@ -1,18 +1,21 @@
--- V10__Fix_roles_insert_into_correct_table.sql
+-- Fix roles insert into correct table
 
--- Step 1: Update existing roles to have correct authority format and name values
+-- Step 1: Update role data format for consistency
 UPDATE `tb_role` SET
     authority = 'ROLE_ADMIN',
+    role_type = 'ADMIN',
     name = 'ADMIN'
 WHERE id = 1;
 
 UPDATE `tb_role` SET
     authority = 'ROLE_MANAGER',
+    role_type = 'MANAGER',
     name = 'MANAGER'
 WHERE id = 2;
 
 UPDATE `tb_role` SET
     authority = 'ROLE_EMPLOYEE',
+    role_type = 'EMPLOYEE',
     name = 'EMPLOYEE'
 WHERE id = 3;
 
@@ -38,7 +41,7 @@ JOIN `tb_user_role` ur ON u.id = ur.user_id
 JOIN `tb_role` r ON ur.role_id = r.id
 ORDER BY u.name, r.role_type;
 
--- Step 5: Verify the corrected data
+-- Step 5: Verify the fixes
 SELECT 'Roles updated successfully in tb_role table' as status;
 SELECT COUNT(*) as tb_role_count FROM `tb_role`;
-SELECT id, authority, role_type, name FROM `tb_role` ORDER BY id;
+SELECT * FROM `tb_role` ORDER BY id;

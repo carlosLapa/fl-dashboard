@@ -1,9 +1,6 @@
--- V9__Setup_roles_and_fix_user_roles.sql
+-- Setup roles and fix user roles
 
--- NOTE: This migration incorrectly uses 'role' table instead of 'tb_role'
--- Fixed in V10__Fix_roles_insert_into_correct_table.sql
-
--- Step 1: Create the standard roles in the correct table (tb_role) - use INSERT IGNORE
+-- Step 1: Create the standard roles in the correct table (tb_role) - use INSERT IGNORE for existing data
 INSERT IGNORE INTO `tb_role` (`id`, `authority`, `role_type`, `name`) VALUES
 (1, 'ROLE_ADMIN', 'ADMIN', 'ADMIN'),
 (2, 'ROLE_MANAGER', 'MANAGER', 'MANAGER'),
