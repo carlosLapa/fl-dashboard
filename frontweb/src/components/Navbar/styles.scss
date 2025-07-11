@@ -1,5 +1,11 @@
 @import '../../assets/styles/breakpoints.scss';
 
+/* Add this class */
+.no-bottom-margin {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
 // Base styles that apply to all screen sizes
 .custom-navbar {
   min-height: 60px;
@@ -15,6 +21,18 @@
 
   @include respond-from('xl') {
     height: 80px;
+  }
+
+  &.sticky-top {
+    position: fixed; // Change from sticky to fixed
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030; // Higher z-index
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
   }
 }
 
@@ -32,6 +50,10 @@
   @include respond-from('lg') {
     padding: 0.5rem 1.5rem;
   }
+
+  /* Fix for the gap below navbar */
+  margin-bottom: -1px !important; /* Remove any gap at the bottom */
+  padding-bottom: 0 !important;
 }
 
 // Brand styling

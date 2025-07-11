@@ -31,6 +31,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
+  // Apply welcome-page-active class to both body and html when on welcome page
+  useEffect(() => {
+    if (isWelcomePage) {
+      document.body.classList.add('welcome-page-active');
+      document.documentElement.classList.add('welcome-page-active');
+    } else {
+      document.body.classList.remove('welcome-page-active');
+      document.documentElement.classList.remove('welcome-page-active');
+    }
+
+    return () => {
+      document.body.classList.remove('welcome-page-active');
+      document.documentElement.classList.remove('welcome-page-active');
+    };
+  }, [isWelcomePage]);
+
   // Determine main content classes
   const mainContentClasses = [
     'main-content',
@@ -51,13 +67,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className={appContainerClasses}>
-      {/* Pass isMobile to NavbarFL so it knows when to show sidebar links */}
-      <NavbarFL isMobile={isMobile} />
+      {!isWelcomePage && <NavbarFL isMobile={isMobile} />}
       <div className="content-wrapper">
-        {/* Only render sidebar if user is logged in AND we're not on mobile */}
-        {user && !isMobile && <SidebarFL />}
+        {!isWelcomePage && user && <SidebarFL />}
         <div className={mainContentClasses}>{children}</div>
       </div>
+      {isWelcomePage && <NavbarFL isMobile={isMobile} />}
     </div>
   );
 };

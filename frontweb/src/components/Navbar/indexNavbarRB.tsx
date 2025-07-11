@@ -67,7 +67,7 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
   return (
     <Navbar
       expand="lg"
-      className="bg-dark navbar-dark custom-navbar sticky-top"
+      className="bg-dark navbar-dark custom-navbar sticky-top no-bottom-margin"
       expanded={expanded}
       onToggle={setExpanded}
     >

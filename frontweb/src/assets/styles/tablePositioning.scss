@@ -1,4 +1,4 @@
-// Common table positioning styles
+// Update the Common table positioning styles
 .externo-table-container,
 .user-table-container,
 .projeto-container,
@@ -6,14 +6,23 @@
 .tarefa-table-container,
 .calendar-container,
 .kanban-board-container {
-  width: 98%;
-  margin-left: 0; // No left margin to position more to the left
-  margin-right: 2%; // Right margin only
+  width: 98% !important; /* Return to 98% width */
+  margin-left: auto !important; /* Center the container */
+  margin-right: auto !important; /* Center the container */
+  padding-right: 0; /* Remove padding */
+  padding-left: 0; /* Remove padding */
 
   // Make table-responsive take full width of its container
   .table-responsive {
     width: 100%;
+    margin: 0 auto; /* Center tables */
   }
+}
+
+// Fix for any container that might be restricting the width
+.main-content:not(.welcome-page) {
+  padding-right: 0 !important;
+  width: 100% !important;
 }
 
 // Additional specific overrides for tarefa components

@@ -184,3 +184,38 @@ video::-webkit-media-controls {
   -webkit-backface-visibility: hidden;
   -webkit-perspective: 1000;
 }
+
+/* Fix for right margin white stripe */
+.welcome-page-container {
+  width: 100% !important; /* Use standard 100% instead of 100vw */
+  max-width: 100% !important;
+  overflow: hidden !important;
+  position: relative;
+  left: 0;
+  right: 0;
+}
+
+.hero-container,
+.hero-video,
+.hero-overlay {
+  width: 100% !important;
+  max-width: 100% !important;
+  left: 0;
+  right: 0;
+}
+
+/* Ensure the body has no extra margins */
+body.welcome-page-active,
+html.welcome-page-active {
+  overflow-x: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Improve hero video positioning to avoid any gaps */
+.hero-video {
+  object-fit: cover;
+  object-position: center center;
+}

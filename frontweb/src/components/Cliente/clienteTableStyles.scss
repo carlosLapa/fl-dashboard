@@ -23,6 +23,11 @@
     display: flex;
     align-items: center;
   }
+
+  // Cliente-specific positioning adjustment
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 98% !important;
 }
 
 // Cliente table styles
@@ -114,6 +119,14 @@
   margin-top: 0.5rem;
   text-align: center;
   color: #6c757d;
+}
+
+// Ensure the Clientes page content is properly centered
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 // Responsive adjustments
