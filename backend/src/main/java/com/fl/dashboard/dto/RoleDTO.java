@@ -12,6 +12,8 @@ public class RoleDTO {
 
     private Long id;
     private String authority;
+    private String role_type; // Add this field
+    private String name;      // Add this field
 
     public RoleDTO() {
     }
@@ -22,7 +24,14 @@ public class RoleDTO {
     }
 
     public RoleDTO(Role entity) {
-        id = entity.getId();
-        authority = entity.getAuthority();
+        this.id = entity.getId();
+        this.authority = entity.getAuthority();
+
+        // Set both role_type and name to the enum value
+        if (entity.getName() != null) {
+            String enumValue = entity.getName().name(); // "ADMIN", "MANAGER", "EMPLOYEE"
+            this.role_type = enumValue;
+            this.name = enumValue;
+        }
     }
 }

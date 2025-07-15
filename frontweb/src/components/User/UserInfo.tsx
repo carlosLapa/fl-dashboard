@@ -14,7 +14,7 @@ const UserInfo: React.FC = () => {
 
   return (
     <div className="user-info">
-      <span className="user-welcome">Bem vindo, {user.name}</span>
+      <span className="user-welcome">Bem vindo/a, {user.name}</span>
       <Button
         variant="outline-secondary"
         size="sm"

@@ -69,6 +69,7 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
         RegisteredClient registeredClient = clientPrincipal.getRegisteredClient();
         username = customPasswordAuthenticationToken.getUsername();
         password = customPasswordAuthenticationToken.getPassword();
+
         UserDetails user = null;
         try {
             user = userDetailsService.loadUserByUsername(username);
@@ -94,7 +95,8 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
 
         //-----------Create a new Security Context Holder Context----------
         OAuth2ClientAuthenticationToken oAuth2ClientAuthenticationToken = (OAuth2ClientAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        CustomUserAuthorities customPasswordUser = new CustomUserAuthorities(username, user.getAuthorities());
+        // CHANGE: Use the actual user's email, not the client details
+        CustomUserAuthorities customPasswordUser = new CustomUserAuthorities(username, user.getAuthorities()); // username is the email
         oAuth2ClientAuthenticationToken.setDetails(customPasswordUser);
         var newcontext = SecurityContextHolder.createEmptyContext();
         newcontext.setAuthentication(oAuth2ClientAuthenticationToken);

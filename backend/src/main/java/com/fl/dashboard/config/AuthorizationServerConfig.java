@@ -178,7 +178,8 @@ public class AuthorizationServerConfig {
                 // @formatter:off
                 context.getClaims()
                         .claim("authorities", authorities)
-                        .claim("username", user.getUsername());
+                        .claim("username", user.getUsername()) // This should now be the email
+                        .claim("email", user.getUsername()); // Add email claim explicitly
                 // @formatter:on
             }
         };

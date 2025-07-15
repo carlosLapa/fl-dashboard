@@ -25,6 +25,16 @@ export const getUsersAPI = async (page: number = 0, size: number = 10) => {
   return await fetchFromAPI(`users?page=${page}&size=${size}`);
 };
 
+export const getCurrentUserWithRolesAPI = async () => {
+  try {
+    const response = await axios.get('/users/me');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching current user with roles:', error);
+    throw error;
+  }
+};
+
 export const createUserAPI = async (formData: FormData) => {
   const response = await axios.post('/users', formData, {
     headers: {
@@ -659,7 +669,10 @@ export const getTarefasByExternoIdWithFullProjetoAPI = async (
     console.log('Tarefas by externo response:', response.data);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching tarefas for externo with ID ${externoId}:`, error);
+    console.error(
+      `Error fetching tarefas for externo with ID ${externoId}:`,
+      error
+    );
     // Return empty paginated result on error
     return {
       content: [],

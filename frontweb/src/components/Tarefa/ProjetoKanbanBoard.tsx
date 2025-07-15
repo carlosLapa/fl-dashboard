@@ -15,6 +15,7 @@ import './styles.scss';
 // Import permission related modules
 import { Permission } from '../../permissions/rolePermissions';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useAuth } from '../../AuthContext'; // Add this import
 import { toast } from 'react-toastify'; // Remove ToastContainer from imports
 
 interface ProjetoKanbanBoardProps {
@@ -53,7 +54,26 @@ const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   // Get the permissions hook for checking user permissions
   const { hasPermission } = usePermissions();
+  const { user } = useAuth(); // Add this for debugging
   
+  // Add debugging useEffect
+  useEffect(() => {
+    console.log('=== DEBUGGING USER PERMISSIONS ===');
+    console.log('Current user:', user);
+    console.log('User roles:', user?.roles);
+    console.log('Has MOVE_CARD_TO_REVIEW permission:', hasPermission(Permission.MOVE_CARD_TO_REVIEW));
+    console.log('Has MOVE_CARD_TO_DONE permission:', hasPermission(Permission.MOVE_CARD_TO_DONE));
+    
+    // Check individual role permissions
+    if (user?.roles) {
+      user.roles.forEach((role, index) => {
+        console.log(`Role ${index}:`, role);
+        console.log(`Role type: ${role.role_type || role.name}`);
+      });
+    }
+    console.log('=== END DEBUGGING ===');
+  }, [user, hasPermission]);
+
   const statusTranslations: { [key in TarefaStatus]: string } = {
     BACKLOG: 'Backlog',
     TODO: 'A Fazer',

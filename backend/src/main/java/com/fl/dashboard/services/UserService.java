@@ -3,6 +3,7 @@ package com.fl.dashboard.services;
 import com.fl.dashboard.dto.TarefaDTO;
 import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.dto.UserWithProjetosDTO;
+import com.fl.dashboard.dto.UserWithRolesDTO;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Role;
 import com.fl.dashboard.entities.Tarefa;
@@ -18,10 +19,13 @@ import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,6 +78,33 @@ public class UserService implements UserDetailsService {
         }
 
         entity.addRole(defaultRole);
+    }
+
+    @Transactional(readOnly = true)
+    public UserWithRolesDTO getCurrentUserWithRoles(String emailOrClientId) {
+        User user = null;
+
+        // First try to find by email directly
+        user = userRepository.findByEmail(emailOrClientId);
+
+        // If not found and it looks like a client ID, we need to get the email from the SecurityContext
+        if (user == null) {
+            // Get the current authentication from SecurityContext
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication instanceof JwtAuthenticationToken jwtToken) {
+                // Try to get email from JWT claims
+                String email = jwtToken.getToken().getClaimAsString("email");
+                if (email != null) {
+                    user = userRepository.findByEmail(email);
+                }
+            }
+        }
+
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found: " + emailOrClientId);
+        }
+
+        return new UserWithRolesDTO(user);
     }
 
     @Transactional(readOnly = true)
