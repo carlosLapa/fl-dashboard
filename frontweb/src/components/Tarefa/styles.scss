@@ -126,13 +126,13 @@
 .weekend-day {
   color: #ff051a !important; /* Reddish text for weekend days */
   font-style: italic;
-  
+
   /* Make the day number smaller and lighter */
   .rbc-date-cell {
     opacity: 0.8;
     font-weight: bold;
   }
-  
+
   /* Add a subtle pattern or texture */
   background-image: repeating-linear-gradient(
     45deg,
@@ -143,14 +143,17 @@
   );
 }
 
-/* Kanban Board Styles */
+/* Kanban Board Styles - REMOVE OR COMMENT OUT THIS SECTION */
+/*
 .kanban-board-container {
+  margin-top: 60px; // Remove this line - it's causing conflicts
   display: flex;
   overflow-x: auto;
   padding-bottom: 20px;
   gap: 16px;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 }
+*/
 
 /* Scrollbar styling for the kanban board */
 .kanban-board-container::-webkit-scrollbar {
@@ -308,6 +311,39 @@
 /* Ensure the card wrapper has proper spacing */
 .tarefa-card-wrapper {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Kanban Board Wrapper */
+.kanban-board-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Style the permission alert to match kanban board width and align left */
+.kanban-board-wrapper .alert {
+  width: calc(
+    5 * 280px + 4 * 16px
+  ); /* 5 columns of 280px + 4 gaps of 16px = 1464px */
+  max-width: 100%;
+  margin: 0 0 2.5rem 0;
+  text-align: center;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Ensure proper spacing for the kanban board */
+.kanban-board-container {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  /* gap controls the spacing between cards */
+  gap: 3%;
+  -webkit-overflow-scrolling: touch;
+  width: fit-content;
+  margin: 0; /* Remove auto centering, align left */
+  margin-top: 2%;
 }
 
 /* Responsive styles */

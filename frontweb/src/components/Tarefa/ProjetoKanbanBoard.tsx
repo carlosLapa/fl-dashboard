@@ -10,8 +10,12 @@ import {
   updateTarefaStatus,
 } from 'services/tarefaService';
 import { ColunaWithProjetoDTO } from '../../types/coluna';
-import { Spinner } from 'react-bootstrap';
+import { Spinner, Alert } from 'react-bootstrap';
 import './styles.scss';
+// Import permission related modules
+import { Permission } from '../../permissions/rolePermissions';
+import { usePermissions } from '../../hooks/usePermissions';
+import { toast } from 'react-toastify'; // Remove ToastContainer from imports
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
@@ -47,6 +51,9 @@ const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
 };
 
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
+  // Get the permissions hook for checking user permissions
+  const { hasPermission } = usePermissions();
+  
   const statusTranslations: { [key in TarefaStatus]: string } = {
     BACKLOG: 'Backlog',
     TODO: 'A Fazer',
@@ -167,6 +174,19 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       return;
     }
 
+    // Check permissions for specific column movements - Use global toast
+    if (destination.droppableId === 'IN_REVIEW' && 
+        !hasPermission(Permission.MOVE_CARD_TO_REVIEW)) {
+      toast.error('Você não tem permissão para mover tarefas para Em Revisão');
+      return; // Block the movement
+    }
+
+    if (destination.droppableId === 'DONE' && 
+        !hasPermission(Permission.MOVE_CARD_TO_DONE)) {
+      toast.error('Você não tem permissão para mover tarefas para Concluído');
+      return; // Block the movement
+    }
+
     const sourceColumn = columns[source.droppableId as TarefaStatus];
     const destColumn = columns[destination.droppableId as TarefaStatus];
 
@@ -219,18 +239,36 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   }
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="kanban-board-container">
-        {columnsOrder.map((columnId) => (
-          <TarefaColumn
-            key={columnId}
-            columnId={columnId}
-            tarefas={columns[columnId]}
-            columnTitle={statusTranslations[columnId]}
-          />
-        ))}
-      </div>
-    </DragDropContext>
+    <div className="kanban-board-wrapper">
+      {/* Remove the custom ToastContainer */}
+      
+      {/* Optional: Display a message about permissions */}
+      {!hasPermission(Permission.MOVE_CARD_TO_REVIEW) && (
+        <Alert variant="info" className="mb-3">
+          Nota: Você não tem permissão para mover tarefas para as colunas "Em Revisão" ou "Concluído".
+        </Alert>
+      )}
+      
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="kanban-board-container">
+          {columnsOrder.map((columnId) => (
+            <TarefaColumn
+              key={columnId}
+              columnId={columnId}
+              tarefas={columns[columnId]}
+              columnTitle={statusTranslations[columnId]}
+              canDrop={
+                columnId !== 'IN_REVIEW' && columnId !== 'DONE' 
+                  ? true 
+                  : columnId === 'IN_REVIEW' 
+                    ? hasPermission(Permission.MOVE_CARD_TO_REVIEW) 
+                    : hasPermission(Permission.MOVE_CARD_TO_DONE)
+              }
+            />
+          ))}
+        </div>
+      </DragDropContext>
+    </div>
   );
 };
 

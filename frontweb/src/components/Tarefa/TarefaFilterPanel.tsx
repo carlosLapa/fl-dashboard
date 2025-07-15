@@ -132,7 +132,7 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
         setProjetoSearchText(''); // Clear the local search text when filters are cleared
       }}
       activeFiltersCount={activeFiltersCount}
-      title="Filtros de Tarefas"
+      title="Filtros Avançados"
     >
       {/* Text Filters */}
       <Col md={6} lg={4}>

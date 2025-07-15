@@ -9,12 +9,14 @@ interface TarefaColumnProps {
   columnId: TarefaStatus;
   tarefas: KanbanTarefa[];
   columnTitle: string;
+  canDrop?: boolean; // Add this new prop
 }
 
 const TarefaColumn: React.FC<TarefaColumnProps> = ({ 
   columnId, 
   tarefas, 
-  columnTitle 
+  columnTitle,
+  canDrop = true // Default to true for backward compatibility
 }) => {
   // Get column background color based on status
   const getColumnHeaderColor = (status: TarefaStatus) => {
@@ -48,7 +50,7 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({
         </div>
       </div>
       
-      <StrictModeDroppable droppableId={columnId}>
+      <StrictModeDroppable droppableId={columnId} isDropDisabled={!canDrop}>
         {(provided, snapshot) => (
           <div
             {...provided.droppableProps}
