@@ -1,18 +1,18 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
-import { Spinner } from 'react-bootstrap'; // Import Spinner or use your own loading component
-import { usePermissions } from '../hooks/usePermissions';
-import { Permission } from '../permissions/rolePermissions';
+import { Permission } from '../../permissions/rolePermissions';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useAuth } from '../../AuthContext';
+import { Spinner } from 'react-bootstrap';
 
-interface ProtectedRouteProps {
+interface PermissionProtectedRouteProps {
   element: React.ReactElement;
-  permissions?: Permission | Permission[]; // Optional permissions
+  permissions: Permission | Permission[];
   type?: 'all' | 'any';
   redirectTo?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+const PermissionProtectedRoute: React.FC<PermissionProtectedRouteProps> = ({
   element,
   permissions,
   type = 'any',
@@ -41,25 +41,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/" />;
   }
 
-  // If permissions are specified, check them
-  if (permissions) {
-    const hasAccess = () => {
-      if (Array.isArray(permissions)) {
-        return type === 'all'
-          ? hasAllPermissions(permissions)
-          : hasAnyPermission(permissions);
-      }
-      return hasPermission(permissions);
-    };
-
-    // Redirect if user doesn't have required permissions
-    if (!hasAccess()) {
-      return <Navigate to={redirectTo} replace />;
+  // Check permissions
+  const hasAccess = () => {
+    if (Array.isArray(permissions)) {
+      return type === 'all'
+        ? hasAllPermissions(permissions)
+        : hasAnyPermission(permissions);
     }
+    return hasPermission(permissions);
+  };
+
+  // Redirect if user doesn't have required permissions
+  if (!hasAccess()) {
+    return <Navigate to={redirectTo} replace />;
   }
 
   // Render the protected component
   return element;
 };
 
-export default ProtectedRoute;
+export default PermissionProtectedRoute;
