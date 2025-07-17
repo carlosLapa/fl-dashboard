@@ -87,15 +87,27 @@ export const getProjetosAPI = async (
   sort?: string,
   direction?: 'ASC' | 'DESC'
 ): Promise<PaginatedProjetos> => {
-  let url = `/projetos?page=${page}&size=${size}`;
+  try {
+    let url = `/projetos?page=${page}&size=${size}`;
 
-  if (sort) {
-    // Spring Data JPA expects sort parameter in format: sort=field,direction
-    url += `&sort=${sort},${direction || 'ASC'}`;
+    if (sort) {
+      url += `&sort=${sort},${direction || 'ASC'}`;
+    }
+
+    console.log(`Making GET request to: ${url}`);
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projetos:', error);
+    // Return empty result on error
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size,
+      number: page,
+    };
   }
-
-  const response = await axios.get(url);
-  return response.data;
 };
 
 export const addProjetoAPI = async (projeto: ProjetoFormData) => {

@@ -13,6 +13,7 @@ import com.fl.dashboard.utils.ProjetoDTOMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -292,4 +293,144 @@ public class ProjetoService {
             return Collections.emptyList();
         }
     }
+
+    /**
+     * Check if a project is assigned to a specific user
+     */
+    @Transactional(readOnly = true)
+    public boolean isProjectAssignedToUser(Long projectId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            return false;
+        }
+
+        // Find all projects for this user
+        Set<Projeto> userProjetos = user.getProjetos();
+
+        // Check if the requested project is in the user's projects
+        return userProjetos.stream()
+                .anyMatch(projeto -> projeto.getId().equals(projectId));
+    }
+
+    /**
+     * Find projects by user email (for users who can only view assigned projects)
+     */
+    @Transactional(readOnly = true)
+    public Page<ProjetoWithUsersDTO> findProjectsByUserEmail(String email, Pageable pageable) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with email: " + email);
+        }
+
+        // Get all projects for this user
+        List<Projeto> userProjects = new ArrayList<>(user.getProjetos());
+
+        // Apply pagination manually (since we fetched from user entity)
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), userProjects.size());
+
+        List<Projeto> pagedProjects = (start <= end)
+                ? userProjects.subList(start, end)
+                : Collections.emptyList();
+
+        // Convert to DTOs
+        List<ProjetoWithUsersDTO> dtos = pagedProjects.stream()
+                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageable, userProjects.size());
+    }
+
+    /**
+     * Search projects for a specific user
+     */
+    @Transactional(readOnly = true)
+    public List<ProjetoWithUsersAndTarefasDTO> searchProjetosForUser(String query, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with email: " + userEmail);
+        }
+
+        String searchQuery = "%" + query.toLowerCase() + "%";
+
+        // Get all projects for this user that match the search query
+        List<Projeto> userProjects = user.getProjetos().stream()
+                .filter(projeto ->
+                        projeto.getDesignacao().toLowerCase().contains(query.toLowerCase()) ||
+                                projeto.getEntidade().toLowerCase().contains(query.toLowerCase()))
+                .collect(Collectors.toList());
+
+        return userProjects.stream()
+                .map(ProjetoWithUsersAndTarefasDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Filter projects for a specific user
+     */
+    @Transactional(readOnly = true)
+    public Page<ProjetoWithUsersDTO> filterProjetosForUser(
+            String designacao,
+            String entidade,
+            String prioridade,
+            Date startDate,
+            Date endDate,
+            String status,
+            Long coordenadorId,
+            Date propostaStartDate,
+            Date propostaEndDate,
+            Date adjudicacaoStartDate,
+            Date adjudicacaoEndDate,
+            String userEmail,
+            Pageable pageable) {
+
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with email: " + userEmail);
+        }
+
+        // Get all projects for this user
+        Set<Projeto> userProjects = user.getProjetos();
+
+        // Adjust end dates to be inclusive
+        Date adjustedEndDate = adjustEndDate(endDate);
+        Date adjustedPropostaEndDate = adjustEndDate(propostaEndDate);
+        Date adjustedAdjudicacaoEndDate = adjustEndDate(adjudicacaoEndDate);
+
+        // Only pass status if it's not "ALL"
+        String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
+
+        // Filter the user's projects manually
+        List<Projeto> filteredProjects = userProjects.stream()
+                .filter(projeto ->
+                        (designacao == null || projeto.getDesignacao().toLowerCase().contains(designacao.toLowerCase())) &&
+                                (entidade == null || projeto.getEntidade().toLowerCase().contains(entidade.toLowerCase())) &&
+                                (prioridade == null || projeto.getPrioridade().equals(prioridade)) &&
+                                (statusFilter == null || projeto.getStatus().equals(statusFilter)) &&
+                                (startDate == null || projeto.getDataAdjudicacao() == null || !projeto.getDataAdjudicacao().before(startDate)) &&
+                                (adjustedEndDate == null || projeto.getDataProposta() == null || !projeto.getDataProposta().after(adjustedEndDate)) &&
+                                (coordenadorId == null || (projeto.getCoordenador() != null && projeto.getCoordenador().getId().equals(coordenadorId))) &&
+                                (propostaStartDate == null || projeto.getDataProposta() == null || !projeto.getDataProposta().before(propostaStartDate)) &&
+                                (adjustedPropostaEndDate == null || projeto.getDataProposta() == null || !projeto.getDataProposta().after(adjustedPropostaEndDate)) &&
+                                (adjudicacaoStartDate == null || projeto.getDataAdjudicacao() == null || !projeto.getDataAdjudicacao().before(adjudicacaoStartDate)) &&
+                                (adjustedAdjudicacaoEndDate == null || projeto.getDataAdjudicacao() == null || !projeto.getDataAdjudicacao().after(adjustedAdjudicacaoEndDate))
+                )
+                .collect(Collectors.toList());
+
+        // Apply pagination manually
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredProjects.size());
+
+        List<Projeto> pagedProjects = (start <= end)
+                ? filteredProjects.subList(start, end)
+                : Collections.emptyList();
+
+        // Convert to DTOs
+        List<ProjetoWithUsersDTO> dtos = pagedProjects.stream()
+                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageable, filteredProjects.size());
+    }
+
 }

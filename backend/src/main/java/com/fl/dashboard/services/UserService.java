@@ -1,5 +1,6 @@
 package com.fl.dashboard.services;
 
+import com.fl.dashboard.config.PermissionMapper;
 import com.fl.dashboard.dto.TarefaDTO;
 import com.fl.dashboard.dto.UserDTO;
 import com.fl.dashboard.dto.UserWithProjetosDTO;
@@ -20,6 +21,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -307,19 +310,50 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         List<UserDetailsProjection> result = userRepository.searchUserAndRolesByEmail(username);
         if (result.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
+
         User user = new User();
         user.setEmail(result.get(0).getUsername());
         user.setPassword(result.get(0).getPassword());
+
+        // Standard authorities (roles)
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+
         for (UserDetailsProjection projection : result) {
-            user.addRole(new Role(projection.getRoleId(), projection.getAuthority()));
+            Role role = new Role(projection.getRoleId(), projection.getAuthority());
+            user.addRole(role);
+
+            // Add role as authority
+            authorities.add(new SimpleGrantedAuthority(role.getAuthority()));
+
+            // Add role permissions as authorities
+            try {
+                // Try to parse the role authority as a RoleType enum
+                String roleType = role.getAuthority().replace("ROLE_", "");
+                RoleType enumRoleType = RoleType.valueOf(roleType);
+
+                // Get all permissions for this role
+                Set<String> permissionNames = PermissionMapper.getPermissionNamesForRole(enumRoleType);
+                for (String permissionName : permissionNames) {
+                    authorities.add(new SimpleGrantedAuthority(permissionName));
+                }
+            } catch (IllegalArgumentException e) {
+                // If role doesn't match any RoleType, just continue
+                System.out.println("Warning: Couldn't parse role as RoleType: " + role.getAuthority());
+            }
         }
-        return user;
+
+        // Return a UserDetails object with both roles and permissions as authorities
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                true, true, true, true,
+                authorities
+        );
     }
 
     @Transactional(readOnly = true)

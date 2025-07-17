@@ -12,6 +12,8 @@ import {
   getProjetoWithUsersAndTarefasAPI,
 } from '../api/requestsApi';
 import { ProjetoFilterState } from '../types/filters';
+import { hasPermission } from '../utils/hasPermission';
+import axios from 'axios';
 
 // Use the ProjetoFilterState type from our filters.ts
 export type FilterState = ProjetoFilterState;
@@ -41,6 +43,7 @@ export const getProjetos = async (
   direction?: 'ASC' | 'DESC'
 ): Promise<PaginatedProjetos> => {
   try {
+    console.log('Fetching all projetos');
     const response = await getProjetosAPI(page, pageSize, sort, direction);
     return {
       content: response.content.map((projeto: Projeto) => ({
@@ -64,8 +67,16 @@ export const getProjetos = async (
   }
 };
 
+// permission-aware function that determines if we can create projects
+export const canCreateProjeto = (): boolean => {
+  return hasPermission('CREATE_PROJECT');
+};
+
 export const addProjeto = async (data: ProjetoFormData): Promise<void> => {
   try {
+    if (!canCreateProjeto()) {
+      throw new Error("You don't have permission to create projects");
+    }
     await addProjetoAPI(data);
   } catch (error) {
     console.error('Error adding project:', error);
@@ -82,8 +93,21 @@ export const getProjetoWithUsersAndTarefas = async (
     // Perform any necessary data treatment here
     return projetoData;
   } catch (error) {
-    console.error('Error in projeto service:', error);
-    throw error;
+    // Error is already handled by the interceptor in apiConfig.ts
+    console.error('Error fetching projeto with users and tarefas:', error);
+
+    // Type guard to check if error is an Axios error
+    if (axios.isAxiosError(error)) {
+      // Now TypeScript knows this is an AxiosError
+      if (error.response?.status === 403) {
+        throw new Error('Você não tem permissão para visualizar este projeto');
+      } else if (error.response?.status === 404) {
+        throw new Error('Projeto não encontrado ou foi removido');
+      }
+    }
+
+    // For other errors, throw a generic message
+    throw new Error('Erro ao carregar o projeto. Por favor, tente novamente.');
   }
 };
 
