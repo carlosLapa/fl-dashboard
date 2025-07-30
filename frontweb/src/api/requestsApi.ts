@@ -12,6 +12,7 @@ import {
   TarefaWithUserAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
+import { PaginatedUsers } from 'types/user';
 import { Notification, NotificationInsertDTO } from 'types/notification';
 
 let pendingRequests: Record<string, Promise<PaginatedTarefas>> = {};
@@ -21,8 +22,24 @@ const fetchFromAPI = async (endpoint: string) => {
   return response.data;
 };
 
-export const getUsersAPI = async (page: number = 0, size: number = 10) => {
-  return await fetchFromAPI(`users?page=${page}&size=${size}`);
+export const getUsersAPI = async (
+  page: number = 0,
+  size: number = 10
+): Promise<PaginatedUsers> => {
+  try {
+    const response = await fetchFromAPI(`users?page=${page}&size=${size}`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    // Return an empty paginated result instead of throwing
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size,
+      number: page,
+    };
+  }
 };
 
 export const getCurrentUserWithRolesAPI = async () => {

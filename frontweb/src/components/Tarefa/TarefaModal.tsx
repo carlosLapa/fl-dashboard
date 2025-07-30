@@ -17,7 +17,7 @@ import {
 } from '../../types/tarefa';
 import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
-import { User } from 'types/user';
+import { User } from 'types/user'; // Make sure to import PaginatedUsers
 import { ExternoDTO } from 'types/externo';
 import { getUsersAPI, searchProjetosAPI } from '../../api/requestsApi';
 import { getAllExternosAPI } from '../../api/externoApi';
@@ -109,7 +109,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
           getUsersAPI(),
           getAllExternosAPI(),
         ]);
-        setUsers(usersData);
+        // Update this line to use the content array from the paginated response
+        setUsers(usersData.content || []);
         setExternos(externosData);
       } catch (error) {
         console.error('Error fetching data:', error);

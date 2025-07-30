@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { User } from 'types/user';
+import { PaginatedUsers } from 'types/user';
 import { getUsersAPI } from '../../api/requestsApi';
 import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
@@ -46,7 +46,14 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     dataProposta: '',
     dataAdjudicacao: '',
   });
-  const [users, setUsers] = useState<User[]>([]);
+  // Update the users state to match the new paginated structure
+  const [users, setUsers] = useState<PaginatedUsers>({
+    content: [],
+    totalPages: 0,
+    totalElements: 0,
+    size: 10,
+    number: 0,
+  });
   const [validated, setValidated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -196,10 +203,13 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     onHide();
   };
 
-  const userOptions = users.map((user) => ({
-    value: user.id,
-    label: user.name,
-  }));
+  const userOptions =
+    users.content && Array.isArray(users.content)
+      ? users.content.map((user) => ({
+          value: user.id,
+          label: user.name,
+        }))
+      : [];
 
   const selectedUserOptions = formData.users
     ? formData.users.map((user) => ({
@@ -351,11 +361,13 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   onChange={handleInputChange}
                 >
                   <option value="">Selecione o coordenador</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
+                  {users.content &&
+                    Array.isArray(users.content) &&
+                    users.content.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))}
                 </Form.Select>
               </Form.Group>
             </Col>

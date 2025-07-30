@@ -20,6 +20,8 @@ import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -134,6 +136,36 @@ public class UserService implements UserDetailsService {
         User entity = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Utilizador com o id: " + id + " não encontrado"));
         return new UserDTO(entity);
+    }
+
+    /**
+     * Find all users with pagination
+     *
+     * @param pageable Pagination parameters
+     * @return Page of UserDTO with full user details
+     */
+    @Transactional(readOnly = true)
+    public Page<UserDTO> findAllPaged(Pageable pageable) {
+        Page<User> page = userRepository.findAll(pageable);
+        return page.map(UserDTO::new);
+    }
+
+    /**
+     * Find all users with pagination, returning only basic information
+     *
+     * @param pageable Pagination parameters
+     * @return Page of UserDTO with limited user details
+     */
+    @Transactional(readOnly = true)
+    public Page<UserDTO> findAllBasicInfo(Pageable pageable) {
+        Page<User> page = userRepository.findAll(pageable);
+        return page.map(user -> {
+            UserDTO dto = new UserDTO(user);
+            // Remove sensitive information for non-admin users
+            dto.setPassword(null);
+            // You could also limit other fields if needed
+            return dto;
+        });
     }
 
     @Transactional

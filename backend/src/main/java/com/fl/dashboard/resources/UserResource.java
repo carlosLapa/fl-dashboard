@@ -7,6 +7,8 @@ import com.fl.dashboard.dto.UserWithRolesDTO;
 import com.fl.dashboard.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,12 +43,22 @@ public class UserResource {
         return ResponseEntity.ok().body(list);
     }
 
-    // List all users - requires VIEW_ALL_USERS permission
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
-    public ResponseEntity<List<UserDTO>> findAll() {
-        List<UserDTO> list = userService.findAll();
-        return ResponseEntity.ok().body(list);
+    public ResponseEntity<Page<UserDTO>> findAll(Pageable pageable, Authentication authentication) {
+        // Check if user has permission to view all users
+        boolean canViewAllUsers = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_USERS") ||
+                        a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (canViewAllUsers) {
+            // Full access - return all user details
+            Page<UserDTO> list = userService.findAllPaged(pageable);
+            return ResponseEntity.ok().body(list);
+        } else {
+            // Limited access - return only basic info
+            Page<UserDTO> list = userService.findAllBasicInfo(pageable);
+            return ResponseEntity.ok().body(list);
+        }
     }
 
     // Get user by ID with projects - requires VIEW_ALL_USERS permission

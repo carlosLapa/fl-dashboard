@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://fl-backend-app-6v3xd.ondigitalocean.app';
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  'https://fl-backend-app-6v3xd.ondigitalocean.app';
 console.log('API_URL is set to:', API_URL);
 
 // Configure axios defaults
@@ -17,17 +19,86 @@ export const getWebSocketUrl = () => {
 
 // response interceptor for global error handling
 axios.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (axios.isAxiosError(error)) {
       // Handle 403 Forbidden errors
       if (error.response?.status === 403) {
         console.warn('Permission denied for this operation');
+
+        // For user-related endpoints
+        if (error.config?.url?.includes('/users')) {
+          console.log('Handling 403 for users endpoint');
+          // Return empty result instead of throwing
+          return Promise.resolve({
+            data: {
+              content: [],
+              totalPages: 0,
+              totalElements: 0,
+              size: 10,
+              number: 0,
+            },
+          });
+        }
+
+        // For tarefas-related endpoints
+        if (error.config?.url?.includes('/tarefas')) {
+          console.log('Handling 403 for tarefas endpoint');
+          // Return empty result instead of throwing
+          return Promise.resolve({
+            data: {
+              content: [],
+              totalPages: 0,
+              totalElements: 0,
+              size: 10,
+              number: 0,
+            },
+          });
+        }
+
+        // For projetos-related endpoints
+        if (error.config?.url?.includes('/projetos')) {
+          console.log('Handling 403 for projetos endpoint');
+          // Return empty result instead of throwing
+          return Promise.resolve({
+            data: {
+              content: [],
+              totalPages: 0,
+              totalElements: 0,
+              size: 10,
+              number: 0,
+            },
+          });
+        }
+
+        // For other endpoints, show warning toast
         if (toast) {
           toast.warning('Você não tem permissão para esta operação');
         }
       }
-      
+
+      // Handle 404 errors
+      if (error.response?.status === 404) {
+        console.warn('Resource not found');
+
+        // For endpoints that return paginated data
+        if (
+          error.config?.url?.includes('/projetos') ||
+          error.config?.url?.includes('/users') ||
+          error.config?.url?.includes('/tarefas')
+        ) {
+          return Promise.resolve({
+            data: {
+              content: [],
+              totalPages: 0,
+              totalElements: 0,
+              size: 10,
+              number: 0,
+            },
+          });
+        }
+      }
+
       // Handle 401 Unauthorized errors (e.g., token expired)
       if (error.response?.status === 401) {
         console.error('Authentication error - session may have expired');
@@ -38,8 +109,8 @@ axios.interceptors.response.use(
         // window.location.href = '/login';
       }
     }
-    
-    // Always reject the promise so the component can handle the error
+
+    // For other errors, reject the promise so the component can handle it
     return Promise.reject(error);
   }
 );
