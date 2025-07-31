@@ -89,13 +89,13 @@ public class ProjetoService {
 
         // Only create notification if project was saved successfully and has users
         if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
-            savedEntity.getUsers().forEach(user ->
-                    notificationService.createProjectNotification(
-                            savedDTO,
-                            NotificationType.PROJETO_ATRIBUIDO,  // Already correct
-                            new UserDTO(user)
-                    )
-            );
+            for (User user : savedEntity.getUsers()) {
+                notificationService.createProjectNotification(
+                        savedDTO,
+                        NotificationType.PROJETO_ATRIBUIDO,  // Already correct
+                        new UserDTO(user)
+                );
+            }
         }
 
         return savedDTO;
@@ -117,25 +117,28 @@ public class ProjetoService {
         NotificationType notificationType = determineNotificationType(oldStatus, savedEntity.getStatus());
 
         // Find new users to notify about project assignment
-        Set<User> newUsers = savedEntity.getUsers().stream()
-                .filter(user -> !oldUsers.contains(user))
-                .collect(Collectors.toSet());
+        Set<User> newUsers = new HashSet<>();
+        for (User user1 : savedEntity.getUsers()) {
+            if (!oldUsers.contains(user1)) {
+                newUsers.add(user1);
+            }
+        }
 
         // Notify new users about project assignment
-        newUsers.forEach(user ->
-                notificationService.createProjectNotification(
-                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                        NotificationType.PROJETO_ATRIBUIDO,
-                        new UserDTO(user)
-                )
-        );
+        for (User newUser : newUsers) {
+            notificationService.createProjectNotification(
+                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                    NotificationType.PROJETO_ATRIBUIDO,
+                    new UserDTO(newUser)
+            );
+        }
 
-        oldUsers.forEach(user -> {
-            if (!savedEntity.getUsers().contains(user)) {
+        for (User oldUser : oldUsers) {
+            if (!savedEntity.getUsers().contains(oldUser)) {
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
                         .type(NotificationType.PROJETO_REMOVIDO.name())
                         .content("Foi removido/a do projeto: " + savedEntity.getDesignacao())
-                        .userId(user.getId())
+                        .userId(oldUser.getId())
                         .isRead(false)
                         .createdAt(new Date())
                         .projetoId(savedEntity.getId())
@@ -143,16 +146,16 @@ public class ProjetoService {
 
                 notificationService.processNotification(notification);
             }
-        });
+        }
 
         // Notify all current users about project update
-        savedEntity.getUsers().forEach(user ->
-                notificationService.createProjectNotification(
-                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                        notificationType,
-                        new UserDTO(user)
-                )
-        );
+        for (User user : savedEntity.getUsers()) {
+            notificationService.createProjectNotification(
+                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                    notificationType,
+                    new UserDTO(user)
+            );
+        }
 
         return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
     }
@@ -177,13 +180,13 @@ public class ProjetoService {
                 ? NotificationType.PROJETO_CONCLUIDO
                 : NotificationType.PROJETO_STATUS_ALTERADO;  // Changed from PROJETO_ATUALIZADO
 
-        savedEntity.getUsers().forEach(user ->
-                notificationService.createProjectNotification(
-                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                        notificationType,
-                        new UserDTO(user)
-                )
-        );
+        for (User user : savedEntity.getUsers()) {
+            notificationService.createProjectNotification(
+                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                    notificationType,
+                    new UserDTO(user)
+            );
+        }
 
         return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
     }
@@ -206,7 +209,9 @@ public class ProjetoService {
         try {
             Projeto projeto = findByIdForDelete(id);
             // Mark all associated tasks as deleted
-            projeto.getTarefas().forEach(Tarefa::markAsDeleted);
+            for (Tarefa tarefa : projeto.getTarefas()) {
+                tarefa.markAsDeleted();
+            }
             projeto.markAsDeleted();
             projetoRepository.save(projeto);
         } catch (EntityNotFoundException e) {
@@ -218,9 +223,12 @@ public class ProjetoService {
     public List<ProjetoWithUsersAndTarefasDTO> searchProjetos(String query) {
         String searchQuery = "%" + query.toLowerCase() + "%";
         List<Projeto> projetos = projetoRepository.findByDesignacaoLikeIgnoreCaseOrEntidadeLikeIgnoreCase(searchQuery, searchQuery);
-        return projetos.stream()
-                .map(ProjetoWithUsersAndTarefasDTO::new)
-                .toList();
+        List<ProjetoWithUsersAndTarefasDTO> list = new ArrayList<>();
+        for (Projeto projeto : projetos) {
+            ProjetoWithUsersAndTarefasDTO projetoWithUsersAndTarefasDTO = new ProjetoWithUsersAndTarefasDTO(projeto);
+            list.add(projetoWithUsersAndTarefasDTO);
+        }
+        return list;
     }
 
     @Transactional(readOnly = true)
@@ -231,9 +239,12 @@ public class ProjetoService {
 
     @Transactional(readOnly = true)
     public List<ProjetoWithUsersDTO> findAll() {
-        return projetoRepository.findAllActive().stream()
-                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
-                .collect(Collectors.toList());
+        List<ProjetoWithUsersDTO> list = new ArrayList<>();
+        for (Projeto projeto : projetoRepository.findAllActive()) {
+            ProjetoWithUsersDTO projetoWithUsersDTO = new ProjetoWithUsersDTO(projeto, projeto.getUsers());
+            list.add(projetoWithUsersDTO);
+        }
+        return list;
     }
 
     @Transactional(readOnly = true)
@@ -277,39 +288,45 @@ public class ProjetoService {
 
     @Transactional(readOnly = true)
     public List<ProjetoWithUsersDTO> findByCoordenador(Long coordenadorId) {
-        return projetoRepository.findByCoordenadorId(coordenadorId).stream()
-                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
-                .collect(Collectors.toList());
+        List<ProjetoWithUsersDTO> list = new ArrayList<>();
+        for (Projeto projeto : projetoRepository.findByCoordenadorId(coordenadorId)) {
+            ProjetoWithUsersDTO projetoWithUsersDTO = new ProjetoWithUsersDTO(projeto, projeto.getUsers());
+            list.add(projetoWithUsersDTO);
+        }
+        return list;
     }
 
     @Transactional(readOnly = true)
     public List<ExternoDTO> findExternosByProjetoId(Long projetoId) {
         try {
             List<Externo> externos = projetoRepository.findExternosByProjetoId(projetoId);
-            return externos.stream()
-                    .map(ExternoDTO::new)
-                    .collect(Collectors.toList());
+            List<ExternoDTO> list = new ArrayList<>();
+            for (Externo externo : externos) {
+                ExternoDTO externoDTO = new ExternoDTO(externo);
+                list.add(externoDTO);
+            }
+            return list;
         } catch (Exception e) {
             return Collections.emptyList();
         }
     }
 
     /**
-     * Check if a project is assigned to a specific user
+     * Check if a project is NOT assigned to a specific user or is deleted
      */
     @Transactional(readOnly = true)
-    public boolean isProjectAssignedToUser(Long projectId, String userEmail) {
+    public boolean shouldDenyProjectAccess(Long projectId, String userEmail) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) {
-            return false;
+            return true;  // Deny access if user not found
         }
 
         // Find all projects for this user
         Set<Projeto> userProjetos = user.getProjetos();
 
-        // Check if the requested project is in the user's projects
+        // Return true to deny access if the project is not in user's projects or is deleted
         return userProjetos.stream()
-                .anyMatch(projeto -> projeto.getId().equals(projectId));
+                .noneMatch(projeto -> projeto.getId().equals(projectId) && !projeto.isDeleted());
     }
 
     /**
@@ -325,6 +342,15 @@ public class ProjetoService {
         // Get all projects for this user
         List<Projeto> userProjects = new ArrayList<>(user.getProjetos());
 
+        // IMPORTANT: Filter out deleted projects
+        List<Projeto> list = new ArrayList<>();
+        for (Projeto userProject : userProjects) {
+            if (!userProject.isDeleted()) {
+                list.add(userProject);
+            }
+        }
+        userProjects = list;
+
         // Apply pagination manually (since we fetched from user entity)
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), userProjects.size());
@@ -334,9 +360,11 @@ public class ProjetoService {
                 : Collections.emptyList();
 
         // Convert to DTOs
-        List<ProjetoWithUsersDTO> dtos = pagedProjects.stream()
-                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
-                .collect(Collectors.toList());
+        List<ProjetoWithUsersDTO> dtos = new ArrayList<>();
+        for (Projeto projeto : pagedProjects) {
+            ProjetoWithUsersDTO projetoWithUsersDTO = new ProjetoWithUsersDTO(projeto, projeto.getUsers());
+            dtos.add(projetoWithUsersDTO);
+        }
 
         return new PageImpl<>(dtos, pageable, userProjects.size());
     }
@@ -355,6 +383,7 @@ public class ProjetoService {
 
         // Get all projects for this user that match the search query
         List<Projeto> userProjects = user.getProjetos().stream()
+                .filter(projeto -> !projeto.isDeleted())
                 .filter(projeto ->
                         projeto.getDesignacao().toLowerCase().contains(query.toLowerCase()) ||
                                 projeto.getEntidade().toLowerCase().contains(query.toLowerCase()))
@@ -402,6 +431,7 @@ public class ProjetoService {
 
         // Filter the user's projects manually
         List<Projeto> filteredProjects = userProjects.stream()
+                .filter(projeto -> !projeto.isDeleted()) // Use isDeleted() method
                 .filter(projeto ->
                         (designacao == null || projeto.getDesignacao().toLowerCase().contains(designacao.toLowerCase())) &&
                                 (entidade == null || projeto.getEntidade().toLowerCase().contains(entidade.toLowerCase())) &&

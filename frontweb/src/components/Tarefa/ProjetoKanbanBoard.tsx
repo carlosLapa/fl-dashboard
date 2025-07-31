@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
 import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
@@ -15,8 +15,8 @@ import './styles.scss';
 // Import permission related modules
 import { Permission } from '../../permissions/rolePermissions';
 import { usePermissions } from '../../hooks/usePermissions';
-import { useAuth } from '../../AuthContext'; // Add this import
-import { toast } from 'react-toastify'; // Remove ToastContainer from imports
+import { useAuth } from '../../AuthContext';
+import { toast } from 'react-toastify';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
@@ -54,25 +54,17 @@ const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   // Get the permissions hook for checking user permissions
   const { hasPermission } = usePermissions();
-  const { user } = useAuth(); // Add this for debugging
-  
-  // Add debugging useEffect
-  useEffect(() => {
-    console.log('=== DEBUGGING USER PERMISSIONS ===');
-    console.log('Current user:', user);
-    console.log('User roles:', user?.roles);
-    console.log('Has MOVE_CARD_TO_REVIEW permission:', hasPermission(Permission.MOVE_CARD_TO_REVIEW));
-    console.log('Has MOVE_CARD_TO_DONE permission:', hasPermission(Permission.MOVE_CARD_TO_DONE));
-    
-    // Check individual role permissions
+  const { user } = useAuth();
+
+  // Direct admin check that doesn't rely on the permission system
+  const isAdmin = useMemo(() => {
     if (user?.roles) {
-      user.roles.forEach((role, index) => {
-        console.log(`Role ${index}:`, role);
-        console.log(`Role type: ${role.role_type || role.name}`);
-      });
+      return user.roles.some(
+        (role) => role.authority === 'ROLE_ADMIN' || role.role_type === 'ADMIN'
+      );
     }
-    console.log('=== END DEBUGGING ===');
-  }, [user, hasPermission]);
+    return false;
+  }, [user]);
 
   const statusTranslations: { [key in TarefaStatus]: string } = {
     BACKLOG: 'Backlog',
@@ -102,12 +94,45 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [projectDeleted, setProjectDeleted] = useState(false);
 
   useEffect(() => {
     const fetchColumnsAndTarefas = async () => {
       setIsLoading(true);
+
+      // Check if projeto exists and has necessary properties
+      if (!projeto || !projeto.id) {
+        setError('Projeto não encontrado ou informações incompletas.');
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const fetchedColumns = await getColumnsForProject(projeto.id);
+        // Attempt to fetch columns for the project
+        let fetchedColumns;
+        try {
+          fetchedColumns = await getColumnsForProject(projeto.id);
+          if (!fetchedColumns || fetchedColumns.length === 0) {
+            console.warn(`No columns found for project ID: ${projeto.id}`);
+          }
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            if (
+              error.response?.status === 400 ||
+              error.response?.status === 404 ||
+              error.response?.status === 403
+            ) {
+              setProjectDeleted(true);
+              setError(
+                'Este projeto foi excluído ou não está mais disponível.'
+              );
+              setIsLoading(false);
+              return;
+            }
+          }
+          throw error;
+        }
+
         const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
           BACKLOG: [],
           TODO: [],
@@ -116,11 +141,24 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           DONE: [],
         };
 
-        fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
-          if (column.status in updatedColumns) {
-            updatedColumns[column.status as TarefaStatus] = [];
-          }
-        });
+        if (fetchedColumns) {
+          fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
+            if (column.status in updatedColumns) {
+              updatedColumns[column.status as TarefaStatus] = [];
+            }
+          });
+        }
+
+        // Ensure projeto.tarefas exists before trying to iterate
+        if (!projeto.tarefas || !Array.isArray(projeto.tarefas)) {
+          console.warn(
+            `Project ${projeto.id} has no tasks or tarefas is not an array`
+          );
+          setColumns(updatedColumns);
+          setError(null);
+          setIsLoading(false);
+          return;
+        }
 
         for (const tarefa of projeto.tarefas) {
           try {
@@ -160,10 +198,22 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
               updatedColumns.BACKLOG.push(kanbanTarefa);
             }
           } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 404) {
-              continue;
+            if (axios.isAxiosError(error)) {
+              if (error.response?.status === 404) {
+                console.warn(
+                  `Task ${tarefa.id} not found, may have been deleted`
+                );
+                continue;
+              } else if (error.response?.status === 403) {
+                console.warn(`Permission denied for task ${tarefa.id}`);
+                continue;
+              } else if (error.response?.status === 400) {
+                console.warn(`Bad request for task ${tarefa.id}`);
+                continue;
+              }
             }
-            throw error;
+            console.error(`Error fetching task ${tarefa.id}:`, error);
+            continue;
           }
         }
 
@@ -171,7 +221,26 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         setError(null);
       } catch (error) {
         console.error('Error fetching columns and tarefas:', error);
-        setError('Erro ao carregar dados do quadro Kanban');
+
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 403) {
+            setError('Você não tem permissão para acessar este projeto.');
+          } else if (
+            error.response?.status === 404 ||
+            error.response?.status === 400
+          ) {
+            setProjectDeleted(true);
+            setError('Este projeto foi excluído ou não está mais disponível.');
+          } else {
+            setError(
+              'Erro ao carregar dados do quadro Kanban. Por favor, tente novamente.'
+            );
+          }
+        } else {
+          setError(
+            'Erro ao carregar dados do quadro Kanban. Por favor, tente novamente.'
+          );
+        }
       } finally {
         setIsLoading(false);
       }
@@ -194,17 +263,26 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       return;
     }
 
-    // Check permissions for specific column movements - Use global toast
-    if (destination.droppableId === 'IN_REVIEW' && 
-        !hasPermission(Permission.MOVE_CARD_TO_REVIEW)) {
-      toast.error('Você não tem permissão para mover tarefas para Em Revisão');
-      return; // Block the movement
-    }
+    // Admin override - skip permission checks for admins
+    if (!isAdmin) {
+      // Check permissions for specific column movements
+      if (
+        destination.droppableId === 'IN_REVIEW' &&
+        !hasPermission(Permission.MOVE_CARD_TO_REVIEW)
+      ) {
+        toast.error(
+          'Você não tem permissão para mover tarefas para Em Revisão'
+        );
+        return; // Block the movement
+      }
 
-    if (destination.droppableId === 'DONE' && 
-        !hasPermission(Permission.MOVE_CARD_TO_DONE)) {
-      toast.error('Você não tem permissão para mover tarefas para Concluído');
-      return; // Block the movement
+      if (
+        destination.droppableId === 'DONE' &&
+        !hasPermission(Permission.MOVE_CARD_TO_DONE)
+      ) {
+        toast.error('Você não tem permissão para mover tarefas para Concluído');
+        return; // Block the movement
+      }
     }
 
     const sourceColumn = columns[source.droppableId as TarefaStatus];
@@ -236,6 +314,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       );
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
+      toast.error('Falha ao atualizar o status da tarefa');
       // Revert changes on error
       setColumns(columns);
     }
@@ -254,38 +333,73 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     );
   }
 
+  if (projectDeleted) {
+    return (
+      <Alert variant="warning" className="mb-3">
+        <Alert.Heading>Projeto não disponível</Alert.Heading>
+        <p>Este projeto foi excluído ou não está mais disponível no sistema.</p>
+        <p>
+          Se você acredita que isto é um erro, entre em contato com um
+          administrador.
+        </p>
+      </Alert>
+    );
+  }
+
   if (error) {
-    return <div className="error-message">{error}</div>;
+    return (
+      <Alert variant="danger" className="mb-3">
+        <Alert.Heading>Erro</Alert.Heading>
+        <p>{error}</p>
+      </Alert>
+    );
   }
 
   return (
     <div className="kanban-board-wrapper">
-      {/* Remove the custom ToastContainer */}
-      
-      {/* Optional: Display a message about permissions */}
-      {!hasPermission(Permission.MOVE_CARD_TO_REVIEW) && (
+      {/* Show different alerts based on user role */}
+      {!isAdmin && !hasPermission(Permission.MOVE_CARD_TO_REVIEW) && (
         <Alert variant="info" className="mb-3">
-          Nota: Você não tem permissão para mover tarefas para as colunas "Em Revisão" ou "Concluído".
+          Nota: Você pode mover tarefas apenas entre as colunas "Backlog", "A
+          Fazer" e "Em Progresso". Para mover para "Em Revisão" ou "Concluído",
+          entre em contato com um gerente ou administrador.
         </Alert>
       )}
-      
+
+      {isAdmin && (
+        <Alert variant="success" className="mb-3">
+          <strong>Modo Administrador:</strong> Você tem acesso completo ao
+          quadro Kanban.
+        </Alert>
+      )}
+
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="kanban-board-container">
-          {columnsOrder.map((columnId) => (
-            <TarefaColumn
-              key={columnId}
-              columnId={columnId}
-              tarefas={columns[columnId]}
-              columnTitle={statusTranslations[columnId]}
-              canDrop={
-                columnId !== 'IN_REVIEW' && columnId !== 'DONE' 
-                  ? true 
-                  : columnId === 'IN_REVIEW' 
-                    ? hasPermission(Permission.MOVE_CARD_TO_REVIEW) 
-                    : hasPermission(Permission.MOVE_CARD_TO_DONE)
-              }
-            />
-          ))}
+          {columnsOrder.map((columnId) => {
+            // Define which columns are freely accessible to employees
+            const isUnrestrictedColumn = [
+              'BACKLOG',
+              'TODO',
+              'IN_PROGRESS',
+            ].includes(columnId);
+
+            return (
+              <TarefaColumn
+                key={columnId}
+                columnId={columnId}
+                tarefas={columns[columnId]}
+                columnTitle={statusTranslations[columnId]}
+                canDrop={
+                  isAdmin || // Admin can drop anywhere
+                  isUnrestrictedColumn || // Employees can drop in unrestricted columns
+                  (columnId === 'IN_REVIEW' &&
+                    hasPermission(Permission.MOVE_CARD_TO_REVIEW)) ||
+                  (columnId === 'DONE' &&
+                    hasPermission(Permission.MOVE_CARD_TO_DONE))
+                }
+              />
+            );
+          })}
         </div>
       </DragDropContext>
     </div>

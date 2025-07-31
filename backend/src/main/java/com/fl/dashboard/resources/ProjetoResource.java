@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
+import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
+
 @RestController
 @RequestMapping(value = "/projetos")
 public class ProjetoResource {
@@ -32,26 +34,19 @@ public class ProjetoResource {
 
     @GetMapping
     public ResponseEntity<Page<ProjetoWithUsersDTO>> findAll(Pageable pageable, Authentication authentication) {
-        // Check permissions and return different results based on user's role
         boolean canViewAll = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
 
         if (canViewAll) {
-            // User can view all projects
             Page<ProjetoWithUsersDTO> list = projetoService.findAllPaged(pageable);
             return ResponseEntity.ok().body(list);
         } else {
-            // User can only view assigned projects
-            // Get the actual email from the token claims, not from authentication.getName()
             String userEmail;
-
-            // Using pattern matching for instanceof (Java 16+)
             if (authentication.getPrincipal() instanceof Jwt jwt) {
                 userEmail = jwt.getClaim("email");
             } else {
                 userEmail = authentication.getName();
             }
-
             Page<ProjetoWithUsersDTO> list = projetoService.findProjectsByUserEmail(userEmail, pageable);
             return ResponseEntity.ok().body(list);
         }
@@ -59,56 +54,77 @@ public class ProjetoResource {
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<ProjetoDTO> findById(@PathVariable Long id, Authentication authentication) {
-        // Check if user has permission to view this project
-        boolean canViewAll = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
+        try {
+            boolean canViewAll = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
 
-        if (!canViewAll) {
-            // Check if project is assigned to user
-            String userEmail = authentication.getName();
-            if (!projetoService.isProjectAssignedToUser(id, userEmail)) {
-                return ResponseEntity.status(403).build(); // Forbidden
+            if (!canViewAll) {
+                String userEmail;
+                if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    userEmail = jwt.getClaim("email");
+                } else {
+                    userEmail = authentication.getName();
+                }
+                if (projetoService.shouldDenyProjectAccess(id, userEmail)) {
+                    return ResponseEntity.status(403).build();
+                }
             }
-        }
 
-        ProjetoDTO projetoDTO = projetoService.findByIdWithUsers(id);
-        return ResponseEntity.ok().body(projetoDTO);
+            ProjetoDTO projetoDTO = projetoService.findByIdWithUsers(id);
+            return ResponseEntity.ok().body(projetoDTO);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/{id}/with-tarefas")
     public ResponseEntity<ProjetoWithTarefasDTO> getProjetoWithTarefas(@PathVariable Long id, Authentication authentication) {
-        // Check if user has permission to view this project
-        boolean canViewAll = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
+        try {
+            boolean canViewAll = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
 
-        if (!canViewAll) {
-            // Check if project is assigned to user
-            String userEmail = authentication.getName();
-            if (!projetoService.isProjectAssignedToUser(id, userEmail)) {
-                return ResponseEntity.status(403).build(); // Forbidden
+            if (!canViewAll) {
+                String userEmail;
+                if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    userEmail = jwt.getClaim("email");
+                } else {
+                    userEmail = authentication.getName();
+                }
+                if (projetoService.shouldDenyProjectAccess(id, userEmail)) {
+                    return ResponseEntity.status(403).build();
+                }
             }
-        }
 
-        ProjetoWithTarefasDTO projeto = projetoService.findProjetoWithTarefas(id);
-        return ResponseEntity.ok(projeto);
+            ProjetoWithTarefasDTO projeto = projetoService.findProjetoWithTarefas(id);
+            return ResponseEntity.ok(projeto);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/{id}/full")
     public ResponseEntity<ProjetoWithUsersAndTarefasDTO> getProjetoWithUsersAndTarefas(@PathVariable Long id, Authentication authentication) {
-        // Check if user has permission to view this project
-        boolean canViewAll = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
+        try {
+            boolean canViewAll = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
 
-        if (!canViewAll) {
-            // Check if project is assigned to user
-            String userEmail = authentication.getName();
-            if (!projetoService.isProjectAssignedToUser(id, userEmail)) {
-                return ResponseEntity.status(403).build(); // Forbidden
+            if (!canViewAll) {
+                String userEmail;
+                if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    userEmail = jwt.getClaim("email");
+                } else {
+                    userEmail = authentication.getName();
+                }
+                if (projetoService.shouldDenyProjectAccess(id, userEmail)) {
+                    return ResponseEntity.status(403).build();
+                }
             }
-        }
 
-        ProjetoWithUsersAndTarefasDTO projeto = projetoService.findProjetoWithUsersAndTarefas(id);
-        return ResponseEntity.ok(projeto);
+            ProjetoWithUsersAndTarefasDTO projeto = projetoService.findProjetoWithUsersAndTarefas(id);
+            return ResponseEntity.ok(projeto);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping
@@ -116,7 +132,6 @@ public class ProjetoResource {
     public ResponseEntity<ProjetoWithUsersDTO> insert(@Valid @RequestBody ProjetoWithUsersDTO dto) {
         ProjetoWithUsersDTO savedDto = projetoService.insert(dto);
 
-        // Send notifications to all assigned users
         savedDto.getUsers().forEach(user ->
                 notificationService.createProjectNotification(
                         projetoService.findByIdWithUsers(savedDto.getId()),
@@ -133,32 +148,43 @@ public class ProjetoResource {
     @PutMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('EDIT_PROJECT')")
     public ResponseEntity<ProjetoWithUsersDTO> update(@PathVariable Long id, @Valid @RequestBody ProjetoWithUsersDTO dto) {
-        ProjetoWithUsersDTO newDto = projetoService.update(id, dto);
+        try {
+            ProjetoWithUsersDTO newDto = projetoService.update(id, dto);
 
-        // Send notifications to all assigned users
-        newDto.getUsers().forEach(user ->
-                notificationService.createProjectNotification(
-                        projetoService.findByIdWithUsers(newDto.getId()),
-                        NotificationType.PROJETO_ATUALIZADO,
-                        user
-                )
-        );
+            newDto.getUsers().forEach(user ->
+                    notificationService.createProjectNotification(
+                            projetoService.findByIdWithUsers(newDto.getId()),
+                            NotificationType.PROJETO_ATUALIZADO,
+                            user
+                    )
+            );
 
-        return ResponseEntity.ok().body(newDto);
+            return ResponseEntity.ok().body(newDto);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PatchMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('EDIT_PROJECT')")
     public ResponseEntity<ProjetoDTO> updateBasicInfo(@PathVariable Long id, @Valid @RequestBody ProjetoDTO dto) {
-        ProjetoDTO newDto = projetoService.updateBasicInfo(id, dto);
-        return ResponseEntity.ok().body(newDto);
+        try {
+            ProjetoDTO newDto = projetoService.updateBasicInfo(id, dto);
+            return ResponseEntity.ok().body(newDto);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('DELETE_PROJECT')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        projetoService.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            projetoService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/search")
@@ -167,12 +193,15 @@ public class ProjetoResource {
                 .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
 
         if (canViewAll) {
-            // User can view all projects
             List<ProjetoWithUsersAndTarefasDTO> results = projetoService.searchProjetos(query);
             return ResponseEntity.ok().body(results);
         } else {
-            // User can only view assigned projects
-            String userEmail = authentication.getName();
+            String userEmail;
+            if (authentication.getPrincipal() instanceof Jwt jwt) {
+                userEmail = jwt.getClaim("email");
+            } else {
+                userEmail = authentication.getName();
+            }
             List<ProjetoWithUsersAndTarefasDTO> results = projetoService.searchProjetosForUser(query, userEmail);
             return ResponseEntity.ok().body(results);
         }
@@ -184,8 +213,12 @@ public class ProjetoResource {
             @PathVariable Long id,
             @RequestParam String status
     ) {
-        ProjetoWithUsersDTO updatedProjeto = projetoService.updateStatus(id, status);
-        return ResponseEntity.ok().body(updatedProjeto);
+        try {
+            ProjetoWithUsersDTO updatedProjeto = projetoService.updateStatus(id, status);
+            return ResponseEntity.ok().body(updatedProjeto);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/filter")
@@ -208,15 +241,18 @@ public class ProjetoResource {
                 .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
 
         if (canViewAll) {
-            // User can filter all projects
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetos(
                     designacao, entidade, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
                     adjudicacaoStartDate, adjudicacaoEndDate, pageable);
             return ResponseEntity.ok().body(result);
         } else {
-            // User can only filter assigned projects
-            String userEmail = authentication.getName();
+            String userEmail;
+            if (authentication.getPrincipal() instanceof Jwt jwt) {
+                userEmail = jwt.getClaim("email");
+            } else {
+                userEmail = authentication.getName();
+            }
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetosForUser(
                     designacao, entidade, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
@@ -234,21 +270,26 @@ public class ProjetoResource {
 
     @GetMapping("/{id}/externos")
     public ResponseEntity<List<ExternoDTO>> getExternosByProjetoId(@PathVariable Long id, Authentication authentication) {
-        // Check if user has permission to view this project
-        boolean canViewAll = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
-
-        if (!canViewAll) {
-            // Check if project is assigned to user
-            String userEmail = authentication.getName();
-            if (!projetoService.isProjectAssignedToUser(id, userEmail)) {
-                return ResponseEntity.status(403).build(); // Forbidden
-            }
-        }
-
         try {
+            boolean canViewAll = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
+
+            if (!canViewAll) {
+                String userEmail;
+                if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    userEmail = jwt.getClaim("email");
+                } else {
+                    userEmail = authentication.getName();
+                }
+                if (projetoService.shouldDenyProjectAccess(id, userEmail)) {
+                    return ResponseEntity.status(403).build();
+                }
+            }
+
             List<ExternoDTO> externos = projetoService.findExternosByProjetoId(id);
             return ResponseEntity.ok(externos);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
