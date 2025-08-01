@@ -14,7 +14,6 @@ interface TarefaFilterPanelProps {
   setShowFilters: (show: boolean) => void;
 }
 
-// Updated with the correct status options
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos' },
   { value: 'BACKLOG', label: 'Backlog' },
@@ -38,50 +37,34 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
   showFilters,
   setShowFilters,
 }) => {
-  // Project search state
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [filteredProjetos, setFilteredProjetos] = useState<Projeto[]>([]);
   const [showProjetoDropdown, setShowProjetoDropdown] = useState(false);
   const [projetoSearchText, setProjetoSearchText] = useState('');
 
-  // Initialize projetoSearchText from filters on first render
-  useEffect(() => {
-    const initializeProjetoSearch = async () => {
-      if (filters.projetoId && projetos.length > 0) {
-        const projeto = projetos.find(
-          (p) => p.id.toString() === filters.projetoId
-        );
-        if (projeto) {
-          setProjetoSearchText(projeto.designacao);
-        }
-      }
-    };
-
-    initializeProjetoSearch();
-  }, [filters.projetoId, projetos]);
-
-  // Calculate active filters count
-  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    // Skip empty values and dateFilterField (which is always set)
-    return value && value !== '' && key !== 'dateFilterField';
-  }).length;
-
-  // Fetch all projetos when the component mounts
   useEffect(() => {
     const fetchProjetos = async () => {
       try {
-        console.log('TarefaFilterPanel - Fetching projetos...');
         const response = await getProjetosAPI(0, 1000);
-        console.log('TarefaFilterPanel - Fetched projetos:', response.content);
         setProjetos(response.content);
       } catch (error) {
-        console.error('TarefaFilterPanel - Error fetching projetos:', error);
+        console.error('Error fetching projetos:', error);
       }
     };
     fetchProjetos();
   }, []);
 
-  // Filter projetos based on user input
+  useEffect(() => {
+    if (filters.projetoId && projetos.length > 0) {
+      const projeto = projetos.find(
+        (p) => p.id.toString() === filters.projetoId
+      );
+      if (projeto) {
+        setProjetoSearchText(projeto.designacao);
+      }
+    }
+  }, [filters.projetoId, projetos]);
+
   useEffect(() => {
     if (projetoSearchText) {
       const filtered = projetos.filter((projeto) =>
@@ -97,12 +80,9 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
     }
   }, [projetoSearchText, projetos]);
 
-  // Handler functions for projeto search
   const handleProjetoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setProjetoSearchText(value);
-
-    // If the input is cleared, also clear the projetoId filter
     if (value === '') {
       updateFilter('projetoId', '');
     }
@@ -114,13 +94,16 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
     setShowProjetoDropdown(false);
   };
 
-  // Handle Enter key in select elements
   const handleSelectKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onApplyFilters();
     }
   };
+
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    return value && value !== '' && key !== 'dateFilterField';
+  }).length;
 
   return (
     <BaseFilterPanel
@@ -129,12 +112,11 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
       onApplyFilters={onApplyFilters}
       onClearFilters={() => {
         onClearFilters();
-        setProjetoSearchText(''); // Clear the local search text when filters are cleared
+        setProjetoSearchText('');
       }}
       activeFiltersCount={activeFiltersCount}
       title="Filtros Avançados"
     >
-      {/* Text Filters */}
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Descrição</Form.Label>
@@ -147,7 +129,6 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
         </Form.Group>
       </Col>
 
-      {/* Projeto Filter with Autocomplete */}
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Projeto</Form.Label>
@@ -163,7 +144,6 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
                 }
               }}
               onBlur={() => {
-                // Delay hiding the dropdown to allow for clicks
                 setTimeout(() => setShowProjetoDropdown(false), 200);
               }}
             />
@@ -192,7 +172,6 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
         </Form.Group>
       </Col>
 
-      {/* Status Filter */}
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Estado</Form.Label>
@@ -210,7 +189,6 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
         </Form.Group>
       </Col>
 
-      {/* Date Filter Type */}
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Campo de Data</Form.Label>
@@ -228,7 +206,6 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
         </Form.Group>
       </Col>
 
-      {/* Date Range Filters */}
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Data Inicial</Form.Label>

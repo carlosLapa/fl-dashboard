@@ -549,54 +549,80 @@ public class TarefaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<TarefaWithUserAndProjetoDTO> findByDateRange(String dateField, Date startDate, Date endDate, int page, int size) {
+    public Page<TarefaWithUserAndProjetoDTO> findByDateRange(
+            String dateField, Date startDate, Date endDate, int page, int size, String userEmail, boolean canViewAll) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        // If dates are not provided, return empty result
-        if (startDate == null || endDate == null) {
-            return Page.empty(pageRequest);
+
+        if (canViewAll) {
+            // Original logic for privileged users
+            if (startDate == null || endDate == null) {
+                return Page.empty(pageRequest);
+            }
+            if (!dateField.equals("prazoEstimado") && !dateField.equals("prazoReal")) {
+                throw new IllegalArgumentException("Field must be either 'prazoEstimado' or 'prazoReal'");
+            }
+            Page<Tarefa> tarefaPage = tarefaRepository.findByDateRange(dateField, startDate, endDate, pageRequest);
+            if (tarefaPage.isEmpty()) {
+                return Page.empty(pageRequest);
+            }
+            List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                    .map(TarefaWithUserAndProjetoDTO::new)
+                    .toList();
+            return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+        } else {
+            // Filter for non-privileged users
+            User user = userRepository.findByEmail(userEmail);
+            if (user == null || startDate == null || endDate == null) return Page.empty(pageRequest);
+            List<Tarefa> tarefas = user.getTarefas().stream()
+                    .filter(tarefa -> !tarefa.isDeleted())
+                    .filter(tarefa -> {
+                        Date date = "prazoEstimado".equals(dateField) ? tarefa.getPrazoEstimado() : tarefa.getPrazoReal();
+                        return date != null && !date.before(startDate) && !date.after(endDate);
+                    })
+                    .sorted((a, b) -> Long.compare(a.getId(), b.getId()))
+                    .toList();
+            int start = Math.min(page * size, tarefas.size());
+            int end = Math.min(start + size, tarefas.size());
+            List<TarefaWithUserAndProjetoDTO> dtos = tarefas.subList(start, end).stream()
+                    .map(TarefaWithUserAndProjetoDTO::new)
+                    .toList();
+            return new PageImpl<>(dtos, pageRequest, tarefas.size());
         }
-
-        // Validate field parameter
-        if (!dateField.equals("prazoEstimado") && !dateField.equals("prazoReal")) {
-            throw new IllegalArgumentException("Field must be either 'prazoEstimado' or 'prazoReal'");
-        }
-
-        Page<Tarefa> tarefaPage = tarefaRepository.findByDateRange(dateField, startDate, endDate, pageRequest);
-        if (tarefaPage.isEmpty()) {
-            return Page.empty(pageRequest);
-        }
-
-        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
-                .map(tarefa -> {
-                    // Ensure the collections are loaded within the transaction
-                    Hibernate.initialize(tarefa.getUsers());
-                    if (tarefa.getProjeto() != null) {
-                        Hibernate.initialize(tarefa.getProjeto());
-                    }
-                    return new TarefaWithUserAndProjetoDTO(tarefa);
-                })
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)
-    public Page<TarefaWithUserAndProjetoDTO> findAllSorted(String sortField, String sortDirection, int page, int size) {
+    public Page<TarefaWithUserAndProjetoDTO> findAllSorted(
+            String sortField, String sortDirection, int page, int size, String userEmail, boolean canViewAll) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
-        Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveSorted(pageRequest);
 
-        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
-                .map(tarefa -> {
-                    Hibernate.initialize(tarefa.getUsers());
-                    if (tarefa.getProjeto() != null) {
-                        Hibernate.initialize(tarefa.getProjeto());
-                    }
-                    return new TarefaWithUserAndProjetoDTO(tarefa);
-                })
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+        if (canViewAll) {
+            Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveSorted(pageRequest);
+            List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                    .map(TarefaWithUserAndProjetoDTO::new)
+                    .toList();
+            return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+        } else {
+            User user = userRepository.findByEmail(userEmail);
+            if (user == null) return Page.empty(pageRequest);
+            List<Tarefa> tarefas = user.getTarefas().stream()
+                    .filter(tarefa -> !tarefa.isDeleted())
+                    .sorted((a, b) -> {
+                        if ("id".equals(sortField)) {
+                            return sortDirection.equalsIgnoreCase("ASC") ?
+                                    Long.compare(a.getId(), b.getId()) : Long.compare(b.getId(), a.getId());
+                        }
+                        // Add more sort fields as needed
+                        return 0;
+                    })
+                    .toList();
+            int start = Math.min(page * size, tarefas.size());
+            int end = Math.min(start + size, tarefas.size());
+            List<TarefaWithUserAndProjetoDTO> dtos = tarefas.subList(start, end).stream()
+                    .map(TarefaWithUserAndProjetoDTO::new)
+                    .toList();
+            return new PageImpl<>(dtos, pageRequest, tarefas.size());
+        }
     }
 
     // Add a method to recalculate working days for a specific tarefa
@@ -623,15 +649,38 @@ public class TarefaService {
         return new TarefaDTO(tarefa);
     }
 
+    private boolean matchesFilter(Tarefa tarefa, TarefaFilterDTO filterDTO, Date adjustedEndDate) {
+        if (tarefa.isDeleted()) return false;
+        if (filterDTO.getDescricao() != null &&
+                (tarefa.getDescricao() == null || !tarefa.getDescricao().toLowerCase().contains(filterDTO.getDescricao().toLowerCase()))) {
+            return false;
+        }
+        if (filterDTO.getStatus() != null && tarefa.getStatus() != filterDTO.getStatus()) {
+            return false;
+        }
+        if (filterDTO.getProjetoId() != null &&
+                (tarefa.getProjeto() == null || !tarefa.getProjeto().getId().equals(filterDTO.getProjetoId()))) {
+            return false;
+        }
+        if (filterDTO.getDateField() != null && filterDTO.getStartDate() != null && adjustedEndDate != null) {
+            Date date = "prazoEstimado".equals(filterDTO.getDateField()) ? tarefa.getPrazoEstimado() : tarefa.getPrazoReal();
+            if (date == null || date.before(filterDTO.getStartDate()) || date.after(adjustedEndDate)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Transactional(readOnly = true)
     public Page<TarefaWithUserAndProjetoDTO> findWithFilters(
             TarefaFilterDTO filterDTO,
             int page,
             int size,
             String sortField,
-            String sortDirection) {
+            String sortDirection,
+            String userEmail,
+            boolean canViewAll) {
 
-        // Adjust end date to make the range inclusive
         Date adjustedEndDate = null;
         if (filterDTO.getEndDate() != null) {
             Calendar calendar = Calendar.getInstance();
@@ -640,38 +689,71 @@ public class TarefaService {
             adjustedEndDate = calendar.getTime();
         }
 
-        // Create sort object
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
-        // Execute query with filters
-        Page<Tarefa> tarefaPage = tarefaRepository.findWithFilters(
-                filterDTO.getDescricao(),
-                filterDTO.getStatus(),
-                filterDTO.getProjetoId(),
-                filterDTO.getDateField(),
-                filterDTO.getStartDate(),
-                adjustedEndDate,
-                pageRequest
-        );
-
-        if (tarefaPage.isEmpty()) {
-            return Page.empty(pageRequest);
+        if (canViewAll) {
+            Page<Tarefa> tarefaPage = tarefaRepository.findWithFilters(
+                    filterDTO.getDescricao(),
+                    filterDTO.getStatus(),
+                    filterDTO.getProjetoId(),
+                    filterDTO.getDateField(),
+                    filterDTO.getStartDate(),
+                    adjustedEndDate,
+                    pageRequest
+            );
+            if (tarefaPage.isEmpty()) {
+                return Page.empty(pageRequest);
+            }
+            List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                    .map(TarefaWithUserAndProjetoDTO::new)
+                    .toList();
+            return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+        } else {
+            User user = userRepository.findByEmail(userEmail);
+            if (user == null) return Page.empty(pageRequest);
+            final Date finalAdjustedEndDate = adjustedEndDate;
+            List<Tarefa> tarefas = user.getTarefas().stream()
+                    .filter(tarefa -> matchesFilter(tarefa, filterDTO, finalAdjustedEndDate))
+                    .sorted((a, b) -> {
+                        if ("id".equals(sortField)) {
+                            return sortDirection.equalsIgnoreCase("ASC") ?
+                                    Long.compare(a.getId(), b.getId()) : Long.compare(b.getId(), a.getId());
+                        }
+                        // Add more sort fields as needed
+                        return 0;
+                    })
+                    .toList();
+            int start = Math.min(page * size, tarefas.size());
+            int end = Math.min(start + size, tarefas.size());
+            List<TarefaWithUserAndProjetoDTO> dtos = tarefas.subList(start, end).stream()
+                    .map(TarefaWithUserAndProjetoDTO::new)
+                    .toList();
+            return new PageImpl<>(dtos, pageRequest, tarefas.size());
         }
+    }
 
-        // Convert to DTOs
-        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
-                .map(tarefa -> {
-                    // Ensure the collections are loaded within the transaction
-                    Hibernate.initialize(tarefa.getUsers());
-                    if (tarefa.getProjeto() != null) {
-                        Hibernate.initialize(tarefa.getProjeto());
-                    }
-                    return new TarefaWithUserAndProjetoDTO(tarefa);
-                })
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public boolean shouldDenyTaskAccess(Long tarefaId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) return true;
+        Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId).orElse(null);
+        if (tarefa == null || tarefa.isDeleted()) return true;
+        return tarefa.getUsers().stream().noneMatch(u -> u.getId().equals(user.getId()));
+    }
 
-        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+    @Transactional(readOnly = true)
+    public List<TarefaDTO> findAllAssignedToUser(String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) return Collections.emptyList();
+        List<TarefaDTO> list = new ArrayList<>();
+        for (Tarefa tarefa : user.getTarefas()) {
+            if (!tarefa.isDeleted()) {
+                TarefaDTO tarefaDTO = new TarefaDTO(tarefa);
+                list.add(tarefaDTO);
+            }
+        }
+        return list;
     }
 
 

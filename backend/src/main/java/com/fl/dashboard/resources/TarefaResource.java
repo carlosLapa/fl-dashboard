@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -26,32 +27,81 @@ public class TarefaResource {
     @Autowired
     private TarefaService tarefaService;
 
+    // Helper method to extract email from Authentication
+    private String extractUserEmail(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
+            return jwt.getClaim("email");
+        }
+        return authentication != null ? authentication.getName() : null;
+    }
+
     @GetMapping
-    public ResponseEntity<List<TarefaDTO>> findAll() {
-        List<TarefaDTO> list = tarefaService.findAll();
-        return ResponseEntity.ok().body(list);
+    public ResponseEntity<List<TarefaDTO>> findAll(Authentication authentication) {
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        if (canViewAll) {
+            List<TarefaDTO> list = tarefaService.findAll();
+            return ResponseEntity.ok().body(list);
+        } else {
+            String userEmail = extractUserEmail(authentication);
+            List<TarefaDTO> list = tarefaService.findAllAssignedToUser(userEmail);
+            return ResponseEntity.ok().body(list);
+        }
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<TarefaDTO> findById(@PathVariable Long id) {
+    public ResponseEntity<TarefaDTO> findById(@PathVariable Long id, Authentication authentication) {
+        // Permission check: only assigned users or privileged roles can view
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        if (!canViewAll) {
+            String userEmail = extractUserEmail(authentication);
+            if (tarefaService.shouldDenyTaskAccess(id, userEmail)) {
+                return ResponseEntity.status(403).build();
+            }
+        }
         TarefaDTO tarefaDTO = tarefaService.findById(id);
         return ResponseEntity.ok().body(tarefaDTO);
     }
 
     @GetMapping("/{id}/with-users")
-    public ResponseEntity<TarefaWithUsersDTO> findByIdWithUsers(@PathVariable Long id) {
+    public ResponseEntity<TarefaWithUsersDTO> findByIdWithUsers(@PathVariable Long id, Authentication authentication) {
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        if (!canViewAll) {
+            String userEmail = extractUserEmail(authentication);
+            if (tarefaService.shouldDenyTaskAccess(id, userEmail)) {
+                return ResponseEntity.status(403).build();
+            }
+        }
         TarefaWithUsersDTO dto = tarefaService.findByIdWithUsers(id);
         return ResponseEntity.ok().body(dto);
     }
 
     @GetMapping("/{id}/with-projeto")
-    public ResponseEntity<TarefaWithProjetoDTO> findByIdWithProjeto(@PathVariable Long id) {
+    public ResponseEntity<TarefaWithProjetoDTO> findByIdWithProjeto(@PathVariable Long id, Authentication authentication) {
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        if (!canViewAll) {
+            String userEmail = extractUserEmail(authentication);
+            if (tarefaService.shouldDenyTaskAccess(id, userEmail)) {
+                return ResponseEntity.status(403).build();
+            }
+        }
         TarefaWithProjetoDTO dto = tarefaService.findByIdWithProjeto(id);
         return ResponseEntity.ok().body(dto);
     }
 
     @GetMapping("/{id}/full")
-    public ResponseEntity<TarefaWithUserAndProjetoDTO> findByIdWithUsersAndProjeto(@PathVariable Long id) {
+    public ResponseEntity<TarefaWithUserAndProjetoDTO> findByIdWithUsersAndProjeto(@PathVariable Long id, Authentication authentication) {
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        if (!canViewAll) {
+            String userEmail = extractUserEmail(authentication);
+            if (tarefaService.shouldDenyTaskAccess(id, userEmail)) {
+                return ResponseEntity.status(403).build();
+            }
+        }
         TarefaWithUserAndProjetoDTO dto = tarefaService.findByIdWithUsersAndProjeto(id);
         return ResponseEntity.ok().body(dto);
     }
@@ -149,21 +199,22 @@ public class TarefaResource {
 
     @GetMapping("/date-range")
     public ResponseEntity<Page<TarefaWithUserAndProjetoDTO>> findByDateRange(
-            @RequestParam String dateField,  // Changed from 'field' to 'dateField'
+            @RequestParam String dateField,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        // Add one day to endDate to make the range inclusive
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(endDate);
         calendar.add(Calendar.DATE, 1);
         Date adjustedEndDate = calendar.getTime();
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        String userEmail = extractUserEmail(authentication);
         Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findByDateRange(
-                dateField, startDate, adjustedEndDate, page, size);  // Changed from 'field' to 'dateField'
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
-                .body(result);
+                dateField, startDate, adjustedEndDate, page, size, userEmail, canViewAll);
+        return ResponseEntity.ok().body(result);
     }
 
     @GetMapping("/sorted")
@@ -171,12 +222,14 @@ public class TarefaResource {
             @RequestParam(defaultValue = "id") String sort,
             @RequestParam(defaultValue = "ASC") String direction,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        String userEmail = extractUserEmail(authentication);
         Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findAllSorted(
-                sort, direction, page, size);
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
-                .body(result);
+                sort, direction, page, size, userEmail, canViewAll);
+        return ResponseEntity.ok().body(result);
     }
 
     // New endpoints for working days functionality
@@ -212,7 +265,8 @@ public class TarefaResource {
             @RequestParam(defaultValue = "id") String sort,
             @RequestParam(defaultValue = "ASC") String direction,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
 
         TarefaFilterDTO filterDTO = new TarefaFilterDTO();
         filterDTO.setDescricao(descricao);
@@ -222,8 +276,11 @@ public class TarefaResource {
         filterDTO.setStartDate(startDate);
         filterDTO.setEndDate(endDate);
 
+        boolean canViewAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_TASKS"));
+        String userEmail = extractUserEmail(authentication);
         Page<TarefaWithUserAndProjetoDTO> result = tarefaService.findWithFilters(
-                filterDTO, page, size, sort, direction);
+                filterDTO, page, size, sort, direction, userEmail, canViewAll);
 
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))

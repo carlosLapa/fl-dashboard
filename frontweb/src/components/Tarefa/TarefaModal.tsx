@@ -102,64 +102,41 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 
   // Fetch users and externos when modal opens
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [usersData, externosData] = await Promise.all([
-          getUsersAPI(),
-          getAllExternosAPI(),
-        ]);
-        // Update this line to use the content array from the paginated response
+    if (!show) return;
+    setIsLoading(true);
+    Promise.all([getUsersAPI(), getAllExternosAPI()])
+      .then(([usersData, externosData]) => {
         setUsers(usersData.content || []);
         setExternos(externosData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Erro ao carregar dados');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (show) {
-      fetchData();
-    }
+      })
+      .catch(() => toast.error('Erro ao carregar dados'))
+      .finally(() => setIsLoading(false));
   }, [show]);
 
   // Set form data when editing
   useEffect(() => {
     if (isEditing && tarefa) {
-      const prazoEstimado = tarefa.prazoEstimado
-        ? new Date(tarefa.prazoEstimado).toISOString().split('T')[0]
-        : '';
-      const prazoReal = tarefa.prazoReal
-        ? new Date(tarefa.prazoReal).toISOString().split('T')[0]
-        : '';
-
       setFormData({
         id: tarefa.id,
         descricao: tarefa.descricao,
         prioridade: tarefa.prioridade,
-        prazoEstimado: prazoEstimado,
-        prazoReal: prazoReal,
+        prazoEstimado: tarefa.prazoEstimado
+          ? tarefa.prazoEstimado.split('T')[0]
+          : '',
+        prazoReal: tarefa.prazoReal ? tarefa.prazoReal.split('T')[0] : '',
         status: tarefa.status,
         projetoId: tarefa.projeto.id,
         userIds: tarefa.users.map((user) => user.id),
         externoIds: tarefa.externos?.map((externo) => externo.id) || [],
       });
-
-      // Set the selected project name for display
       setSelectedProjectName(tarefa.projeto.designacao);
-
-      // Calculate working days if both dates are available
-      if (prazoEstimado && prazoReal) {
-        // Use existing workingDays if available, otherwise calculate
-        if (tarefa.workingDays !== undefined) {
-          setWorkingDays(tarefa.workingDays);
-        } else {
-          setWorkingDays(calculateWorkingDays(prazoEstimado, prazoReal));
-        }
-      } else {
-        setWorkingDays(0);
-      }
+      setWorkingDays(
+        tarefa.workingDays ??
+          calculateWorkingDays(
+            tarefa.prazoEstimado?.split('T')[0] || '',
+            tarefa.prazoReal?.split('T')[0] || ''
+          )
+      );
     } else {
       setFormData({
         descricao: '',

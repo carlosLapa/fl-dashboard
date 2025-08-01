@@ -18,9 +18,9 @@ import {
   getTarefaWithUsersAPI,
   updateTarefaAPI,
   updateTarefaStatusAPI,
+  getTarefasByDateRangeAPI,
 } from 'api/requestsApi';
 import { ColunaWithProjetoDTO } from 'types/coluna';
-import { getTarefasByDateRangeAPI } from 'api/requestsApi';
 
 // Define the interface for filter parameters
 export interface TarefaFilterParams {
@@ -30,7 +30,7 @@ export interface TarefaFilterParams {
   direction?: string;
   descricao?: string;
   status?: string;
-  projeto?: string;
+  projetoId?: string;
   dateField?: string;
   startDate?: string;
   endDate?: string;
@@ -47,15 +47,12 @@ export const calculateWorkingDays = (
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return 0;
   let workingDays = 0;
   let currentDate = new Date(startDate);
-  // Set both dates to midnight to ensure we're only comparing dates, not times
   currentDate.setHours(0, 0, 0, 0);
   const endDateMidnight = new Date(endDate);
   endDateMidnight.setHours(0, 0, 0, 0);
-  // Count working days
   while (currentDate <= endDateMidnight) {
     const day = currentDate.getDay();
     if (day !== 0 && day !== 6) {
-      // 0 is Sunday, 6 is Saturday
       workingDays++;
     }
     currentDate.setDate(currentDate.getDate() + 1);
@@ -63,11 +60,11 @@ export const calculateWorkingDays = (
   return workingDays;
 };
 
+// All API calls below rely on backend permission logic (JWT in Authorization header).
+
 export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
   try {
-    // Updated to use relative URL
     const response = await axios.get(`/tarefas?page=${page}&size=${pageSize}`);
-    // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.data.content.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
         return {
@@ -81,11 +78,8 @@ export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
       return tarefa;
     });
     return {
+      ...response.data,
       content: tarefasWithWorkingDays,
-      totalPages: response.data.totalPages,
-      totalElements: response.data.totalElements,
-      size: response.data.size,
-      number: response.data.number,
     };
   } catch (error) {
     console.error('Error fetching tasks:', error);
@@ -101,9 +95,7 @@ export const getTarefas = async (page: number = 0, pageSize: number = 10) => {
 
 export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   try {
-    // Updated to use relative URL
     const response = await axios.get(`/tarefas/${id}`);
-    // Calculate working days if both dates are available
     if (response.data.prazoEstimado && response.data.prazoReal) {
       return {
         ...response.data,
@@ -120,18 +112,15 @@ export const getTarefaById = async (id: number): Promise<Tarefa | null> => {
   }
 };
 
-// Update getTarefasByUser to include pagination
 export const getTarefasByUser = async (
   userId: number,
   page: number = 0,
   pageSize: number = 10
 ) => {
   try {
-    // Updated to use relative URL
     const response = await axios.get(
-      `/tarefas/user/${userId}/tasks?page=${page}&size=${pageSize}`
+      `/tarefas/user/${userId}/full?page=${page}&size=${pageSize}`
     );
-    // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.data.content.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
         return {
@@ -145,11 +134,8 @@ export const getTarefasByUser = async (
       return tarefa;
     });
     return {
+      ...response.data,
       content: tarefasWithWorkingDays,
-      totalPages: response.data.totalPages,
-      totalElements: response.data.totalElements,
-      size: response.data.size,
-      number: response.data.number,
     };
   } catch (error) {
     console.error(`Error fetching tasks for user with id ${userId}:`, error);
@@ -167,9 +153,7 @@ export const getTarefasByProjeto = async (
   projetoId: number
 ): Promise<Tarefa[]> => {
   try {
-    // Updated to use relative URL
     const response = await axios.get(`/projetos/${projetoId}/tarefas`);
-    // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.data.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
         return {
@@ -197,7 +181,6 @@ export const addTarefa = async (
   onNotify?: (notification: NotificationInsertDTO) => Promise<void>
 ) => {
   try {
-    // Calculate working days if both dates are provided
     let dataToSend = { ...formData };
     if (formData.prazoEstimado && formData.prazoReal) {
       dataToSend.workingDays = calculateWorkingDays(
@@ -206,9 +189,7 @@ export const addTarefa = async (
       );
     }
     const response = await addTarefaAPI(dataToSend);
-    // If a notification callback is provided and the task was created successfully
     if (onNotify && response) {
-      // Create notifications for each assigned user
       for (const userId of formData.userIds) {
         const notification: NotificationInsertDTO = {
           type: NotificationType.TAREFA_ATRIBUIDA,
@@ -236,7 +217,6 @@ export const updateTarefa = async (
   onNotify?: (notification: NotificationInsertDTO) => Promise<void>
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
-    // Calculate working days if both dates are provided
     let dataToSend = { ...data };
     if (data.prazoEstimado && data.prazoReal) {
       dataToSend.workingDays = calculateWorkingDays(
@@ -245,9 +225,7 @@ export const updateTarefa = async (
       );
     }
     const updatedTarefa = await updateTarefaAPI(id, dataToSend);
-    // If a notification callback is provided and the task was updated successfully
     if (onNotify && updatedTarefa) {
-      // Create notifications for each assigned user
       for (const userId of data.userIds) {
         const notification: NotificationInsertDTO = {
           type: NotificationType.TAREFA_EDITADA,
@@ -283,7 +261,6 @@ export const getTarefaWithUsersAndProjeto = async (
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAndProjetoAPI(id);
-    // Calculate working days if both dates are available
     if (tarefaData.prazoEstimado && tarefaData.prazoReal) {
       return {
         ...tarefaData,
@@ -305,7 +282,6 @@ export const getTarefaWithUsers = async (
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAPI(id);
-    // Calculate working days if both dates are available
     if (tarefaData.prazoEstimado && tarefaData.prazoReal) {
       return {
         ...tarefaData,
@@ -326,7 +302,6 @@ export const getColumnsForProject = async (
   projetoId: number
 ): Promise<ColunaWithProjetoDTO[]> => {
   try {
-    // Updated to use relative URL
     const response = await axios.get(`/colunas/projeto/${projetoId}`);
     return response.data;
   } catch (error) {
@@ -340,9 +315,7 @@ export const getAllTarefasWithUsersAndProjeto = async (
   size: number = 10
 ) => {
   const response = await getAllTarefasWithUsersAndProjetoAPI(page, size);
-  // Process array response
   if (Array.isArray(response)) {
-    // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
         return {
@@ -360,9 +333,7 @@ export const getAllTarefasWithUsersAndProjeto = async (
       totalPages: Math.ceil(tarefasWithWorkingDays.length / size),
     };
   }
-  // Process paginated response
   if (response.content) {
-    // Calculate working days for each tarefa
     const tarefasWithWorkingDays = response.content.map((tarefa: any) => {
       if (tarefa.prazoEstimado && tarefa.prazoReal) {
         return {
@@ -387,13 +358,11 @@ export const updateTarefaStatus = async (
   id: number,
   newStatus: TarefaStatus,
   onNotify?: (notification: NotificationInsertDTO) => Promise<void>,
-  tarefa?: TarefaWithUserAndProjetoDTO // Optional tarefa object for notification details
+  tarefa?: TarefaWithUserAndProjetoDTO
 ): Promise<TarefaWithUsersDTO> => {
   try {
     const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
-    // If a notification callback is provided and the status was updated successfully
     if (onNotify && updatedTarefa && tarefa) {
-      // Create notifications for each assigned user
       for (const user of tarefa.users) {
         const notification: NotificationInsertDTO = {
           type: NotificationType.TAREFA_STATUS_ALTERADO,
@@ -408,7 +377,6 @@ export const updateTarefaStatus = async (
         await onNotify(notification);
       }
     }
-    // Calculate working days if both dates are available
     if (updatedTarefa.prazoEstimado && updatedTarefa.prazoReal) {
       return {
         ...updatedTarefa,
@@ -440,9 +408,7 @@ export const getTarefasByDateRange = async (
       page,
       size
     );
-    // Handle both array and paginated response formats
     if (Array.isArray(response)) {
-      // Calculate working days for each tarefa
       const tarefasWithWorkingDays = response.map((tarefa: any) => {
         if (tarefa.prazoEstimado && tarefa.prazoReal) {
           return {
@@ -463,9 +429,7 @@ export const getTarefasByDateRange = async (
         number: page,
       };
     }
-    // Process paginated response
     if (response.content) {
-      // Calculate working days for each tarefa
       const tarefasWithWorkingDays = response.content.map((tarefa: any) => {
         if (tarefa.prazoEstimado && tarefa.prazoReal) {
           return {
@@ -509,9 +473,7 @@ export const getTarefasSorted = async (
       page,
       size
     );
-    // Process paginated response
     if (response.content) {
-      // Calculate working days for each tarefa
       const tarefasWithWorkingDays = response.content.map((tarefa: any) => {
         if (tarefa.prazoEstimado && tarefa.prazoReal) {
           return {
@@ -542,26 +504,11 @@ export const getTarefasSorted = async (
   }
 };
 
-// New function to fetch tarefas with advanced filtering
 export const getTarefasFiltered = async (params: TarefaFilterParams) => {
-  // Add debugging logs
-  console.log('Filter params before API call:', params);
-
   try {
-    // Create a copy of params to avoid modifying the original
     const apiParams = { ...params };
-
-    // Log specific project filter value if it exists
-    if (apiParams.projeto) {
-      console.log('Project filter value:', apiParams.projeto);
-    }
-
     const response = await getTarefasFilteredAPI(apiParams);
-    console.log('API response:', response);
-
-    // Process the response
     if (response.content) {
-      // Calculate working days for each tarefa
       const tarefasWithWorkingDays = response.content.map((tarefa: any) => {
         if (tarefa.prazoEstimado && tarefa.prazoReal) {
           return {
@@ -582,11 +529,6 @@ export const getTarefasFiltered = async (params: TarefaFilterParams) => {
     return response;
   } catch (error) {
     console.error('Error fetching filtered tarefas:', error);
-    // Log the actual error for debugging
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-    }
-
     return {
       content: [],
       totalPages: 0,
