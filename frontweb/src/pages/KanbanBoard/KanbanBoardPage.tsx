@@ -82,7 +82,7 @@ const KanbanBoardPage: React.FC = () => {
           {isLoading ? (
             <div className="d-flex justify-content-center align-items-center py-5">
               <Spinner animation="border" role="status">
-                <span className="visually-hidden">Carregando...</span>
+                <span className="visually-hidden">A carregar...</span>
               </Spinner>
             </div>
           ) : error ? (
@@ -106,7 +106,7 @@ const KanbanBoardPage: React.FC = () => {
               <p>{error}</p>
               {errorType === 'permission' && (
                 <p>
-                  Você não está associado a este projeto ou não possui as
+                  Não está associado a este projeto ou não possui as
                   permissões necessárias.
                 </p>
               )}

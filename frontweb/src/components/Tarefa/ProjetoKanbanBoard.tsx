@@ -224,7 +224,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 403) {
-            setError('Você não tem permissão para acessar este projeto.');
+            setError('Não tem permissão para aceder a este projeto.');
           } else if (
             error.response?.status === 404 ||
             error.response?.status === 400
@@ -271,7 +271,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         !hasPermission(Permission.MOVE_CARD_TO_REVIEW)
       ) {
         toast.error(
-          'Você não tem permissão para mover tarefas para Em Revisão'
+          'Não tem permissão para mover tarefas para Em Revisão'
         );
         return; // Block the movement
       }
@@ -280,7 +280,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         destination.droppableId === 'DONE' &&
         !hasPermission(Permission.MOVE_CARD_TO_DONE)
       ) {
-        toast.error('Você não tem permissão para mover tarefas para Concluído');
+        toast.error('Não tem permissão para mover tarefas para Concluído');
         return; // Block the movement
       }
     }
@@ -327,7 +327,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         style={{ minHeight: '300px' }}
       >
         <Spinner animation="border" role="status">
-          <span className="visually-hidden">Carregando...</span>
+          <span className="visually-hidden">A Carregar...</span>
         </Spinner>
       </div>
     );
@@ -339,8 +339,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         <Alert.Heading>Projeto não disponível</Alert.Heading>
         <p>Este projeto foi excluído ou não está mais disponível no sistema.</p>
         <p>
-          Se você acredita que isto é um erro, entre em contato com um
-          administrador.
+          Se crê ser um erro, entre em contato com um administrador.
         </p>
       </Alert>
     );
@@ -360,16 +359,14 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       {/* Show different alerts based on user role */}
       {!isAdmin && !hasPermission(Permission.MOVE_CARD_TO_REVIEW) && (
         <Alert variant="info" className="mb-3">
-          Nota: Você pode mover tarefas apenas entre as colunas "Backlog", "A
-          Fazer" e "Em Progresso". Para mover para "Em Revisão" ou "Concluído",
-          entre em contato com um gerente ou administrador.
+          Nota: Pode mover tarefas apenas entre as colunas "Backlog", "A
+          Fazer" e "Em Progresso". Só um gestor ou admin pode mover para "Em Revisão" ou "Concluído".
         </Alert>
       )}
 
       {isAdmin && (
         <Alert variant="success" className="mb-3">
-          <strong>Modo Administrador:</strong> Você tem acesso completo ao
-          quadro Kanban.
+          <strong>Modo Administrador:</strong> Tem acesso completo ao quadro Kanban.
         </Alert>
       )}
 

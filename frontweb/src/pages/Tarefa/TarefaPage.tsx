@@ -142,7 +142,7 @@ const TarefaPage: React.FC = () => {
         direction: sortDirection,
         descricao: filters.descricao || undefined,
         status: filters.status || undefined,
-        projetoId: filters.projetoId || undefined, // <-- Correct property
+        projetoId: filters.projetoId || undefined,
         dateField:
           filters.startDate || filters.endDate
             ? filters.dateFilterField
@@ -211,7 +211,7 @@ const TarefaPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, isAdvancedFiltered, sortField, sortDirection]);
 
-  // Update the working days effect to prevent infinite loops
+  // Effect to update the working days effect to prevent infinite loops
   useEffect(() => {
     if (Object.keys(workingDaysMap).length > 0) {
       let needsUpdate = false;
@@ -406,7 +406,6 @@ const TarefaPage: React.FC = () => {
 
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the title container and content in a div with consistent width and margins */}
       <div
         style={{
           width: '98%',
