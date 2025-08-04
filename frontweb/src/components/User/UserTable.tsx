@@ -13,6 +13,9 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from 'NotificationContext';
 import NotificationBadge from './../NotificationBox/NotificationBadge';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useAuth } from 'AuthContext';
+
 import './styles.scss';
 
 interface UserTableProps {
@@ -38,10 +41,20 @@ const UserTable: React.FC<UserTableProps> = ({
 }) => {
   const navigate = useNavigate();
   const { loadStoredNotifications } = useNotification();
+  const { user } = useAuth();
+  const { isEmployee } = usePermissions();
 
   const handleNavigateToNotifications = async (userId: number) => {
     await loadStoredNotifications(userId);
     navigate(`/notifications/${userId}`);
+  };
+
+  // Common style for disabled icons
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
   };
 
   // Show spinner when loading
@@ -72,105 +85,128 @@ const UserTable: React.FC<UserTableProps> = ({
           </thead>
           <tbody>
             {Array.isArray(users) && users.length > 0 ? (
-              users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td className="d-none d-md-table-cell">{user.funcao}</td>
-                  <td className="d-none d-md-table-cell">{user.cargo}</td>
-                  <td className="d-none d-lg-table-cell">{user.email}</td>
-                  <td className="d-none d-lg-table-cell">
-                    {user.profileImage ? (
-                      <div className="profile-image-cell">
-                        <img
-                          src={`data:image/jpeg;base64,${user.profileImage}`}
-                          alt={`${user.name}`}
-                          className="profile-image"
-                          style={{
-                            maxWidth: '90px',
-                            maxHeight: '90px',
-                            marginLeft: '25%',
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <span>Sem imagem</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="action-icons">
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`edit-tooltip-${user.id}`}>
-                            Editar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faPencilAlt}
-                          onClick={() => onEditUser(user.id)}
-                          className="action-icon edit-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`delete-tooltip-${user.id}`}>
-                            Eliminar
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faTrashAlt}
-                          onClick={() => onDeleteUser(user.id)}
-                          className="action-icon delete-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`tasks-tooltip-${user.id}`}>
-                            Ver Tarefas atribuídas
-                          </Tooltip>
-                        }
-                      >
-                        <FontAwesomeIcon
-                          icon={faTasks}
-                          onClick={() => onViewTasks(user.id)}
-                          className="action-icon view-tasks-icon"
-                          style={{ marginRight: '8px' }}
-                        />
-                      </OverlayTrigger>
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={
-                          <Tooltip id={`notifications-tooltip-${user.id}`}>
-                            Ver Notificações
-                          </Tooltip>
-                        }
-                      >
-                        <div
-                          style={{
-                            position: 'relative',
-                            display: 'inline-block',
-                          }}
+              users.map((rowUser) => {
+                const isOwnRow = user?.id === rowUser.id;
+                const shouldDisable = isEmployee() && !isOwnRow;
+
+                return (
+                  <tr key={rowUser.id}>
+                    <td>{rowUser.name}</td>
+                    <td className="d-none d-md-table-cell">{rowUser.funcao}</td>
+                    <td className="d-none d-md-table-cell">{rowUser.cargo}</td>
+                    <td className="d-none d-lg-table-cell">{rowUser.email}</td>
+                    <td className="d-none d-lg-table-cell">
+                      {rowUser.profileImage ? (
+                        <div className="profile-image-cell">
+                          <img
+                            src={`data:image/jpeg;base64,${rowUser.profileImage}`}
+                            alt={`${rowUser.name}`}
+                            className="profile-image"
+                            style={{
+                              maxWidth: '90px',
+                              maxHeight: '90px',
+                              marginLeft: '25%',
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <span>Sem imagem</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="action-icons">
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`edit-tooltip-${rowUser.id}`}>
+                              Editar
+                            </Tooltip>
+                          }
                         >
                           <FontAwesomeIcon
-                            icon={faBell}
+                            icon={faPencilAlt}
                             onClick={() =>
-                              handleNavigateToNotifications(user.id)
+                              !shouldDisable && onEditUser(rowUser.id)
                             }
-                            className="action-icon view-notifications-icon"
+                            className="action-icon edit-icon"
+                            style={{
+                              marginRight: '8px',
+                              ...(shouldDisable ? disabledStyle : {}),
+                            }}
                           />
-                          <NotificationBadge userId={user.id} />
-                        </div>
-                      </OverlayTrigger>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`delete-tooltip-${rowUser.id}`}>
+                              Eliminar
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrashAlt}
+                            onClick={() =>
+                              !shouldDisable && onDeleteUser(rowUser.id)
+                            }
+                            className="action-icon delete-icon"
+                            style={{
+                              marginRight: '8px',
+                              ...(shouldDisable ? disabledStyle : {}),
+                            }}
+                          />
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`tasks-tooltip-${rowUser.id}`}>
+                              Ver Tarefas atribuídas
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faTasks}
+                            onClick={() =>
+                              !shouldDisable && onViewTasks(rowUser.id)
+                            }
+                            className="action-icon view-tasks-icon"
+                            style={{
+                              marginRight: '8px',
+                              ...(shouldDisable ? disabledStyle : {}),
+                            }}
+                          />
+                        </OverlayTrigger>
+                        {!shouldDisable ? (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`notifications-tooltip-${rowUser.id}`}>
+                                Ver Notificações
+                              </Tooltip>
+                            }
+                          >
+                            <div style={{ position: 'relative', display: 'inline-block' }}>
+                              <FontAwesomeIcon
+                                icon={faBell}
+                                onClick={() => handleNavigateToNotifications(rowUser.id)}
+                                className="action-icon view-notifications-icon"
+                              />
+                              <NotificationBadge userId={rowUser.id} />
+                            </div>
+                          </OverlayTrigger>
+                        ) : (
+                          <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <FontAwesomeIcon
+                              icon={faBell}
+                              style={disabledStyle}
+                            />
+                            <NotificationBadge userId={rowUser.id} />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan={6} className="text-center">

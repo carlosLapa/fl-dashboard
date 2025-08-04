@@ -35,6 +35,22 @@ public class UserResource {
         return ResponseEntity.ok().body(userDTO);
     }
 
+    // Get user by ID with projects - requires VIEW_ALL_USERS permission
+    @GetMapping("/{id}/with-projetos")
+    @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
+    public ResponseEntity<UserWithProjetosDTO> findByIdWithProjetos(@PathVariable Long id) {
+        UserWithProjetosDTO dto = userService.findByIdWithProjetos(id);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Get user by ID
+    @GetMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
+    public ResponseEntity<UserDTO> findById(@PathVariable Long id, Authentication authentication) {
+        UserDTO userDTO = userService.findById(id);
+        return ResponseEntity.ok().body(userDTO);
+    }
+
     // Users with projects - requires VIEW_ALL_USERS permission
     @GetMapping("/with-projetos")
     @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
@@ -59,22 +75,6 @@ public class UserResource {
             Page<UserDTO> list = userService.findAllBasicInfo(pageable);
             return ResponseEntity.ok().body(list);
         }
-    }
-
-    // Get user by ID with projects - requires VIEW_ALL_USERS permission
-    @GetMapping("/{id}/with-projetos")
-    @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
-    public ResponseEntity<UserWithProjetosDTO> findByIdWithProjetos(@PathVariable Long id) {
-        UserWithProjetosDTO dto = userService.findByIdWithProjetos(id);
-        return ResponseEntity.ok().body(dto);
-    }
-
-    // Get user by ID - requires VIEW_ALL_USERS permission
-    @GetMapping(value = "/{id}")
-    @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
-    public ResponseEntity<UserDTO> findById(@PathVariable Long id) {
-        UserDTO userDTO = userService.findById(id);
-        return ResponseEntity.ok().body(userDTO);
     }
 
     // Get tasks for a user - requires VIEW_ALL_TASKS or own tasks

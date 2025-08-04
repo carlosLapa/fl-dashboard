@@ -14,11 +14,13 @@ import {
 import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import Button from 'react-bootstrap/Button';
+import { useAuth } from '../../AuthContext'; // Add this import
 import './userStyles.scss';
 
 const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
+  const { user: currentUser } = useAuth(); // Get current user from context
   const [user, setUser] = useState<User | null>(null);
   const [tarefas, setTarefas] = useState<TarefaWithUserAndProjetoDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,17 +32,45 @@ const UsersTarefasPage: React.FC = () => {
   useEffect(() => {
     const fetchUserAndTarefas = async () => {
       try {
-        if (userId) {
-          console.log(`Starting data fetch for user ${userId}`);
+        if (!userId || !currentUser) return;
+
+        // If Employee and viewing own page, use /users/me
+        const isEmployee =
+          currentUser.roles &&
+          Array.isArray(currentUser.roles) &&
+          currentUser.roles.some(
+            (role: any) =>
+              role.authority === 'ROLE_EMPLOYEE' || role === 'ROLE_EMPLOYEE'
+          );
+        const isOwnPage = currentUser.id?.toString() === userId;
+
+        let userData;
+        if (isEmployee && isOwnPage) {
+          // Fetch from /users/me
+          const { getCurrentUserWithRoles } = await import(
+            'services/userService'
+          );
+          userData = await getCurrentUserWithRoles();
+        } else {
+          // Fetch from /users/{id}
           const parsedUserId = parseInt(userId, 10);
-          const [userData, userTarefas] = await Promise.all([
-            getUserById(parsedUserId),
-            getTarefasWithUsersAndProjetoByUser(parsedUserId),
-          ]);
-          console.log(`Completed data fetch for user ${userId}`);
-          setUser(userData);
-          setTarefas(userTarefas.content);
+          userData = await getUserById(parsedUserId);
         }
+
+        // Fetch tarefas as before
+        const parsedUserId = parseInt(userId, 10);
+        const userTarefas = await getTarefasWithUsersAndProjetoByUser(
+          parsedUserId
+        );
+
+        setUser({
+          ...userData,
+          profileImage:
+            userData.profileImage && userData.profileImage.trim() !== ''
+              ? userData.profileImage
+              : '',
+        });
+        setTarefas(userTarefas.content);
       } catch (err) {
         setError('Failed to fetch user data or tarefas');
         console.error('Error fetching data:', err);
@@ -49,7 +79,7 @@ const UsersTarefasPage: React.FC = () => {
       }
     };
     fetchUserAndTarefas();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   const handleNavigateToCalendar = () => {
     navigate(`/user-calendar/${userId}`);
@@ -99,7 +129,7 @@ const UsersTarefasPage: React.FC = () => {
   }
 
   if (error) {
-    return <div className="error-container">Error: {error}</div>;
+    return <div className="error-container">Erro: {error}</div>;
   }
 
   if (!user) {
@@ -131,7 +161,7 @@ const UsersTarefasPage: React.FC = () => {
               className="user-image-container"
               style={{ marginRight: '1.5rem' }}
             >
-              {user.profileImage ? (
+              {user.profileImage && user.profileImage.trim() !== '' ? (
                 <img
                   src={`data:image/jpeg;base64,${user.profileImage}`}
                   alt={`${user.name}`}
