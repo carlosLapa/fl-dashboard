@@ -84,14 +84,19 @@ public class NotificationResource {
     @Operation(summary = "Get all user notifications", description = "Retrieve all notifications for a specific user")
     @GetMapping("/user/{userId}/all")
     public ResponseEntity<List<NotificationResponseDTO>> findAllByUserId(@PathVariable Long userId) {
+        // Now returns only first 100 notifications for efficiency
         List<NotificationResponseDTO> notifications = notificationService.findAllByUserId(userId);
         return ResponseEntity.ok().body(notifications);
     }
 
     @Operation(summary = "Get detailed user notifications", description = "Retrieve all notifications with details for a specific user")
     @GetMapping("/user/{userId}/details")
-    public ResponseEntity<List<NotificationResponseDTO>> getAllNotificationsWithDetails(@PathVariable Long userId) {
-        return ResponseEntity.ok(notificationService.findAllByUserIdWithDetails(userId));
+    public ResponseEntity<Page<NotificationResponseDTO>> getAllNotificationsWithDetails(
+            @PathVariable Long userId,
+            Pageable pageable
+    ) {
+        Page<NotificationResponseDTO> page = notificationService.findAllByUserIdWithDetails(userId, pageable);
+        return ResponseEntity.ok(page);
     }
 
     @Operation(summary = "Create new notification", description = "Creates a notification with one of the following types: " +

@@ -13,7 +13,6 @@ import {
   TarefaWithUsersDTO,
 } from 'types/tarefa';
 import { PaginatedUsers } from 'types/user';
-import { Notification, NotificationInsertDTO } from 'types/notification';
 
 let pendingRequests: Record<string, Promise<PaginatedTarefas>> = {};
 
@@ -520,26 +519,6 @@ export const getTarefasByDateRangeAPI = async (
     console.error('Error fetching tarefas by date range:', error);
     throw error;
   }
-};
-
-export const getNotificationDetailsAPI = async (
-  userId: number
-): Promise<Notification[]> => {
-  const response = await axios.get(`/notifications/user/${userId}/details`);
-  return response.data;
-};
-
-export const markNotificationAsReadAPI = async (
-  notificationId: number
-): Promise<void> => {
-  await axios.patch(`/notifications/${notificationId}/read`);
-};
-
-export const createNotificationAPI = async (
-  notification: NotificationInsertDTO
-): Promise<Notification> => {
-  const response = await axios.post('/notifications', notification);
-  return response.data;
 };
 
 export const getTarefasSortedAPI = async (

@@ -1,7 +1,5 @@
 package com.fl.dashboard.dto;
 
-import com.fl.dashboard.entities.Projeto;
-import com.fl.dashboard.entities.Tarefa;
 import lombok.*;
 
 import java.util.Date;
@@ -20,7 +18,7 @@ public class NotificationDTO {
     private Date createdAt;
     private Long relatedId;
     private Long userId;
-    private Tarefa tarefa;
-    private Projeto projeto;
+    private TarefaMinDTO tarefa;
+    private ProjetoMinDTO projeto;
 
 }

@@ -1,18 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { Notification, NotificationInsertDTO } from 'types/notification';
-import { markNotificationAsReadAPI } from 'api/requestsApi';
+import { Notification } from 'types/notification';
+import { markNotificationAsReadAPI } from 'api/notificationsApi';
 import { toast } from 'react-toastify';
 
 interface NotificationDisplayProps {
-  notification: Notification | NotificationInsertDTO;
+  notification: Notification;
   onMarkAsRead: (id: number) => void;
 }
-
-const isNotification = (
-  notification: Notification | NotificationInsertDTO
-): notification is Notification => {
-  return 'tarefa' in notification && 'projeto' in notification;
-};
 
 const getNotificationColor = (type: string) => {
   const colors: { [key: string]: string } = {
@@ -29,7 +23,6 @@ const getNotificationColor = (type: string) => {
     PROJETO_ATUALIZADO: '#FEF3C7',
     PROJETO_CONCLUIDO: '#BBF7D0',
     PROJETO_REMOVIDO: '#FECACA',
-    //DEFAULT: '#E2E8F0',
   };
   return colors[type] || '#E2E8F0';
 };
@@ -78,18 +71,16 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Add responsive detection
   React.useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleMarkAsRead = useCallback(async () => {
-    if (isNotification(notification) && !isSubmitting) {
+    if (!notification.isRead && !isSubmitting) {
       setIsSubmitting(true);
       try {
         await markNotificationAsReadAPI(notification.id);
@@ -129,20 +120,18 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
       <p className="notification-content">
         {formatNotificationContent(notification.content)}
       </p>
-      {isNotification(notification) && (
-        <div className="notification-details">
-          {notification.tarefa && (
-            <div className="notification-detail">
-              Tarefa: {notification.tarefa.descricao}
-            </div>
-          )}
-          {notification.projeto && (
-            <div className="notification-detail">
-              Projeto: {notification.projeto.designacao}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="notification-details">
+        {notification.tarefa && (
+          <div className="notification-detail">
+            Tarefa: {notification.tarefa.descricao}
+          </div>
+        )}
+        {notification.projeto && (
+          <div className="notification-detail">
+            Projeto: {notification.projeto.designacao}
+          </div>
+        )}
+      </div>
       {!notification.isRead && (
         <button
           onClick={handleMarkAsRead}

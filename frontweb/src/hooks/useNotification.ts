@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NotificationInsertDTO } from '../types/notification';
-import { createNotificationAPI } from '../api/requestsApi';
+import { createNotificationAPI } from '../api/notificationsApi';
 
 export const useNotification = () => {
   const [isLoading, setIsLoading] = useState(false);

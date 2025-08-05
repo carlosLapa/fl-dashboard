@@ -82,9 +82,10 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public Page<NotificationResponseDTO> findPagedByUserId(Long userId, Pageable pageable) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
-        Page<Notification> page = notificationRepository.findByUser(user, pageable);
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException(USER_NOT_FOUND);
+        }
+        Page<Notification> page = notificationRepository.findByUserIdWithDetails(userId, pageable);
         return page.map(this::convertToDTO);
     }
 
@@ -105,18 +106,17 @@ public class NotificationService {
 
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO> findAllByUserId(Long userId) {
-        List<Notification> notifications = notificationRepository.findByUserId(userId);
-        return notifications.stream()
+        // Use paginated query and fetch only first page (for legacy compatibility)
+        Page<Notification> page = notificationRepository.findByUserIdWithDetails(userId, Pageable.ofSize(100));
+        return page.getContent().stream()
                 .map(this::convertToDTO)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationResponseDTO> findAllByUserIdWithDetails(Long userId) {
-        List<Notification> notifications = notificationRepository.findAllByUserIdWithDetails(userId);
-        return notifications.stream()
-                .map(this::convertToDTO)
-                .toList();
+    public Page<NotificationResponseDTO> findAllByUserIdWithDetails(Long userId, Pageable pageable) {
+        Page<Notification> page = notificationRepository.findAllByUserIdWithDetails(userId, pageable);
+        return page.map(this::convertToDTO);
     }
 
     @Transactional
@@ -467,6 +467,12 @@ public class NotificationService {
         notificationRepository.deleteAllByUserId(userId);
 
         logger.info("Deleted all notifications for user with ID: {}", userId);
+    }
+
+    public boolean existsDeadlineNotification(Long tarefaId, Long userId) {
+        return notificationRepository.existsByTarefaIdAndUserIdAndType(
+                tarefaId, userId, NotificationType.TAREFA_PRAZO_PROXIMO.name()
+        );
     }
 
 }

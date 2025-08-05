@@ -11,15 +11,24 @@ import {
   NotificationType,
 } from 'types/notification';
 import useWebSocket from 'hooks/useWebSocketMessage';
-import { getNotificationDetailsAPI } from 'api/requestsApi';
+import {
+  getNotificationDetailsAPI,
+  PaginatedNotifications,
+} from 'api/notificationsApi';
 
 interface NotificationContextType {
   notifications: Notification[];
   handleNewNotification: (notification: Notification) => void;
   handleMarkAsRead: (id: number) => void;
   sendNotification: (notification: NotificationInsertDTO) => void;
-  loadStoredNotifications: (userId: number) => Promise<void>;
+  loadStoredNotifications: (
+    userId: number,
+    page?: number,
+    size?: number
+  ) => Promise<PaginatedNotifications | undefined>;
   unreadCount: number;
+  hasMore: boolean;
+  resetNotifications: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -32,17 +41,57 @@ export const NotificationProvider: React.FC<{
 }> = ({ children, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  const loadStoredNotifications = async (userId: number) => {
+  // Reset notifications (for new user or reload)
+  const resetNotifications = useCallback(() => {
+    setNotifications([]);
+    setUnreadCount(0);
+    setHasMore(true);
+  }, []);
+
+  // Pagination-aware loader
+  const loadStoredNotifications = async (
+    userId: number,
+    page: number = 0,
+    size: number = 20
+  ): Promise<PaginatedNotifications | undefined> => {
     const token = localStorage.getItem('access_token');
     if (!token || userId === 0) return;
 
     try {
-      const detailedNotifications = await getNotificationDetailsAPI(userId);
-      setNotifications(detailedNotifications);
-      setUnreadCount(detailedNotifications.filter((n) => !n.isRead).length);
+      const detailedNotifications: PaginatedNotifications | undefined =
+        await getNotificationDetailsAPI(userId, page, size);
+
+      // Defensive check for content existence
+      if (
+        !detailedNotifications ||
+        !Array.isArray(detailedNotifications.content)
+      ) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return undefined;
+      }
+
+      setNotifications((prev) => {
+        const existingIds = new Set(prev.map((n) => n.id));
+        const newItems = detailedNotifications.content.filter(
+          (n) => !existingIds.has(n.id)
+        );
+        const updated = [...prev, ...newItems];
+        setUnreadCount(updated.filter((n) => !n.isRead).length);
+        return updated;
+      });
+
+      setHasMore(page + 1 < detailedNotifications.totalPages);
+
+      return detailedNotifications;
     } catch (error) {
       console.error('Error loading notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
+      setHasMore(false);
+      return undefined;
     }
   };
 
@@ -52,7 +101,10 @@ export const NotificationProvider: React.FC<{
         notification.type as NotificationType
       )
     ) {
-      setNotifications((prev) => [...prev, notification]);
+      setNotifications((prev) => {
+        const exists = prev.some((n) => n.id === notification.id);
+        return exists ? prev : [...prev, notification];
+      });
       if (!notification.isRead) {
         setUnreadCount((prev) => prev + 1);
       }
@@ -67,6 +119,7 @@ export const NotificationProvider: React.FC<{
           : notification
       )
     );
+    setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
   const { messages, sendMessage } = useWebSocket(userId);
@@ -94,17 +147,6 @@ export const NotificationProvider: React.FC<{
     });
   }, [messages, handleNewNotification]);
 
-  useEffect(() => {
-    loadStoredNotifications(userId);
-  }, [userId]);
-
-  useEffect(() => {
-    if (!userId) {
-      setNotifications([]);
-      setUnreadCount(0);
-    }
-  }, [userId]);
-
   return (
     <NotificationContext.Provider
       value={{
@@ -114,6 +156,8 @@ export const NotificationProvider: React.FC<{
         handleMarkAsRead,
         sendNotification,
         loadStoredNotifications,
+        hasMore,
+        resetNotifications,
       }}
     >
       {children}

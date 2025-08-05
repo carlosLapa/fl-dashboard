@@ -11,7 +11,7 @@ export enum NotificationType {
   PROJETO_EDITADO = 'PROJETO_EDITADO',
   PROJETO_ATUALIZADO = 'PROJETO_ATUALIZADO',
   PROJETO_CONCLUIDO = 'PROJETO_CONCLUIDO',
-  PROEJTO_REMOVIDO = 'PROEJTO_REMOVIDO',
+  PROJETO_REMOVIDO = 'PROJETO_REMOVIDO',
 }
 
 export interface Notification {
@@ -40,15 +40,23 @@ export type NotificationInsertDTO = Omit<
   'id' | 'user' | 'tarefa' | 'projeto'
 > & {
   userId: number;
-  tarefaId: number;
-  projetoId: number;
+  tarefaId?: number;
+  projetoId?: number;
 };
 
 export type NotificationUpdateDTO = Partial<
   Omit<Notification, 'user' | 'tarefa' | 'projeto'>
 > & {
   id: number;
-  userId: number;
-  tarefaId: number;
-  projetoId: number;
+  userId?: number;
+  tarefaId?: number;
+  projetoId?: number;
 };
+
+export interface PaginatedNotifications {
+  content: Notification[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}

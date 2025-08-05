@@ -39,18 +39,21 @@ public class DeadlineNotificationScheduler {
 
         nearDeadlineTarefas.forEach(tarefa -> {
             tarefa.getUsers().forEach(user -> {
-                NotificationInsertDTO notification = NotificationInsertDTO.builder()
-                        .type(NotificationType.TAREFA_PRAZO_PROXIMO.name())
-                        .content("A tarefa '" + tarefa.getDescricao() + "' tem prazo próximo: "
-                                + tarefa.getPrazoReal())
-                        .userId(user.getId())
-                        .tarefaId(tarefa.getId())
-                        .isRead(false)
-                        .createdAt(new Date())
-                        .build();
+                if (!notificationService.existsDeadlineNotification(tarefa.getId(), user.getId())) {
+                    NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                            .type(NotificationType.TAREFA_PRAZO_PROXIMO.name())
+                            .content("A tarefa '" + tarefa.getDescricao() + "' tem prazo próximo: "
+                                    + tarefa.getPrazoReal())
+                            .userId(user.getId())
+                            .tarefaId(tarefa.getId())
+                            .isRead(false)
+                            .createdAt(new Date())
+                            .build();
 
-                notificationService.processNotification(notification);
+                    notificationService.processNotification(notification);
+                }
             });
         });
+
     }
 }

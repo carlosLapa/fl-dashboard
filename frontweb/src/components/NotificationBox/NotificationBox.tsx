@@ -11,17 +11,23 @@ interface NotificationBoxProps {
   userId: number;
 }
 
+const PAGE_SIZE = 20;
+
 const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   const {
     notifications,
     loadStoredNotifications,
     handleNewNotification,
     handleMarkAsRead,
+    hasMore,
+    resetNotifications,
   } = useNotification();
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { messages } = useWebSocket(userId);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [page, setPage] = useState(0);
 
   // Add responsive detection
   useEffect(() => {
@@ -34,20 +40,26 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   }, []);
 
   useEffect(() => {
-    const loadInitialNotifications = async () => {
+    // Reset notifications and page when userId changes
+    resetNotifications();
+    setPage(0);
+  }, [userId, resetNotifications]);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        await loadStoredNotifications(userId);
+        await loadStoredNotifications(userId, page, PAGE_SIZE);
       } catch (err) {
         setError('Failed to load notifications');
       } finally {
         setIsLoading(false);
       }
     };
-    loadInitialNotifications();
+    loadNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, page]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -87,7 +99,11 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     return new Date(n.createdAt) > sevenDaysAgo;
   });
 
-  if (isLoading) {
+  const handleLoadMore = () => {
+    setPage((prev) => prev + 1);
+  };
+
+  if (isLoading && page === 0) {
     return (
       <div
         className="notification-container"
@@ -175,6 +191,14 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
           )}
         </div>
       </div>
+      {/* Load More Button */}
+      {hasMore && (
+        <div style={{ textAlign: 'center', margin: '1rem 0' }}>
+          <button className="mark-read-button" onClick={handleLoadMore}>
+            Carregar mais notificações
+          </button>
+        </div>
+      )}
     </div>
   );
 };
