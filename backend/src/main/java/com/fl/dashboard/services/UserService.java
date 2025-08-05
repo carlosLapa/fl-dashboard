@@ -150,6 +150,12 @@ public class UserService implements UserDetailsService {
         return page.map(UserDTO::new);
     }
 
+    @Transactional(readOnly = true)
+    public Page<UserWithRolesDTO> findAllPagedWithRoles(Pageable pageable) {
+        Page<User> page = userRepository.findAll(pageable);
+        return page.map(UserWithRolesDTO::new);
+    }
+
     /**
      * Find all users with pagination, returning only basic information
      *
@@ -226,40 +232,63 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserDTO update(Long id, UserDTO userDTO, MultipartFile imageFile) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = null;
+        if (auth instanceof JwtAuthenticationToken jwtToken) {
+            email = jwtToken.getToken().getClaimAsString("email");
+        } else {
+            email = auth.getName();
+        }
+        User currentUser = userRepository.findByEmail(email);
+        boolean isManager = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_MANAGER".equals(role.getAuthority()));
+
+        User entity = userRepository.getReferenceById(id);
+        boolean isTargetAdmin = entity.getRoles().stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getAuthority()));
+
+        if (isManager && isTargetAdmin) {
+            throw new DatabaseException("Managers cannot edit Admin users.");
+        }
         try {
-            User entity = userRepository.getReferenceById(id);
-
-            // Store the current password
+            // ...existing update logic...
             String currentPassword = entity.getPassword();
-
             copyDTOtoEntity(userDTO, entity);
-
-            // Handle password update
             if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
-                // Encode the new password
                 entity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
             } else {
-                // Keep the current password if none provided
                 entity.setPassword(currentPassword);
             }
-
             if (imageFile != null && !imageFile.isEmpty()) {
-                try {
-                    entity.setProfileImage(imageFile.getBytes());
-                } catch (IOException e) {
-                    throw new RuntimeException("Error processing image file", e);
-                }
+                entity.setProfileImage(imageFile.getBytes());
             }
-
             entity = userRepository.save(entity);
             return new UserDTO(entity);
-        } catch (EntityNotFoundException e) {
+        } catch (EntityNotFoundException | IOException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
     }
 
     @Transactional
     public void delete(Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = null;
+        if (auth instanceof JwtAuthenticationToken jwtToken) {
+            email = jwtToken.getToken().getClaimAsString("email");
+        } else {
+            email = auth.getName();
+        }
+        User currentUser = userRepository.findByEmail(email);
+        boolean isManager = currentUser.getRoles().stream()
+                .anyMatch(role -> "ROLE_MANAGER".equals(role.getAuthority()));
+
+        User entity = userRepository.getReferenceById(id);
+        boolean isTargetAdmin = entity.getRoles().stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getAuthority()));
+
+        if (isManager && isTargetAdmin) {
+            throw new DatabaseException("Managers cannot edit Admin users.");
+        }
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("Recurso não encontrado");
         }

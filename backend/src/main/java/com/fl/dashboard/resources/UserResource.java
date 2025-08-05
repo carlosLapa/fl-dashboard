@@ -60,18 +60,15 @@ public class UserResource {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserDTO>> findAll(Pageable pageable, Authentication authentication) {
-        // Check if user has permission to view all users
+    public ResponseEntity<Page<? extends UserDTO>> findAll(Pageable pageable, Authentication authentication) {
         boolean canViewAllUsers = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_USERS") ||
                         a.getAuthority().equals("ROLE_ADMIN"));
 
         if (canViewAllUsers) {
-            // Full access - return all user details
-            Page<UserDTO> list = userService.findAllPaged(pageable);
+            Page<UserWithRolesDTO> list = userService.findAllPagedWithRoles(pageable);
             return ResponseEntity.ok().body(list);
         } else {
-            // Limited access - return only basic info
             Page<UserDTO> list = userService.findAllBasicInfo(pageable);
             return ResponseEntity.ok().body(list);
         }

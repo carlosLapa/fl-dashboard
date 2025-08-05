@@ -86,8 +86,20 @@ const UserTable: React.FC<UserTableProps> = ({
           <tbody>
             {Array.isArray(users) && users.length > 0 ? (
               users.map((rowUser) => {
+                console.log('Row user:', rowUser.name, rowUser.roles);
                 const isOwnRow = user?.id === rowUser.id;
-                const shouldDisable = isEmployee() && !isOwnRow;
+                const isCurrentUserManager = user?.roles?.some(
+                  (role: any) =>
+                    role.authority === 'ROLE_MANAGER' || role === 'ROLE_MANAGER'
+                );
+                const isRowUserAdmin = rowUser.roles?.some(
+                  (role: any) =>
+                    role.authority === 'ROLE_ADMIN' || role === 'ROLE_ADMIN'
+                );
+                // Disable if Employee (not self) OR Manager viewing Admin
+                const shouldDisable =
+                  (isEmployee() && !isOwnRow) ||
+                  (isCurrentUserManager && isRowUserAdmin);
 
                 return (
                   <tr key={rowUser.id}>
@@ -179,22 +191,36 @@ const UserTable: React.FC<UserTableProps> = ({
                           <OverlayTrigger
                             placement="top"
                             overlay={
-                              <Tooltip id={`notifications-tooltip-${rowUser.id}`}>
+                              <Tooltip
+                                id={`notifications-tooltip-${rowUser.id}`}
+                              >
                                 Ver Notificações
                               </Tooltip>
                             }
                           >
-                            <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <div
+                              style={{
+                                position: 'relative',
+                                display: 'inline-block',
+                              }}
+                            >
                               <FontAwesomeIcon
                                 icon={faBell}
-                                onClick={() => handleNavigateToNotifications(rowUser.id)}
+                                onClick={() =>
+                                  handleNavigateToNotifications(rowUser.id)
+                                }
                                 className="action-icon view-notifications-icon"
                               />
                               <NotificationBadge userId={rowUser.id} />
                             </div>
                           </OverlayTrigger>
                         ) : (
-                          <div style={{ position: 'relative', display: 'inline-block' }}>
+                          <div
+                            style={{
+                              position: 'relative',
+                              display: 'inline-block',
+                            }}
+                          >
                             <FontAwesomeIcon
                               icon={faBell}
                               style={disabledStyle}

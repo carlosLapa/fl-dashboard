@@ -2,6 +2,8 @@ package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.projections.UserDetailsProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,6 +19,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(attributePaths = {"roles"})
     User findByEmail(String email);
+
+    @EntityGraph(attributePaths = {"roles"})
+    Page<User> findAll(Pageable pageable);
 
     @Query(nativeQuery = true, value = """
             SELECT tb_user.email AS username, tb_user.password, tb_role.id AS roleId, tb_role.authority
