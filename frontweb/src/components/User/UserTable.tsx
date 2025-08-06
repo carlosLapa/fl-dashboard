@@ -8,6 +8,7 @@ import {
   faTrashAlt,
   faTasks,
   faBell,
+  faClock,
 } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +16,8 @@ import { useNotification } from 'NotificationContext';
 import NotificationBadge from './../NotificationBox/NotificationBadge';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from 'AuthContext';
+import Modal from 'react-bootstrap/Modal';
+import UserExtraHoursCalendar from 'components/UserExtraHours/UserExtraHoursCalendar';
 
 import './styles.scss';
 
@@ -43,6 +46,21 @@ const UserTable: React.FC<UserTableProps> = ({
   const { loadStoredNotifications } = useNotification();
   const { user } = useAuth();
   const { isEmployee } = usePermissions();
+
+  const [showExtraHours, setShowExtraHours] = React.useState(false);
+  const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
+    null
+  );
+
+  const handleShowExtraHours = (userId: number) => {
+    setSelectedUserId(userId);
+    setShowExtraHours(true);
+  };
+
+  const handleCloseExtraHours = () => {
+    setShowExtraHours(false);
+    setSelectedUserId(null);
+  };
 
   const handleNavigateToNotifications = async (userId: number) => {
     await loadStoredNotifications(userId);
@@ -228,6 +246,27 @@ const UserTable: React.FC<UserTableProps> = ({
                             <NotificationBadge userId={rowUser.id} />
                           </div>
                         )}
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip id={`extra-hours-tooltip-${rowUser.id}`}>
+                              Horas Extra/Faltas
+                            </Tooltip>
+                          }
+                        >
+                          <FontAwesomeIcon
+                            icon={faClock}
+                            onClick={() =>
+                              !shouldDisable && handleShowExtraHours(rowUser.id)
+                            }
+                            className="action-icon"
+                            style={{
+                              marginRight: '8px',
+                              color: '#3174ad',
+                              ...(shouldDisable ? disabledStyle : {}),
+                            }}
+                          />
+                        </OverlayTrigger>
                       </div>
                     </td>
                   </tr>
@@ -268,6 +307,21 @@ const UserTable: React.FC<UserTableProps> = ({
           Página {page + 1} de {totalPages}
         </div>
       </div>
+
+      <Modal show={showExtraHours} onHide={handleCloseExtraHours} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedUserId
+              ? `Horas Extra e Faltas - ${
+                  users.find((u) => u.id === selectedUserId)?.name
+                }`
+              : 'Horas Extra e Faltas'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedUserId && <UserExtraHoursCalendar userId={selectedUserId} />}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
