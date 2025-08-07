@@ -13,11 +13,11 @@ import {
   UserExtraHoursSummaryDTO,
 } from 'types/userExtraHours';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import 'moment/locale/pt-br';
+import 'moment/locale/pt';
 
 import './UserExtraHoursCalendar.scss';
 
-moment.locale('pt-br');
+moment.locale('pt');
 const localizer = momentLocalizer(moment);
 
 interface UserExtraHoursCalendarProps {
@@ -52,6 +52,7 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
   useEffect(() => {
     fetchEntries();
     fetchSummaries();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchEntries = async () => {
@@ -190,7 +191,7 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
             onChange={(e) => setForm({ ...form, comment: e.target.value })}
             placeholder="Comentário"
           />
-          <button onClick={handleSave}>Salvar</button>
+          <button onClick={handleSave}>Gravar</button>
           {selectedEntry && <button onClick={handleDelete}>Excluir</button>}
           <button
             onClick={() => {
@@ -207,7 +208,7 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
         <ul>
           {monthlySummary.map((s) => (
             <li key={s.period}>
-              {s.period}: {s.totalHours} horas
+              {s.period}: {s.totalHours} hora(s)
             </li>
           ))}
         </ul>
@@ -215,7 +216,7 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
         <ul>
           {weeklySummary.map((s) => (
             <li key={s.period}>
-              {s.period}: {s.totalHours} horas
+              {s.period}: {s.totalHours} hora(s)
             </li>
           ))}
         </ul>

@@ -96,7 +96,7 @@ public class UserExtraHoursService {
         for (UserExtraHours entry : entries) {
             if (entry.getDate().getYear() == year) {
                 int week = entry.getDate().get(weekFields.weekOfWeekBasedYear());
-                String period = entry.getDate().getYear() + "-W" + String.format("%02d", week);
+                String period = entry.getDate().getYear() + "-Semana" + String.format("%02d", week);
                 weekTotals.put(period, weekTotals.getOrDefault(period, 0.0) + entry.getHours());
             }
         }
