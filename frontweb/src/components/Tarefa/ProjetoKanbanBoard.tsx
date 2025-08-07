@@ -17,6 +17,8 @@ import { Permission } from '../../permissions/rolePermissions';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from '../../AuthContext';
 import { toast } from 'react-toastify';
+import { useNotification } from '../../NotificationContext'; // Adjust path if needed
+import { NotificationType } from 'types/notification';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
@@ -55,6 +57,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   // Get the permissions hook for checking user permissions
   const { hasPermission } = usePermissions();
   const { user } = useAuth();
+  const { sendNotification } = useNotification();
 
   // Direct admin check that doesn't rely on the permission system
   const isAdmin = useMemo(() => {
@@ -270,9 +273,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         destination.droppableId === 'IN_REVIEW' &&
         !hasPermission(Permission.MOVE_CARD_TO_REVIEW)
       ) {
-        toast.error(
-          'Não tem permissão para mover tarefas para Em Revisão'
-        );
+        toast.error('Não tem permissão para mover tarefas para Em Revisão');
         return; // Block the movement
       }
 
@@ -312,6 +313,25 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         removed.id,
         destination.droppableId as TarefaStatus
       );
+
+      // Notify Coordenador if not the user moving the card
+      const coordenador = projeto.coordenador;
+      if (
+        coordenador &&
+        user &&
+        coordenador.id !== user.id // Only notify if mover is not the coordenador
+      ) {
+        sendNotification({
+          type: NotificationType.TAREFA_STATUS_ALTERADO, // Use the enum value, not a string
+          content: `A tarefa "${removed.descricao}" foi movida para "${destination.droppableId}" por ${user.name}.`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          relatedId: removed.id,
+          userId: coordenador.id,
+          tarefaId: removed.id,
+          projetoId: projeto.id,
+        });
+      }
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
       toast.error('Falha ao atualizar o status da tarefa');
@@ -338,9 +358,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       <Alert variant="warning" className="mb-3">
         <Alert.Heading>Projeto não disponível</Alert.Heading>
         <p>Este projeto foi excluído ou não está mais disponível no sistema.</p>
-        <p>
-          Se crê ser um erro, entre em contato com um administrador.
-        </p>
+        <p>Se crê ser um erro, entre em contato com um administrador.</p>
       </Alert>
     );
   }
@@ -359,14 +377,16 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       {/* Show different alerts based on user role */}
       {!isAdmin && !hasPermission(Permission.MOVE_CARD_TO_REVIEW) && (
         <Alert variant="info" className="mb-3">
-          Nota: Pode mover tarefas apenas entre as colunas "Backlog", "A
-          Fazer" e "Em Progresso". Só um gestor ou admin pode mover para "Em Revisão" ou "Concluído".
+          Nota: Pode mover tarefas apenas entre as colunas "Backlog", "A Fazer"
+          e "Em Progresso". Só um gestor ou admin pode mover para "Em Revisão"
+          ou "Concluído".
         </Alert>
       )}
 
       {isAdmin && (
         <Alert variant="success" className="mb-3">
-          <strong>Modo Administrador:</strong> Tem acesso completo ao quadro Kanban.
+          <strong>Modo Administrador:</strong> Tem acesso completo ao quadro
+          Kanban.
         </Alert>
       )}
 

@@ -24,7 +24,9 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
     });
   };
 
-  const renderUserNames = (users: User[]) => {
+  // Safely render user names, handling undefined or empty arrays
+  const renderUserNames = (users?: User[]) => {
+    if (!users || users.length === 0) return 'N/A';
     return users.map((user) => user.name).join(', ');
   };
 

@@ -1,7 +1,9 @@
 import React, { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Notification } from 'types/notification';
 import { markNotificationAsReadAPI } from 'api/notificationsApi';
 import { toast } from 'react-toastify';
+import { FaExternalLinkAlt } from 'react-icons/fa';
 
 interface NotificationDisplayProps {
   notification: Notification;
@@ -70,6 +72,7 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const navigate = useNavigate(); // Add this line
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -79,26 +82,38 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleMarkAsRead = useCallback(async () => {
-    if (!notification.isRead && !isSubmitting) {
-      setIsSubmitting(true);
-      try {
-        await markNotificationAsReadAPI(notification.id);
-        onMarkAsRead(notification.id);
-        toast.success('Notificação marcada como lida', {
-          position: isMobile ? 'bottom-center' : 'top-right',
-          autoClose: 2000,
-        });
-      } catch (error) {
-        console.error('Error marking notification as read:', error);
-        toast.error('Erro ao marcar notificação como lida', {
-          position: isMobile ? 'bottom-center' : 'top-right',
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
+  const isClickable = !!(notification.tarefa?.id || notification.projeto?.id);
+
+  const handleNotificationClick = () => {
+    if (notification.projeto && notification.projeto.id) {
+      navigate(`/projetos/${notification.projeto.id}/details`);
     }
-  }, [notification, onMarkAsRead, isSubmitting, isMobile]);
+  };
+
+  const handleMarkAsRead = useCallback(
+    async (event?: React.MouseEvent) => {
+      if (event) event.stopPropagation(); // Prevent card click
+      if (!notification.isRead && !isSubmitting) {
+        setIsSubmitting(true);
+        try {
+          await markNotificationAsReadAPI(notification.id);
+          onMarkAsRead(notification.id);
+          toast.success('Notificação marcada como lida', {
+            position: isMobile ? 'bottom-center' : 'top-right',
+            autoClose: 2000,
+          });
+        } catch (error) {
+          console.error('Error marking notification as read:', error);
+          toast.error('Erro ao marcar notificação como lida', {
+            position: isMobile ? 'bottom-center' : 'top-right',
+          });
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
+    },
+    [notification, onMarkAsRead, isSubmitting, isMobile]
+  );
 
   return (
     <div
@@ -106,12 +121,25 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
       style={{
         backgroundColor: getNotificationColor(notification.type),
         opacity: notification.isRead ? 0.7 : 1,
+        cursor: isClickable ? 'pointer' : 'default',
       }}
       role="listitem"
+      onClick={isClickable ? handleNotificationClick : undefined}
     >
       <div className="notification-header">
         <h3 className="notification-type">
           {getNotificationTitle(notification.type)}
+          {isClickable && (
+            <FaExternalLinkAlt
+              style={{
+                marginLeft: 8,
+                fontSize: '0.9em',
+                verticalAlign: 'middle',
+                color: '#2563eb',
+              }}
+              title="Ir para tarefa ou projeto"
+            />
+          )}
         </h3>
         <span className="notification-date">
           {new Date(notification.createdAt).toLocaleDateString('pt-PT')}

@@ -57,6 +57,15 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
     return <Badge bg={variant}>{prioridade}</Badge>;
   };
 
+  // Before using tarefas
+  const tarefasSafe = tarefas ?? [];
+
+  // Use tarefasSafe instead of tarefas
+  // Example:
+  if (tarefasSafe.length === 0) {
+    return <div>Sem tarefas</div>;
+  }
+
   return (
     <Card>
       <Card.Body>
@@ -73,8 +82,8 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {tarefas.length > 0 ? (
-                tarefas.map((tarefa) => (
+              {tarefasSafe.length > 0 ? (
+                tarefasSafe.map((tarefa) => (
                   <tr key={tarefa.id}>
                     <td>{tarefa.descricao}</td>
                     <td>{getStatusBadge(tarefa.status)}</td>

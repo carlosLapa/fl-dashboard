@@ -29,6 +29,7 @@
     "react-big-calendar": "^1.14.1",
     "react-bootstrap": "^2.10.2",
     "react-dom": "^18.3.1",
+    "react-icons": "^4.10.1",
     "react-router-dom": "^6.23.1",
     "react-scripts": "^5.0.1",
     "react-select": "^5.10.1",

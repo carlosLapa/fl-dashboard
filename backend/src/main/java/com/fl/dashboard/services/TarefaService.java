@@ -374,7 +374,6 @@ public class TarefaService {
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
 
-    @Transactional
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
@@ -382,6 +381,8 @@ public class TarefaService {
         String descricao = tarefa.getDescricao();
         Long tarefaId = tarefa.getId();
         tarefa.setStatus(newStatus);
+
+        // Notify all assigned users
         tarefa.getUsers().forEach(user -> {
             NotificationInsertDTO notification = NotificationInsertDTO.builder()
                     .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
@@ -393,6 +394,26 @@ public class TarefaService {
                     .build();
             notificationService.processNotification(notification);
         });
+
+        // Notify Coordenador if not assigned to the tarefa
+        Projeto projeto = tarefa.getProjeto();
+        if (projeto != null && projeto.getCoordenador() != null) {
+            User coordenador = projeto.getCoordenador();
+            boolean isCoordenadorAssigned = tarefa.getUsers().stream()
+                    .anyMatch(u -> u.getId().equals(coordenador.getId()));
+            if (!isCoordenadorAssigned) {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
+                        .content("A tarefa '" + descricao + "' mudou de estado de " + previousStatus + " para " + newStatus)
+                        .userId(coordenador.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(tarefaId)
+                        .build();
+                notificationService.processNotification(notification);
+            }
+        }
+
         tarefa = tarefaRepository.save(tarefa);
         return new TarefaDTO(tarefa);
     }
