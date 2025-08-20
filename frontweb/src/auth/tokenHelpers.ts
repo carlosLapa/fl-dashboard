@@ -22,12 +22,17 @@ export const storeTokenData = (
   expiresIn: number | undefined,
   email: string
 ) => {
+  // Store tokens securely
   secureStorage.setItem('access_token', accessToken);
 
   if (refreshToken) {
     secureStorage.setItem('refresh_token', refreshToken);
+    console.log('Refresh token stored successfully');
+  } else {
+    console.warn('No refresh token received from server');
   }
 
+  // Store email for user identification
   secureStorage.setItem('user_email', email);
 
   // Store expiration time
@@ -41,8 +46,21 @@ export const storeTokenData = (
  * Clear all auth-related data from storage
  */
 export const clearTokenData = () => {
+  console.log('Clearing all token data');
   secureStorage.removeItem('access_token');
   secureStorage.removeItem('refresh_token');
   secureStorage.removeItem('token_expires_at');
   secureStorage.removeItem('user_email');
+};
+
+/**
+ * Add sanitization utility for safer logging
+ */
+export const sanitizeToken = (token: string): string => {
+  if (!token) return '[empty]';
+  // Only show the first 6 and last 4 characters
+  if (token.length > 10) {
+    return `${token.substring(0, 6)}...${token.substring(token.length - 4)}`;
+  }
+  return '[protected]';
 };

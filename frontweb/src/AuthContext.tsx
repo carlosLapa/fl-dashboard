@@ -203,6 +203,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const logout = () => {
+    console.log('Logging out user');
     clearTokenData();
     secureStorage.setItem('logout', Date.now().toString());
     setUser(null);

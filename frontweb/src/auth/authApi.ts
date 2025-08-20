@@ -24,7 +24,14 @@ export const login = async (email: string, password: string) => {
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: 'Basic ' + btoa('myclientid:myclientsecret'),
+        // Use environment variables for client credentials
+        Authorization:
+          'Basic ' +
+          btoa(
+            `${process.env.REACT_APP_CLIENT_ID || 'myclientid'}:${
+              process.env.REACT_APP_CLIENT_SECRET || 'myclientsecret'
+            }`
+          ),
       },
     }
   );
@@ -32,16 +39,13 @@ export const login = async (email: string, password: string) => {
   const { access_token, refresh_token, token_type, expires_in } =
     tokenResponse.data;
 
-  // Store the email for use in getUserData
-  const currentEmail = email;
-
-  // Store tokens and return token info
+  // Store the token data
   return storeTokenData(
     access_token,
     refresh_token,
     token_type,
     expires_in,
-    currentEmail
+    email
   );
 };
 
@@ -51,10 +55,13 @@ export const login = async (email: string, password: string) => {
  */
 export const refreshToken = async (): Promise<boolean> => {
   try {
+    // Get the refresh token - add debug logging
     const refreshTokenStr = secureStorage.getItem('refresh_token');
+    console.log('Refresh token present:', !!refreshTokenStr);
 
     if (!refreshTokenStr) {
-      throw new Error('No refresh token available');
+      console.warn('No refresh token available in secureStorage');
+      return false;
     }
 
     const tokenResponse = await axios.post(
@@ -63,7 +70,13 @@ export const refreshToken = async (): Promise<boolean> => {
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: 'Basic ' + btoa('myclientid:myclientsecret'),
+          Authorization:
+            'Basic ' +
+            btoa(
+              `${process.env.REACT_APP_CLIENT_ID || 'myclientid'}:${
+                process.env.REACT_APP_CLIENT_SECRET || 'myclientsecret'
+              }`
+            ),
         },
       }
     );

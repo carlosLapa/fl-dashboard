@@ -6,9 +6,6 @@ import { clearTokenData } from './tokenHelpers';
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: Function; reject: Function }> = [];
 
-/**
- * Process all queued requests either with new token or rejection
- */
 const processQueue = (error: any, token: string | null) => {
   failedQueue.forEach((prom) => {
     if (token) {
@@ -20,9 +17,6 @@ const processQueue = (error: any, token: string | null) => {
   failedQueue = [];
 };
 
-/**
- * Set up axios interceptor to handle token refresh on 401 errors
- */
 export const setupTokenRefreshInterceptor = (
   refreshUserToken: () => Promise<boolean>
 ) => {
@@ -31,8 +25,22 @@ export const setupTokenRefreshInterceptor = (
     async (error) => {
       const originalRequest = error.config;
 
+      // Check if there's a response
+      if (!error.response) {
+        return Promise.reject(error);
+      }
+
       // If the error is not 401 or the request already tried to refresh, reject
-      if (error.response?.status !== 401 || originalRequest._retry) {
+      if (error.response.status !== 401 || originalRequest._retry) {
+        return Promise.reject(error);
+      }
+
+      // Check if we have a refresh token before attempting refresh
+      const hasRefreshToken = !!secureStorage.getItem('refresh_token');
+      if (!hasRefreshToken) {
+        console.warn('Authentication error - session may have expired');
+        clearTokenData();
+        window.dispatchEvent(new Event('auth:sessionExpired'));
         return Promise.reject(error);
       }
 
@@ -56,9 +64,14 @@ export const setupTokenRefreshInterceptor = (
       // Try to refresh the token
       try {
         const success = await refreshUserToken();
-        if (!success) throw new Error('Token refresh failed');
+        if (!success) {
+          throw new Error('Token refresh failed');
+        }
 
         const newToken = secureStorage.getItem('access_token');
+        if (!newToken) {
+          throw new Error('No access token after refresh');
+        }
 
         // Process the queue with the new token
         processQueue(null, newToken);
@@ -69,13 +82,12 @@ export const setupTokenRefreshInterceptor = (
         return axios(originalRequest);
       } catch (refreshError) {
         // Handle refresh failure - usually means user needs to re-login
+        console.error('Authentication error - session may have expired');
         processQueue(refreshError, null);
         isRefreshing = false;
 
-        // Clear auth data
+        // Clear auth data and dispatch session expired event
         clearTokenData();
-
-        // Dispatch a "session expired" event
         window.dispatchEvent(new Event('auth:sessionExpired'));
 
         return Promise.reject(refreshError);
