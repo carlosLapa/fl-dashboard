@@ -10,12 +10,11 @@ import { User } from './types/user';
 import { getUsersAPI } from './api/requestsApi';
 import { getCurrentUserWithRoles } from './services/userService';
 import { useNavigate } from 'react-router-dom';
-
-// Import refactored utilities
 import secureStorage from './auth/secureStorage';
 import { isTokenExpired, clearTokenData } from './auth/tokenHelpers';
 import { setupTokenRefreshInterceptor } from './auth/axiosInterceptors';
 import { login as apiLogin, refreshToken } from './auth/authApi';
+import { setupCsrfInterceptor, generateCsrfToken } from './auth/csrf';
 
 interface AuthContextType {
   user: User | null;
@@ -42,11 +41,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     // Setup token refresh interceptor
-    const interceptor = setupTokenRefreshInterceptor(refreshUserToken);
+    const refreshInterceptor = setupTokenRefreshInterceptor(refreshUserToken);
+
+    // Setup CSRF protection
+    const csrfInterceptor = setupCsrfInterceptor();
+
+    // Generate initial CSRF token
+    generateCsrfToken();
 
     return () => {
-      // Clean up interceptor when component unmounts
-      axios.interceptors.response.eject(interceptor);
+      // Clean up interceptors when component unmounts
+      axios.interceptors.response.eject(refreshInterceptor);
+      axios.interceptors.request.eject(csrfInterceptor);
     };
   }, []);
 
@@ -142,6 +148,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     let errorMessage = 'An unknown error occurred';
 
     try {
+      // Generate a new CSRF token before login
+      generateCsrfToken();
+
       // Use the extracted login API
       const { tokenType, accessToken } = await apiLogin(email, password);
 
@@ -204,6 +213,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = () => {
     console.log('Logging out user');
+    // Clear CSRF token on logout
+    secureStorage.removeItem('csrf_token');
+    // Clear all token data
     clearTokenData();
     secureStorage.setItem('logout', Date.now().toString());
     setUser(null);
