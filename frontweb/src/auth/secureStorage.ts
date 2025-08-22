@@ -2,16 +2,14 @@
  * Enhanced secure storage utility with additional security measures
  */
 const secureStorage = {
-  // Add encryption for sensitive values
+  // Store values with encryption for sensitive keys
   setItem(key: string, value: string) {
     try {
-      // For sensitive keys, consider simple encryption
+      // For sensitive keys, apply encryption
       if (this.isSensitiveKey(key)) {
-        // Simple XOR encryption
+        // Encrypt the value
         const encryptedValue = this.simpleEncrypt(value);
-        // Add a prefix to identify encrypted values
-        localStorage.setItem(key, `ENC:${encryptedValue}`);
-        console.log(`Stored encrypted value for key: ${key}`);
+        localStorage.setItem(`secure_${key}`, encryptedValue);
       } else {
         localStorage.setItem(key, value);
       }
@@ -23,23 +21,15 @@ const secureStorage = {
   // Retrieve and decrypt values for sensitive keys
   getItem(key: string): string | null {
     try {
-      // Get the stored value
-      const storedValue = localStorage.getItem(key);
-
-      // If there's no value or it's not sensitive, return directly
-      if (!storedValue) return null;
-      if (!this.isSensitiveKey(key)) return storedValue;
-
-      // For encrypted values (check for prefix)
-      if (storedValue.startsWith('ENC:')) {
-        const encryptedValue = storedValue.substring(4); // Remove 'ENC:' prefix
+      // If it's a sensitive key, decrypt the value
+      if (this.isSensitiveKey(key)) {
+        const encryptedValue = localStorage.getItem(`secure_${key}`);
+        if (!encryptedValue) return null;
         return this.simpleDecrypt(encryptedValue);
       }
-
-      // For backward compatibility - return the value as-is if not encrypted
-      return storedValue;
+      return localStorage.getItem(key);
     } catch (e) {
-      console.error(`Error reading from secure storage for key ${key}:`, e);
+      console.error('Error reading from secure storage', e);
       return null;
     }
   },
@@ -47,7 +37,11 @@ const secureStorage = {
   // Remove items with proper key prefixing
   removeItem(key: string) {
     try {
-      localStorage.removeItem(key);
+      if (this.isSensitiveKey(key)) {
+        localStorage.removeItem(`secure_${key}`);
+      } else {
+        localStorage.removeItem(key);
+      }
     } catch (e) {
       console.error('Error removing from secure storage', e);
     }
@@ -59,7 +53,7 @@ const secureStorage = {
     return sensitiveKeys.includes(key);
   },
 
-  // Simple XOR encryption
+  // Simple XOR encryption (provides basic obfuscation)
   simpleEncrypt(text: string): string {
     const key =
       process.env.REACT_APP_SECURITY_KEY || 'X7bF9pQ2zK4rT8mE5vN3wL6sJ1yH9cD0';
