@@ -73,7 +73,7 @@ public class ResourceServerConfig {
         corsConfig.setAllowedOriginPatterns(Arrays.asList(origins));
         corsConfig.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE", "PATCH"));
         corsConfig.setAllowCredentials(true);
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-CSRF-Token"));
 
         // Add WebSocket-specific allowed headers
         corsConfig.addAllowedHeader("Sec-WebSocket-Extensions");
