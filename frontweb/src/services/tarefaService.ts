@@ -193,7 +193,7 @@ export const addTarefa = async (
       for (const userId of formData.userIds) {
         const notification: NotificationInsertDTO = {
           type: NotificationType.TAREFA_ATRIBUIDA,
-          content: `Nova tarefa "${formData.descricao}" atribuída a você`,
+          content: `Nova tarefa "${formData.descricao}" foi-lhe atribuída`,
           isRead: false,
           createdAt: new Date().toISOString(),
           relatedId: response.id,
@@ -207,6 +207,14 @@ export const addTarefa = async (
     return response;
   } catch (error) {
     console.error('Error adding tarefa:', error);
+
+    // Handle specific deadline validation errors
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      if (error.response.data.message.includes('prazo')) {
+        throw new Error(error.response.data.message);
+      }
+    }
+
     throw error;
   }
 };
@@ -217,32 +225,34 @@ export const updateTarefa = async (
   onNotify?: (notification: NotificationInsertDTO) => Promise<void>
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
-    let dataToSend = { ...data };
-    if (data.prazoEstimado && data.prazoReal) {
-      dataToSend.workingDays = calculateWorkingDays(
-        data.prazoEstimado,
-        data.prazoReal
-      );
+    const response = await updateTarefaAPI(id, data);
+
+    // Handle notifications if provided
+    if (onNotify) {
+      const notification: NotificationInsertDTO = {
+        type: NotificationType.TAREFA_EDITADA,
+        content: `A tarefa "${data.descricao}" foi atualizada`,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        userId: data.userIds[0], // Notify first user in the list
+        tarefaId: id,
+        projetoId: data.projetoId,
+        relatedId: id,
+      };
+      await onNotify(notification);
     }
-    const updatedTarefa = await updateTarefaAPI(id, dataToSend);
-    if (onNotify && updatedTarefa) {
-      for (const userId of data.userIds) {
-        const notification: NotificationInsertDTO = {
-          type: NotificationType.TAREFA_EDITADA,
-          content: `Tarefa "${data.descricao}" foi atualizada`,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          relatedId: updatedTarefa.id,
-          userId: userId,
-          tarefaId: updatedTarefa.id,
-          projetoId: data.projetoId,
-        };
-        await onNotify(notification);
+
+    return response;
+  } catch (error) {
+    console.error('Error updating tarefa:', error);
+
+    // Handle specific deadline validation errors
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      if (error.response.data.message.includes('prazo')) {
+        throw new Error(error.response.data.message);
       }
     }
-    return updatedTarefa;
-  } catch (error) {
-    console.error('Error in tarefa service:', error);
+
     throw error;
   }
 };

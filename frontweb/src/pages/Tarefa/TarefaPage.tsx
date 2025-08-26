@@ -293,7 +293,12 @@ const TarefaPage: React.FC = () => {
       toast.success('Tarefa adicionada com sucesso!');
     } catch (error) {
       console.error('Error ao adicionar tarefa:', error);
-      toast.error('Erro ao adicionar tarefa');
+      // Check for deadline validation error
+      if (error instanceof Error && error.message.includes('prazo')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Erro ao adicionar tarefa');
+      }
     }
   };
 
@@ -318,8 +323,15 @@ const TarefaPage: React.FC = () => {
       setTarefaToEdit(null);
       toast.success('Tarefa atualizada com sucesso!');
     } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error);
-      toast.error('Erro ao atualizar tarefa');
+      console.error('Error ao atualizar tarefa:', error);
+      // Check for deadline validation error
+      if (error instanceof Error && error.message.includes('prazo')) {
+        toast.error(error.message);
+        // Don't close the modal so the user can fix the deadline
+      } else {
+        toast.error('Erro ao atualizar tarefa');
+        setShowModal(false);
+      }
     }
   };
 

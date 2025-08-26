@@ -1,6 +1,7 @@
 import axios from 'api/apiConfig';
 import {
   PaginatedProjetos,
+  Projeto,
   ProjetoFormData,
   ProjetoWithUsersAndTarefasDTO,
 } from 'types/projeto';
@@ -370,6 +371,16 @@ export const getExternosByProjetoIdAPI = async (projetoId: number) => {
       console.error('Error details:', error.response.data);
     }
     return [];
+  }
+};
+
+export const getProjetoDetailsAPI = async (id: number): Promise<Projeto> => {
+  try {
+    const response = await axios.get<Projeto>(`/projetos/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching project details with id ${id}:`, error);
+    throw error;
   }
 };
 

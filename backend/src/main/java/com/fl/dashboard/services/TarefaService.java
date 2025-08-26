@@ -11,6 +11,7 @@ import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
+import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.Hibernate;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -138,6 +140,9 @@ public class TarefaService {
             entity.setWorkingDays(calculateWorkingDays(entity.getPrazoEstimado(), entity.getPrazoReal()));
         }
 
+        // Validate deadline against project if applicable
+        validateTarefaDeadline(entity);
+
         entity = tarefaRepository.save(entity);
         return new TarefaDTO(entity);
     }
@@ -153,6 +158,9 @@ public class TarefaService {
             if (entity.getPrazoEstimado() != null && entity.getPrazoReal() != null) {
                 entity.setWorkingDays(calculateWorkingDays(entity.getPrazoEstimado(), entity.getPrazoReal()));
             }
+
+            // Validate deadline against project
+            validateTarefaDeadline(entity);
 
             entity = tarefaRepository.save(entity);
             return new TarefaDTO(entity);
@@ -255,6 +263,8 @@ public class TarefaService {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
             tarefa.setProjeto(projeto);
+
+            validateTarefaDeadline(tarefa);
         } else {
             tarefa.setProjeto(null);  // Remove projeto association if projetoId is null
         }
@@ -334,6 +344,8 @@ public class TarefaService {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
             tarefa.setProjeto(projeto);
+
+            validateTarefaDeadline(tarefa);
         }
 
         // Associate Users only if userIds are provided
@@ -775,6 +787,20 @@ public class TarefaService {
             }
         }
         return list;
+    }
+
+    private void validateTarefaDeadline(Tarefa tarefa) {
+        if (tarefa.getProjeto() != null && tarefa.getPrazoReal() != null) {
+            Projeto projeto = tarefa.getProjeto();
+            if (projeto.getPrazo() != null && tarefa.getPrazoReal().after(projeto.getPrazo())) {
+                throw new DeadlineValidationException(
+                        "O prazo da tarefa (" +
+                                new SimpleDateFormat("dd/MM/yyyy").format(tarefa.getPrazoReal()) +
+                                ") não pode exceder o prazo final do projeto (" +
+                                new SimpleDateFormat("dd/MM/yyyy").format(projeto.getPrazo()) + ")"
+                );
+            }
+        }
     }
 
 

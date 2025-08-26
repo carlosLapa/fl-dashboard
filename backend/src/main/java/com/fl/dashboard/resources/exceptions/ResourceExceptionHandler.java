@@ -1,6 +1,7 @@
 package com.fl.dashboard.resources.exceptions;
 
 import com.fl.dashboard.services.exceptions.DatabaseException;
+import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,18 @@ public class ResourceExceptionHandler {
         err.setStatus(status.value());
         err.setError("Acesso negado");
         err.setMessage("Não possui permissões para essa operação");
+        err.setPath(request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(DeadlineValidationException.class)
+    public ResponseEntity<StandardError> deadlineValidation(DeadlineValidationException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        StandardError err = new StandardError();
+        err.setTimestamp(Instant.now());
+        err.setStatus(status.value());
+        err.setError("Prazo inválido");
+        err.setMessage(e.getMessage());
         err.setPath(request.getRequestURI());
         return ResponseEntity.status(status).body(err);
     }

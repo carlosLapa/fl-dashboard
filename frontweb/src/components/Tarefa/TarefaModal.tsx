@@ -17,11 +17,17 @@ import {
 } from '../../types/tarefa';
 import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
-import { User } from 'types/user'; // Make sure to import PaginatedUsers
+import { User } from 'types/user';
+import { Projeto, ProjetoMinDTO } from 'types/projeto';
 import { ExternoDTO } from 'types/externo';
-import { getUsersAPI, searchProjetosAPI } from '../../api/requestsApi';
+import {
+  getUsersAPI,
+  searchProjetosAPI,
+  getProjetoDetailsAPI,
+} from '../../api/requestsApi';
 import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 
 interface TarefaModalProps {
   show: boolean;
@@ -99,6 +105,11 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   const [workingDays, setWorkingDays] = useState<number>(0);
   const [externos, setExternos] = useState<ExternoDTO[]>([]);
   const [activeTab, setActiveTab] = useState('colaboradores');
+  // Add state for selected project details including deadline
+  const [selectedProject, setSelectedProject] = useState<Projeto | null>(null);
+  // Add state for deadline validation
+  const [isDeadlineValid, setIsDeadlineValid] = useState(true);
+  const [deadlineErrorMessage, setDeadlineErrorMessage] = useState('');
 
   // Fetch users and externos when modal opens
   useEffect(() => {
@@ -112,6 +123,26 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       .catch(() => toast.error('Erro ao carregar dados'))
       .finally(() => setIsLoading(false));
   }, [show]);
+
+  // Fetch project details when a project is selected
+  useEffect(() => {
+    if (formData.projetoId && formData.projetoId > 0) {
+      getProjetoDetailsAPI(formData.projetoId)
+        .then((project) => {
+          setSelectedProject(project);
+          // Validate deadline when project changes
+          validateDeadline(formData.prazoReal, project);
+        })
+        .catch((error) => {
+          console.error('Error fetching project details:', error);
+          setSelectedProject(null);
+        });
+    } else {
+      setSelectedProject(null);
+      setIsDeadlineValid(true);
+      setDeadlineErrorMessage('');
+    }
+  }, [formData.projetoId]);
 
   // Set form data when editing
   useEffect(() => {
@@ -137,6 +168,16 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
             tarefa.prazoReal?.split('T')[0] || ''
           )
       );
+
+      // Fetch project details for deadline validation
+      getProjetoDetailsAPI(tarefa.projeto.id)
+        .then((project) => {
+          setSelectedProject(project);
+          validateDeadline(tarefa.prazoReal?.split('T')[0], project);
+        })
+        .catch((error) => {
+          console.error('Error fetching project details:', error);
+        });
     } else {
       setFormData({
         descricao: '',
@@ -150,6 +191,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       });
       setSelectedProjectName('');
       setWorkingDays(0);
+      setSelectedProject(null);
+      setIsDeadlineValid(true);
+      setDeadlineErrorMessage('');
     }
   }, [isEditing, tarefa, show]);
 
@@ -163,6 +207,48 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       setWorkingDays(0);
     }
   }, [formData.prazoEstimado, formData.prazoReal]);
+
+  // Validate deadline when task deadline changes
+  useEffect(() => {
+    if (selectedProject && formData.prazoReal) {
+      validateDeadline(formData.prazoReal, selectedProject);
+    }
+  }, [formData.prazoReal, selectedProject]);
+
+  // Function to validate task deadline against project deadline
+  const validateDeadline = (taskDeadlineStr?: string, project?: Projeto) => {
+    if (!taskDeadlineStr || !project || !project.prazo) {
+      setIsDeadlineValid(true);
+      setDeadlineErrorMessage('');
+      return true;
+    }
+
+    const taskDeadline = new Date(taskDeadlineStr);
+    const projectDeadline = new Date(project.prazo.split('T')[0]);
+
+    // Set time to midnight to compare only dates
+    taskDeadline.setHours(0, 0, 0, 0);
+    projectDeadline.setHours(0, 0, 0, 0);
+
+    const isValid = taskDeadline <= projectDeadline;
+    setIsDeadlineValid(isValid);
+
+    if (!isValid) {
+      setDeadlineErrorMessage(
+        `O prazo da tarefa (${format(
+          taskDeadline,
+          'dd/MM/yyyy'
+        )}) não pode exceder o prazo final do projeto (${format(
+          projectDeadline,
+          'dd/MM/yyyy'
+        )})`
+      );
+    } else {
+      setDeadlineErrorMessage('');
+    }
+
+    return isValid;
+  };
 
   const handleInputChange = (
     event: React.ChangeEvent<
@@ -184,6 +270,16 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       };
       sendNotification(notification);
     }
+
+    // For deadline changes, validate immediately
+    if (name === 'prazoReal' && selectedProject) {
+      const isValid = validateDeadline(value, selectedProject);
+      if (!isValid) {
+        // Optionally show toast warning immediately
+        // toast.warning(deadlineErrorMessage);
+      }
+    }
+
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
@@ -196,10 +292,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     setIsSearchingProjects(true);
     try {
       const response = await searchProjetosAPI(projectSearchQuery);
-      console.log('Project search response:', response);
       if (response && response.content && response.content.length > 0) {
         setProjectSearchResults(response.content);
-        console.log('Setting project results:', response.content);
       } else {
         setProjectSearchResults([]);
         toast.info('Nenhum projeto encontrado com esse termo de busca');
@@ -214,8 +308,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   };
 
   // Handle project selection
-  const handleSelectProject = (projeto: any) => {
-    console.log('Selected project:', projeto);
+  const handleSelectProject = (projeto: ProjetoMinDTO) => {
     setFormData((prevData) => ({
       ...prevData,
       projetoId: projeto.id,
@@ -223,6 +316,20 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     setSelectedProjectName(projeto.designacao);
     setProjectSearchResults([]);
     setProjectSearchQuery('');
+
+    // Fetch complete project details
+    getProjetoDetailsAPI(projeto.id)
+      .then((project: Projeto) => {
+        setSelectedProject(project);
+        // Validate current deadline against new project
+        if (formData.prazoReal) {
+          validateDeadline(formData.prazoReal, project);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching project details:', error);
+        setSelectedProject(null);
+      });
   };
 
   const handleUserSelect = (userId: number) => {
@@ -252,6 +359,15 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     if (!formData.descricao.trim()) {
       toast.warning('Por favor, forneça uma descrição para a tarefa');
       return;
+    }
+
+    // Validate deadline before saving
+    if (selectedProject && formData.prazoReal) {
+      const isValid = validateDeadline(formData.prazoReal, selectedProject);
+      if (!isValid) {
+        toast.error(deadlineErrorMessage);
+        return;
+      }
     }
 
     // Include workingDays in the form data if both dates are available
@@ -352,8 +468,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
             <Row>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrazoEstimado" className="mb-3">
-                  <Form.Label>Início</Form.Label>{' '}
-                  {/* Changed from "Prazo Estimado" */}
+                  <Form.Label>Início</Form.Label>
                   <Form.Control
                     type="date"
                     name="prazoEstimado"
@@ -364,14 +479,25 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
               </Col>
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrazoReal" className="mb-3">
-                  <Form.Label>Prazo</Form.Label>{' '}
-                  {/* Changed from "Prazo Real" */}
+                  <Form.Label>Prazo</Form.Label>
                   <Form.Control
                     type="date"
                     name="prazoReal"
                     value={formData.prazoReal}
                     onChange={handleInputChange}
+                    isInvalid={!isDeadlineValid}
                   />
+                  {!isDeadlineValid && (
+                    <Form.Control.Feedback type="invalid">
+                      {deadlineErrorMessage}
+                    </Form.Control.Feedback>
+                  )}
+                  {selectedProject?.prazo && (
+                    <Form.Text className="text-muted">
+                      Prazo do projeto:{' '}
+                      {format(new Date(selectedProject.prazo), 'dd/MM/yyyy')}
+                    </Form.Text>
+                  )}
                 </Form.Group>
               </Col>
             </Row>
@@ -529,7 +655,11 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         <Button variant="secondary" onClick={onHide}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSave}>
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          disabled={!isDeadlineValid && formData.prazoReal !== ''}
+        >
           {isEditing ? 'Atualizar' : 'Criar'}
         </Button>
       </Modal.Footer>
