@@ -142,6 +142,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       setIsDeadlineValid(true);
       setDeadlineErrorMessage('');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.projetoId]);
 
   // Set form data when editing

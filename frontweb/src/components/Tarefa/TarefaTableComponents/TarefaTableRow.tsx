@@ -4,13 +4,14 @@ import {
   faPencilAlt,
   faTrashAlt,
   faInfoCircle,
+  faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {
   TarefaWithUserAndProjetoDTO,
   TarefaStatus,
 } from '../../../types/tarefa';
-import { formatDate } from '../../../utils/dateUtils';
+import { formatDate, getDeadlineStatus } from '../../../utils/dateUtils';
 
 interface TarefaTableRowProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -27,6 +28,72 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
   onViewDetails,
   onStatusChange,
 }) => {
+  // Add this function to render deadline with warning indicators
+  const renderDeadlineWithWarning = () => {
+    if (!tarefa.prazoReal) return '-';
+
+    // Debug logs to check the data
+    console.log(`Task ${tarefa.id} - Task deadline:`, tarefa.prazoReal);
+    console.log(`Task ${tarefa.id} - Project:`, tarefa.projeto);
+    console.log(`Task ${tarefa.id} - Project deadline:`, tarefa.projeto?.prazo);
+
+    // Always show a debug badge to test Bootstrap rendering
+    const debugBadge = (
+      <Badge bg="secondary" className="ms-2" style={{ cursor: 'pointer' }}>
+        DEBUG
+      </Badge>
+    );
+
+    // Use getDeadlineStatus from dateUtils
+    const deadlineStatus = getDeadlineStatus(
+      tarefa.prazoReal,
+      tarefa.projeto?.prazo,
+      30 // Increase threshold temporarily for testing
+    );
+
+    console.log(`Task ${tarefa.id} - Deadline status:`, deadlineStatus);
+
+    return (
+      <>
+        {formatDate(tarefa.prazoReal)}
+
+        {/* Debug badge that always shows */}
+        {debugBadge}
+
+        {deadlineStatus.isApproaching && (
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`deadline-tooltip-${tarefa.id}`}>
+                {deadlineStatus.isOverdue
+                  ? `Esta tarefa excede o prazo do projeto (${deadlineStatus.formattedProjectDate})`
+                  : `Esta tarefa tem apenas ${deadlineStatus.daysRemaining} dia(s) até o prazo do projeto`}
+              </Tooltip>
+            }
+          >
+            <Badge
+              bg={
+                deadlineStatus.isOverdue
+                  ? 'danger'
+                  : deadlineStatus.daysRemaining !== null &&
+                    deadlineStatus.daysRemaining <= 2
+                  ? 'warning'
+                  : 'info'
+              }
+              className="ms-2"
+              style={{ cursor: 'pointer' }}
+            >
+              <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+              {deadlineStatus.daysRemaining !== null
+                ? `${deadlineStatus.daysRemaining}d`
+                : '!'}
+            </Badge>
+          </OverlayTrigger>
+        )}
+      </>
+    );
+  };
+
   return (
     <tr>
       <td>{tarefa.descricao}</td>
@@ -34,9 +101,7 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
       <td className="prazo-column">
         {tarefa.prazoEstimado ? formatDate(tarefa.prazoEstimado) : '-'}
       </td>
-      <td className="prazo-column">
-        {tarefa.prazoReal ? formatDate(tarefa.prazoReal) : '-'}
-      </td>
+      <td className="prazo-column">{renderDeadlineWithWarning()}</td>
       <td className="prazo-column">
         {tarefa.workingDays !== undefined
           ? `${tarefa.workingDays} dia(s)`
@@ -54,9 +119,11 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
           : '-'}
       </td>
       <td>
-        {tarefa.projeto 
-          ? tarefa.projeto.designacao 
-          : <span className="text-muted">Sem projeto</span>}
+        {tarefa.projeto ? (
+          tarefa.projeto.designacao
+        ) : (
+          <span className="text-muted">Sem projeto</span>
+        )}
       </td>
       <td>
         <div className="action-icons">

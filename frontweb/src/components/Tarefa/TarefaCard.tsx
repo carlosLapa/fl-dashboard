@@ -1,19 +1,24 @@
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import {
+  KanbanTarefa,
+  KanbanTarefaWithProjectDeadline,
+  TarefaStatus,
+} from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faBriefcase } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCalendarAlt,
+  faBriefcase,
+  faExclamationTriangle,
+} from '@fortawesome/free-solid-svg-icons';
+import { getDeadlineStatus } from '../../utils/dateUtils';
 import './styles.scss';
 
 interface TarefaCardProps {
   tarefa: KanbanTarefa;
   index: number;
 }
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return '';
-  return new Date(dateString).toLocaleDateString('pt-PT');
-};
 
 const getStatusColor = (status: TarefaStatus) => {
   const colors: { [key in TarefaStatus]: string } = {
@@ -41,7 +46,49 @@ const getPriorityStyle = (priority: string) => {
   };
 };
 
+// Function to get card style based on deadline status
+const getCardStyle = (tarefa: KanbanTarefa): string => {
+  // Cast to our extended interface that includes project deadline
+  const tarefaWithPrazo = tarefa as KanbanTarefaWithProjectDeadline;
+
+  // If we don't have a project deadline, we can't determine status
+  if (!tarefaWithPrazo.projeto?.prazo) {
+    return '';
+  }
+
+  const status = getDeadlineStatus(
+    tarefa.prazoReal,
+    tarefaWithPrazo.projeto.prazo
+  );
+
+  if (status.isOverdue) {
+    return 'task-overdue';
+  }
+
+  if (status.isApproaching) {
+    return status.daysRemaining !== null && status.daysRemaining <= 2
+      ? 'task-critical'
+      : 'task-approaching';
+  }
+
+  return '';
+};
+
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('pt-PT');
+};
+
 const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
+  // Cast to our extended interface that includes project deadline
+  const tarefaWithPrazo = tarefa as KanbanTarefaWithProjectDeadline;
+  const deadlineStatus = getDeadlineStatus(
+    tarefa.prazoReal,
+    tarefaWithPrazo.projeto?.prazo
+  );
+  const cardStyleClass = getCardStyle(tarefa);
+
   return (
     <Draggable draggableId={tarefa.uniqueId} index={index}>
       {(provided, snapshot) => (
@@ -63,7 +110,7 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
             opacity: snapshot.isDragging ? 0.9 : 1,
             ...provided.draggableProps.style,
           }}
-          className="tarefa-card-wrapper"
+          className={`tarefa-card-wrapper ${cardStyleClass}`}
         >
           <h3
             style={{ fontSize: '16px', marginBottom: '8px', color: '#1F2937' }}
@@ -89,6 +136,38 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
               <span className="tarefa-date">
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                 Prazo: {formatDate(tarefa.prazoReal)}
+                {/* Add deadline indicator */}
+                {deadlineStatus.isApproaching && (
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`deadline-tooltip-${tarefa.id}`}>
+                        {deadlineStatus.isOverdue
+                          ? `Esta tarefa excede o prazo do projeto (${deadlineStatus.formattedProjectDate})`
+                          : `Esta tarefa tem apenas ${deadlineStatus.daysRemaining} dia(s) até o prazo do projeto`}
+                      </Tooltip>
+                    }
+                  >
+                    <span
+                      className={`deadline-badge ${
+                        deadlineStatus.isOverdue
+                          ? 'deadline-overdue'
+                          : deadlineStatus.daysRemaining !== null &&
+                            deadlineStatus.daysRemaining <= 2
+                          ? 'deadline-critical'
+                          : 'deadline-approaching'
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={faExclamationTriangle}
+                        className="me-1"
+                      />
+                      {deadlineStatus.daysRemaining !== null
+                        ? `${deadlineStatus.daysRemaining}d`
+                        : '!'}
+                    </span>
+                  </OverlayTrigger>
+                )}
               </span>
             </div>
 

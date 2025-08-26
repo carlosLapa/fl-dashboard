@@ -90,6 +90,14 @@ export interface KanbanTarefa extends Tarefa {
   uniqueId: string;
 }
 
+export interface KanbanTarefaWithProjectDeadline extends KanbanTarefa {
+  projeto: {
+    id: number;
+    designacao: string;
+    prazo?: string;
+  };
+}
+
 export interface PaginatedTarefas {
   content: TarefaWithUserAndProjetoDTO[];
   totalPages: number;
