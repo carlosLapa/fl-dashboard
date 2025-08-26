@@ -7,6 +7,7 @@ import {
   NotificationType,
 } from 'types/notification';
 import { getWebSocketUrl } from '../api/apiConfig';
+import secureStorage from '../auth/secureStorage';
 
 interface WebSocketMessage {
   type: string;
@@ -215,7 +216,7 @@ const useWebSocket = (userId: number) => {
 
   useEffect(() => {
     let isComponentMounted = true;
-    const token = localStorage.getItem('access_token');
+    const token = secureStorage.getItem('access_token');
 
     if (!token || userId === 0) return;
 

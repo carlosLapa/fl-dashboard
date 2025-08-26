@@ -15,6 +15,7 @@ import {
   getNotificationDetailsAPI,
   PaginatedNotifications,
 } from 'api/notificationsApi';
+import secureStorage from './auth/secureStorage';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -56,7 +57,7 @@ export const NotificationProvider: React.FC<{
     page: number = 0,
     size: number = 20
   ): Promise<PaginatedNotifications | undefined> => {
-    const token = localStorage.getItem('access_token');
+    const token = secureStorage.getItem('access_token');
     if (!token || userId === 0) return;
 
     try {
