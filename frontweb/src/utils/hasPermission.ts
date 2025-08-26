@@ -1,3 +1,5 @@
+import secureStorage from '../auth/secureStorage';
+
 /**
  * Check if the current user has a specific permission
  * @param permission The permission to check for
@@ -5,8 +7,7 @@
  */
 export const hasPermission = (permission: string): boolean => {
   try {
-    // Get the current user from localStorage or your auth context
-    const userDataStr = localStorage.getItem('userData');
+    const userDataStr = secureStorage.getItem('userData');
     if (!userDataStr) return false;
 
     const userData = JSON.parse(userDataStr);

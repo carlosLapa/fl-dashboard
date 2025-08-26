@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useAuth } from '../../AuthContext';
 import { toast } from 'react-toastify';
+import secureStorage from '../../auth/secureStorage';
 
 interface LoginModalProps {
   show: boolean;
@@ -15,16 +16,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    //console.log('Login form submitted');
-    //console.log('Attempting login for email:', email);
     try {
       await login(email, password);
-      localStorage.setItem('user_email', email);
+      secureStorage.setItem('user_email', email);
       toast.success('Autenticação bem-sucedida!');
       onHide();
     } catch (error) {
       toast.error('Autenticação falhou. Por favor, verifique as suas credenciais.');
-      // Here you can add error handling, such as displaying an error message to the user
     }
   };
 

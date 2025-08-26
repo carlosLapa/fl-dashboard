@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { BaseFilterState, ProjetoFilterState } from '../types/filters';
+import secureStorage from '../auth/secureStorage';
 
 const defaultProjetoFilterState: ProjetoFilterState = {
   designacao: '',
@@ -19,7 +20,7 @@ export function useFilterState<T extends BaseFilterState>(
     // If a storage key is provided, try to load saved filters
     if (storageKey) {
       try {
-        const savedFilters = localStorage.getItem(storageKey);
+        const savedFilters = secureStorage.getItem(storageKey);
         if (savedFilters) {
           return JSON.parse(savedFilters) as T;
         }
@@ -36,11 +37,11 @@ export function useFilterState<T extends BaseFilterState>(
   // Flag to indicate if filters are applied
   const [isFiltered, setIsFiltered] = useState(false);
 
-  // Save filters to localStorage when they change
+  // Save filters to secureStorage when they change
   useEffect(() => {
     if (storageKey) {
       try {
-        localStorage.setItem(storageKey, JSON.stringify(filters));
+        secureStorage.setItem(storageKey, JSON.stringify(filters));
       } catch (error) {
         console.error('Error saving filters:', error);
       }
