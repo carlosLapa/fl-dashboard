@@ -103,9 +103,22 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     const fetchColumnsAndTarefas = async () => {
       setIsLoading(true);
 
-      // Check if projeto exists and has necessary properties
-      if (!projeto || !projeto.id) {
-        setError('Projeto não encontrado ou informações incompletas.');
+      // Diagnóstico: Verificar como o objeto projeto está chegando
+      console.log(
+        'Projeto recebido no componente Kanban:',
+        JSON.stringify(projeto, null, 2)
+      );
+
+      // Verificação mais resiliente
+      if (!projeto) {
+        setError('Projeto não encontrado.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Verificar se tem ID mesmo se o objeto existe
+      if (!projeto.id) {
+        setError('Projeto sem identificador válido.');
         setIsLoading(false);
         return;
       }
@@ -125,6 +138,10 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
               error.response?.status === 404 ||
               error.response?.status === 403
             ) {
+              console.error(
+                `Erro ao buscar colunas do projeto ${projeto.id}:`,
+                error
+              );
               setProjectDeleted(true);
               setError(
                 'Este projeto foi excluído ou não está mais disponível.'
@@ -133,9 +150,11 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
               return;
             }
           }
+          console.error(`Erro não tratado ao buscar colunas:`, error);
           throw error;
         }
 
+        // Sempre inicializar com todas as colunas vazias
         const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
           BACKLOG: [],
           TODO: [],
@@ -144,18 +163,32 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           DONE: [],
         };
 
-        if (fetchedColumns) {
+        // Se há colunas definidas no backend, use-as
+        if (fetchedColumns && fetchedColumns.length > 0) {
+          console.log(
+            `Usando ${fetchedColumns.length} colunas do backend para projeto ${projeto.id}`
+          );
           fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
             if (column.status in updatedColumns) {
               updatedColumns[column.status as TarefaStatus] = [];
             }
           });
+        } else {
+          console.log(
+            `Usando colunas padrão para projeto ${projeto.id} (nenhuma encontrada no backend)`
+          );
         }
 
-        // Ensure projeto.tarefas exists before trying to iterate
-        if (!projeto.tarefas || !Array.isArray(projeto.tarefas)) {
-          console.warn(
-            `Project ${projeto.id} has no tasks or tarefas is not an array`
+        // Verificar explicitamente se tarefas é um array válido
+        const hasValidTarefas =
+          projeto.tarefas &&
+          Array.isArray(projeto.tarefas) &&
+          projeto.tarefas.length > 0;
+
+        // Se não tiver tarefas, apenas inicialize o quadro vazio
+        if (!hasValidTarefas) {
+          console.log(
+            `Projeto ${projeto.id} sem tarefas, inicializando quadro Kanban vazio`
           );
           setColumns(updatedColumns);
           setError(null);
@@ -163,6 +196,11 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           return;
         }
 
+        console.log(
+          `Processando ${projeto.tarefas.length} tarefas para o projeto ${projeto.id}`
+        );
+
+        // O restante do código permanece igual...
         for (const tarefa of projeto.tarefas) {
           try {
             const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
@@ -223,7 +261,10 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         setColumns(updatedColumns);
         setError(null);
       } catch (error) {
-        console.error('Error fetching columns and tarefas:', error);
+        console.error(
+          `Erro geral ao processar o quadro Kanban para o projeto ${projeto?.id}:`,
+          error
+        );
 
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 403) {

@@ -89,8 +89,32 @@ export const getProjetoWithUsersAndTarefas = async (
   id: number
 ): Promise<ProjetoWithUsersAndTarefasDTO> => {
   try {
+    console.log(`Buscando projeto ${id} com tarefas e usuários`);
     const projetoData = await getProjetoWithUsersAndTarefasAPI(id);
-    // Perform any necessary data treatment here
+
+    // Garantir que o projeto tenha sempre um array de tarefas, mesmo que vazio
+    if (!projetoData.tarefas) {
+      console.log(
+        `Projeto ${id} não possui o campo tarefas. Inicializando como array vazio.`
+      );
+      projetoData.tarefas = [];
+    } else if (!Array.isArray(projetoData.tarefas)) {
+      console.warn(
+        `Projeto ${id} tem campo tarefas que não é um array. Convertendo para array vazio.`
+      );
+      projetoData.tarefas = [];
+    }
+
+    // Garantir que o projeto tenha sempre um array de users, mesmo que vazio
+    if (!projetoData.users) {
+      projetoData.users = [];
+    } else if (!Array.isArray(projetoData.users)) {
+      projetoData.users = [];
+    }
+
+    console.log(
+      `Projeto ${id} processado com sucesso. Tarefas: ${projetoData.tarefas.length}`
+    );
     return projetoData;
   } catch (error) {
     // Error is already handled by the interceptor in apiConfig.ts

@@ -29,9 +29,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     Optional<Projeto> findByIdWithTarefas(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
-    @Query("SELECT p FROM Projeto p LEFT JOIN p.tarefas t " +
-            "WHERE p.id = :id AND p.deletedAt IS NULL " +
-            "AND (t IS NULL OR t.deletedAt IS NULL)")
+    @Query("SELECT p FROM Projeto p " +
+            "WHERE p.id = :id AND p.deletedAt IS NULL")
     Optional<Projeto> findByIdWithUsersAndTarefas(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})

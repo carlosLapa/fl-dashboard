@@ -9,14 +9,14 @@ interface TarefaColumnProps {
   columnId: TarefaStatus;
   tarefas: KanbanTarefa[];
   columnTitle: string;
-  canDrop?: boolean; // Add this new prop
+  canDrop?: boolean;
 }
 
-const TarefaColumn: React.FC<TarefaColumnProps> = ({ 
-  columnId, 
-  tarefas, 
+const TarefaColumn: React.FC<TarefaColumnProps> = ({
+  columnId,
+  tarefas = [], // Valor padrão para quando tarefas for undefined
   columnTitle,
-  canDrop = true // Default to true for backward compatibility
+  canDrop = true,
 }) => {
   // Get column background color based on status
   const getColumnHeaderColor = (status: TarefaStatus) => {
@@ -36,44 +36,46 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({
     }
   };
 
+  // Garantir que tarefas seja sempre um array válido
+  const safeTarefas = Array.isArray(tarefas) ? tarefas : [];
+  const tarefasCount = safeTarefas.length;
+
   return (
     <div className="kanban-column">
-      <div 
-        className="column-header" 
+      <div
+        className="column-header"
         style={{ backgroundColor: getColumnHeaderColor(columnId) }}
       >
         <div className="d-flex justify-content-between align-items-center">
           <h3 className="column-title">{columnTitle}</h3>
           <Badge bg="secondary" pill>
-            {tarefas.length}
+            {tarefasCount}
           </Badge>
         </div>
       </div>
-      
+
       <StrictModeDroppable droppableId={columnId} isDropDisabled={!canDrop}>
         {(provided, snapshot) => (
           <div
             {...provided.droppableProps}
             ref={provided.innerRef}
             className="column-content"
-            style={{ 
-              backgroundColor: snapshot.isDraggingOver 
-                ? 'rgba(0, 0, 0, 0.02)' 
-                : 'transparent'
+            style={{
+              backgroundColor: snapshot.isDraggingOver
+                ? 'rgba(0, 0, 0, 0.02)'
+                : 'transparent',
             }}
           >
-            {tarefas.length > 0 ? (
-              tarefas.map((tarefa, index) => (
-                <TarefaCard 
-                  key={tarefa.uniqueId} 
-                  tarefa={tarefa} 
-                  index={index} 
+            {tarefasCount > 0 ? (
+              safeTarefas.map((tarefa, index) => (
+                <TarefaCard
+                  key={tarefa.uniqueId}
+                  tarefa={tarefa}
+                  index={index}
                 />
               ))
             ) : (
-              <div className="empty-column-message">
-                Sem tarefas
-              </div>
+              <div className="empty-column-message">Sem tarefas</div>
             )}
             {provided.placeholder}
           </div>

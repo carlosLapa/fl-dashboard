@@ -73,7 +73,16 @@ public class ProjetoService {
     public ProjetoWithUsersAndTarefasDTO findProjetoWithUsersAndTarefas(Long id) {
         Projeto projeto = projetoRepository.findByIdWithUsersAndTarefas(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + id));
-        return new ProjetoWithUsersAndTarefasDTO(projeto);
+
+        // Filtrar tarefas apagadas diretamente no DTO
+        ProjetoWithUsersAndTarefasDTO dto = new ProjetoWithUsersAndTarefasDTO(projeto);
+
+        // Garantir que tarefas seja inicializado como um HashSet vazio se estiver null
+        if (dto.getTarefas() == null) {
+            dto.setTarefas(new HashSet<>());
+        }
+
+        return dto;
     }
 
     @Transactional

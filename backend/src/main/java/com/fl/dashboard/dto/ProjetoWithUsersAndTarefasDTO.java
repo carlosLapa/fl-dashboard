@@ -26,8 +26,26 @@ public class ProjetoWithUsersAndTarefasDTO extends ProjetoDTO {
         super(entity);
         Hibernate.initialize(entity.getUsers());
         Hibernate.initialize(entity.getTarefas());
-        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
-        this.tarefas = entity.getTarefas().stream().map(TarefaDTO::new).collect(Collectors.toSet());
+
+        // Inicializar users como conjunto vazio se for null
+        if (entity.getUsers() != null) {
+            this.users = entity.getUsers().stream()
+                    .map(UserDTO::new)
+                    .collect(Collectors.toSet());
+        } else {
+            this.users = new HashSet<>();
+        }
+
+        // Inicializar tarefas como conjunto vazio se for null
+        // E filtrar tarefas apagadas
+        if (entity.getTarefas() != null) {
+            this.tarefas = entity.getTarefas().stream()
+                    .filter(tarefa -> tarefa.getDeletedAt() == null)
+                    .map(TarefaDTO::new)
+                    .collect(Collectors.toSet());
+        } else {
+            this.tarefas = new HashSet<>();
+        }
     }
 
     public ProjetoWithUsersAndTarefasDTO(Projeto entity, Set<User> users, Set<Tarefa> tarefas) {
