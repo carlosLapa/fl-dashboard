@@ -199,3 +199,26 @@ export const getProjetosWithFilters = async (
     };
   }
 };
+
+export const processExternoIds = (externoIds: number[]): number[] => {
+  if (!externoIds || externoIds.length === 0) return [];
+
+  // Usar Set para garantir valores únicos
+  const uniqueIds = [...new Set(externoIds)];
+
+  // Se houve remoção de duplicações, mostrar alerta
+  if (uniqueIds.length < externoIds.length) {
+    console.warn(
+      'Colaboradores externos duplicados foram removidos da seleção'
+    );
+  }
+
+  return uniqueIds;
+};
+
+export const isExternoAlreadySelected = (
+  selectedExternos: number[],
+  externoId: number
+): boolean => {
+  return selectedExternos.includes(externoId);
+};

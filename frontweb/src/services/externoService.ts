@@ -21,6 +21,11 @@ import {
   updateExternoAPI,
 } from '../api/externoApi';
 import { Tarefa } from '../types/tarefa';
+import { Projeto } from '../types/projeto';
+import {
+  addExternosToProjetoAPI,
+  removeExternoFromProjetoAPI,
+} from '../api/externoApi';
 
 // Get all externos with pagination
 export const getExternos = async (
@@ -181,5 +186,47 @@ export const getExternosWithFilters = async (
       size: size,
       number: page,
     };
+  }
+};
+
+/**
+ * Adiciona um ou mais colaboradores externos a um projeto
+ * @param projetoId O ID do projeto
+ * @param externoIds Array de IDs dos externos
+ * @returns O projeto atualizado ou null em caso de erro
+ */
+export const addExternosToProjeto = async (
+  projetoId: number,
+  externoIds: number[]
+): Promise<Projeto | null> => {
+  try {
+    return await addExternosToProjetoAPI(projetoId, externoIds);
+  } catch (error) {
+    console.error(
+      `Error adding externos to projeto with id ${projetoId}:`,
+      error
+    );
+    return null;
+  }
+};
+
+/**
+ * Remove um colaborador externo de um projeto
+ * @param projetoId O ID do projeto
+ * @param externoId O ID do externo a remover
+ * @returns O projeto atualizado ou null em caso de erro
+ */
+export const removeExternoFromProjeto = async (
+  projetoId: number,
+  externoId: number
+): Promise<Projeto | null> => {
+  try {
+    return await removeExternoFromProjetoAPI(projetoId, externoId);
+  } catch (error) {
+    console.error(
+      `Error removing externo ${externoId} from projeto with id ${projetoId}:`,
+      error
+    );
+    return null;
   }
 };

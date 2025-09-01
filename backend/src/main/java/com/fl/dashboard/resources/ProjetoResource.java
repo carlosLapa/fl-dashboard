@@ -1,6 +1,7 @@
 package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.*;
+import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
@@ -294,4 +295,63 @@ public class ProjetoResource {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PostMapping("/{id}/externos")
+    @PreAuthorize("hasAuthority('EDIT_PROJECT')")
+    public ResponseEntity<ProjetoDTO> addExternosToProjeto(
+            @PathVariable Long id,
+            @RequestBody List<Long> externoIds,
+            Authentication authentication) {
+        try {
+            boolean canEdit = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("EDIT_PROJECT"));
+
+            if (!canEdit) {
+                String userEmail;
+                if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    userEmail = jwt.getClaim("email");
+                } else {
+                    userEmail = authentication.getName();
+                }
+                if (projetoService.shouldDenyProjectAccess(id, userEmail)) {
+                    return ResponseEntity.status(403).build();
+                }
+            }
+
+            Projeto projeto = projetoService.addExternosToProjeto(id, externoIds);
+            return ResponseEntity.ok().body(new ProjetoDTO(projeto));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{projetoId}/externos/{externoId}")
+    @PreAuthorize("hasAuthority('EDIT_PROJECT')")
+    public ResponseEntity<ProjetoDTO> removeExternoFromProjeto(
+            @PathVariable Long projetoId,
+            @PathVariable Long externoId,
+            Authentication authentication) {
+        try {
+            boolean canEdit = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("EDIT_PROJECT"));
+
+            if (!canEdit) {
+                String userEmail;
+                if (authentication.getPrincipal() instanceof Jwt jwt) {
+                    userEmail = jwt.getClaim("email");
+                } else {
+                    userEmail = authentication.getName();
+                }
+                if (projetoService.shouldDenyProjectAccess(projetoId, userEmail)) {
+                    return ResponseEntity.status(403).build();
+                }
+            }
+
+            Projeto projeto = projetoService.removeExternoFromProjeto(projetoId, externoId);
+            return ResponseEntity.ok().body(new ProjetoDTO(projeto));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

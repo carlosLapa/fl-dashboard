@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.util.*;
 
 @Getter
 @Setter
@@ -36,6 +36,9 @@ public class ProjetoDTO {
     private UserDTO coordenador;
     private Date dataProposta;
     private Date dataAdjudicacao;
+
+    private Set<ExternoDTO> externos = new HashSet<>();
+    private List<Long> externoIds = new ArrayList<>(); // Adicione este campo
 
     public ProjetoDTO() {
     }
@@ -68,11 +71,18 @@ public class ProjetoDTO {
 
         this.dataProposta = entity.getDataProposta();
         this.dataAdjudicacao = entity.getDataAdjudicacao();
+
+        // Preencher os externoDTOs e externoIds a partir da entidade
+        if (entity.getExternos() != null) {
+            entity.getExternos().forEach(externo -> {
+                this.externos.add(new ExternoDTO(externo));
+                this.externoIds.add(externo.getId());
+            });
+        }
     }
 
     public ProjetoDTO(Long id, String designacao) {
         this.id = id;
         this.designacao = designacao;
     }
-
 }

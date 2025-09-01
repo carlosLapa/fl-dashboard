@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, Table } from 'react-bootstrap';
 import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
+import { Externo } from '../../types/externo';
 import ProjetoStatusBadge from './ProjetoStatusBadge';
 import './ProjetoDetailsTable.scss';
 
@@ -28,6 +29,12 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
   const renderUserNames = (users?: User[]) => {
     if (!users || users.length === 0) return 'N/A';
     return users.map((user) => user.name).join(', ');
+  };
+  
+  // Render external collaborators' names
+  const renderExternoNames = (externos?: Externo[]) => {
+    if (!externos || externos.length === 0) return 'N/A';
+    return externos.map((externo) => externo.name).join(', ');
   };
 
   return (
@@ -84,6 +91,10 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
             <tr>
               <th>Colaboradores</th>
               <td colSpan={3}>{renderUserNames(projeto.users)}</td>
+            </tr>
+            <tr>
+              <th>Colaboradores Externos</th>
+              <td colSpan={3}>{renderExternoNames(projeto.externos)}</td>
             </tr>
           </tbody>
         </Table>

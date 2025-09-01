@@ -6,6 +6,7 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
@@ -29,6 +30,9 @@ public class ProjetoService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ExternoRepository externoRepository;
 
     @Autowired
     private ProjetoDTOMapper projetoDTOMapper;
@@ -87,86 +91,167 @@ public class ProjetoService {
 
     @Transactional
     public ProjetoWithUsersDTO insert(ProjetoWithUsersDTO projetoDTO) {
-        Projeto entity = new Projeto();
-        projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
+        try {
+            System.out.println("Iniciando inserção de projeto: " + projetoDTO.getDesignacao());
+            System.out.println("ExternoIds recebidos no Service: " + projetoDTO.getExternoIds());
 
-        // Save and flush to ensure the entity is persisted
-        Projeto savedEntity = projetoRepository.save(entity);
-        projetoRepository.flush();
+            Projeto entity = new Projeto();
+            projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
 
-        ProjetoWithUsersDTO savedDTO = new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
-
-        // Only create notification if project was saved successfully and has users
-        if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
-            for (User user : savedEntity.getUsers()) {
-                notificationService.createProjectNotification(
-                        savedDTO,
-                        NotificationType.PROJETO_ATRIBUIDO,  // Already correct
-                        new UserDTO(user)
-                );
+            // Log para verificar se os externos foram associados antes de salvar
+            if (entity.getExternos() != null && !entity.getExternos().isEmpty()) {
+                System.out.println("Externos associados antes de salvar: " + entity.getExternos().size());
+                for (Externo externo : entity.getExternos()) {
+                    System.out.println("  - Externo ID: " + externo.getId() + ", Nome: " + externo.getName());
+                }
+            } else {
+                System.out.println("Nenhum externo associado antes de salvar");
             }
-        }
 
-        return savedDTO;
+            // Save and flush to ensure the entity is persisted
+            Projeto savedEntity = projetoRepository.save(entity);
+            projetoRepository.flush();
+
+            // Log após salvar para verificar se os externos foram persistidos
+            if (savedEntity.getExternos() != null && !savedEntity.getExternos().isEmpty()) {
+                System.out.println("Externos persistidos após salvar: " + savedEntity.getExternos().size());
+            } else {
+                System.out.println("Nenhum externo persistido após salvar");
+            }
+
+            ProjetoWithUsersDTO savedDTO = new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+
+            // Only create notification if project was saved successfully and has users
+            if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
+                for (User user : savedEntity.getUsers()) {
+                    notificationService.createProjectNotification(
+                            savedDTO,
+                            NotificationType.PROJETO_ATRIBUIDO,  // Already correct
+                            new UserDTO(user)
+                    );
+                }
+            }
+
+            return savedDTO;
+        } catch (Exception e) {
+            System.out.println("Erro ao inserir projeto: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Transactional
     public ProjetoWithUsersDTO update(Long id, ProjetoWithUsersDTO projetoDTO) {
-        Projeto entity = projetoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+        try {
+            Projeto entity = projetoRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com ID: " + id));
 
-        String oldStatus = entity.getStatus();
-        Set<User> oldUsers = new HashSet<>(entity.getUsers());
+            String oldStatus = entity.getStatus();
+            Set<User> oldUsers = new HashSet<>(entity.getUsers());
 
-        projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
-        Projeto savedEntity = projetoRepository.save(entity);
-        projetoRepository.flush();
-
-        // Determine notification type based on status change
-        NotificationType notificationType = determineNotificationType(oldStatus, savedEntity.getStatus());
-
-        // Find new users to notify about project assignment
-        Set<User> newUsers = new HashSet<>();
-        for (User user1 : savedEntity.getUsers()) {
-            if (!oldUsers.contains(user1)) {
-                newUsers.add(user1);
+            // Salvar a lista atual de externos antes de atualizar
+            Set<Externo> currentExternos = new HashSet<>();
+            if (entity.getExternos() != null) {
+                currentExternos = new HashSet<>(entity.getExternos());
             }
-        }
 
-        // Notify new users about project assignment
-        for (User newUser : newUsers) {
-            notificationService.createProjectNotification(
-                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                    NotificationType.PROJETO_ATRIBUIDO,
-                    new UserDTO(newUser)
-            );
-        }
+            // Tratar explicitamente o campo externoIds
+            List<Long> externoIds = projetoDTO.getExternoIds();
 
-        for (User oldUser : oldUsers) {
-            if (!savedEntity.getUsers().contains(oldUser)) {
-                NotificationInsertDTO notification = NotificationInsertDTO.builder()
-                        .type(NotificationType.PROJETO_REMOVIDO.name())
-                        .content("Foi removido/a do projeto: " + savedEntity.getDesignacao())
-                        .userId(oldUser.getId())
-                        .isRead(false)
-                        .createdAt(new Date())
-                        .projetoId(savedEntity.getId())
-                        .build();
+            // Verificar e imprimir informações para debug
+            System.out.println("externoIds recebidos: " + (externoIds == null ? "null" : externoIds));
+            System.out.println("Externos atuais: " + (currentExternos == null ? 0 : currentExternos.size()));
 
-                notificationService.processNotification(notification);
+            // Se externoIds for null, não mudamos a coleção de externos
+            // Se for uma lista (vazia ou não), substituímos completamente a coleção
+            if (externoIds != null) {
+                // Limpar todos os externos existentes
+                if (entity.getExternos() != null) {
+                    entity.getExternos().clear();
+                } else {
+                    entity.setExternos(new HashSet<>());
+                }
+
+                // Verificar duplicações
+                Set<Long> uniqueExternoIds = new HashSet<>(externoIds);
+                if (uniqueExternoIds.size() < externoIds.size()) {
+                    externoIds = new ArrayList<>(uniqueExternoIds);
+                    System.out.println("Duplicações de externoIds foram removidas. IDs únicos: " + uniqueExternoIds);
+                }
+
+                // Adicionar apenas os externos que estão na lista de IDs
+                for (Long externoId : externoIds) {
+                    Externo externo = externoRepository.findById(externoId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Externo não encontrado com ID: " + externoId));
+                    entity.getExternos().add(externo);
+                }
             }
-        }
 
-        // Notify all current users about project update
-        for (User user : savedEntity.getUsers()) {
-            notificationService.createProjectNotification(
-                    new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
-                    notificationType,
-                    new UserDTO(user)
-            );
-        }
+            // Antes de chamar o copyDTOtoEntity, remover temporariamente a lista de externoIds
+            // para evitar que o mapper processe-os novamente
+            List<Long> externoIdsSaved = projetoDTO.getExternoIds();
+            projetoDTO.setExternoIds(null);
 
-        return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+            // Copiar os dados do DTO para a entidade (sem os externos)
+            projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
+
+            // Restaurar a lista de externoIds no DTO (caso precise ser usada posteriormente)
+            projetoDTO.setExternoIds(externoIdsSaved);
+
+            Projeto savedEntity = projetoRepository.save(entity);
+            projetoRepository.flush();
+
+            System.out.println("Externos após atualização: " +
+                    (savedEntity.getExternos() == null ? 0 : savedEntity.getExternos().size()));
+
+            // Resto do código para notificações permanece o mesmo...
+            NotificationType notificationType = determineNotificationType(oldStatus, savedEntity.getStatus());
+
+            // Find new users to notify about project assignment
+            Set<User> newUsers = new HashSet<>();
+            for (User user1 : savedEntity.getUsers()) {
+                if (!oldUsers.contains(user1)) {
+                    newUsers.add(user1);
+                }
+            }
+
+            // Notify new users about project assignment
+            for (User newUser : newUsers) {
+                notificationService.createProjectNotification(
+                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                        NotificationType.PROJETO_ATRIBUIDO,
+                        new UserDTO(newUser)
+                );
+            }
+
+            for (User oldUser : oldUsers) {
+                if (!savedEntity.getUsers().contains(oldUser)) {
+                    NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                            .type(NotificationType.PROJETO_REMOVIDO.name())
+                            .content("Foi removido/a do projeto: " + savedEntity.getDesignacao())
+                            .userId(oldUser.getId())
+                            .isRead(false)
+                            .createdAt(new Date())
+                            .projetoId(savedEntity.getId())
+                            .build();
+
+                    notificationService.processNotification(notification);
+                }
+            }
+
+            // Notify all current users about project update
+            for (User user : savedEntity.getUsers()) {
+                notificationService.createProjectNotification(
+                        new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
+                        notificationType,
+                        new UserDTO(user)
+                );
+            }
+
+            return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
     }
 
     private NotificationType determineNotificationType(String oldStatus, String newStatus) {
@@ -470,6 +555,56 @@ public class ProjetoService {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(dtos, pageable, filteredProjects.size());
+    }
+
+    @Transactional
+    public Projeto addExternosToProjeto(Long projetoId, List<Long> externoIds) {
+        Projeto projeto = projetoRepository.findByIdActive(projetoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com ID: " + projetoId));
+
+        // Eliminar duplicações na lista de IDs recebidos
+        Set<Long> uniqueExternoIds = new HashSet<>(externoIds);
+
+        // Filtrar IDs que já estão associados ao projeto
+        Set<Long> existingExternoIds = projeto.getExternos().stream()
+                .map(Externo::getId)
+                .collect(Collectors.toSet());
+
+        // Remover IDs que já estão associados
+        uniqueExternoIds.removeAll(existingExternoIds);
+
+        if (uniqueExternoIds.size() < externoIds.size()) {
+            System.out.println("Ignorando adição de colaboradores externos duplicados ou já associados");
+        }
+
+        for (Long externoId : uniqueExternoIds) {
+            Externo externo = externoRepository.findByIdAndActiveStatus(externoId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Externo não encontrado com ID: " + externoId));
+
+            // Adicionar externo ao projeto
+            if (projeto.getExternos() == null) {
+                projeto.setExternos(new HashSet<>());
+            }
+            projeto.getExternos().add(externo);
+        }
+
+        return projetoRepository.save(projeto);
+    }
+
+    @Transactional
+    public Projeto removeExternoFromProjeto(Long projetoId, Long externoId) {
+        Projeto projeto = projetoRepository.findByIdActive(projetoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com ID: " + projetoId));
+
+        Externo externo = externoRepository.findByIdAndActiveStatus(externoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Externo não encontrado com ID: " + externoId));
+
+        // Remover externo do projeto
+        if (projeto.getExternos() != null) {
+            projeto.getExternos().remove(externo);
+        }
+
+        return projetoRepository.save(projeto);
     }
 
 }

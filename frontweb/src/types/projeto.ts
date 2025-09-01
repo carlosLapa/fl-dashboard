@@ -1,5 +1,6 @@
 import { User } from './user';
 import { Tarefa } from './tarefa';
+import { Externo } from './externo';
 
 export type Projeto = {
   id: number;
@@ -14,6 +15,7 @@ export type Projeto = {
   coordenador?: User;
   dataProposta?: string;
   dataAdjudicacao?: string;
+  externos?: Externo[];
 };
 
 export interface ProjetoFormData {
@@ -29,6 +31,8 @@ export interface ProjetoFormData {
   coordenadorId?: number;
   dataProposta?: string;
   dataAdjudicacao?: string;
+  externos?: Externo[];
+  externoIds?: number[];
 }
 
 export interface ProjetoMinDTO {

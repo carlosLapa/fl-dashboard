@@ -8,6 +8,7 @@ import {
   PaginatedExternos,
 } from '../types/externo';
 import { Tarefa } from '../types/tarefa';
+import { Projeto } from 'types/projeto';
 
 // Get all externos with pagination
 export const getExternosAPI = async (
@@ -67,6 +68,62 @@ export const getExternosByProjetoIdAPI = async (
       console.error('Error details:', error.response.data);
     }
     return [];
+  }
+};
+
+/**
+ * Adiciona um ou mais colaboradores externos a um projeto específico
+ * @param projetoId O ID do projeto ao qual adicionar os externos
+ * @param externoIds Array de IDs dos externos a serem adicionados
+ * @returns O projeto atualizado com os externos associados
+ */
+export const addExternosToProjetoAPI = async (
+  projetoId: number,
+  externoIds: number[]
+): Promise<Projeto> => {
+  try {
+    console.log(`Adding externos to projeto ID ${projetoId}:`, externoIds);
+    const response = await axios.post(
+      `/projetos/${projetoId}/externos`,
+      externoIds
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error adding externos to projeto ID ${projetoId}:`, error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error details:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Remove um colaborador externo de um projeto específico
+ * @param projetoId O ID do projeto do qual remover o externo
+ * @param externoId O ID do externo a ser removido
+ * @returns O projeto atualizado sem o externo removido
+ */
+export const removeExternoFromProjetoAPI = async (
+  projetoId: number,
+  externoId: number
+): Promise<Projeto> => {
+  try {
+    console.log(`Removing externo ${externoId} from projeto ID ${projetoId}`);
+    const response = await axios.delete(
+      `/projetos/${projetoId}/externos/${externoId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error removing externo ${externoId} from projeto ID ${projetoId}:`,
+      error
+    );
+    if (axios.isAxiosError(error) && error.response) {
+      console.error('Error status:', error.response.status);
+      console.error('Error details:', error.response.data);
+    }
+    throw error;
   }
 };
 

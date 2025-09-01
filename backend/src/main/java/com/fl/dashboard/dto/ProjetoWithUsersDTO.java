@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 public class ProjetoWithUsersDTO extends ProjetoDTO {
 
     private Set<UserDTO> users = new HashSet<>();
+    private Set<ExternoDTO> externos = new HashSet<>();
+    private List<Long> externoIds; // Adicionar este campo para receber do frontend
 
     public ProjetoWithUsersDTO() {
         super();
@@ -22,10 +25,24 @@ public class ProjetoWithUsersDTO extends ProjetoDTO {
     public ProjetoWithUsersDTO(Projeto entity) {
         super(entity);
         this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
+
+        // Adicionar mapeamento dos externos
+        if (entity.getExternos() != null) {
+            this.externos = entity.getExternos().stream()
+                    .map(ExternoDTO::new)
+                    .collect(Collectors.toSet());
+        }
     }
 
     public ProjetoWithUsersDTO(Projeto entity, Set<User> users) {
         super(entity);
         this.users = users.stream().map(UserDTO::new).collect(Collectors.toSet());
+
+        // Adicionar mapeamento dos externos
+        if (entity.getExternos() != null) {
+            this.externos = entity.getExternos().stream()
+                    .map(ExternoDTO::new)
+                    .collect(Collectors.toSet());
+        }
     }
 }

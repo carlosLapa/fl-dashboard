@@ -17,6 +17,7 @@ public class ProjetoWithUsersAndTarefasDTO extends ProjetoDTO {
 
     private Set<UserDTO> users = new HashSet<>();
     private Set<TarefaDTO> tarefas = new HashSet<>();
+    private Set<ExternoDTO> externos = new HashSet<>();
 
     public ProjetoWithUsersAndTarefasDTO() {
         super();
@@ -26,6 +27,8 @@ public class ProjetoWithUsersAndTarefasDTO extends ProjetoDTO {
         super(entity);
         Hibernate.initialize(entity.getUsers());
         Hibernate.initialize(entity.getTarefas());
+        // Inicializar externos também
+        Hibernate.initialize(entity.getExternos());
 
         // Inicializar users como conjunto vazio se for null
         if (entity.getUsers() != null) {
@@ -46,12 +49,30 @@ public class ProjetoWithUsersAndTarefasDTO extends ProjetoDTO {
         } else {
             this.tarefas = new HashSet<>();
         }
+
+        // Inicializar externos como conjunto vazio se for null
+        // E filtrar externos ativos
+        if (entity.getExternos() != null) {
+            this.externos = entity.getExternos().stream()
+                    .filter(externo -> externo.getDeletedAt() == null)
+                    .map(ExternoDTO::new)
+                    .collect(Collectors.toSet());
+        } else {
+            this.externos = new HashSet<>();
+        }
     }
 
     public ProjetoWithUsersAndTarefasDTO(Projeto entity, Set<User> users, Set<Tarefa> tarefas) {
         super(entity);
         this.users = users.stream().map(UserDTO::new).collect(Collectors.toSet());
         this.tarefas = tarefas.stream().map(TarefaDTO::new).collect(Collectors.toSet());
+
+        // Adicionar mapeamento dos externos
+        if (entity.getExternos() != null) {
+            this.externos = entity.getExternos().stream()
+                    .filter(externo -> externo.getDeletedAt() == null)
+                    .map(ExternoDTO::new)
+                    .collect(Collectors.toSet());
+        }
     }
 }
-

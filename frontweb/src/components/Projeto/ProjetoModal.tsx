@@ -7,6 +7,9 @@ import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
+import { getAllExternos } from '../../services/externoService';
+import { Externo } from '../../types/externo';
+import ExternosSelect from '../../components/ExternoSelect/ExternosSelect';
 import './ProjetoModal.scss';
 
 // Add the ClienteInfo interface
@@ -21,7 +24,7 @@ interface ProjetoModalProps {
   projeto?: Projeto | null;
   onSave: (formData: ProjetoFormData) => void;
   isEditing: boolean;
-  clienteInfo?: ClienteInfo; // Add the clienteInfo prop
+  clienteInfo?: ClienteInfo;
 }
 
 const ProjetoModal: React.FC<ProjetoModalProps> = ({
@@ -30,7 +33,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   projeto,
   onSave,
   isEditing,
-  clienteInfo, // Add the clienteInfo parameter
+  clienteInfo,
 }) => {
   const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<ProjetoFormData>({
@@ -41,12 +44,12 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     observacao: '',
     prazo: '',
     users: [],
+    externos: [],
     status: 'ATIVO',
     coordenadorId: undefined,
     dataProposta: '',
     dataAdjudicacao: '',
   });
-  // Update the users state to match the new paginated structure
   const [users, setUsers] = useState<PaginatedUsers>({
     content: [],
     totalPages: 0,
@@ -54,21 +57,34 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     size: 10,
     number: 0,
   });
+  const [externos, setExternos] = useState<Externo[]>([]);
+  const [isLoadingExternos, setIsLoadingExternos] = useState(false);
   const [validated, setValidated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Buscar usuários e colaboradores externos quando o modal é aberto
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsersAndExternos = async () => {
       try {
         const usersData = await getUsersAPI();
         setUsers(usersData);
+
+        setIsLoadingExternos(true);
+        const externosData = await getAllExternos();
+        setExternos(externosData);
+        setError(null);
       } catch (err) {
-        console.error('Error fetching users:', err);
+        console.error('Error fetching data:', err);
         setError('Não foi possível carregar a lista de colaboradores.');
+      } finally {
+        setIsLoadingExternos(false);
       }
     };
-    fetchUsers();
-  }, []);
+
+    if (show) {
+      fetchUsersAndExternos();
+    }
+  }, [show]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -81,13 +97,13 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         observacao: '',
         prazo: '',
         users: [],
+        externos: [],
         status: 'ATIVO',
         coordenadorId: undefined,
         dataProposta: '',
         dataAdjudicacao: '',
       };
 
-      // Only add clienteId if clienteInfo is provided
       if (clienteInfo) {
         newFormData.clienteId = clienteInfo.id;
       }
@@ -95,7 +111,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       setFormData(newFormData);
       setValidated(false);
     }
-  }, [isEditing, show, clienteInfo]); // Add clienteInfo to dependencies
+  }, [isEditing, show, clienteInfo]);
 
   useEffect(() => {
     if (isEditing && projeto) {
@@ -103,13 +119,12 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         ? new Date(projeto.prazo).toISOString().split('T')[0]
         : '';
 
-      // Create a new form data object from the projeto
       const newFormData: ProjetoFormData = {
         ...projeto,
         prazo: formattedPrazo,
+        externos: projeto.externos || [],
       };
 
-      // Add clienteId if clienteInfo is provided
       if (clienteInfo) {
         newFormData.clienteId = clienteInfo.id;
       }
@@ -117,7 +132,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       setFormData(newFormData);
       setValidated(false);
     }
-  }, [projeto, isEditing, show, clienteInfo]); // Add clienteInfo to dependencies
+  }, [projeto, isEditing, show, clienteInfo]);
 
   const handleUserSelect = (selectedOptions: any) => {
     const selectedUsers = selectedOptions
@@ -131,6 +146,14 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     setFormData((prevFormData) => ({
       ...prevFormData,
       users: selectedUsers,
+    }));
+  };
+
+  // Manipulador para colaboradores externos usando o novo componente
+  const handleExternoChange = (selectedExternos: Externo[]) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      externos: selectedExternos,
     }));
   };
 
@@ -148,13 +171,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       toast.error('Designação e Entidade são campos obrigatórios');
       return false;
     }
-    /*
-    const currentYear = new Date().getFullYear();
-    if (formData.projetoAno < currentYear) {
-      toast.error('O ano do projeto não pode ser anterior ao ano atual');
-      return false;
-    }
-    */
+
     if (formData.prazo) {
       const prazoDate = new Date(formData.prazo);
       if (prazoDate < new Date()) {
@@ -172,7 +189,16 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     // Create a copy of the form data to send
     const formDataToSave = { ...formData };
 
-    // Add clienteId if clienteInfo is provided
+    // Sempre incluir o campo externoIds, mesmo que vazio
+    // Isso sinalizará ao backend que queremos atualizar a lista de externos
+    formDataToSave.externoIds =
+      formData.externos?.map((externo) => externo.id) || [];
+
+    // Se o backend não espera o campo 'externos' completo, removê-lo
+    if (formDataToSave.externos) {
+      delete formDataToSave.externos;
+    }
+
     if (clienteInfo) {
       formDataToSave.clienteId = clienteInfo.id;
     }
@@ -223,7 +249,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditing ? 'Editar Projeto' : 'Registar novo Projeto'}
-          {/* Add client name display if clienteInfo is provided */}
           {clienteInfo && (
             <span className="ms-2 text-muted fs-6">
               para {clienteInfo.name}
@@ -413,6 +438,24 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                 Selecione pelo menos um colaborador.
               </div>
             )}
+          </Form.Group>
+
+          {/* Colaboradores Externos - usando o novo componente */}
+          <Form.Group className="mb-4" controlId="formExternos">
+            <Form.Label>Colaboradores Externos</Form.Label>
+            <ExternosSelect
+              allExternos={externos}
+              selectedExternos={formData.externos || []}
+              onChange={handleExternoChange}
+              isDisabled={isLoadingExternos}
+              placeholder="Selecione os colaboradores externos..."
+              showToastOnDuplicate={true}
+              className="basic-multi-select"
+            />
+            <Form.Text className="text-muted">
+              Opcional. Você poderá adicionar ou remover colaboradores externos
+              após a criação do projeto.
+            </Form.Text>
           </Form.Group>
         </Form>
       </Modal.Body>

@@ -32,7 +32,12 @@ public class Projeto {
     private Set<Tarefa> tarefas = new HashSet<>();
 
     @JsonBackReference
-    @ManyToMany(mappedBy = "projetos")
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "tb_projeto_externo",
+            joinColumns = @JoinColumn(name = "projeto_id"),
+            inverseJoinColumns = @JoinColumn(name = "externo_id")
+    )
     private Set<Externo> externos = new HashSet<>();
 
     @JsonBackReference
