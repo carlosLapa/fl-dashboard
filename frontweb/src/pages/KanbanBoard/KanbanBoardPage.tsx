@@ -4,7 +4,7 @@ import { Container, Row, Col, Spinner, Alert, Button } from 'react-bootstrap';
 import ProjetoKanbanBoard from '../../components/Tarefa/ProjetoKanbanBoard';
 import { getProjetoWithUsersAndTarefasAPI } from '../../api/requestsApi';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
-import BackButton from '../../components/Shared/BackButton';
+import BackButton from 'components/Shared/BackButton/BackButton';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
