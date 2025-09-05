@@ -10,6 +10,7 @@ import EditClienteModal from 'components/Cliente/EditClienteModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
+import { usePermissions } from 'hooks/usePermissions';
 import './clienteStyles.scss';
 
 const ClientePage: React.FC = () => {
@@ -22,6 +23,18 @@ const ClientePage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { isEmployee } = usePermissions();
+  
+  // Check if user is an employee (not admin or manager)
+  const shouldDisableActions = isEmployee();
+  
+  // Define disabled style for buttons
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
+  };
 
   const fetchClientes = async () => {
     setIsLoading(true);
@@ -44,10 +57,12 @@ const ClientePage: React.FC = () => {
   }, [page, pageSize]);
 
   const handleAddCliente = () => {
+    if (shouldDisableActions) return;
     setShowAddModal(true);
   };
 
   const handleEditCliente = async (clienteId: number) => {
+    if (shouldDisableActions) return;
     try {
       const fetchedCliente = await getClienteByIdAPI(clienteId);
       if (fetchedCliente) {
@@ -61,6 +76,7 @@ const ClientePage: React.FC = () => {
   };
 
   const handleClienteSaved = async (savedCliente: ClienteDTO) => {
+    if (shouldDisableActions) return;
     if (clienteToEdit) {
       setClientes(
         clientes.map((cliente) =>
@@ -79,6 +95,7 @@ const ClientePage: React.FC = () => {
   };
 
   const handleDeleteCliente = async (clienteId: number) => {
+    if (shouldDisableActions) return;
     try {
       await deleteClienteAPI(clienteId);
       await fetchClientes(); // Refresh the paginated data
@@ -114,7 +131,12 @@ const ClientePage: React.FC = () => {
               variant="primary"
               onClick={handleAddCliente}
               className="create-button"
-              style={{ position: 'relative', left: '20px' }}
+              style={{ 
+                position: 'relative', 
+                left: '20px',
+                ...(shouldDisableActions ? disabledStyle : {})
+              }}
+              disabled={shouldDisableActions}
             >
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Cliente
@@ -132,6 +154,7 @@ const ClientePage: React.FC = () => {
             onPageChange={setPage}
             totalPages={totalPages}
             isLoading={isLoading}
+            shouldDisableActions={shouldDisableActions}
           />
         </div>
       </div>

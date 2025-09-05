@@ -9,8 +9,9 @@ import AddExternoModal from 'components/Externo/AddExternoModal';
 import EditExternoModal from 'components/Externo/EditExternoModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import './externosStyles.scss';
 import { toast } from 'react-toastify';
+import { usePermissions } from 'hooks/usePermissions';
+import './externosStyles.scss';
 
 const ExternosPage: React.FC = () => {
   const [externos, setExternos] = useState<ExternoDTO[]>([]);
@@ -22,6 +23,18 @@ const ExternosPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { isEmployee } = usePermissions();
+
+  // Check if user is an employee (not admin or manager)
+  const shouldDisableActions = isEmployee();
+  
+  // Define disabled style for buttons/icons
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
+  };
 
   const fetchExternos = async () => {
     setIsLoading(true);
@@ -44,10 +57,12 @@ const ExternosPage: React.FC = () => {
   }, [page, pageSize]);
 
   const handleAddExterno = () => {
+    if (shouldDisableActions) return;
     setShowAddModal(true);
   };
 
   const handleEditExterno = async (externoId: number) => {
+    if (shouldDisableActions) return;
     try {
       const fetchedExterno = await getExternoByIdAPI(externoId);
       if (fetchedExterno) {
@@ -79,6 +94,7 @@ const ExternosPage: React.FC = () => {
   };
 
   const handleDeleteExterno = async (externoId: number) => {
+    if (shouldDisableActions) return;
     try {
       await deleteExternoAPI(externoId);
       await fetchExternos(); // Refresh the paginated data
@@ -118,6 +134,8 @@ const ExternosPage: React.FC = () => {
               variant="primary"
               onClick={handleAddExterno}
               className="create-button"
+              style={shouldDisableActions ? disabledStyle : {}}
+              disabled={shouldDisableActions}
             >
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Colaborador Externo
@@ -136,6 +154,7 @@ const ExternosPage: React.FC = () => {
             onPageChange={setPage}
             totalPages={totalPages}
             isLoading={isLoading}
+            shouldDisableActions={shouldDisableActions}
           />
         </div>
       </div>

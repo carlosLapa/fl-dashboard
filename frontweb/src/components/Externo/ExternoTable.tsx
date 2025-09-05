@@ -22,17 +22,17 @@ import './externoTableStyles.scss';
 
 interface ExternoTableProps {
   externos: ExternoDTO[];
-  onEditExterno?: (id: number) => void;  // Make optional with ?
-  onDeleteExterno?: (id: number) => void; // Make optional with ?
-  onViewTasks?: (id: number) => void;    // Make optional with ?
-  onViewProjetos?: (id: number) => void; // Make optional with ?
-  // Make pagination props optional
+  onEditExterno?: (id: number) => void;  
+  onDeleteExterno?: (id: number) => void; 
+  onViewTasks?: (id: number) => void;    
+  onViewProjetos?: (id: number) => void; 
   page?: number;
   onPageChange?: (page: number) => void;
   totalPages?: number;
   isLoading?: boolean;
-  showPagination?: boolean; // New prop to control pagination visibility
-  simplified?: boolean; // Optional flag for simplified view (e.g. in project details)
+  showPagination?: boolean; 
+  simplified?: boolean; 
+  shouldDisableActions?: boolean; // Add this new prop to the interface
 }
 
 const ExternoTable: React.FC<ExternoTableProps> = ({
@@ -47,15 +47,26 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
   isLoading = false,
   showPagination = true,
   simplified = false,
+  shouldDisableActions = false, // Default to not disabled
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(null);
   const navigate = useNavigate();
 
+  // Common style for disabled icons
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
+  };
+
   const handleDeleteClick = (id: number) => {
+    if (shouldDisableActions) return;
     setShowConfirmDelete(id);
   };
 
   const handleConfirmDelete = (id: number) => {
+    if (shouldDisableActions) return;
     if (onDeleteExterno) {
       onDeleteExterno(id);
     }
@@ -247,118 +258,132 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
                   </td>
                   <td>
                     {showConfirmDelete === externo.id ? (
-                    <div className="d-flex gap-2">
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => handleConfirmDelete(externo.id)}
-                      >
-                        Confirmar
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleCancelDelete}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="action-icons">
-                      {onEditExterno && (
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={
-                            <Tooltip id={`edit-tooltip-${externo.id}`}>
-                              Editar
-                            </Tooltip>
-                          }
+                      <div className="d-flex gap-2">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleConfirmDelete(externo.id)}
+                          disabled={shouldDisableActions}
+                          style={shouldDisableActions ? disabledStyle : {}}
                         >
-                          <FontAwesomeIcon
-                            icon={faPencilAlt}
-                            onClick={() => onEditExterno(externo.id)}
-                            className="edit-icon"
-                            style={{ marginRight: '8px' }}
-                          />
-                        </OverlayTrigger>
-                      )}
-                      
-                      {onDeleteExterno && (
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={
-                            <Tooltip id={`delete-tooltip-${externo.id}`}>
-                              Eliminar
-                            </Tooltip>
-                          }
+                          Confirmar
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleCancelDelete}
                         >
-                          <FontAwesomeIcon
-                            icon={faTrashAlt}
-                            onClick={() => handleDeleteClick(externo.id)}
-                            className="delete-icon"
-                            style={{ marginRight: '8px' }}
-                          />
-                        </OverlayTrigger>
-                      )}
-                      
-                      {onViewTasks && (
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={
-                            <Tooltip id={`tasks-tooltip-${externo.id}`}>
-                              Ver Tarefas atribuídas
-                            </Tooltip>
-                          }
-                        >
-                          <FontAwesomeIcon
-                            icon={faTasks}
-                            onClick={() => handleViewTasks(externo.id)}
-                            className="view-tasks-icon"
-                            style={{ marginRight: '8px' }}
-                          />
-                        </OverlayTrigger>
-                      )}
-                      
-                      {onViewProjetos && (
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={
-                            <Tooltip id={`projetos-tooltip-${externo.id}`}>
-                              Ver Projetos
-                            </Tooltip>
-                          }
-                        >
-                          <FontAwesomeIcon
-                            icon={faProjectDiagram}
-                            onClick={() => onViewProjetos(externo.id)}
-                            className="view-projetos-icon"
-                            style={{ marginRight: simplified ? '0' : '8px' }}
-                          />
-                        </OverlayTrigger>
-                      )}
-                      
-                      {/* Always show details button if we're in simplified mode */}
-                      {simplified && (
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={
-                            <Tooltip id={`details-tooltip-${externo.id}`}>
-                              Ver Detalhes
-                            </Tooltip>
-                          }
-                        >
-                          <FontAwesomeIcon
-                            icon={faInfoCircle}
-                            onClick={() => handleViewDetails(externo.id)}
-                            className="info-icon"
-                          />
-                        </OverlayTrigger>
-                      )}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))
+                          Cancelar
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="action-icons">
+                        {onEditExterno && (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`edit-tooltip-${externo.id}`}>
+                                Editar
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faPencilAlt}
+                              onClick={() => !shouldDisableActions && onEditExterno(externo.id)}
+                              className="edit-icon"
+                              style={{ 
+                                marginRight: '8px',
+                                ...(shouldDisableActions ? disabledStyle : {})
+                              }}
+                            />
+                          </OverlayTrigger>
+                        )}
+                        
+                        {onDeleteExterno && (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`delete-tooltip-${externo.id}`}>
+                                Eliminar
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faTrashAlt}
+                              onClick={() => !shouldDisableActions && handleDeleteClick(externo.id)}
+                              className="delete-icon"
+                              style={{ 
+                                marginRight: '8px',
+                                ...(shouldDisableActions ? disabledStyle : {})
+                              }}
+                            />
+                          </OverlayTrigger>
+                        )}
+                        
+                        {onViewTasks && (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`tasks-tooltip-${externo.id}`}>
+                                Ver Tarefas atribuídas
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faTasks}
+                              onClick={() => !shouldDisableActions && handleViewTasks(externo.id)}
+                              className="view-tasks-icon"
+                              style={{ 
+                                marginRight: '8px',
+                                ...(shouldDisableActions ? disabledStyle : {})
+                              }}
+                            />
+                          </OverlayTrigger>
+                        )}
+                        
+                        {onViewProjetos && (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`projetos-tooltip-${externo.id}`}>
+                                Ver Projetos
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faProjectDiagram}
+                              onClick={() => !shouldDisableActions && onViewProjetos(externo.id)}
+                              className="view-projetos-icon"
+                              style={{ 
+                                marginRight: simplified ? '0' : '8px',
+                                ...(shouldDisableActions ? disabledStyle : {})
+                              }}
+                            />
+                          </OverlayTrigger>
+                        )}
+                        
+                        {/* Always show details button if we're in simplified mode */}
+                        {simplified && (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`details-tooltip-${externo.id}`}>
+                                Ver Detalhes
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faInfoCircle}
+                              onClick={() => handleViewDetails(externo.id)}
+                              className="info-icon"
+                            />
+                          </OverlayTrigger>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
                 <td colSpan={7} className="text-center py-3">

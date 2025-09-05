@@ -33,6 +33,7 @@ interface ClienteTableProps {
   onPageChange: (page: number) => void;
   totalPages: number;
   isLoading?: boolean;
+  shouldDisableActions?: boolean; // Add this property
 }
 
 const ClienteTable: React.FC<ClienteTableProps> = ({
@@ -44,11 +45,20 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
   onPageChange,
   totalPages,
   isLoading = false,
+  shouldDisableActions = false, // Default to false
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(
     null
   );
   const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
+
+  // Define disabled style for buttons/icons
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
+  };
 
   const handleDeleteClick = (id: number) => {
     setShowConfirmDelete(id);
@@ -224,6 +234,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
                           variant="danger"
                           size="sm"
                           onClick={() => handleConfirmDelete(cliente.id)}
+                          disabled={shouldDisableActions}
                         >
                           Confirmar
                         </Button>
@@ -247,9 +258,14 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
                         >
                           <FontAwesomeIcon
                             icon={faPencilAlt}
-                            onClick={() => onEditCliente(cliente.id)}
+                            onClick={() =>
+                              !shouldDisableActions && onEditCliente(cliente.id)
+                            }
                             className="edit-icon"
-                            style={{ marginRight: '8px' }}
+                            style={{
+                              marginRight: '8px',
+                              ...(shouldDisableActions ? disabledStyle : {}),
+                            }}
                           />
                         </OverlayTrigger>
                         <OverlayTrigger
@@ -262,9 +278,15 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
                         >
                           <FontAwesomeIcon
                             icon={faTrashAlt}
-                            onClick={() => handleDeleteClick(cliente.id)}
+                            onClick={() =>
+                              !shouldDisableActions &&
+                              handleDeleteClick(cliente.id)
+                            }
                             className="delete-icon"
-                            style={{ marginRight: '8px' }}
+                            style={{
+                              marginRight: '8px',
+                              ...(shouldDisableActions ? disabledStyle : {}),
+                            }}
                           />
                         </OverlayTrigger>
                         <OverlayTrigger

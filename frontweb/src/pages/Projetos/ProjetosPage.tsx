@@ -14,6 +14,7 @@ import {
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import { useNotification } from 'NotificationContext';
 import { useAuth } from '../../AuthContext';
+import { usePermissions } from 'hooks/usePermissions'; // Add this import
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
@@ -25,6 +26,18 @@ import './projetosStyles.scss';
 const ProjetosPage: React.FC = () => {
   const { user } = useAuth();
   const { sendNotification } = useNotification();
+  const { isEmployee } = usePermissions(); // Add this hook
+  
+  // Check if user is an employee (not admin or manager)
+  const shouldDisableActions = isEmployee();
+  
+  // Define disabled style for the button
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
+  };
 
   // Use our custom hook for filter state management
   const {
@@ -152,7 +165,7 @@ const ProjetosPage: React.FC = () => {
     sortField,
     sortDirection,
     searchQuery,
-    appliedFilters, // Use appliedFilters instead of filters
+    appliedFilters,
     fetchFilteredProjetos,
     fetchProjetos,
   ]);
@@ -187,9 +200,12 @@ const ProjetosPage: React.FC = () => {
   );
 
   const handleAddNewProjeto = useCallback(() => {
+    // Add check for employee permissions
+    if (shouldDisableActions) return;
+    
     setProjetoToEdit(null);
     setShowModal(true);
-  }, []);
+  }, [shouldDisableActions]); // Add dependency
 
   const handleDeleteProjeto = useCallback(
     async (id: number) => {
@@ -314,6 +330,8 @@ const ProjetosPage: React.FC = () => {
               variant="primary"
               onClick={handleAddNewProjeto}
               className="create-button"
+              style={shouldDisableActions ? disabledStyle : {}}
+              disabled={shouldDisableActions}
             >
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Projeto
@@ -337,6 +355,7 @@ const ProjetosPage: React.FC = () => {
             sortField={sortField}
             sortDirection={sortDirection}
             onSort={handleSort}
+            // Note: Not passing shouldDisableActions to the table
           />
         </div>
       </div>

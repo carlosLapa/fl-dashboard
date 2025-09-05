@@ -9,6 +9,7 @@ import AddUserModal from 'components/User/AddUserModal';
 import EditUserModal from 'components/User/EditUserModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { usePermissions } from 'hooks/usePermissions';
 import './userStyles.scss';
 
 const UsersPage: React.FC = () => {
@@ -21,6 +22,18 @@ const UsersPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { isEmployee } = usePermissions();
+  
+  // Check if user is an employee (not admin or manager)
+  const shouldDisableActions = isEmployee();
+  
+  // Define disabled style - same as in UserTable
+  const disabledStyle: React.CSSProperties = {
+    color: '#ccc',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    pointerEvents: 'none',
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -42,6 +55,7 @@ const UsersPage: React.FC = () => {
   }, [page, pageSize]);
 
   const handleAddUser = () => {
+    if (shouldDisableActions) return;
     setShowAddModal(true);
   };
 
@@ -102,6 +116,8 @@ const UsersPage: React.FC = () => {
               variant="primary"
               onClick={handleAddUser}
               className="create-button"
+              style={shouldDisableActions ? disabledStyle : {}}
+              disabled={shouldDisableActions}
             >
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Utilizador
