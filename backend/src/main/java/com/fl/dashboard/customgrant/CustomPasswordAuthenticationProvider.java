@@ -70,16 +70,30 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
         username = customPasswordAuthenticationToken.getUsername();
         password = customPasswordAuthenticationToken.getPassword();
 
+        // Validação simples dos inputs
+        if (username == null || username.isBlank()) {
+            throw new OAuth2AuthenticationException("Email é obrigatório");
+        }
+
+        // Validação básica de formato de email
+        if (!username.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new OAuth2AuthenticationException("Formato de email inválido");
+        }
+
+        if (password == null || password.isBlank()) {
+            throw new OAuth2AuthenticationException("Senha é obrigatória");
+        }
+
+        if (password.length() < 4) {
+            throw new OAuth2AuthenticationException("A senha deve ter pelo menos 4 caracteres");
+        }
+
         UserDetails user = null;
         try {
             user = userDetailsService.loadUserByUsername(username);
         } catch (UsernameNotFoundException e) {
             throw new OAuth2AuthenticationException("Invalid credentials");
         }
-
-        // Debug logging
-        System.out.println("Attempting login for user: " + username);
-        System.out.println("Password matches: " + passwordEncoder.matches(password, user.getPassword()));
 
         if (!passwordEncoder.matches(password, user.getPassword()) || !user.getUsername().equals(username)) {
             throw new OAuth2AuthenticationException("Invalid credentials");

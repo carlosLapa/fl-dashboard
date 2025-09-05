@@ -16,37 +16,51 @@ export const login = async (email: string, password: string) => {
     baseURL: apiUrl,
   });
 
-  const tokenResponse = await apiClient.post(
-    '/oauth2/token',
-    `grant_type=password&username=${encodeURIComponent(
+  try {
+    const tokenResponse = await apiClient.post(
+      '/oauth2/token',
+      `grant_type=password&username=${encodeURIComponent(
+        email
+      )}&password=${encodeURIComponent(password)}`,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          // Use environment variables for client credentials
+          Authorization:
+            'Basic ' +
+            btoa(
+              `${process.env.REACT_APP_CLIENT_ID || 'myclientid'}:${
+                process.env.REACT_APP_CLIENT_SECRET || 'myclientsecret'
+              }`
+            ),
+        },
+      }
+    );
+
+    const { access_token, refresh_token, token_type, expires_in } =
+      tokenResponse.data;
+
+    // Store the token data
+    return storeTokenData(
+      access_token,
+      refresh_token,
+      token_type,
+      expires_in,
       email
-    )}&password=${encodeURIComponent(password)}`,
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        // Use environment variables for client credentials
-        Authorization:
-          'Basic ' +
-          btoa(
-            `${process.env.REACT_APP_CLIENT_ID || 'myclientid'}:${
-              process.env.REACT_APP_CLIENT_SECRET || 'myclientsecret'
-            }`
-          ),
-      },
+    );
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      // Extrair mensagem de erro do servidor OAuth2
+      const errorDescription =
+        error.response.data?.error_description ||
+        error.response.data?.message ||
+        'Credenciais inválidas';
+
+      // Lançar erro com a mensagem específica
+      throw new Error(errorDescription);
     }
-  );
-
-  const { access_token, refresh_token, token_type, expires_in } =
-    tokenResponse.data;
-
-  // Store the token data
-  return storeTokenData(
-    access_token,
-    refresh_token,
-    token_type,
-    expires_in,
-    email
-  );
+    throw error;
+  }
 };
 
 /**
