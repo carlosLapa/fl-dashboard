@@ -8,8 +8,9 @@ import Button from 'react-bootstrap/Button';
 import AddUserModal from 'components/User/AddUserModal';
 import EditUserModal from 'components/User/EditUserModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faKey } from '@fortawesome/free-solid-svg-icons';
 import { usePermissions } from 'hooks/usePermissions';
+import { Permission } from 'permissions/rolePermissions';
 import './userStyles.scss';
 
 const UsersPage: React.FC = () => {
@@ -22,11 +23,11 @@ const UsersPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { isEmployee } = usePermissions();
-  
+  const { isEmployee, hasPermission } = usePermissions();
+
   // Check if user is an employee (not admin or manager)
   const shouldDisableActions = isEmployee();
-  
+
   // Define disabled style - same as in UserTable
   const disabledStyle: React.CSSProperties = {
     color: '#ccc',
@@ -57,6 +58,10 @@ const UsersPage: React.FC = () => {
   const handleAddUser = () => {
     if (shouldDisableActions) return;
     setShowAddModal(true);
+  };
+
+  const handleNavigateToPasswordReset = () => {
+    navigate('/admin/password-reset');
   };
 
   const handleEditUser = async (userId: number) => {
@@ -95,9 +100,13 @@ const UsersPage: React.FC = () => {
     navigate(`/users/${userId}/tarefas`);
   };
 
+  // Adicione esta função para lidar com o redirecionamento para reset de senha
+  const handleResetPassword = (userId: number) => {
+    navigate(`/admin/password-reset?userId=${userId}`);
+  };
+
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the title container and table in a div with consistent width and margins */}
       <div
         style={{
           width: '98%',
@@ -122,8 +131,21 @@ const UsersPage: React.FC = () => {
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Utilizador
             </Button>
+
+            {/* Novo botão para Gerenciar Senhas - apenas visível para usuários com permissão */}
+            {hasPermission(Permission.MANAGE_USER_PASSWORDS) && (
+              <Button
+                variant="secondary"
+                onClick={handleNavigateToPasswordReset}
+                className="create-button ms-2"
+              >
+                <FontAwesomeIcon icon={faKey} className="me-2" />
+                Gerir Senhas
+              </Button>
+            )}
           </div>
         </div>
+
         {/* Table wrapped in a div with the same width */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
           <UserTable
@@ -131,6 +153,11 @@ const UsersPage: React.FC = () => {
             onEditUser={handleEditUser}
             onDeleteUser={handleDeleteUser}
             onViewTasks={handleViewTasks}
+            onResetPassword={
+              hasPermission(Permission.MANAGE_USER_PASSWORDS)
+                ? handleResetPassword
+                : undefined
+            }
             page={page}
             onPageChange={setPage}
             totalPages={totalPages}

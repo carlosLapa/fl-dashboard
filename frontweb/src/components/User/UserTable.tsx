@@ -9,6 +9,7 @@ import {
   faTasks,
   faBell,
   faClock,
+  faKey, // Adicione este ícone
 } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from 'AuthContext';
 import Modal from 'react-bootstrap/Modal';
 import UserExtraHoursCalendar from 'components/UserExtraHours/UserExtraHoursCalendar';
+import { Permission } from '../../permissions/rolePermissions';
 
 import './styles.scss';
 
@@ -26,6 +28,7 @@ interface UserTableProps {
   onEditUser: (userId: number) => void;
   onDeleteUser: (userId: number) => void;
   onViewTasks: (userId: number) => void;
+  onResetPassword?: (userId: number) => void;
   page: number;
   onPageChange: (page: number) => void;
   totalPages: number;
@@ -37,6 +40,7 @@ const UserTable: React.FC<UserTableProps> = ({
   onEditUser,
   onDeleteUser,
   onViewTasks,
+  onResetPassword,
   page,
   onPageChange,
   totalPages,
@@ -45,7 +49,8 @@ const UserTable: React.FC<UserTableProps> = ({
   const navigate = useNavigate();
   const { loadStoredNotifications } = useNotification();
   const { user } = useAuth();
-  const { isEmployee } = usePermissions();
+  const { isEmployee, hasPermission } = usePermissions();
+  const canResetPassword = hasPermission(Permission.MANAGE_USER_PASSWORDS);
 
   const [showExtraHours, setShowExtraHours] = React.useState(false);
   const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
@@ -267,6 +272,31 @@ const UserTable: React.FC<UserTableProps> = ({
                             }}
                           />
                         </OverlayTrigger>
+                        {/* Novo ícone para reset de senha - só aparece se usuário tiver permissão */}
+                        {canResetPassword && (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip
+                                id={`password-reset-tooltip-${rowUser.id}`}
+                              >
+                                Redefinir Senha
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faKey}
+                              onClick={() =>
+                                onResetPassword && onResetPassword(rowUser.id)
+                              }
+                              className="action-icon"
+                              style={{
+                                marginRight: '8px',
+                                color: '#007bff', // cor azul para destacar
+                              }}
+                            />
+                          </OverlayTrigger>
+                        )}
                       </div>
                     </td>
                   </tr>

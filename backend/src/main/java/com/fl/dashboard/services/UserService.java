@@ -425,4 +425,35 @@ public class UserService implements UserDetailsService {
                 .map(UserWithProjetosDTO::new)
                 .toList();
     }
+
+    @Transactional
+    public void resetPassword(Long userId, String newPassword) {
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("A senha deve ter pelo menos 6 caracteres");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilizador não encontrado com o ID: " + userId));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public int resetAllPasswords(String newPassword) {
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("A senha deve ter pelo menos 6 caracteres");
+        }
+
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            user.setPassword(encodedPassword);
+            userRepository.save(user);
+        }
+
+        return users.size();
+    }
+
 }

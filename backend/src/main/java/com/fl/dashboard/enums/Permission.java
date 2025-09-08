@@ -21,6 +21,7 @@ public enum Permission {
     DELETE_USER,
     VIEW_ALL_USERS,
     MANAGE_USER_ROLES,
+    MANAGE_USER_PASSWORDS,
 
     // Task permissions
     CREATE_TASK,

@@ -15,6 +15,8 @@ import ExternoTarefasPage from 'pages/Externos/ExternoTarefasPage';
 import ExternoProjetosPage from 'pages/Externos/ExternoProjetosPage';
 import ClientePage from 'pages/Clientes/ClientePage';
 import ClienteProjetosPage from 'pages/Clientes/ClienteProjetosPage';
+import PasswordReset from '../components/User/PasswordReset';
+import { Permission } from 'permissions/rolePermissions';
 
 const AppRoutes = () => {
   return (
@@ -76,6 +78,15 @@ const AppRoutes = () => {
       <Route
         path="/clientes/:clienteId/projetos"
         element={<ProtectedRoute element={<ClienteProjetosPage />} />}
+      />
+      <Route
+        path="/admin/password-reset"
+        element={
+          <ProtectedRoute
+            element={<PasswordReset />}
+            permissions={Permission.MANAGE_USER_PASSWORDS}
+          />
+        }
       />
     </Routes>
   );
