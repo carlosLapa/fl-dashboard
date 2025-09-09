@@ -13,13 +13,13 @@ services:
         value: https://ferreiralapa-dashboard.pt
         scope: RUN_TIME
       - key: SLACK_WEBHOOK_URL
-        value: https://hooks.slack.com/services/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
+        value: ${SLACK_WEBHOOK}
         scope: RUN_TIME
       - key: SLACK_ENABLED
         value: "true"
         scope: RUN_TIME
       - key: SLACK_DEFAULT_CHANNEL
-        value: "#general"
+        value: "#fl-dashboard-notificações"
         scope: RUN_TIME
       - key: SLACK_NOTIFICATION_TYPES
         value: TAREFA_ATRIBUIDA,TAREFA_STATUS_ALTERADO,PROJETO_CONCLUIDO,TAREFA_CONCLUIDA
