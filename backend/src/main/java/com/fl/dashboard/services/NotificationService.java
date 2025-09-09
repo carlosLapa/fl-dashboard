@@ -12,6 +12,7 @@ import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,36 @@ public class NotificationService {
     private SimpMessagingTemplate messagingTemplate;
     @Autowired
     private SlackService slackService;
+
+    @PostConstruct
+    public void validateSlackIntegration() {
+        logger.info("Validating Slack integration setup...");
+        try {
+            boolean slackEnabled = false;
+            try {
+                slackEnabled = slackService.isEnabled();
+            } catch (Exception e) {
+                logger.error("Error checking if Slack is enabled", e);
+            }
+
+            logger.info("Slack integration enabled: {}", slackEnabled);
+
+            if (slackEnabled) {
+                logger.info("Notification types that will be sent to Slack:");
+                for (NotificationType type : NotificationType.values()) {
+                    boolean shouldSend = false;
+                    try {
+                        shouldSend = slackService.shouldSendNotificationType(type.name());
+                    } catch (Exception e) {
+                        logger.error("Error checking if type {} should be sent to Slack", type.name(), e);
+                    }
+                    logger.info("  - {}: {}", type.name(), shouldSend ? "YES" : "NO");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during Slack integration validation", e);
+        }
+    }
 
     private NotificationResponseDTO convertToDTO(Notification notification) {
         if (notification == null) {
@@ -145,16 +176,42 @@ public class NotificationService {
                 messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS + "/" + dto.getUserId(), savedDto);
                 logger.info("Notification sent to topic successfully after transaction commit");
 
-                // Adicione esta parte para integração com Slack
+                // Integração com Slack com logs detalhados
                 try {
-                    // Enviar para o Slack se o tipo de notificação estiver habilitado
-                    if (slackService.shouldSendNotificationType(savedDto.getType())) {
+                    logger.info("Starting Slack integration for notification type: {}", savedDto.getType());
+
+                    // Verificar configurações do Slack
+                    try {
+                        logger.info("Slack integration enabled: {}", slackService.isEnabled());
+                    } catch (Exception e) {
+                        logger.warn("Could not determine if Slack is enabled", e);
+                    }
+
+                    logger.info("Checking if notification type '{}' should be sent to Slack", savedDto.getType());
+
+                    boolean shouldSend = slackService.shouldSendNotificationType(savedDto.getType());
+                    logger.info("Should send to Slack: {} (type: {})", shouldSend, savedDto.getType());
+
+                    if (shouldSend) {
                         String title = getTitleForNotificationType(savedDto.getType());
                         String color = slackService.getColorForNotificationType(savedDto.getType());
-                        slackService.sendNotification(title, savedDto.getContent(), color);
+                        logger.info("Preparing to send notification to Slack. Title: '{}', Color: '{}'", title, color);
+
+                        try {
+                            boolean sent = slackService.sendNotification(title, savedDto.getContent(), color);
+                            logger.info("Slack notification send result: {}", sent ? "SUCCESS" : "FAILED");
+
+                            if (!sent) {
+                                logger.warn("Slack service returned false when sending notification. This may indicate a configuration issue.");
+                            }
+                        } catch (Exception e) {
+                            logger.error("Error in slackService.sendNotification()", e);
+                        }
+                    } else {
+                        logger.info("Notification type '{}' is not configured for Slack integration. Skipping.", savedDto.getType());
                     }
                 } catch (Exception e) {
-                    logger.error("Error sending notification to Slack", e);
+                    logger.error("Unhandled exception during Slack integration", e);
                 }
             }
         });
@@ -166,19 +223,36 @@ public class NotificationService {
      * Obter um título amigável para o tipo de notificação
      */
     private String getTitleForNotificationType(String type) {
-        if (type == null) return "Notificação";
+        if (type == null) {
+            logger.warn("Notification type is null, using default title");
+            return "Notificação";
+        }
 
-        return switch (type) {
-            case "TAREFA_ATRIBUIDA" -> "Nova Tarefa Atribuída";
-            case "TAREFA_STATUS_ALTERADO" -> "Status de Tarefa Alterado";
-            case "TAREFA_PRAZO_PROXIMO" -> "Prazo de Tarefa Próximo";
-            case "TAREFA_CONCLUIDA" -> "Tarefa Concluída";
-            case "PROJETO_ATRIBUIDO" -> "Projeto Atribuído";
-            case "PROJETO_ATUALIZADO" -> "Projeto Atualizado";
-            case "PROJETO_CONCLUIDO" -> "Projeto Concluído";
-            case "NOTIFICACAO_GERAL" -> "Notificação";
-            default -> "Notificação";
-        };
+        logger.debug("Getting title for notification type: {}", type);
+        String title;
+
+        try {
+            title = switch (type) {
+                case "TAREFA_ATRIBUIDA" -> "Nova Tarefa Atribuída";
+                case "TAREFA_STATUS_ALTERADO" -> "Status de Tarefa Alterado";
+                case "TAREFA_PRAZO_PROXIMO" -> "Prazo de Tarefa Próximo";
+                case "TAREFA_CONCLUIDA" -> "Tarefa Concluída";
+                case "PROJETO_ATRIBUIDO" -> "Projeto Atribuído";
+                case "PROJETO_ATUALIZADO" -> "Projeto Atualizado";
+                case "PROJETO_CONCLUIDO" -> "Projeto Concluído";
+                case "NOTIFICACAO_GERAL" -> "Notificação";
+                default -> {
+                    logger.warn("Unknown notification type: {}", type);
+                    yield "Notificação";
+                }
+            };
+        } catch (Exception e) {
+            logger.error("Error determining notification title for type: {}", type, e);
+            title = "Notificação";
+        }
+
+        logger.debug("Selected title '{}' for notification type '{}'", title, type);
+        return title;
     }
 
     @Transactional
@@ -507,5 +581,4 @@ public class NotificationService {
                 tarefaId, userId, NotificationType.TAREFA_PRAZO_PROXIMO.name()
         );
     }
-
 }

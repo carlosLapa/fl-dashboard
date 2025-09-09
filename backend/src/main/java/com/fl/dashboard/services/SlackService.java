@@ -1,6 +1,7 @@
 package com.fl.dashboard.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,47 @@ public class SlackService {
     @Value("${slack.notification-types:}")
     private List<String> notificationTypes;
 
+    @PostConstruct
+    public void logConfiguration() {
+        logger.info("Initializing Slack service with configuration:");
+        logger.info("  - Enabled: {}", enabled);
+        logger.info("  - Default Channel: {}", defaultChannel);
+        logger.info("  - Webhook URL configured: {}", !webhookUrl.isEmpty());
+        logger.info("  - Notification Types: {}", notificationTypes);
+    }
+
+    /**
+     * Verifica se a integração com o Slack está habilitada
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Retorna a URL do webhook (ofuscada para logs)
+     */
+    public String getWebhookUrl() {
+        // Retorna uma versão ofuscada para não expor a URL completa em logs
+        if (webhookUrl == null || webhookUrl.isEmpty()) {
+            return "";
+        }
+        return "configured";
+    }
+
+    /**
+     * Retorna o canal padrão configurado
+     */
+    public String getDefaultChannel() {
+        return defaultChannel;
+    }
+
+    /**
+     * Retorna os tipos de notificação configurados
+     */
+    public List<String> getNotificationTypes() {
+        return notificationTypes;
+    }
+
     /**
      * Envia uma mensagem básica para o Slack
      */
@@ -62,6 +104,7 @@ public class SlackService {
      */
     public boolean sendNotification(String title, String message, String color) {
         if (!enabled || webhookUrl.isEmpty()) {
+            logger.info("Slack notification not sent: integration disabled or webhook missing. Title: {}", title);
             return false;
         }
 
@@ -81,6 +124,7 @@ public class SlackService {
             payload.put("username", "FL Dashboard");
             payload.put("icon_emoji", ":chart_with_upwards_trend:");
 
+            logger.info("Sending notification to Slack. Title: '{}', Channel: '{}'", title, defaultChannel);
             return sendPayloadToSlack(payload);
         } catch (Exception e) {
             logger.error("Error sending Slack notification", e);
