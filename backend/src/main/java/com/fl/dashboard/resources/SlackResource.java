@@ -33,6 +33,29 @@ public class SlackResource {
         ));
     }
 
+    @GetMapping("/webhook-status")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Map<String, Object>> checkWebhook() {
+        Map<String, Object> result = new HashMap<>();
+
+        String webhookUrl = slackService.getWebhookUrl();
+        boolean webhookConfigured = webhookUrl != null && !webhookUrl.isEmpty() && !"configured".equals(webhookUrl);
+
+        result.put("webhookConfigured", webhookConfigured);
+        result.put("enabled", slackService.isEnabled());
+
+        // Se o webhook parece estar configurado, tente enviar uma mensagem de teste
+        if (webhookConfigured && slackService.isEnabled()) {
+            boolean testResult = slackService.sendMessage("Teste de webhook do Slack");
+            result.put("testSent", testResult);
+        } else {
+            result.put("testSent", false);
+            result.put("reason", !webhookConfigured ? "Webhook não configurado" : "Integração desabilitada");
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
     /**
      * Endpoint para testar envio de mensagem formatada para o Slack
      */

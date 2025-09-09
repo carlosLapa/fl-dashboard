@@ -55,11 +55,16 @@ public class SlackService {
      * Retorna a URL do webhook (ofuscada para logs)
      */
     public String getWebhookUrl() {
-        // Retorna uma versão ofuscada para não expor a URL completa em logs
-        if (webhookUrl == null || webhookUrl.isEmpty()) {
-            return "";
+        // Retorna informações diagnósticas sobre o webhook
+        if (webhookUrl == null) {
+            return "null";
+        } else if (webhookUrl.isEmpty()) {
+            return "empty";
+        } else if (webhookUrl.startsWith("https://hooks.slack.com/")) {
+            return "valid_format";
+        } else {
+            return "invalid_format";
         }
-        return "configured";
     }
 
     /**
