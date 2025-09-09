@@ -15,6 +15,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class SlackService {
@@ -22,6 +26,12 @@ public class SlackService {
     private static final Logger logger = LoggerFactory.getLogger(SlackService.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    // Mapa para rastrear notificações recentes e evitar duplicatas
+    private final ConcurrentHashMap<String, Long> recentNotifications = new ConcurrentHashMap<>();
+
+    // Scheduler para limpar notificações antigas periodicamente
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Value("${slack.webhook-url:}")
     private String webhookUrl;
@@ -47,6 +57,29 @@ public class SlackService {
         // Limpeza básica do webhook se necessário
         if (webhookUrl != null && (webhookUrl.startsWith(" ") || webhookUrl.endsWith(" "))) {
             webhookUrl = webhookUrl.trim();
+        }
+
+        // Configurar limpeza periódica de notificações antigas a cada 5 minutos
+        scheduler.scheduleAtFixedRate(this::cleanupOldNotifications, 5, 5, TimeUnit.MINUTES);
+    }
+
+    /**
+     * Limpa notificações antigas do registro para evitar crescimento ilimitado do mapa
+     */
+    private void cleanupOldNotifications() {
+        try {
+            long currentTime = System.currentTimeMillis();
+            int beforeSize = recentNotifications.size();
+
+            // Remover entradas mais antigas que 1 minuto
+            recentNotifications.entrySet().removeIf(entry -> (currentTime - entry.getValue()) > 60000);
+
+            int afterSize = recentNotifications.size();
+            if (beforeSize != afterSize) {
+                logger.debug("Cleaned up recent notifications cache: {} -> {} entries", beforeSize, afterSize);
+            }
+        } catch (Exception e) {
+            logger.warn("Error cleaning up notification cache", e);
         }
     }
 
@@ -96,13 +129,31 @@ public class SlackService {
         }
 
         try {
+            // Gerar uma chave única baseada na mensagem
+            String messageKey = "simple-" + text.hashCode();
+
+            // Verificar se já enviamos recentemente (últimos 10 segundos)
+            long currentTime = System.currentTimeMillis();
+            Long lastSent = recentNotifications.get(messageKey);
+            if (lastSent != null && (currentTime - lastSent) < 10000) {
+                logger.info("Skipping duplicate Slack message sent within last 10 seconds");
+                return true; // Consideramos como sucesso, já que a mensagem já foi enviada
+            }
+
             Map<String, Object> payload = new HashMap<>();
             payload.put("text", text);
             payload.put("channel", defaultChannel);
             payload.put("username", "FL Dashboard");
             payload.put("icon_emoji", ":chart_with_upwards_trend:");
 
-            return sendPayloadToSlack(payload);
+            boolean result = sendPayloadToSlack(payload);
+
+            // Se enviou com sucesso, registrar a mensagem como recentemente enviada
+            if (result) {
+                recentNotifications.put(messageKey, currentTime);
+            }
+
+            return result;
         } catch (Exception e) {
             logger.error("Error sending Slack message", e);
             return false;
@@ -111,6 +162,7 @@ public class SlackService {
 
     /**
      * Envia uma notificação formatada para o Slack
+     * Implementa verificação de duplicatas baseada no conteúdo da mensagem
      */
     public boolean sendNotification(String title, String message, String color) {
         if (!enabled || webhookUrl == null || webhookUrl.isEmpty()) {
@@ -119,6 +171,17 @@ public class SlackService {
         }
 
         try {
+            // Gerar uma chave única baseada no título e conteúdo da mensagem
+            String messageKey = title + "-" + message.hashCode();
+
+            // Verificar se já enviamos recentemente (últimos 10 segundos)
+            long currentTime = System.currentTimeMillis();
+            Long lastSent = recentNotifications.get(messageKey);
+            if (lastSent != null && (currentTime - lastSent) < 10000) {
+                logger.info("Skipping duplicate Slack notification sent within last 10 seconds: {}", title);
+                return true; // Consideramos como sucesso, já que a mensagem já foi enviada
+            }
+
             Map<String, Object> attachment = new HashMap<>();
             attachment.put("color", color != null ? color : "#36a64f");
             attachment.put("title", title);
@@ -135,7 +198,14 @@ public class SlackService {
             payload.put("icon_emoji", ":chart_with_upwards_trend:");
 
             logger.info("Sending notification to Slack. Title: '{}', Channel: '{}'", title, defaultChannel);
-            return sendPayloadToSlack(payload);
+            boolean result = sendPayloadToSlack(payload);
+
+            // Se enviou com sucesso, registrar a mensagem como recentemente enviada
+            if (result) {
+                recentNotifications.put(messageKey, currentTime);
+            }
+
+            return result;
         } catch (Exception e) {
             logger.error("Error sending Slack notification", e);
             return false;
