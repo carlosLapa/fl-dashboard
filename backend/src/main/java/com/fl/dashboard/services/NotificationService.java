@@ -46,6 +46,8 @@ public class NotificationService {
     private ProjetoRepository projetoRepository;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private SlackService slackService;
 
     private NotificationResponseDTO convertToDTO(Notification notification) {
         if (notification == null) {
@@ -136,16 +138,47 @@ public class NotificationService {
         NotificationResponseDTO savedDto = convertToDTO(notification);
         logger.info("Converted NotificationResponseDTO: {}", savedDto);
 
-        // Register WebSocket send after transaction commits using the modern approach
+        // Register WebSocket send after transaction commits
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS + "/" + dto.getUserId(), savedDto);
                 logger.info("Notification sent to topic successfully after transaction commit");
+
+                // Adicione esta parte para integração com Slack
+                try {
+                    // Enviar para o Slack se o tipo de notificação estiver habilitado
+                    if (slackService.shouldSendNotificationType(savedDto.getType())) {
+                        String title = getTitleForNotificationType(savedDto.getType());
+                        String color = slackService.getColorForNotificationType(savedDto.getType());
+                        slackService.sendNotification(title, savedDto.getContent(), color);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error sending notification to Slack", e);
+                }
             }
         });
 
         return savedDto;
+    }
+
+    /**
+     * Obter um título amigável para o tipo de notificação
+     */
+    private String getTitleForNotificationType(String type) {
+        if (type == null) return "Notificação";
+
+        return switch (type) {
+            case "TAREFA_ATRIBUIDA" -> "Nova Tarefa Atribuída";
+            case "TAREFA_STATUS_ALTERADO" -> "Status de Tarefa Alterado";
+            case "TAREFA_PRAZO_PROXIMO" -> "Prazo de Tarefa Próximo";
+            case "TAREFA_CONCLUIDA" -> "Tarefa Concluída";
+            case "PROJETO_ATRIBUIDO" -> "Projeto Atribuído";
+            case "PROJETO_ATUALIZADO" -> "Projeto Atualizado";
+            case "PROJETO_CONCLUIDO" -> "Projeto Concluído";
+            case "NOTIFICACAO_GERAL" -> "Notificação";
+            default -> "Notificação";
+        };
     }
 
     @Transactional
