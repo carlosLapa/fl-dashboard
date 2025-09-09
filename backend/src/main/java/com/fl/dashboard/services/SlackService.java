@@ -29,19 +29,25 @@ public class SlackService {
     @Value("${slack.enabled:false}")
     private boolean enabled;
 
-    @Value("${slack.default-channel:#general}")
+    @Value("${slack.default-channel:#fl-dashboard-notificacoes}")
     private String defaultChannel;
 
     @Value("${slack.notification-types:}")
     private List<String> notificationTypes;
 
     @PostConstruct
-    public void logConfiguration() {
+    public void initialize() {
+        // Log de configuração inicial
         logger.info("Initializing Slack service with configuration:");
         logger.info("  - Enabled: {}", enabled);
         logger.info("  - Default Channel: {}", defaultChannel);
-        logger.info("  - Webhook URL configured: {}", !webhookUrl.isEmpty());
+        logger.info("  - Webhook URL configured: {}", webhookUrl != null && !webhookUrl.isEmpty());
         logger.info("  - Notification Types: {}", notificationTypes);
+
+        // Limpeza básica do webhook se necessário
+        if (webhookUrl != null && (webhookUrl.startsWith(" ") || webhookUrl.endsWith(" "))) {
+            webhookUrl = webhookUrl.trim();
+        }
     }
 
     /**
@@ -55,7 +61,6 @@ public class SlackService {
      * Retorna a URL do webhook (ofuscada para logs)
      */
     public String getWebhookUrl() {
-        // Retorna informações diagnósticas sobre o webhook
         if (webhookUrl == null) {
             return "null";
         } else if (webhookUrl.isEmpty()) {
@@ -85,7 +90,7 @@ public class SlackService {
      * Envia uma mensagem básica para o Slack
      */
     public boolean sendMessage(String text) {
-        if (!enabled || webhookUrl.isEmpty()) {
+        if (!enabled || webhookUrl == null || webhookUrl.isEmpty()) {
             logger.info("Slack integration is disabled or webhook URL is not configured.");
             return false;
         }
@@ -108,7 +113,7 @@ public class SlackService {
      * Envia uma notificação formatada para o Slack
      */
     public boolean sendNotification(String title, String message, String color) {
-        if (!enabled || webhookUrl.isEmpty()) {
+        if (!enabled || webhookUrl == null || webhookUrl.isEmpty()) {
             logger.info("Slack notification not sent: integration disabled or webhook missing. Title: {}", title);
             return false;
         }
@@ -138,76 +143,10 @@ public class SlackService {
     }
 
     /**
-     * Envia uma notificação formatada para o Slack com blocos
-     */
-    public boolean sendRichNotification(String title, String message, String color, List<Map<String, String>> fields) {
-        if (!enabled || webhookUrl.isEmpty()) {
-            return false;
-        }
-
-        try {
-            // Criar blocos
-            List<Map<String, Object>> blocks = new ArrayList<>();
-
-            // Bloco de cabeçalho
-            Map<String, Object> headerText = new HashMap<>();
-            headerText.put("type", "plain_text");
-            headerText.put("text", title);
-            headerText.put("emoji", true);
-
-            Map<String, Object> headerBlock = new HashMap<>();
-            headerBlock.put("type", "header");
-            headerBlock.put("text", headerText);
-            blocks.add(headerBlock);
-
-            // Bloco de texto
-            Map<String, Object> textObj = new HashMap<>();
-            textObj.put("type", "mrkdwn");
-            textObj.put("text", message);
-
-            Map<String, Object> textBlock = new HashMap<>();
-            textBlock.put("type", "section");
-            textBlock.put("text", textObj);
-            blocks.add(textBlock);
-
-            // Campos adicionais se fornecidos
-            if (fields != null && !fields.isEmpty()) {
-                List<Map<String, Object>> fieldObjects = new ArrayList<>();
-
-                for (Map<String, String> field : fields) {
-                    Map<String, Object> fieldObj = new HashMap<>();
-                    fieldObj.put("type", "mrkdwn");
-                    fieldObj.put("text", "*" + field.get("title") + "*\n" + field.get("value"));
-                    fieldObjects.add(fieldObj);
-                }
-
-                Map<String, Object> fieldsBlock = new HashMap<>();
-                fieldsBlock.put("type", "section");
-                fieldsBlock.put("fields", fieldObjects);
-                blocks.add(fieldsBlock);
-            }
-
-            // Criar payload
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("blocks", blocks);
-            payload.put("channel", defaultChannel);
-            payload.put("username", "FL Dashboard");
-            payload.put("icon_emoji", ":chart_with_upwards_trend:");
-
-            return sendPayloadToSlack(payload);
-        } catch (Exception e) {
-            logger.error("Error sending rich Slack notification", e);
-            return false;
-        }
-    }
-
-    /**
      * Método auxiliar para enviar payload para o Slack
      */
     private boolean sendPayloadToSlack(Map<String, Object> payload) throws Exception {
         String jsonPayload = objectMapper.writeValueAsString(payload);
-
-        logger.debug("Sending payload to Slack: {}", jsonPayload);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(webhookUrl))

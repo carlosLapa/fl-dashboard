@@ -6,9 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,136 +31,34 @@ public class SlackResource {
         ));
     }
 
+    /**
+     * Endpoint para verificar o status do webhook do Slack
+     */
     @GetMapping("/webhook-status")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Map<String, Object>> checkWebhook() {
         Map<String, Object> result = new HashMap<>();
 
-        String webhookUrl = slackService.getWebhookUrl();
-        boolean webhookConfigured = webhookUrl != null && !webhookUrl.isEmpty() && !"configured".equals(webhookUrl);
-
-        result.put("webhookConfigured", webhookConfigured);
         result.put("enabled", slackService.isEnabled());
-
-        // Se o webhook parece estar configurado, tente enviar uma mensagem de teste
-        if (webhookConfigured && slackService.isEnabled()) {
-            boolean testResult = slackService.sendMessage("Teste de webhook do Slack");
-            result.put("testSent", testResult);
-        } else {
-            result.put("testSent", false);
-            result.put("reason", !webhookConfigured ? "Webhook não configurado" : "Integração desabilitada");
-        }
+        result.put("webhookConfigured", !slackService.getWebhookUrl().equals("empty") && !slackService.getWebhookUrl().equals("null"));
+        result.put("defaultChannel", slackService.getDefaultChannel());
 
         return ResponseEntity.ok(result);
     }
 
     /**
-     * Endpoint para testar envio de mensagem formatada para o Slack
-     */
-    @PostMapping("/test-rich")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Map<String, Object>> testRichSlackIntegration(@RequestBody Map<String, Object> payload) {
-        String title = (String) payload.getOrDefault("title", "Notificação Rica");
-        String message = (String) payload.getOrDefault("message", "Esta é uma notificação rica de teste");
-        String color = (String) payload.getOrDefault("color", "#36a64f");
-
-        // Criar campos exemplo
-        List<Map<String, String>> fields = new ArrayList<>();
-
-        Map<String, String> field1 = new HashMap<>();
-        field1.put("title", "Prioridade");
-        field1.put("value", "Alta");
-        fields.add(field1);
-
-        Map<String, String> field2 = new HashMap<>();
-        field2.put("title", "Status");
-        field2.put("value", "Em Andamento");
-        fields.add(field2);
-
-        boolean success = slackService.sendRichNotification(title, message, color, fields);
-
-        return ResponseEntity.ok(Map.of(
-                "success", success,
-                "message", success ? "Notificação rica enviada com sucesso" : "Falha ao enviar notificação rica"
-        ));
-    }
-
-    /**
-     * Endpoint para diagnóstico da configuração do Slack
+     * Endpoint para verificar o status geral da integração com o Slack
      */
     @GetMapping("/status")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getSlackStatus() {
         Map<String, Object> status = new HashMap<>();
 
-        // Informações gerais de configuração
         status.put("enabled", slackService.isEnabled());
         status.put("defaultChannel", slackService.getDefaultChannel());
-        status.put("webhookConfigured", !slackService.getWebhookUrl().isEmpty());
+        status.put("webhookConfigured", !slackService.getWebhookUrl().equals("empty") && !slackService.getWebhookUrl().equals("null"));
         status.put("notificationTypes", slackService.getNotificationTypes());
 
-        // Verificações específicas para diagnóstico
-        List<Map<String, Object>> typeStatus = new ArrayList<>();
-        for (String type : new String[]{
-                "TAREFA_ATRIBUIDA", "TAREFA_STATUS_ALTERADO",
-                "TAREFA_PRAZO_PROXIMO", "TAREFA_CONCLUIDA",
-                "PROJETO_ATRIBUIDO", "PROJETO_ATUALIZADO", "PROJETO_CONCLUIDO",
-                "NOTIFICACAO_GERAL"
-        }) {
-            Map<String, Object> typeInfo = new HashMap<>();
-            typeInfo.put("type", type);
-            typeInfo.put("shouldSend", slackService.shouldSendNotificationType(type));
-            typeInfo.put("color", slackService.getColorForNotificationType(type));
-            typeStatus.add(typeInfo);
-        }
-        status.put("typeConfigurations", typeStatus);
-
         return ResponseEntity.ok(status);
-    }
-
-    /**
-     * Endpoint para testar a configuração enviando uma notificação específica
-     */
-    @PostMapping("/test-notification-type")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Map<String, Object>> testNotificationType(@RequestBody Map<String, String> payload) {
-        String type = payload.getOrDefault("type", "NOTIFICACAO_GERAL");
-        String message = payload.getOrDefault("message", "Teste de notificação do tipo " + type);
-
-        boolean shouldSend = slackService.shouldSendNotificationType(type);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("type", type);
-        result.put("shouldSend", shouldSend);
-
-        if (shouldSend) {
-            String title = getTitleForType(type);
-            String color = slackService.getColorForNotificationType(type);
-            boolean sent = slackService.sendNotification(title, message, color);
-            result.put("sent", sent);
-            result.put("message", sent ? "Notificação enviada com sucesso" : "Falha ao enviar notificação");
-        } else {
-            result.put("sent", false);
-            result.put("message", "Tipo de notificação não configurado para envio ao Slack");
-        }
-
-        return ResponseEntity.ok(result);
-    }
-
-    /**
-     * Obtém um título para teste com base no tipo
-     */
-    private String getTitleForType(String type) {
-        return switch (type) {
-            case "TAREFA_ATRIBUIDA" -> "Nova Tarefa Atribuída";
-            case "TAREFA_STATUS_ALTERADO" -> "Status de Tarefa Alterado";
-            case "TAREFA_PRAZO_PROXIMO" -> "Prazo de Tarefa Próximo";
-            case "TAREFA_CONCLUIDA" -> "Tarefa Concluída";
-            case "PROJETO_ATRIBUIDO" -> "Projeto Atribuído";
-            case "PROJETO_ATUALIZADO" -> "Projeto Atualizado";
-            case "PROJETO_CONCLUIDO" -> "Projeto Concluído";
-            case "NOTIFICACAO_GERAL" -> "Notificação";
-            default -> "Notificação de Teste";
-        };
     }
 }
