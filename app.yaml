@@ -8,3 +8,19 @@ services:
       repo_clone_url: https://github.com/carlosLapa/fl-dashboard.git
     health_check:
       http_path: /actuator/health
+    envs:
+      - key: CORS_ORIGINS
+        value: https://ferreiralapa-dashboard.pt
+        scope: RUN_TIME
+      - key: SLACK_WEBHOOK_URL
+        value: ${SLACK_WEBHOOK}
+        scope: RUN_TIME
+      - key: SLACK_ENABLED
+        value: "true"
+        scope: RUN_TIME
+      - key: SLACK_DEFAULT_CHANNEL
+        value: "#fl-dashboard-notificacoes"
+        scope: RUN_TIME
+      - key: SLACK_NOTIFICATION_TYPES
+        value: TAREFA_ATRIBUIDA,TAREFA_STATUS_ALTERADO,PROJETO_CONCLUIDO,TAREFA_CONCLUIDA
+        scope: RUN_TIME
