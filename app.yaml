@@ -19,7 +19,7 @@ services:
         value: "true"
         scope: RUN_TIME
       - key: SLACK_DEFAULT_CHANNEL
-        value: "#fl-dashboard-notificações"
+        value: "#fl-dashboard-notificacoes"
         scope: RUN_TIME
       - key: SLACK_NOTIFICATION_TYPES
         value: TAREFA_ATRIBUIDA,TAREFA_STATUS_ALTERADO,PROJETO_CONCLUIDO,TAREFA_CONCLUIDA
