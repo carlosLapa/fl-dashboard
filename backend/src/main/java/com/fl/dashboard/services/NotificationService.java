@@ -25,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
@@ -176,43 +178,8 @@ public class NotificationService {
                 messagingTemplate.convertAndSend(TOPIC_NOTIFICATIONS + "/" + dto.getUserId(), savedDto);
                 logger.info("Notification sent to topic successfully after transaction commit");
 
-                // Integração com Slack com logs detalhados
-                try {
-                    logger.info("Starting Slack integration for notification type: {}", savedDto.getType());
-
-                    // Verificar configurações do Slack
-                    try {
-                        logger.info("Slack integration enabled: {}", slackService.isEnabled());
-                    } catch (Exception e) {
-                        logger.warn("Could not determine if Slack is enabled", e);
-                    }
-
-                    logger.info("Checking if notification type '{}' should be sent to Slack", savedDto.getType());
-
-                    boolean shouldSend = slackService.shouldSendNotificationType(savedDto.getType());
-                    logger.info("Should send to Slack: {} (type: {})", shouldSend, savedDto.getType());
-
-                    if (shouldSend) {
-                        String title = getTitleForNotificationType(savedDto.getType());
-                        String color = slackService.getColorForNotificationType(savedDto.getType());
-                        logger.info("Preparing to send notification to Slack. Title: '{}', Color: '{}'", title, color);
-
-                        try {
-                            boolean sent = slackService.sendNotification(title, savedDto.getContent(), color);
-                            logger.info("Slack notification send result: {}", sent ? "SUCCESS" : "FAILED");
-
-                            if (!sent) {
-                                logger.warn("Slack service returned false when sending notification. This may indicate a configuration issue.");
-                            }
-                        } catch (Exception e) {
-                            logger.error("Error in slackService.sendNotification()", e);
-                        }
-                    } else {
-                        logger.info("Notification type '{}' is not configured for Slack integration. Skipping.", savedDto.getType());
-                    }
-                } catch (Exception e) {
-                    logger.error("Unhandled exception during Slack integration", e);
-                }
+                // O código de integração com Slack foi movido para os métodos especializados
+                // que lidam com tipos de notificações específicas
             }
         });
 
@@ -581,4 +548,60 @@ public class NotificationService {
                 tarefaId, userId, NotificationType.TAREFA_PRAZO_PROXIMO.name()
         );
     }
+
+    // método para agrupar notificações do Slack para múltiplos colaboradores
+    @Transactional
+    public void sendGroupedSlackNotification(String type, String baseContent, List<User> users, Tarefa tarefa) {
+        if (!slackService.isEnabled() || !slackService.shouldSendNotificationType(type)) {
+            logger.info("Slack notification not sent: integration disabled or notification type not configured: {}", type);
+            return;
+        }
+
+        try {
+            // Construir mensagem agrupada com todos os colaboradores
+            StringBuilder content = new StringBuilder();
+
+            // Adicionar informação da tarefa
+            content.append("*").append(baseContent).append("*\n\n");
+            content.append("*Título:* ").append(tarefa.getDescricao()).append("\n");
+
+            // Adicionar prazo se disponível
+            if (tarefa.getPrazoReal() != null) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                content.append("*Prazo:* ").append(dateFormat.format(tarefa.getPrazoReal())).append("\n");
+            }
+
+            // Adicionar prioridade se disponível
+            if (tarefa.getPrioridade() != null && !tarefa.getPrioridade().isEmpty()) {
+                content.append("*Prioridade:* ").append(tarefa.getPrioridade()).append("\n");
+            }
+
+            // Adicionar status
+            content.append("*Status:* ").append(tarefa.getStatus()).append("\n");
+
+            // Adicionar projeto se disponível
+            if (tarefa.getProjeto() != null) {
+                content.append("*Projeto:* ").append(tarefa.getProjeto().getDesignacao()).append("\n");
+            }
+
+            // Adicionar lista de destinatários
+            content.append("\n*Atribuída a:* ");
+            content.append(users.stream()
+                    .map(User::getName)
+                    .collect(Collectors.joining(", ")));
+
+            // Enviar única notificação ao Slack
+            String title = getTitleForNotificationType(type);
+            slackService.sendNotification(
+                    title,
+                    content.toString(),
+                    slackService.getColorForNotificationType(type)
+            );
+
+            logger.info("Sent grouped Slack notification to {} users for task ID {}", users.size(), tarefa.getId());
+        } catch (Exception e) {
+            logger.error("Error sending grouped Slack notification", e);
+        }
+    }
+
 }

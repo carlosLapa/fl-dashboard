@@ -369,23 +369,40 @@ public class TarefaService {
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
 
         // Send notifications to all assigned users
+        List<User> notifiedUsers = new ArrayList<>();
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
-            dto.getUserIds().forEach(userId -> {
-                NotificationInsertDTO notification = NotificationInsertDTO.builder()
-                        .type("TAREFA_ATRIBUIDA")
-                        .content("Foi-lhe atribuída uma nova tarefa: " + savedTarefa.getDescricao())
-                        .userId(userId)
-                        .isRead(false)
-                        .createdAt(new Date())
-                        .tarefaId(savedTarefa.getId())
-                        .build();
-                notificationService.processNotification(notification);
-            });
+            for (Long userId : dto.getUserIds()) {
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    notifiedUsers.add(user);
+
+                    NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                            .type("TAREFA_ATRIBUIDA")
+                            .content("Foi-lhe atribuída uma nova tarefa: " + savedTarefa.getDescricao())
+                            .userId(userId)
+                            .isRead(false)
+                            .createdAt(new Date())
+                            .tarefaId(savedTarefa.getId())
+                            .build();
+                    notificationService.processNotification(notification);
+                }
+            }
+
+            // Enviar uma única notificação agrupada para o Slack
+            if (!notifiedUsers.isEmpty()) {
+                notificationService.sendGroupedSlackNotification(
+                        "TAREFA_ATRIBUIDA",
+                        "Nova Tarefa Atribuída",
+                        notifiedUsers,
+                        savedTarefa
+                );
+            }
         }
 
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
 
+    @Transactional
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
@@ -394,8 +411,11 @@ public class TarefaService {
         Long tarefaId = tarefa.getId();
         tarefa.setStatus(newStatus);
 
-        // Notify all assigned users
+        List<User> notifiedUsers = new ArrayList<>();
+
+        // Notify all assigned users in the application
         tarefa.getUsers().forEach(user -> {
+            notifiedUsers.add(user);
             NotificationInsertDTO notification = NotificationInsertDTO.builder()
                     .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
                     .content("Estado da tarefa '" + descricao + "' alterado de " + previousStatus + " para " + newStatus)
@@ -414,6 +434,7 @@ public class TarefaService {
             boolean isCoordenadorAssigned = tarefa.getUsers().stream()
                     .anyMatch(u -> u.getId().equals(coordenador.getId()));
             if (!isCoordenadorAssigned) {
+                notifiedUsers.add(coordenador);
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
                         .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
                         .content("A tarefa '" + descricao + "' mudou de estado de " + previousStatus + " para " + newStatus)
@@ -424,6 +445,17 @@ public class TarefaService {
                         .build();
                 notificationService.processNotification(notification);
             }
+        }
+
+        // Enviar uma única notificação agrupada para o Slack
+        if (!notifiedUsers.isEmpty()) {
+            String baseContent = "Estado da tarefa alterado de " + previousStatus + " para " + newStatus;
+            notificationService.sendGroupedSlackNotification(
+                    NotificationType.TAREFA_STATUS_ALTERADO.name(),
+                    baseContent,
+                    notifiedUsers,
+                    tarefa
+            );
         }
 
         tarefa = tarefaRepository.save(tarefa);
