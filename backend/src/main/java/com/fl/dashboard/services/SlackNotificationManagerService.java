@@ -7,7 +7,10 @@ import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -20,28 +23,30 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-public class SlackNotificationManagerService {
+public class SlackNotificationManagerService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(SlackNotificationManagerService.class);
-
     // Mapa para armazenar notificações pendentes por tarefa e tipo
     private final Map<String, SlackGroupedNotificationDTO> pendingNotifications = new ConcurrentHashMap<>();
-
     // Scheduler para enviar notificações pendentes
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private ApplicationContext applicationContext;
 
     @Autowired
     private SlackService slackService;
-
-    private TarefaService tarefaService;
 
     public SlackNotificationManagerService() {
         // Iniciar o processador que envia as notificações a cada 3 segundos
         scheduler.scheduleAtFixedRate(this::processPendingNotifications, 3, 3, TimeUnit.SECONDS);
     }
 
-    @Autowired
-    public void setTarefaService(TarefaService tarefaService) {
-        this.tarefaService = tarefaService;
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    // Método para obter o TarefaService sob demanda
+    private TarefaService getTarefaService() {
+        return applicationContext.getBean(TarefaService.class);
     }
 
     /**
@@ -54,8 +59,8 @@ public class SlackNotificationManagerService {
         }
 
         try {
-            // Buscar a tarefa atualizada com todos os users usando o serviço
-            TarefaWithUsersDTO tarefaDTO = tarefaService.findByIdWithUsers(tarefa.getId());
+            // Buscar a tarefa atualizada com todos os users usando o serviço obtido via ApplicationContext
+            TarefaWithUsersDTO tarefaDTO = getTarefaService().findByIdWithUsers(tarefa.getId());
 
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefa.getId(), type);
@@ -94,8 +99,8 @@ public class SlackNotificationManagerService {
         }
 
         try {
-            // Buscar a tarefa atualizada com todos os users usando o serviço
-            TarefaWithUsersDTO tarefaDTO = tarefaService.findByIdWithUsers(tarefa.getId());
+            // Buscar a tarefa atualizada com todos os users usando o serviço obtido via ApplicationContext
+            TarefaWithUsersDTO tarefaDTO = getTarefaService().findByIdWithUsers(tarefa.getId());
 
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefa.getId(), type);
@@ -137,8 +142,8 @@ public class SlackNotificationManagerService {
         }
 
         try {
-            // Buscar a tarefa com todos os users
-            TarefaWithUsersDTO tarefaDTO = tarefaService.findByIdWithUsers(tarefaId);
+            // Buscar a tarefa com todos os users usando o serviço obtido via ApplicationContext
+            TarefaWithUsersDTO tarefaDTO = getTarefaService().findByIdWithUsers(tarefaId);
 
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefaId, type);
@@ -175,8 +180,8 @@ public class SlackNotificationManagerService {
         }
 
         try {
-            // Buscar a tarefa com todos os users
-            TarefaWithUsersDTO tarefaDTO = tarefaService.findByIdWithUsers(tarefaId);
+            // Buscar a tarefa com todos os users usando o serviço obtido via ApplicationContext
+            TarefaWithUsersDTO tarefaDTO = getTarefaService().findByIdWithUsers(tarefaId);
 
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefaId, type);
