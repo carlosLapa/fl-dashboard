@@ -285,6 +285,9 @@ public class SlackService {
             // Adicionar informação do projeto se disponível
             if (notification.getProjeto() != null && notification.getProjeto().getDesignacao() != null) {
                 content.append("*Projeto:* ").append(notification.getProjeto().getDesignacao()).append("\n\n");
+                logger.debug("Incluindo projeto na notificação: {}", notification.getProjeto().getDesignacao());
+            } else {
+                logger.debug("Notificação sem informação de projeto");
             }
 
             // Resto do código permanece igual
