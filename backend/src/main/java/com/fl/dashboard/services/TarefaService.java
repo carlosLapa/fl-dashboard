@@ -46,6 +46,9 @@ public class TarefaService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private SlackNotificationManagerService slackNotificationManager;
+
     // Method to calculate working days
     private Integer calculateWorkingDays(Date startDate, Date endDate) {
         if (startDate == null || endDate == null) {
@@ -368,7 +371,7 @@ public class TarefaService {
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
 
-        // Send notifications to all assigned users
+        // Criar notificações na aplicação para cada user individualmente
         List<User> notifiedUsers = new ArrayList<>();
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
             for (Long userId : dto.getUserIds()) {
@@ -376,6 +379,7 @@ public class TarefaService {
                 if (user != null) {
                     notifiedUsers.add(user);
 
+                    // Criar notificação individual no sistema para cada user
                     NotificationInsertDTO notification = NotificationInsertDTO.builder()
                             .type("TAREFA_ATRIBUIDA")
                             .content("Foi-lhe atribuída uma nova tarefa: " + savedTarefa.getDescricao())
@@ -388,15 +392,16 @@ public class TarefaService {
                 }
             }
 
-            // Enviar uma única notificação agrupada para o Slack
-            if (!notifiedUsers.isEmpty()) {
-                notificationService.sendGroupedSlackNotification(
-                        "TAREFA_ATRIBUIDA",
-                        "Nova Tarefa Atribuída",
-                        notifiedUsers,
-                        savedTarefa
-                );
-            }
+            // Adicionar UMA notificação agrupada para o Slack com todos os users
+            List<UserDTO> userDTOs = notifiedUsers.stream()
+                    .map(UserDTO::new)
+                    .collect(Collectors.toList());
+            slackNotificationManager.addNotification(
+                    "TAREFA_ATRIBUIDA",
+                    "Nova Tarefa Atribuída",
+                    savedTarefa.getId(),
+                    userDTOs
+            );
         }
 
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
@@ -449,12 +454,11 @@ public class TarefaService {
 
         // Enviar uma única notificação agrupada para o Slack
         if (!notifiedUsers.isEmpty()) {
-            String baseContent = "Estado da tarefa alterado de " + previousStatus + " para " + newStatus;
-            notificationService.sendGroupedSlackNotification(
+            slackNotificationManager.addNotification(
                     NotificationType.TAREFA_STATUS_ALTERADO.name(),
-                    baseContent,
-                    notifiedUsers,
-                    tarefa
+                    "Estado da Tarefa Alterado",
+                    tarefa,
+                    notifiedUsers
             );
         }
 

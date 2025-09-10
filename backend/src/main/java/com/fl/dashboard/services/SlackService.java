@@ -1,6 +1,9 @@
 package com.fl.dashboard.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fl.dashboard.dto.SlackGroupedNotificationDTO;
+import com.fl.dashboard.dto.TarefaWithUsersDTO;
+import com.fl.dashboard.dto.UserDTO;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,14 +14,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class SlackService {
@@ -263,4 +265,82 @@ public class SlackService {
             default -> "#95a5a6";                      // Cinza claro
         };
     }
+
+    /**
+     * Envia uma notificação formatada ao Slack com suporte para agrupamento de users
+     */
+    public boolean sendGroupedNotification(SlackGroupedNotificationDTO notification) {
+        if (!enabled || webhookUrl == null || webhookUrl.isEmpty()) {
+            logger.info("Grouped Slack notification not sent: integration disabled or webhook missing. Title: {}",
+                    notification.getTitle());
+            return false;
+        }
+
+        try {
+            TarefaWithUsersDTO tarefa = notification.getTarefa();
+
+            // Construir a mensagem formatada
+            StringBuilder content = new StringBuilder();
+
+            // Adicionar informação da tarefa
+            content.append("*Título:* ").append(tarefa.getDescricao()).append("\n");
+
+            // Adicionar prazo se disponível
+            if (tarefa.getPrazoReal() != null) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                content.append("*Prazo:* ").append(dateFormat.format(tarefa.getPrazoReal())).append("\n");
+            }
+
+            // Adicionar prioridade se disponível
+            if (tarefa.getPrioridade() != null && !tarefa.getPrioridade().isEmpty()) {
+                content.append("*Prioridade:* ").append(tarefa.getPrioridade()).append("\n");
+            }
+
+            // Adicionar status
+            content.append("*Status:* ").append(tarefa.getStatus()).append("\n");
+
+            // Adicionar conteúdo adicional se houver
+            if (notification.getAdditionalContent() != null && !notification.getAdditionalContent().isEmpty()) {
+                content.append("\n").append(notification.getAdditionalContent()).append("\n");
+            }
+
+            // Adicionar lista de colaboradores
+            Set<UserDTO> users = tarefa.getUsers();
+            if (users != null && !users.isEmpty()) {
+                content.append("\n*Colaboradores:* ");
+                content.append(users.stream()
+                        .map(UserDTO::getName)
+                        .collect(Collectors.joining(", ")));
+            }
+
+            // Gerar uma chave única baseada no título e tarefa
+            String messageKey = notification.getType() + "-" + tarefa.getId();
+
+            // Verificar se já enviamos recentemente (últimos 30 segundos)
+            long currentTime = System.currentTimeMillis();
+            Long lastSent = recentNotifications.get(messageKey);
+            if (lastSent != null && (currentTime - lastSent) < 30000) {
+                logger.info("Skipping duplicate grouped Slack notification sent within last 30 seconds: {} for task {}",
+                        notification.getTitle(), tarefa.getId());
+                return true; // Consideramos como sucesso, já que a mensagem já foi enviada
+            }
+
+            String color = getColorForNotificationType(notification.getType());
+            boolean result = sendNotification(notification.getTitle(), content.toString(), color);
+
+            // Se enviou com sucesso, registrar a mensagem como recentemente enviada
+            if (result) {
+                recentNotifications.put(messageKey, currentTime);
+                logger.info("Successfully sent grouped notification for task {} with {} users",
+                        tarefa.getId(), users.size());
+            }
+
+            return result;
+        } catch (Exception e) {
+            logger.error("Error sending grouped Slack notification", e);
+            return false;
+        }
+    }
+
+
 }
