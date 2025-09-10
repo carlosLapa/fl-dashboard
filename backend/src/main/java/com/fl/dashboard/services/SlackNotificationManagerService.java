@@ -32,12 +32,16 @@ public class SlackNotificationManagerService {
     @Autowired
     private SlackService slackService;
 
-    @Autowired
     private TarefaService tarefaService;
 
     public SlackNotificationManagerService() {
         // Iniciar o processador que envia as notificações a cada 3 segundos
         scheduler.scheduleAtFixedRate(this::processPendingNotifications, 3, 3, TimeUnit.SECONDS);
+    }
+
+    @Autowired
+    public void setTarefaService(TarefaService tarefaService) {
+        this.tarefaService = tarefaService;
     }
 
     /**
