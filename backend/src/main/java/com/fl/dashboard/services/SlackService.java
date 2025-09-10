@@ -282,7 +282,12 @@ public class SlackService {
             // Construir a mensagem formatada
             StringBuilder content = new StringBuilder();
 
-            // Adicionar informação da tarefa
+            // Adicionar informação do projeto se disponível
+            if (notification.getProjeto() != null && notification.getProjeto().getDesignacao() != null) {
+                content.append("*Projeto:* ").append(notification.getProjeto().getDesignacao()).append("\n\n");
+            }
+
+            // Resto do código permanece igual
             content.append("*Título:* ").append(tarefa.getDescricao()).append("\n");
 
             // Adicionar prazo se disponível
@@ -331,8 +336,12 @@ public class SlackService {
             // Se enviou com sucesso, registrar a mensagem como recentemente enviada
             if (result) {
                 recentNotifications.put(messageKey, currentTime);
+
+                // Verificar se users é não nulo antes de chamar size()
+                int usersCount = (users != null) ? users.size() : 0;
+
                 logger.info("Successfully sent grouped notification for task {} with {} users",
-                        tarefa.getId(), users.size());
+                        tarefa.getId(), usersCount);
             }
 
             return result;

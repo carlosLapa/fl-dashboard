@@ -1,8 +1,6 @@
 package com.fl.dashboard.services;
 
-import com.fl.dashboard.dto.SlackGroupedNotificationDTO;
-import com.fl.dashboard.dto.TarefaWithUsersDTO;
-import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import org.slf4j.Logger;
@@ -62,23 +60,51 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
             // Buscar a tarefa atualizada com todos os users usando o serviço obtido via ApplicationContext
             TarefaWithUsersDTO tarefaDTO = getTarefaService().findByIdWithUsers(tarefa.getId());
 
-            // Criar uma chave única para esta tarefa e tipo de notificação
-            String key = generateNotificationKey(tarefa.getId(), type);
+            // Buscar também informações do projeto
+            try {
+                TarefaWithUserAndProjetoDTO tarefaComProjeto =
+                        getTarefaService().findByIdWithUsersAndProjeto(tarefa.getId());
 
-            // Sincronizar acesso ao mapa de notificações pendentes
-            synchronized (pendingNotifications) {
-                // Verificar se já existe uma notificação pendente para esta tarefa e tipo
-                SlackGroupedNotificationDTO notification = pendingNotifications.get(key);
+                // Extrair projeto se disponível
+                ProjetoDTO projeto = tarefaComProjeto.getProjeto();
 
-                if (notification == null) {
-                    // Criar uma notificação
-                    notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
-                    pendingNotifications.put(key, notification);
+                // Criar uma chave única para esta tarefa e tipo de notificação
+                String key = generateNotificationKey(tarefa.getId(), type);
+
+                // Sincronizar acesso ao mapa de notificações pendentes
+                synchronized (pendingNotifications) {
+                    // Verificar se já existe uma notificação pendente para esta tarefa e tipo
+                    SlackGroupedNotificationDTO notification = pendingNotifications.get(key);
+
+                    if (notification == null) {
+                        // Criar uma notificação
+                        notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
+                        // Adicionar o projeto se disponível
+                        if (projeto != null) {
+                            notification.setProjeto(projeto);
+                        }
+                        pendingNotifications.put(key, notification);
+                    }
+
+                    // O user já deve estar incluído na tarefa, mas por segurança:
+                    if (user != null) {
+                        notification.addUser(new UserDTO(user));
+                    }
                 }
+            } catch (Exception e) {
+                // Fallback para a versão sem projeto
+                logger.debug("Could not load project for task {}: {}", tarefa.getId(), e.getMessage());
 
-                // O user já deve estar incluído na tarefa, mas por segurança:
-                if (user != null) {
-                    notification.addUser(new UserDTO(user));
+                String key = generateNotificationKey(tarefa.getId(), type);
+                synchronized (pendingNotifications) {
+                    SlackGroupedNotificationDTO notification = pendingNotifications.get(key);
+                    if (notification == null) {
+                        notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
+                        pendingNotifications.put(key, notification);
+                    }
+                    if (user != null) {
+                        notification.addUser(new UserDTO(user));
+                    }
                 }
             }
 

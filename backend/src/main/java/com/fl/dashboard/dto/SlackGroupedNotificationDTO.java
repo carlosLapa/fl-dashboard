@@ -10,6 +10,7 @@ public class SlackGroupedNotificationDTO {
     private String title;
     private TarefaWithUsersDTO tarefa;
     private Set<UserDTO> additionalUsers = new HashSet<>();
+    private ProjetoDTO projeto;
     private String additionalContent;
 
     public SlackGroupedNotificationDTO(String type, String title, TarefaWithUsersDTO tarefa) {
@@ -51,6 +52,14 @@ public class SlackGroupedNotificationDTO {
 
     public Set<UserDTO> getUsers() {
         return tarefa.getUsers();
+    }
+
+    public ProjetoDTO getProjeto() {
+        return projeto;
+    }
+
+    public void setProjeto(ProjetoDTO projeto) {
+        this.projeto = projeto;
     }
 
     public String getAdditionalContent() {
