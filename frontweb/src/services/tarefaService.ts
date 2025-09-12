@@ -371,8 +371,19 @@ export const updateTarefaStatus = async (
   tarefa?: TarefaWithUserAndProjetoDTO
 ): Promise<TarefaWithUsersDTO> => {
   try {
+    console.log(
+      `[Service] Iniciando updateTarefaStatus para tarefa ${id} -> ${newStatus}`
+    );
+    console.log(`[Service] Informações da tarefa disponíveis: ${!!tarefa}`);
+
     const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
-    if (onNotify && updatedTarefa && tarefa) {
+
+    // Se temos informações da tarefa e função de notificação, notificar usuários
+    if (onNotify && tarefa) {
+      console.log(
+        `[Service] Enviando notificações para ${tarefa.users.length} usuários`
+      );
+
       for (const user of tarefa.users) {
         const notification: NotificationInsertDTO = {
           type: NotificationType.TAREFA_STATUS_ALTERADO,
@@ -386,7 +397,12 @@ export const updateTarefaStatus = async (
         };
         await onNotify(notification);
       }
+    } else {
+      console.log(
+        `[Service] Sem notificações: onNotify=${!!onNotify}, tarefa=${!!tarefa}`
+      );
     }
+
     if (updatedTarefa.prazoEstimado && updatedTarefa.prazoReal) {
       return {
         ...updatedTarefa,
@@ -398,7 +414,7 @@ export const updateTarefaStatus = async (
     }
     return updatedTarefa;
   } catch (error) {
-    console.error('Error in tarefa service:', error);
+    console.error('[Service] Erro em updateTarefaStatus:', error);
     throw error;
   }
 };

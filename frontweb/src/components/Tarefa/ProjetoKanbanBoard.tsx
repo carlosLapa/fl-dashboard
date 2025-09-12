@@ -8,6 +8,7 @@ import {
   getTarefaWithUsers,
   getColumnsForProject,
   updateTarefaStatus,
+  getTarefaWithUsersAndProjeto,
 } from 'services/tarefaService';
 import { ColunaWithProjetoDTO } from '../../types/coluna';
 import { Spinner, Alert } from 'react-bootstrap';
@@ -350,9 +351,32 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
     // Update in backend
     try {
+      console.log(
+        `Movendo tarefa ${removed.id} de ${source.droppableId} para ${destination.droppableId}`
+      );
+
+      // Obter a tarefa completa com usuários e projeto
+      const tarefaCompleta = await getTarefaWithUsersAndProjeto(removed.id);
+      console.log(
+        `Tarefa completa obtida: ID=${removed.id}, usuários=${tarefaCompleta.users.length}`
+      );
+
       await updateTarefaStatus(
         removed.id,
-        destination.droppableId as TarefaStatus
+        destination.droppableId as TarefaStatus,
+        async (notification) => {
+          try {
+            console.log(
+              `[Kanban] Enviando notificação para usuário ${notification.userId}`
+            );
+            sendNotification(notification);
+            return Promise.resolve();
+          } catch (error) {
+            console.error(`[Kanban] Erro ao enviar notificação:`, error);
+            return Promise.resolve(); // Ainda retornamos uma promise resolvida para não interromper o fluxo
+          }
+        },
+        tarefaCompleta
       );
 
       // Notify Coordenador if not the user moving the card

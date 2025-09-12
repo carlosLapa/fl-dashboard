@@ -78,7 +78,12 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
      * Versão que aceita entidades para compatibilidade com código existente.
      */
     public void addNotification(String type, String title, Tarefa tarefa, User user) {
+        logger.info("SlackNotificationManager - addNotification chamado para tarefa ID={}, tipo={}, título='{}'",
+                tarefa.getId(), type, title);
+
         if (!slackService.isEnabled() || !slackService.shouldSendNotificationType(type)) {
+            logger.info("Notificação Slack ignorada: isEnabled={}, shouldSendType={}",
+                    slackService.isEnabled(), slackService.shouldSendNotificationType(type));
             return;
         }
 

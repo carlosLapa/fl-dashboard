@@ -440,13 +440,56 @@ export const updateTarefaStatusAPI = async (
   newStatus: TarefaStatus
 ) => {
   try {
-    const response = await axios.put<TarefaWithUsersDTO>(
-      `/tarefas/${tarefaId}/status`,
-      { status: newStatus }
-    );
+    console.log(`[API] Iniciando atualização de status da tarefa ${tarefaId} para "${newStatus}"`);
+    
+    // Registrar payload sendo enviado
+    const payload = { status: newStatus };
+    console.log(`[API] Payload da requisição:`, JSON.stringify(payload));
+    
+    // Registrar URL completa sendo chamada
+    const url = `/tarefas/${tarefaId}/status`;
+    console.log(`[API] Enviando requisição PUT para: ${url}`);
+    
+    // Fazer a requisição e registrar o momento
+    const startTime = new Date().getTime();
+    const response = await axios.put<TarefaWithUsersDTO>(url, payload);
+    const endTime = new Date().getTime();
+    
+    console.log(`[API] Resposta recebida em ${endTime - startTime}ms - Status: ${response.status}`);
+    console.log(`[API] Dados da resposta:`, JSON.stringify(response.data));
+    
+    // Verificar se a tarefa tem usuários e projeto
+    if (response.data) {
+      console.log(`[API] Tarefa atualizada - ID: ${response.data.id}, Status: ${response.data.status}`);
+      if (response.data.users) {
+        console.log(`[API] Usuários associados: ${response.data.users.length}`);
+      } else {
+        console.log(`[API] Aviso: Tarefa não tem usuários associados`);
+      }
+      
+      if (response.data.projeto) {
+        console.log(`[API] Projeto associado - ID: ${response.data.projeto.id}, Nome: "${response.data.projeto.designacao}"`);
+      } else {
+        console.log(`[API] Aviso: Tarefa não tem projeto associado`);
+      }
+    }
+    
     return response.data;
   } catch (error) {
-    console.error('Error updating tarefa status:', error);
+    console.error(`[API] ERRO ao atualizar status da tarefa ${tarefaId}:`, error);
+    
+    // Registrar detalhes específicos do erro Axios
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error(`[API] Status do erro: ${error.response.status}`);
+        console.error(`[API] Dados do erro: ${JSON.stringify(error.response.data)}`);
+      } else if (error.request) {
+        console.error('[API] Requisição feita mas sem resposta');
+      } else {
+        console.error(`[API] Erro na configuração da requisição: ${error.message}`);
+      }
+    }
+    
     throw error;
   }
 };

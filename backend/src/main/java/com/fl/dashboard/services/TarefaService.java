@@ -15,6 +15,8 @@ import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class TarefaService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SlackService.class);
 
     @Autowired
     private TarefaRepository tarefaRepository;
@@ -409,16 +413,25 @@ public class TarefaService {
 
     @Transactional
     public TarefaDTO updateStatus(Long id, TarefaStatus newStatus) {
+        logger.info("Iniciando updateStatus para tarefa ID={} mudando para status={}", id, newStatus);
+
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
         TarefaStatus previousStatus = tarefa.getStatus();
         String descricao = tarefa.getDescricao();
         Long tarefaId = tarefa.getId();
+
+        logger.info("Tarefa encontrada: ID={}, descrição='{}', mudando status de {} para {}",
+                tarefaId, descricao, previousStatus, newStatus);
+
         tarefa.setStatus(newStatus);
 
         List<User> notifiedUsers = new ArrayList<>();
 
         // Notify all assigned users in the application
+        logger.debug("Enviando notificações para {} usuários atribuídos à tarefa", tarefa.getUsers().size());
+
         tarefa.getUsers().forEach(user -> {
             notifiedUsers.add(user);
             NotificationInsertDTO notification = NotificationInsertDTO.builder()
@@ -429,16 +442,26 @@ public class TarefaService {
                     .createdAt(new Date())
                     .tarefaId(tarefaId)
                     .build();
+
+            logger.debug("Processando notificação para usuário ID={} ({})", user.getId(), user.getName());
             notificationService.processNotification(notification);
         });
 
         // Notify Coordenador if not assigned to the tarefa
         Projeto projeto = tarefa.getProjeto();
+
+        logger.info("Verificando projeto associado à tarefa: {}",
+                projeto != null ? "ID=" + projeto.getId() + ", designação='" + projeto.getDesignacao() + "'" : "nenhum");
+
         if (projeto != null && projeto.getCoordenador() != null) {
             User coordenador = projeto.getCoordenador();
+            logger.debug("Projeto tem coordenador: ID={} ({})", coordenador.getId(), coordenador.getName());
+
             boolean isCoordenadorAssigned = tarefa.getUsers().stream()
                     .anyMatch(u -> u.getId().equals(coordenador.getId()));
+
             if (!isCoordenadorAssigned) {
+                logger.debug("Coordenador não está atribuído à tarefa, adicionando-o às notificações");
                 notifiedUsers.add(coordenador);
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
                         .type(NotificationType.TAREFA_STATUS_ALTERADO.name())
@@ -449,20 +472,38 @@ public class TarefaService {
                         .tarefaId(tarefaId)
                         .build();
                 notificationService.processNotification(notification);
+            } else {
+                logger.debug("Coordenador já está atribuído à tarefa, não será notificado separadamente");
             }
         }
 
         // Enviar uma única notificação agrupada para o Slack
+        logger.info("Total de usuários para notificar pelo Slack: {}", notifiedUsers.size());
+
         if (!notifiedUsers.isEmpty()) {
-            slackNotificationManager.addNotification(
-                    NotificationType.TAREFA_STATUS_ALTERADO.name(),
-                    "Estado da Tarefa Alterado",
-                    tarefa,
-                    notifiedUsers
-            );
+            logger.info("Enviando notificação agrupada para o Slack: tipo={}, título='Estado da Tarefa Alterado', " +
+                            "tarefaId={}, usuários={}",
+                    NotificationType.TAREFA_STATUS_ALTERADO.name(), tarefaId,
+                    notifiedUsers.stream().map(User::getName).collect(Collectors.joining(", ")));
+
+            try {
+                slackNotificationManager.addNotification(
+                        NotificationType.TAREFA_STATUS_ALTERADO.name(),
+                        "Estado da Tarefa Alterado",
+                        tarefa,
+                        notifiedUsers
+                );
+                logger.info("Chamada ao slackNotificationManager concluída com sucesso");
+            } catch (Exception e) {
+                logger.error("ERRO ao enviar notificação para o Slack: {}", e.getMessage(), e);
+            }
+        } else {
+            logger.warn("Nenhum usuário para notificar, pulando notificação do Slack");
         }
 
         tarefa = tarefaRepository.save(tarefa);
+        logger.info("Status da tarefa atualizado com sucesso no banco de dados");
+
         return new TarefaDTO(tarefa);
     }
 

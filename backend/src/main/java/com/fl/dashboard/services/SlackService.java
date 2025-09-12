@@ -270,6 +270,26 @@ public class SlackService {
      * Envia uma notificação formatada ao Slack com suporte para agrupamento de users
      */
     public boolean sendGroupedNotification(SlackGroupedNotificationDTO notification) {
+        logger.info("SlackService - sendGroupedNotification chamado para tarefa ID={}, tipo={}, título='{}'",
+                notification.getTarefa().getId(), notification.getType(), notification.getTitle());
+
+        TarefaWithUsersDTO tarefa = notification.getTarefa();
+        String messageKey = notification.getType() + "-" + tarefa.getId();
+
+        long currentTime = System.currentTimeMillis();
+        Long lastSent = recentNotifications.get(messageKey);
+
+        if (lastSent != null) {
+            long timeSinceLastSent = currentTime - lastSent;
+            logger.info("Encontrada notificação anterior para a mesma chave '{}' enviada há {} ms (limite: 30000 ms)",
+                    messageKey, timeSinceLastSent);
+
+            if (timeSinceLastSent < 30000) {
+                logger.info("IGNORANDO notificação duplicada dentro do período de 30 segundos");
+                return true; // Consideramos como sucesso, já que a mensagem já foi enviada
+            }
+        }
+
         if (!enabled || webhookUrl == null || webhookUrl.isEmpty()) {
             logger.info("Grouped Slack notification not sent: integration disabled or webhook missing. Title: {}",
                     notification.getTitle());
@@ -277,7 +297,7 @@ public class SlackService {
         }
 
         try {
-            TarefaWithUsersDTO tarefa = notification.getTarefa();
+            tarefa = notification.getTarefa();
 
             // Construir a mensagem formatada
             StringBuilder content = new StringBuilder();
@@ -322,11 +342,11 @@ public class SlackService {
             }
 
             // Gerar uma chave única baseada no título e tarefa
-            String messageKey = notification.getType() + "-" + tarefa.getId();
+            messageKey = notification.getType() + "-" + tarefa.getId();
 
             // Verificar se já enviamos recentemente (últimos 30 segundos)
-            long currentTime = System.currentTimeMillis();
-            Long lastSent = recentNotifications.get(messageKey);
+            currentTime = System.currentTimeMillis();
+            lastSent = recentNotifications.get(messageKey);
             if (lastSent != null && (currentTime - lastSent) < 30000) {
                 logger.info("Skipping duplicate grouped Slack notification sent within last 30 seconds: {} for task {}",
                         notification.getTitle(), tarefa.getId());
