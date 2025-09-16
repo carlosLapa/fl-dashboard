@@ -56,7 +56,15 @@ public class SlackService {
         logger.info("Initializing Slack service with configuration:");
         logger.info("  - Enabled: {}", enabled);
         logger.info("  - Default Channel: {}", defaultChannel);
-        logger.info("  - Webhook URL: {}", webhookUrl != null ? (webhookUrl.isEmpty() ? "empty" : "configured") : "null");
+        String webhookStatus;
+        if (webhookUrl == null) {
+            webhookStatus = "null";
+        } else if (webhookUrl.isEmpty()) {
+            webhookStatus = "empty";
+        } else {
+            webhookStatus = "configured";
+        }
+        logger.info("  - Webhook URL: {}", webhookStatus);
 
         // Log detalhado da lista de tipos de notificação
         if (notificationTypes == null) {
@@ -250,8 +258,11 @@ public class SlackService {
                 HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            logger.error("Error sending to Slack. Status: {}, Body: {}",
-                    response.statusCode(), response.body());
+            // Use isErrorEnabled para verificar se o log será realmente escrito
+            if (logger.isErrorEnabled()) {
+                logger.error("Error sending to Slack. Status: {}, Body: {}",
+                        response.statusCode(), response.body());
+            }
             return false;
         }
 
@@ -308,7 +319,7 @@ public class SlackService {
         // Definir a chave de mensagem, usando uniqueId se disponível
         String messageKey;
         if (notification.getUniqueId() != null && !notification.getUniqueId().isEmpty()) {
-            // Se tiver uniqueId, usar ele para evitar deduplicação
+            // Se tiver uniqueId, usá-lo para evitar deduplicação
             messageKey = notification.getType() + "-" + tarefa.getId() + "-" + notification.getUniqueId();
             logger.info("Usando identificador único para notificação: {}", messageKey);
         } else {
@@ -373,21 +384,25 @@ public class SlackService {
                 content.append("\n").append(notification.getAdditionalContent()).append("\n");
             }
 
-            // Adicionar lista de colaboradores usando getAllUsers() para incluir users adicionais
+            // SOLUÇÃO: Adicionar lista de colaboradores sem duplicação
             List<UserDTO> allUsers = notification.getAllUsers();
             if (allUsers != null && !allUsers.isEmpty()) {
                 content.append("\n*Colaboradores:* ");
                 content.append(allUsers.stream()
                         .map(UserDTO::getName)
+                        .distinct()  // Elimina duplicações pelo nome
                         .collect(Collectors.joining(", ")));
             }
 
             String color = getColorForNotificationType(notification.getType());
 
             // Log dos dados antes de enviar
-            logger.info("Enviando para Slack - Título: '{}', Conteúdo: '{}...', Cor: '{}'",
+            String contentString = content.toString();
+            String contentPreview = contentString.length() > 50 ? contentString.substring(0, 50) + "..." : contentString;
+
+            logger.info("Enviando para Slack - Título: '{}', Conteúdo: '{}', Cor: '{}'",
                     notification.getTitle(),
-                    content.toString().substring(0, Math.min(content.toString().length(), 50)),
+                    contentPreview,
                     color);
 
             boolean result = sendNotification(notification.getTitle(), content.toString(), color);
