@@ -12,6 +12,7 @@ public class SlackGroupedNotificationDTO {
     private Set<UserDTO> additionalUsers = new HashSet<>();
     private ProjetoDTO projeto;
     private String additionalContent;
+    private String uniqueId; // Novo campo para evitar deduplicação
 
     public SlackGroupedNotificationDTO(String type, String title, TarefaWithUsersDTO tarefa) {
         this.type = type;
@@ -68,5 +69,14 @@ public class SlackGroupedNotificationDTO {
 
     public void setAdditionalContent(String additionalContent) {
         this.additionalContent = additionalContent;
+    }
+
+    // Getters e setters para o novo campo uniqueId
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
     }
 }

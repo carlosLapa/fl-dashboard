@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -94,6 +95,38 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
             // Buscar também informações do projeto usando o método auxiliar
             ProjetoDTO projeto = buscarProjetoDaTarefa(tarefa.getId());
 
+            // Verificar se é uma notificação de status para processamento imediato
+            boolean isStatusUpdate = "TAREFA_STATUS_ALTERADO".equals(type);
+
+            if (isStatusUpdate) {
+                // PROCESSAMENTO IMEDIATO para alterações de status!
+                logger.info("SlackNotificationManager - PROCESSANDO IMEDIATAMENTE notificação de status para tarefa ID={}", tarefa.getId());
+
+                // Criar uma notificação formatada imediatamente
+                SlackGroupedNotificationDTO notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
+
+                // Adicionar o projeto se disponível
+                if (projeto != null) {
+                    notification.setProjeto(projeto);
+                    logger.info("Projeto definido na notificação imediata: {}", projeto.getDesignacao());
+                } else {
+                    logger.warn("Processamento imediato: Projeto não encontrado para tarefa {}", tarefa.getId());
+                }
+
+                // Adicionar o usuário, se fornecido
+                if (user != null) {
+                    notification.addUser(new UserDTO(user));
+                    logger.info("Usuário adicionado à notificação imediata: {}", user.getName());
+                }
+
+                // Enviar imediatamente ao Slack com um ID único para evitar deduplicação
+                notification.setUniqueId(UUID.randomUUID().toString());
+                boolean sent = slackService.sendGroupedNotification(notification);
+                logger.info("SlackNotificationManager - Resultado do envio imediato: {}", sent ? "SUCESSO" : "FALHA");
+
+                return; // Terminamos aqui para notificações de status
+            }
+
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefa.getId(), type);
 
@@ -133,17 +166,70 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
      * Versão que aceita entidades para compatibilidade com código existente.
      */
     public void addNotification(String type, String title, Tarefa tarefa, List<User> users) {
-        if (!slackService.isEnabled() || !slackService.shouldSendNotificationType(type)) {
+        logger.info("SlackNotificationManager - addNotification(multiple users) chamado para tarefa ID={}, tipo={}, título='{}', usuários={}",
+                tarefa.getId(), type, title, users != null ? users.stream().map(User::getName).collect(Collectors.joining(", ")) : "nenhum");
+
+        if (!slackService.isEnabled()) {
+            logger.info("Notificação Slack ignorada: serviço desativado");
+            return;
+        }
+
+        if (!slackService.shouldSendNotificationType(type)) {
+            logger.info("Notificação Slack ignorada: tipo {} não configurado para envio", type);
             return;
         }
 
         try {
             // Buscar a tarefa atualizada com todos os users usando o serviço obtido via ApplicationContext
             TarefaWithUsersDTO tarefaDTO = getTarefaService().findByIdWithUsers(tarefa.getId());
+            logger.info("Tarefa obtida do serviço: ID={}, usuários={}", tarefaDTO.getId(), tarefaDTO.getUsers().size());
 
             // Buscar também informações do projeto usando o método auxiliar
             ProjetoDTO projeto = buscarProjetoDaTarefa(tarefa.getId());
+            logger.info("Projeto associado: {}", projeto != null ? projeto.getDesignacao() : "não encontrado");
 
+            // Verificar se é uma notificação de status para processamento imediato
+            boolean isStatusUpdate = "TAREFA_STATUS_ALTERADO".equals(type);
+
+            if (isStatusUpdate) {
+                // PROCESSAMENTO IMEDIATO para alterações de status!
+                logger.info("SlackNotificationManager - PROCESSANDO IMEDIATAMENTE notificação de status para tarefa ID={}", tarefa.getId());
+
+                // Criar uma notificação formatada imediatamente
+                SlackGroupedNotificationDTO notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
+
+                // Adicionar um ID único para evitar deduplicação
+                notification.setUniqueId(UUID.randomUUID().toString());
+
+                // Adicionar o projeto se disponível
+                if (projeto != null) {
+                    notification.setProjeto(projeto);
+                    logger.info("Projeto definido na notificação imediata: {}", projeto.getDesignacao());
+                } else {
+                    logger.warn("Processamento imediato: Projeto não encontrado para tarefa {}", tarefa.getId());
+                }
+
+                // Adicionar os usuários recebidos como parâmetro
+                if (users != null && !users.isEmpty()) {
+                    List<UserDTO> userDTOs = users.stream()
+                            .map(UserDTO::new)
+                            .collect(Collectors.toList());
+                    notification.addUsers(userDTOs);
+                    logger.info("Adicionados {} usuários à notificação imediata", userDTOs.size());
+                } else {
+                    logger.warn("Lista de usuários vazia ou nula para notificação imediata");
+                }
+
+                // Enviar imediatamente ao Slack
+                logger.info("Enviando notificação imediata para o Slack: tarefa={}, tipo={}, usuários={}",
+                        tarefa.getId(), type, notification.getUsers().size());
+                boolean sent = slackService.sendGroupedNotification(notification);
+                logger.info("SlackNotificationManager - Resultado do envio imediato: {}", sent ? "SUCESSO" : "FALHA");
+
+                return; // Terminamos aqui para notificações de status
+            }
+
+            // Para outros tipos de notificação, seguir o fluxo normal
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefa.getId(), type);
 
@@ -197,6 +283,38 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
             // Buscar também informações do projeto usando o método auxiliar
             ProjetoDTO projeto = buscarProjetoDaTarefa(tarefaId);
 
+            // Verificar se é uma notificação de status para processamento imediato
+            boolean isStatusUpdate = "TAREFA_STATUS_ALTERADO".equals(type);
+
+            if (isStatusUpdate) {
+                // PROCESSAMENTO IMEDIATO para alterações de status!
+                logger.info("SlackNotificationManager - PROCESSANDO IMEDIATAMENTE notificação de status para tarefa ID={}", tarefaId);
+
+                // Criar uma notificação formatada imediatamente
+                SlackGroupedNotificationDTO notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
+
+                // Adicionar um ID único para evitar deduplicação
+                notification.setUniqueId(UUID.randomUUID().toString());
+
+                // Adicionar o projeto se disponível
+                if (projeto != null) {
+                    notification.setProjeto(projeto);
+                    logger.info("Projeto definido na notificação imediata: {}", projeto.getDesignacao());
+                }
+
+                // Adicionar os usuários adicionais
+                if (additionalUsers != null && !additionalUsers.isEmpty()) {
+                    notification.addUsers(additionalUsers);
+                    logger.info("Adicionados {} usuários à notificação imediata", additionalUsers.size());
+                }
+
+                // Enviar imediatamente ao Slack
+                boolean sent = slackService.sendGroupedNotification(notification);
+                logger.info("SlackNotificationManager - Resultado do envio imediato: {}", sent ? "SUCESSO" : "FALHA");
+
+                return; // Terminamos aqui para notificações de status
+            }
+
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefaId, type);
 
@@ -244,6 +362,38 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
 
             // Buscar também informações do projeto usando o método auxiliar
             ProjetoDTO projeto = buscarProjetoDaTarefa(tarefaId);
+
+            // Verificar se é uma notificação de status para processamento imediato
+            boolean isStatusUpdate = "TAREFA_STATUS_ALTERADO".equals(type);
+
+            if (isStatusUpdate) {
+                // PROCESSAMENTO IMEDIATO para alterações de status!
+                logger.info("SlackNotificationManager - PROCESSANDO IMEDIATAMENTE notificação de status para tarefa ID={}", tarefaId);
+
+                // Criar uma notificação formatada imediatamente
+                SlackGroupedNotificationDTO notification = new SlackGroupedNotificationDTO(type, title, tarefaDTO);
+
+                // Adicionar um ID único para evitar deduplicação
+                notification.setUniqueId(UUID.randomUUID().toString());
+
+                // Adicionar o projeto se disponível
+                if (projeto != null) {
+                    notification.setProjeto(projeto);
+                    logger.info("Projeto definido na notificação imediata: {}", projeto.getDesignacao());
+                }
+
+                // Adicionar o conteúdo adicional
+                if (additionalContent != null && !additionalContent.isEmpty()) {
+                    notification.setAdditionalContent(additionalContent);
+                    logger.info("Conteúdo adicional definido na notificação imediata");
+                }
+
+                // Enviar imediatamente ao Slack
+                boolean sent = slackService.sendGroupedNotification(notification);
+                logger.info("SlackNotificationManager - Resultado do envio imediato: {}", sent ? "SUCESSO" : "FALHA");
+
+                return; // Terminamos aqui para notificações de status
+            }
 
             // Criar uma chave única para esta tarefa e tipo de notificação
             String key = generateNotificationKey(tarefaId, type);
@@ -297,7 +447,7 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
         for (SlackGroupedNotificationDTO notification : notificationsToProcess.values()) {
             try {
                 // Pular notificações vazias
-                if (notification.getUsers().isEmpty()) {
+                if (notification.getUsers() == null || notification.getUsers().isEmpty()) {
                     logger.debug("Skipping notification without users for task {}",
                             notification.getTarefa().getId());
                     continue;
@@ -309,7 +459,7 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
                 if (success) {
                     logger.info("Sent grouped notification to Slack for task {} with {} users",
                             notification.getTarefa().getId(),
-                            notification.getUsers() != null ? notification.getUsers().size() : 0);
+                            notification.getUsers().size());
                 } else {
                     logger.error("Failed to send grouped notification to Slack for task {}",
                             notification.getTarefa().getId());

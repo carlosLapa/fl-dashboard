@@ -15,7 +15,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -53,8 +56,16 @@ public class SlackService {
         logger.info("Initializing Slack service with configuration:");
         logger.info("  - Enabled: {}", enabled);
         logger.info("  - Default Channel: {}", defaultChannel);
-        logger.info("  - Webhook URL configured: {}", webhookUrl != null && !webhookUrl.isEmpty());
+        logger.info("  - Webhook URL: {}", webhookUrl != null ? (webhookUrl.isEmpty() ? "empty" : "configured") : "null");
         logger.info("  - Notification Types: {}", notificationTypes);
+
+        // Verificar se o webhook está vazio ou não configurado
+        if (!enabled) {
+            logger.warn("Slack integration is disabled. No messages will be sent.");
+        } else if (webhookUrl == null || webhookUrl.isEmpty()) {
+            logger.error("Slack integration is enabled but webhook URL is not configured!");
+            logger.error("Please set SLACK_WEBHOOK environment variable or slack.webhook-url property");
+        }
 
         // Limpeza básica do webhook se necessário
         if (webhookUrl != null && (webhookUrl.startsWith(" ") || webhookUrl.endsWith(" "))) {
@@ -274,19 +285,32 @@ public class SlackService {
                 notification.getTarefa().getId(), notification.getType(), notification.getTitle());
 
         TarefaWithUsersDTO tarefa = notification.getTarefa();
-        String messageKey = notification.getType() + "-" + tarefa.getId();
 
-        long currentTime = System.currentTimeMillis();
-        Long lastSent = recentNotifications.get(messageKey);
+        // Definir a chave de mensagem, usando uniqueId se disponível
+        String messageKey;
+        if (notification.getUniqueId() != null && !notification.getUniqueId().isEmpty()) {
+            // Se tiver uniqueId, usar ele para evitar deduplicação
+            messageKey = notification.getType() + "-" + tarefa.getId() + "-" + notification.getUniqueId();
+            logger.info("Usando identificador único para notificação: {}", messageKey);
+        } else {
+            // Caso contrário, usar a chave padrão
+            messageKey = notification.getType() + "-" + tarefa.getId();
 
-        if (lastSent != null) {
-            long timeSinceLastSent = currentTime - lastSent;
-            logger.info("Encontrada notificação anterior para a mesma chave '{}' enviada há {} ms (limite: 30000 ms)",
-                    messageKey, timeSinceLastSent);
+            // Verificar se temos duplicação para notificações normais
+            long currentTime = System.currentTimeMillis();
+            Long lastSent = recentNotifications.get(messageKey);
 
-            if (timeSinceLastSent < 30000) {
-                logger.info("IGNORANDO notificação duplicada dentro do período de 30 segundos");
-                return true; // Consideramos como sucesso, já que a mensagem já foi enviada
+            // Somente verificar duplicação para notificações que não são de alteração de status
+            // ou que não têm ID único
+            if (lastSent != null && !"TAREFA_STATUS_ALTERADO".equals(notification.getType())) {
+                long timeSinceLastSent = currentTime - lastSent;
+                logger.info("Encontrada notificação anterior para a mesma chave '{}' enviada há {} ms (limite: 30000 ms)",
+                        messageKey, timeSinceLastSent);
+
+                if (timeSinceLastSent < 30000) {
+                    logger.info("IGNORANDO notificação duplicada dentro do período de 30 segundos");
+                    return true; // Consideramos como sucesso, já que a mensagem já foi enviada
+                }
             }
         }
 
@@ -297,17 +321,15 @@ public class SlackService {
         }
 
         try {
-            tarefa = notification.getTarefa();
-
             // Construir a mensagem formatada
             StringBuilder content = new StringBuilder();
 
             // Adicionar informação do projeto se disponível
             if (notification.getProjeto() != null && notification.getProjeto().getDesignacao() != null) {
                 content.append("*Projeto:* ").append(notification.getProjeto().getDesignacao()).append("\n\n");
-                logger.debug("Incluindo projeto na notificação: {}", notification.getProjeto().getDesignacao());
+                logger.info("Incluindo projeto na notificação: {}", notification.getProjeto().getDesignacao());
             } else {
-                logger.debug("Notificação sem informação de projeto");
+                logger.warn("Notificação sem informação de projeto");
             }
 
             // Resto do código permanece igual
@@ -332,39 +354,32 @@ public class SlackService {
                 content.append("\n").append(notification.getAdditionalContent()).append("\n");
             }
 
-            // Adicionar lista de colaboradores
-            Set<UserDTO> users = tarefa.getUsers();
-            if (users != null && !users.isEmpty()) {
+            // Adicionar lista de colaboradores usando getAllUsers() para incluir users adicionais
+            List<UserDTO> allUsers = notification.getAllUsers();
+            if (allUsers != null && !allUsers.isEmpty()) {
                 content.append("\n*Colaboradores:* ");
-                content.append(users.stream()
+                content.append(allUsers.stream()
                         .map(UserDTO::getName)
                         .collect(Collectors.joining(", ")));
             }
 
-            // Gerar uma chave única baseada no título e tarefa
-            messageKey = notification.getType() + "-" + tarefa.getId();
-
-            // Verificar se já enviamos recentemente (últimos 30 segundos)
-            currentTime = System.currentTimeMillis();
-            lastSent = recentNotifications.get(messageKey);
-            if (lastSent != null && (currentTime - lastSent) < 30000) {
-                logger.info("Skipping duplicate grouped Slack notification sent within last 30 seconds: {} for task {}",
-                        notification.getTitle(), tarefa.getId());
-                return true; // Consideramos como sucesso, já que a mensagem já foi enviada
-            }
-
             String color = getColorForNotificationType(notification.getType());
+
+            // Log dos dados antes de enviar
+            logger.info("Enviando para Slack - Título: '{}', Conteúdo: '{}...', Cor: '{}'",
+                    notification.getTitle(),
+                    content.toString().substring(0, Math.min(content.toString().length(), 50)),
+                    color);
+
             boolean result = sendNotification(notification.getTitle(), content.toString(), color);
 
             // Se enviou com sucesso, registrar a mensagem como recentemente enviada
             if (result) {
-                recentNotifications.put(messageKey, currentTime);
-
-                // Verificar se users é não nulo antes de chamar size()
-                int usersCount = (users != null) ? users.size() : 0;
-
+                recentNotifications.put(messageKey, System.currentTimeMillis());
                 logger.info("Successfully sent grouped notification for task {} with {} users",
-                        tarefa.getId(), usersCount);
+                        tarefa.getId(), allUsers != null ? allUsers.size() : 0);
+            } else {
+                logger.error("Failed to send grouped notification for task {}", tarefa.getId());
             }
 
             return result;
@@ -373,6 +388,4 @@ public class SlackService {
             return false;
         }
     }
-
-
 }
