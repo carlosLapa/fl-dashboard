@@ -57,7 +57,16 @@ public class SlackService {
         logger.info("  - Enabled: {}", enabled);
         logger.info("  - Default Channel: {}", defaultChannel);
         logger.info("  - Webhook URL: {}", webhookUrl != null ? (webhookUrl.isEmpty() ? "empty" : "configured") : "null");
-        logger.info("  - Notification Types: {}", notificationTypes);
+
+        // Log detalhado da lista de tipos de notificação
+        if (notificationTypes == null) {
+            logger.info("  - Notification Types: null (todos os tipos serão enviados)");
+        } else if (notificationTypes.isEmpty()) {
+            logger.info("  - Notification Types: lista vazia (todos os tipos serão enviados)");
+        } else {
+            logger.info("  - Notification Types: {}", notificationTypes);
+            logger.info("  - Contém TAREFA_STATUS_ALTERADO? {}", notificationTypes.contains("TAREFA_STATUS_ALTERADO"));
+        }
 
         // Verificar se o webhook está vazio ou não configurado
         if (!enabled) {
@@ -254,8 +263,18 @@ public class SlackService {
      * Verifica se o tipo de notificação deve ser enviado ao Slack
      */
     public boolean shouldSendNotificationType(String type) {
-        return enabled &&
+        logger.info("Verificando se deve enviar notificação de tipo: {}", type);
+        logger.info("  - Slack habilitado: {}", enabled);
+        logger.info("  - Tipos configurados: {}", notificationTypes);
+        logger.info("  - Contém o tipo? {}",
+                notificationTypes != null && notificationTypes.contains(type));
+
+        boolean shouldSend = enabled &&
                 (notificationTypes == null || notificationTypes.isEmpty() || notificationTypes.contains(type));
+
+        logger.info("  - Resultado: {}", shouldSend);
+
+        return shouldSend;
     }
 
     /**
@@ -388,4 +407,20 @@ public class SlackService {
             return false;
         }
     }
+
+    @PostConstruct
+    public void debugNotificationTypes() {
+        logger.info("Tipos de notificação configurados após @Value:");
+        if (notificationTypes == null) {
+            logger.info("  - notificationTypes é NULL");
+        } else {
+            logger.info("  - Quantidade: {}", notificationTypes.size());
+            logger.info("  - Valores: {}", notificationTypes);
+            for (String type : notificationTypes) {
+                logger.info("  - Tipo: '{}'", type);
+            }
+        }
+    }
+
+
 }
