@@ -1,6 +1,7 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.TipoProjeto;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -36,9 +37,10 @@ public class ProjetoDTO {
     private UserDTO coordenador;
     private Date dataProposta;
     private Date dataAdjudicacao;
+    private TipoProjeto tipo;
 
     private Set<ExternoDTO> externos = new HashSet<>();
-    private List<Long> externoIds = new ArrayList<>(); // Adicione este campo
+    private List<Long> externoIds = new ArrayList<>();
 
     public ProjetoDTO() {
     }
@@ -63,6 +65,7 @@ public class ProjetoDTO {
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
         this.status = entity.getStatus();
+        this.tipo = entity.getTipo();
 
         if (entity.getCoordenador() != null) {
             this.coordenador = new UserDTO(entity.getCoordenador());

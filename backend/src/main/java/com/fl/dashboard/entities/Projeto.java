@@ -2,6 +2,7 @@ package com.fl.dashboard.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fl.dashboard.enums.TipoProjeto;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,9 @@ public class Projeto {
             joinColumns = @JoinColumn(name = "projeto_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<User> users = new HashSet<>();
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo")
+    private TipoProjeto tipo;
     @JsonManagedReference
     @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem ASC")
@@ -218,6 +221,14 @@ public class Projeto {
 
     public void setCliente(Cliente cliente) {
         this.cliente = cliente;
+    }
+
+    public TipoProjeto getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(TipoProjeto tipo) {
+        this.tipo = tipo;
     }
 
     @Override

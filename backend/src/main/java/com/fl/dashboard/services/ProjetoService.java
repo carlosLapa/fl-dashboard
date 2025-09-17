@@ -6,6 +6,7 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.enums.TipoProjeto;
 import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -606,5 +607,12 @@ public class ProjetoService {
 
         return projetoRepository.save(projeto);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ProjetoWithUsersDTO> filterProjetosByTipo(TipoProjeto tipo, Pageable pageable) {
+        Page<Projeto> result = projetoRepository.findByTipo(tipo, pageable);
+        return result.map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()));
+    }
+
 
 }

@@ -51,6 +51,7 @@ public class ProjetoDTOMapper {
         entity.setPrioridade(projetoDTO.getPrioridade());
         entity.setObservacao(projetoDTO.getObservacao());
         entity.setStatus(projetoDTO.getStatus());
+        entity.setTipo(projetoDTO.getTipo());
 
         // Handle the coordenador field
         if (projetoDTO.getCoordenadorId() != null) {

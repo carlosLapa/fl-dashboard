@@ -3,6 +3,7 @@ package com.fl.dashboard.resources;
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.enums.TipoProjeto;
 import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
@@ -353,5 +354,24 @@ public class ProjetoResource {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/filter-by-tipo")
+    public ResponseEntity<Page<ProjetoWithUsersDTO>> filterByTipo(
+            @RequestParam(required = false) TipoProjeto tipo,
+            Pageable pageable,
+            Authentication authentication) {
+
+        boolean canViewAll = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
+
+        if (canViewAll) {
+            Page<ProjetoWithUsersDTO> result = projetoService.filterProjetosByTipo(tipo, pageable);
+            return ResponseEntity.ok().body(result);
+        } else {
+            // Se for necessário filtrar só pelos projetos do utilizador, podemos adaptar aqui.
+            return ResponseEntity.status(403).build();
+        }
+    }
+
 
 }

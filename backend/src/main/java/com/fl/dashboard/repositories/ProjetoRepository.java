@@ -2,6 +2,7 @@ package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.TipoProjeto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -83,6 +84,13 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("adjudicacaoStartDate") Date adjudicacaoStartDate,
             @Param("adjudicacaoEndDate") Date adjudicacaoEndDate,
             Pageable pageable);
+
+    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL AND (:tipo IS NULL OR p.tipo = :tipo)")
+    Page<Projeto> findByTipo(
+            @Param("tipo") TipoProjeto tipo,
+            Pageable pageable
+    );
 
     List<Projeto> findByClienteId(Long id);
 

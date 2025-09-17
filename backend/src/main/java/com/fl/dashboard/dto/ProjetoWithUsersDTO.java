@@ -16,7 +16,7 @@ public class ProjetoWithUsersDTO extends ProjetoDTO {
 
     private Set<UserDTO> users = new HashSet<>();
     private Set<ExternoDTO> externos = new HashSet<>();
-    private List<Long> externoIds; // Adicionar este campo para receber do frontend
+    private List<Long> externoIds;
 
     public ProjetoWithUsersDTO() {
         super();
