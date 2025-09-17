@@ -397,6 +397,13 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           projetoId: projeto.id,
         });
       }
+
+      toast.success(
+        `Tarefa "${removed.descricao}" movida para "${
+          statusTranslations[destination.droppableId as TarefaStatus]
+        }"`
+      );
+      
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
       toast.error('Falha ao atualizar o status da tarefa');
