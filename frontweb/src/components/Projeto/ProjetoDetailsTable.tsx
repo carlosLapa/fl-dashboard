@@ -30,7 +30,7 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
     if (!users || users.length === 0) return 'N/A';
     return users.map((user) => user.name).join(', ');
   };
-  
+
   // Render external collaborators' names
   const renderExternoNames = (externos?: Externo[]) => {
     if (!externos || externos.length === 0) return 'N/A';
@@ -51,6 +51,8 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
             <tr>
               <th>Entidade</th>
               <td>{projeto.entidade}</td>
+              <th>Tipo</th>
+              <td>{projeto.tipo || 'N/A'}</td>
               <th>Prioridade</th>
               <td>{projeto.prioridade}</td>
             </tr>

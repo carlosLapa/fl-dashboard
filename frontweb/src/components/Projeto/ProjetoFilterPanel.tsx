@@ -134,6 +134,26 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
           </Form.Select>
         </Form.Group>
       </Col>
+      {/* Tipo Filter */}
+      <Col md={6} lg={4}>
+        <Form.Group controlId="filterTipo">
+          <Form.Label>Tipo</Form.Label>
+          <Form.Select
+            name="tipo"
+            value={filters.tipo || ''}
+            onChange={(e) => updateFilter('tipo', e.target.value)}
+          >
+            <option value="">Todos</option>
+            <option value="ASSESSORIA">Assessoria</option>
+            <option value="CONSULTORIA">Consultoria</option>
+            <option value="FISCALIZACAO">Fiscalização</option>
+            <option value="LEVANTAMENTO">Levantamento</option>
+            <option value="PROJETO">Projeto</option>
+            <option value="REVISAO">Revisão</option>
+            <option value="VISTORIA">Vistoria</option>
+          </Form.Select>
+        </Form.Group>
+      </Col>
     </BaseFilterPanel>
   );
 };

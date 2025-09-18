@@ -1,3 +1,5 @@
+import { TipoProjeto } from './projeto';
+
 // Define the base filter state interface
 export interface BaseFilterState {
   [key: string]: any;
@@ -18,6 +20,7 @@ export interface ProjetoFilterState {
   adjudicacaoStartDate?: string;
   adjudicacaoEndDate?: string;
   cliente?: string;
+  tipo?: TipoProjeto | 'ALL'; // <-- mais explícito
 }
 
 // Tarefa filter state

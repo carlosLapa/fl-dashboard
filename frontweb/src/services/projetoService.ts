@@ -33,6 +33,7 @@ export const buildApiFilters = (filters: FilterState) => {
     propostaEndDate: filters.propostaEndDate || undefined,
     adjudicacaoStartDate: filters.adjudicacaoStartDate || undefined,
     adjudicacaoEndDate: filters.adjudicacaoEndDate || undefined,
+    tipo: filters.tipo !== 'ALL' ? filters.tipo : undefined,
   };
 };
 

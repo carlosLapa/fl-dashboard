@@ -36,10 +36,13 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
       <td>{projeto.projetoAno}</td>
       <td>{projeto.designacao}</td>
       <td>{projeto.entidade}</td>
+      <td>{projeto.tipo || 'N/A'}</td>
       <td>{projeto.prioridade}</td>
       <td>{projeto.coordenador?.name || 'N/A'}</td>
       <td>{projeto.dataProposta ? formatDate(projeto.dataProposta) : 'N/A'}</td>
-      <td>{projeto.dataAdjudicacao ? formatDate(projeto.dataAdjudicacao) : 'N/A'}</td>
+      <td>
+        {projeto.dataAdjudicacao ? formatDate(projeto.dataAdjudicacao) : 'N/A'}
+      </td>
       <td className="d-none d-md-table-cell">{projeto.observacao}</td>
       <td>{formatDate(projeto.prazo)}</td>
       <td className="d-none d-lg-table-cell">{renderUserNames()}</td>

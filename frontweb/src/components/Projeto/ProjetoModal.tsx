@@ -421,6 +421,31 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               </Form.Group>
             </Col>
           </Row>
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group controlId="formTipo">
+                <Form.Label>Tipo</Form.Label>
+                <Form.Select
+                  name="tipo"
+                  value={formData.tipo || ''}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Selecione o tipo</option>
+                  <option value="ASSESSORIA">Assessoria</option>
+                  <option value="CONSULTORIA">Consultoria</option>
+                  <option value="FISCALIZACAO">Fiscalização</option>
+                  <option value="LEVANTAMENTO">Levantamento</option>
+                  <option value="PROJETO">Projeto</option>
+                  <option value="REVISAO">Revisão</option>
+                  <option value="VISTORIA">Vistoria</option>
+                </Form.Select>
+                <Form.Control.Feedback type="invalid">
+                  Por favor, selecione o tipo.
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+          </Row>
           <Form.Group className="mb-4" controlId="formUsers">
             <Form.Label>Colaboradores</Form.Label>
             <Select

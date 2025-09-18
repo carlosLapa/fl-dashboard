@@ -2,6 +2,15 @@ import { User } from './user';
 import { Tarefa } from './tarefa';
 import { Externo } from './externo';
 
+export type TipoProjeto =
+  | 'ASSESSORIA'
+  | 'CONSULTORIA'
+  | 'FISCALIZACAO'
+  | 'LEVANTAMENTO'
+  | 'PROJETO'
+  | 'REVISAO'
+  | 'VISTORIA';
+
 export type Projeto = {
   id: number;
   projetoAno: number;
@@ -16,6 +25,7 @@ export type Projeto = {
   dataProposta?: string;
   dataAdjudicacao?: string;
   externos?: Externo[];
+  tipo?: TipoProjeto;
 };
 
 export interface ProjetoFormData {
@@ -33,11 +43,13 @@ export interface ProjetoFormData {
   dataAdjudicacao?: string;
   externos?: Externo[];
   externoIds?: number[];
+  tipo?: TipoProjeto;
 }
 
 export interface ProjetoMinDTO {
   id: number;
   designacao: string;
+  // tipo?: TipoProjeto; -- se eventualmente quisermos mostrar o tipo no minDTO
 }
 
 export type ProjetoWithUsersAndTarefasDTO = Projeto & {
