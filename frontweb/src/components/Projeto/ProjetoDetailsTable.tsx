@@ -53,8 +53,6 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
               <td>{projeto.entidade}</td>
               <th>Tipo</th>
               <td>{projeto.tipo || 'N/A'}</td>
-              <th>Prioridade</th>
-              <td>{projeto.prioridade}</td>
             </tr>
             <tr>
               <th>Coordenador</th>
@@ -69,6 +67,8 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
               <td>{formatDate(projeto.dataAdjudicacao)}</td>
             </tr>
             <tr>
+              <th>Prioridade</th>
+              <td>{projeto.prioridade}</td>
               <th>Observação</th>
               <td colSpan={3}>{projeto.observacao}</td>
             </tr>
