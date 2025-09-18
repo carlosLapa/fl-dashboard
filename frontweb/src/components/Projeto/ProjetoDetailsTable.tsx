@@ -69,6 +69,10 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
             <tr>
               <th>Prioridade</th>
               <td>{projeto.prioridade}</td>
+              <th></th>
+              <td></td>
+            </tr>
+            <tr>
               <th>Observação</th>
               <td colSpan={3}>{projeto.observacao}</td>
             </tr>
