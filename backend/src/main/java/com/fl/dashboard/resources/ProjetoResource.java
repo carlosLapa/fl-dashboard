@@ -236,6 +236,7 @@ public class ProjetoResource {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date propostaEndDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date adjudicacaoStartDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date adjudicacaoEndDate,
+            @RequestParam(required = false) TipoProjeto tipo,
             Pageable pageable,
             Authentication authentication) {
 
@@ -246,7 +247,7 @@ public class ProjetoResource {
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetos(
                     designacao, entidade, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
-                    adjudicacaoStartDate, adjudicacaoEndDate, pageable);
+                    adjudicacaoStartDate, adjudicacaoEndDate, tipo, pageable);
             return ResponseEntity.ok().body(result);
         } else {
             String userEmail;
@@ -258,7 +259,7 @@ public class ProjetoResource {
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetosForUser(
                     designacao, entidade, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
-                    adjudicacaoStartDate, adjudicacaoEndDate, userEmail, pageable);
+                    adjudicacaoStartDate, adjudicacaoEndDate, tipo, userEmail, pageable);
             return ResponseEntity.ok().body(result);
         }
     }
@@ -352,24 +353,6 @@ public class ProjetoResource {
             return ResponseEntity.ok().body(new ProjetoDTO(projeto));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
-        }
-    }
-
-    @GetMapping("/filter-by-tipo")
-    public ResponseEntity<Page<ProjetoWithUsersDTO>> filterByTipo(
-            @RequestParam(required = false) TipoProjeto tipo,
-            Pageable pageable,
-            Authentication authentication) {
-
-        boolean canViewAll = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("VIEW_ALL_PROJECTS"));
-
-        if (canViewAll) {
-            Page<ProjetoWithUsersDTO> result = projetoService.filterProjetosByTipo(tipo, pageable);
-            return ResponseEntity.ok().body(result);
-        } else {
-            // Se for necessário filtrar só pelos projetos do utilizador, podemos adaptar aqui.
-            return ResponseEntity.status(403).build();
         }
     }
 

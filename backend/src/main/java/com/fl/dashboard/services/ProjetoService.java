@@ -355,7 +355,7 @@ public class ProjetoService {
             Date propostaEndDate,
             Date adjudicacaoStartDate,
             Date adjudicacaoEndDate,
-            Pageable pageable) {
+            TipoProjeto tipo, Pageable pageable) {
 
         // Adjust end dates to be inclusive
         Date adjustedEndDate = adjustEndDate(endDate);
@@ -368,7 +368,7 @@ public class ProjetoService {
         Page<Projeto> result = projetoRepository.findByFilters(
                 designacao, entidade, prioridade, startDate, adjustedEndDate, statusFilter,
                 coordenadorId, propostaStartDate, adjustedPropostaEndDate,
-                adjudicacaoStartDate, adjustedAdjudicacaoEndDate, pageable);
+                adjudicacaoStartDate, adjustedAdjudicacaoEndDate, tipo, pageable);
 
         return result.map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()));
     }
@@ -505,7 +505,7 @@ public class ProjetoService {
             Date propostaEndDate,
             Date adjudicacaoStartDate,
             Date adjudicacaoEndDate,
-            String userEmail,
+            TipoProjeto tipo, String userEmail,
             Pageable pageable) {
 
         User user = userRepository.findByEmail(userEmail);
@@ -606,12 +606,6 @@ public class ProjetoService {
         }
 
         return projetoRepository.save(projeto);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<ProjetoWithUsersDTO> filterProjetosByTipo(TipoProjeto tipo, Pageable pageable) {
-        Page<Projeto> result = projetoRepository.findByTipo(tipo, pageable);
-        return result.map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()));
     }
 
 

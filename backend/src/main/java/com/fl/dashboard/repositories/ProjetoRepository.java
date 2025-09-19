@@ -70,7 +70,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             "AND (:propostaStartDate IS NULL OR p.dataProposta >= :propostaStartDate) " +
             "AND (:propostaEndDate IS NULL OR p.dataProposta <= :propostaEndDate) " +
             "AND (:adjudicacaoStartDate IS NULL OR p.dataAdjudicacao >= :adjudicacaoStartDate) " +
-            "AND (:adjudicacaoEndDate IS NULL OR p.dataAdjudicacao <= :adjudicacaoEndDate)")
+            "AND (:adjudicacaoEndDate IS NULL OR p.dataAdjudicacao <= :adjudicacaoEndDate)" +
+            "AND (:tipo IS NULL OR p.tipo = :tipo)")
     Page<Projeto> findByFilters(
             @Param("designacao") String designacao,
             @Param("entidade") String entidade,
@@ -83,14 +84,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("propostaEndDate") Date propostaEndDate,
             @Param("adjudicacaoStartDate") Date adjudicacaoStartDate,
             @Param("adjudicacaoEndDate") Date adjudicacaoEndDate,
-            Pageable pageable);
-
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
-    @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL AND (:tipo IS NULL OR p.tipo = :tipo)")
-    Page<Projeto> findByTipo(
             @Param("tipo") TipoProjeto tipo,
-            Pageable pageable
-    );
+            Pageable pageable);
 
     List<Projeto> findByClienteId(Long id);
 
