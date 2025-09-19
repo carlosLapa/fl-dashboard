@@ -25,8 +25,9 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
             <tr>
               <th>Descrição</th>
               <th className="d-none d-md-table-cell">Status</th>
-              <th className="d-none d-md-table-cell">Prazo Estimado</th>
-              <th className="d-none d-lg-table-cell">Prazo Real</th>
+              <th className="d-none d-md-table-cell">Ínicio</th>
+              <th className="d-none d-lg-table-cell">Prazo</th>
+              <th className="d-none d-lg-table-cell">Dias Úteis</th>
               <th className="d-none d-lg-table-cell">Projeto</th>
               <th>Ações</th>
             </tr>
@@ -42,6 +43,11 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                   </td>
                   <td className="d-none d-lg-table-cell">
                     {new Date(tarefa.prazoReal).toLocaleDateString()}
+                  </td>
+                  <td className="d-none d-lg-table-cell">
+                    {tarefa.workingDays !== undefined
+                      ? `${tarefa.workingDays} dia(s)`
+                      : '-'}
                   </td>
                   <td className="d-none d-lg-table-cell">
                     {tarefa.projeto.designacao}
@@ -84,7 +90,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-center">
+                <td colSpan={7} className="text-center">
                   Não existem tarefas para este utilizador
                 </td>
               </tr>

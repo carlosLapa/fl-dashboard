@@ -37,13 +37,6 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
     console.log(`Task ${tarefa.id} - Project:`, tarefa.projeto);
     console.log(`Task ${tarefa.id} - Project deadline:`, tarefa.projeto?.prazo);
 
-    // Always show a debug badge to test Bootstrap rendering
-    const debugBadge = (
-      <Badge bg="secondary" className="ms-2" style={{ cursor: 'pointer' }}>
-        DEBUG
-      </Badge>
-    );
-
     // Use getDeadlineStatus from dateUtils
     const deadlineStatus = getDeadlineStatus(
       tarefa.prazoReal,
@@ -56,9 +49,6 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
     return (
       <>
         {formatDate(tarefa.prazoReal)}
-
-        {/* Debug badge that always shows */}
-        {debugBadge}
 
         {deadlineStatus.isApproaching && (
           <OverlayTrigger
@@ -96,6 +86,13 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
 
   return (
     <tr>
+      <td>
+        {tarefa.projeto ? (
+          tarefa.projeto.designacao
+        ) : (
+          <span className="text-muted">Sem projeto</span>
+        )}
+      </td>
       <td>{tarefa.descricao}</td>
       <td>{tarefa.status}</td>
       <td className="prazo-column">
@@ -118,13 +115,7 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
           ? tarefa.externos.map((externo) => externo.name).join(', ')
           : '-'}
       </td>
-      <td>
-        {tarefa.projeto ? (
-          tarefa.projeto.designacao
-        ) : (
-          <span className="text-muted">Sem projeto</span>
-        )}
-      </td>
+
       <td>
         <div className="action-icons">
           <OverlayTrigger

@@ -144,8 +144,6 @@ const UsersTarefasPage: React.FC = () => {
       <div
         style={{
           width: '98%',
-          marginLeft: '2%',
-          marginRight: '2%',
           marginTop: '2rem',
         }}
       >
@@ -207,17 +205,21 @@ const UsersTarefasPage: React.FC = () => {
 
         {/* Content wrapped in a div with the same width */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
-          <h3
-            className="section-title user-tasks-section-title"
-            style={{
-              borderBottom: 'none',
-              paddingBottom: 0,
-              position: 'relative',
-            }}
-          >
-            Tarefas atribuídas
-          </h3>
           <div className="table-responsive">
+            <h3
+              className="section-title user-tasks-section-title"
+              style={{
+                borderBottom: 'none',
+                paddingBottom: 0,
+                position: 'relative',
+                background: 'transparent',
+                marginLeft: 0,
+                paddingLeft: 0,
+                textAlign: 'left',
+              }}
+            >
+              Tarefas atribuídas
+            </h3>
             <UserTarefaTable
               tarefas={tarefas}
               onEditTarefa={handleEditTarefa}

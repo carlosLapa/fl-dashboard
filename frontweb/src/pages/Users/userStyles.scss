@@ -28,6 +28,8 @@
 .table-responsive {
   min-width: 100%;
   margin-bottom: 0;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
 }
 
 /* Ensure the pagination stays at the bottom */
@@ -337,6 +339,10 @@
 
 // Specific override for the user tasks section title
 .user-tasks-section-title {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  text-align: left !important;
+  
   &:after {
     content: none !important;
     display: none !important;

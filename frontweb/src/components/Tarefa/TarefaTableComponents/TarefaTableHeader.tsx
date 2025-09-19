@@ -49,6 +49,7 @@ const TarefaTableHeader: React.FC<TarefaTableHeaderProps> = ({
   return (
     <thead>
       <tr>
+        {renderSortableHeader('projeto.designacao', 'Projeto')}
         {renderSortableHeader('descricao', 'Descrição')}
         {renderSortableHeader('status', 'Estado')}
         {renderSortableHeader('prazoEstimado', 'Início', 'prazo-column')}
@@ -56,7 +57,6 @@ const TarefaTableHeader: React.FC<TarefaTableHeaderProps> = ({
         {renderSortableHeader('workingDays', 'Dias Úteis', 'prazo-column')}
         <th>Atribuição</th>
         <th>Externos</th>
-        {renderSortableHeader('projeto.designacao', 'Projeto')}
         <th>Ações</th>
       </tr>
     </thead>
