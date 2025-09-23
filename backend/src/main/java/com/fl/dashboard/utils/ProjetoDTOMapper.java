@@ -41,8 +41,6 @@ public class ProjetoDTOMapper {
 
     // Novo método que copia dados básicos sem processar externoIds
     public void copyBasicDTOtoEntityWithoutExternos(ProjetoDTO projetoDTO, Projeto entity) {
-        // Log para debug
-        System.out.println("Copiando dados do DTO para a entidade Projeto: " + projetoDTO.getDesignacao());
 
         entity.setProjetoAno(projetoDTO.getProjetoAno());
         entity.setDesignacao(projetoDTO.getDesignacao());
@@ -68,16 +66,12 @@ public class ProjetoDTOMapper {
     }
 
     public void copyBasicDTOtoEntity(ProjetoDTO projetoDTO, Projeto entity) {
-        // Log para debug
-        System.out.println("Copiando dados do DTO para a entidade Projeto: " + projetoDTO.getDesignacao());
-        System.out.println("ExternoIds recebidos: " + projetoDTO.getExternoIds());
 
         // Copiar dados básicos
         copyBasicDTOtoEntityWithoutExternos(projetoDTO, entity);
 
         // Processar colaboradores externos a partir de externoIds
         if (projetoDTO.getExternoIds() != null) {
-            System.out.println("Processando " + projetoDTO.getExternoIds().size() + " externoIds");
 
             // Inicializar a coleção de externos se necessário
             if (entity.getExternos() == null) {
@@ -90,17 +84,13 @@ public class ProjetoDTOMapper {
             // Se há externoIds, adicionar os externos correspondentes
             if (!projetoDTO.getExternoIds().isEmpty()) {
                 for (Long externoId : projetoDTO.getExternoIds()) {
-                    System.out.println("Buscando externo com ID: " + externoId);
                     Externo externo = externoRepository.findById(externoId)
                             .orElseThrow(() -> new ResourceNotFoundException("Externo não encontrado: " + externoId));
                     entity.getExternos().add(externo);
-                    System.out.println("Externo adicionado: " + externo.getName());
                 }
             }
-            // Se a lista está vazia, a coleção já foi limpa acima
-        } else {
-            System.out.println("Nenhum externoId recebido - mantendo externos existentes");
-            // Se externoIds é null, não modificamos a coleção de externos
         }
     }
+
+
 }

@@ -92,53 +92,39 @@ public class ProjetoService {
 
     @Transactional
     public ProjetoWithUsersDTO insert(ProjetoWithUsersDTO projetoDTO) {
-        try {
-            System.out.println("Iniciando inserção de projeto: " + projetoDTO.getDesignacao());
-            System.out.println("ExternoIds recebidos no Service: " + projetoDTO.getExternoIds());
+        Projeto entity = new Projeto();
 
-            Projeto entity = new Projeto();
-            projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
-
-            // Log para verificar se os externos foram associados antes de salvar
-            if (entity.getExternos() != null && !entity.getExternos().isEmpty()) {
-                System.out.println("Externos associados antes de salvar: " + entity.getExternos().size());
-                for (Externo externo : entity.getExternos()) {
-                    System.out.println("  - Externo ID: " + externo.getId() + ", Nome: " + externo.getName());
-                }
-            } else {
-                System.out.println("Nenhum externo associado antes de salvar");
+        List<Long> externoIds = projetoDTO.getExternoIds();
+        if (externoIds != null) {
+            Set<Long> uniqueExternoIds = new HashSet<>(externoIds);
+            entity.setExternos(new HashSet<>());
+            for (Long externoId : uniqueExternoIds) {
+                Externo externo = externoRepository.findById(externoId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Externo não encontrado com ID: " + externoId));
+                entity.getExternos().add(externo);
             }
-
-            // Save and flush to ensure the entity is persisted
-            Projeto savedEntity = projetoRepository.save(entity);
-            projetoRepository.flush();
-
-            // Log após salvar para verificar se os externos foram persistidos
-            if (savedEntity.getExternos() != null && !savedEntity.getExternos().isEmpty()) {
-                System.out.println("Externos persistidos após salvar: " + savedEntity.getExternos().size());
-            } else {
-                System.out.println("Nenhum externo persistido após salvar");
-            }
-
-            ProjetoWithUsersDTO savedDTO = new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
-
-            // Only create notification if project was saved successfully and has users
-            if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
-                for (User user : savedEntity.getUsers()) {
-                    notificationService.createProjectNotification(
-                            savedDTO,
-                            NotificationType.PROJETO_ATRIBUIDO,  // Already correct
-                            new UserDTO(user)
-                    );
-                }
-            }
-
-            return savedDTO;
-        } catch (Exception e) {
-            System.out.println("Erro ao inserir projeto: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
         }
+
+        projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
+
+        // Save and flush to ensure the entity is persisted
+        Projeto savedEntity = projetoRepository.save(entity);
+        projetoRepository.flush();
+
+        ProjetoWithUsersDTO savedDTO = new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+
+        // Only create notification if project was saved successfully and has users
+        if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
+            for (User user : savedEntity.getUsers()) {
+                notificationService.createProjectNotification(
+                        savedDTO,
+                        NotificationType.PROJETO_ATRIBUIDO,  // Already correct
+                        new UserDTO(user)
+                );
+            }
+        }
+
+        return savedDTO;
     }
 
     @Transactional
@@ -158,10 +144,6 @@ public class ProjetoService {
 
             // Tratar explicitamente o campo externoIds
             List<Long> externoIds = projetoDTO.getExternoIds();
-
-            // Verificar e imprimir informações para debug
-            System.out.println("externoIds recebidos: " + (externoIds == null ? "null" : externoIds));
-            System.out.println("Externos atuais: " + (currentExternos == null ? 0 : currentExternos.size()));
 
             // Se externoIds for null, não mudamos a coleção de externos
             // Se for uma lista (vazia ou não), substituímos completamente a coleção
