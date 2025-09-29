@@ -2,7 +2,9 @@ package com.fl.dashboard.entities;
 
 import com.fl.dashboard.converters.JsonListConverter;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.sql.Timestamp;
@@ -13,9 +15,6 @@ import java.util.*;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
-@NoArgsConstructor
-@AllArgsConstructor
 public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,6 +48,20 @@ public class Cliente {
     @ManyToMany(mappedBy = "clientes")
     @ToString.Exclude
     private Set<Proposta> propostas = new HashSet<>();
+
+    public Cliente() {
+    }
+
+    public Cliente(Long id, String name, String morada, String nif, List<String> contactos, List<String> responsaveis, List<String> emails, Timestamp deletedAt) {
+        this.id = id;
+        this.name = name;
+        this.morada = morada;
+        this.nif = nif;
+        this.contactos = contactos;
+        this.responsaveis = responsaveis;
+        this.emails = emails;
+        this.deletedAt = deletedAt;
+    }
 
     @Override
     public final boolean equals(Object o) {
