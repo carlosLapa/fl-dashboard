@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import ProjetosPage from 'pages/Projetos/ProjetosPage';
+import PropostasPage from 'pages/Propostas/PropostasPage';
 import UsersPage from 'pages/Users/UsersPage';
 import TarefaPage from 'pages/Tarefa/TarefaPage';
 import WelcomePage from 'pages/Homepage/WelcomePage';
@@ -25,6 +26,10 @@ const AppRoutes = () => {
       <Route
         path="/projetos"
         element={<ProtectedRoute element={<ProjetosPage />} />}
+      />
+      <Route
+        path="/propostas"
+        element={<ProtectedRoute element={<PropostasPage />} />}
       />
       <Route
         path="/users"

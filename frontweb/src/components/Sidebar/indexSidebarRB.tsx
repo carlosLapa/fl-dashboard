@@ -53,6 +53,18 @@ const SidebarFL: React.FC = () => {
         <Nav.Item>
           <div
             className={`sidebar-link text-light mb-4 ${
+              location.pathname.startsWith('/propostas') ? 'active' : ''
+            }`}
+            onClick={() => handleNavigation('/propostas')}
+            role="button"
+            tabIndex={0}
+          >
+            Propostas
+          </div>
+        </Nav.Item>
+        <Nav.Item>
+          <div
+            className={`sidebar-link text-light mb-4 ${
               location.pathname.startsWith('/tarefas') ? 'active' : ''
             }`}
             onClick={() => handleNavigation('/tarefas')}
