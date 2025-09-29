@@ -1,5 +1,11 @@
 // Define all possible permissions in the system
 export enum Permission {
+  // Proposta permissions
+  CREATE_PROPOSTA = 'CREATE_PROPOSTA',
+  EDIT_PROPOSTA = 'EDIT_PROPOSTA',
+  DELETE_PROPOSTA = 'DELETE_PROPOSTA',
+  VIEW_ALL_PROPOSTAS = 'VIEW_ALL_PROPOSTAS',
+  VIEW_ASSIGNED_PROPOSTAS = 'VIEW_ASSIGNED_PROPOSTAS',
   // Kanban permissions
   MOVE_CARD_TO_BACKLOG = 'MOVE_CARD_TO_BACKLOG',
   MOVE_CARD_TO_TODO = 'MOVE_CARD_TO_TODO',
@@ -56,6 +62,11 @@ const rolePermissions: Record<string, Permission[]> = {
   ADMIN: Object.values(Permission), // Admin has all permissions
 
   MANAGER: [
+  // Proposta permissions
+  Permission.CREATE_PROPOSTA,
+  Permission.EDIT_PROPOSTA,
+  Permission.DELETE_PROPOSTA,
+  Permission.VIEW_ALL_PROPOSTAS,
     // Kanban permissions
     Permission.MOVE_CARD_TO_BACKLOG,
     Permission.MOVE_CARD_TO_TODO,

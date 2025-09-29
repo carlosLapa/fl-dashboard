@@ -14,6 +14,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Cliente } from '../../types/cliente';
 import { getAllClientes } from '../../services/clienteService';
+// import { useAuth } from '../../AuthContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
 
 const PropostasPage: React.FC = () => {
   const [propostas, setPropostas] = useState<Proposta[]>([]);
@@ -24,6 +27,9 @@ const PropostasPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [propostaToEdit, setPropostaToEdit] = useState<Proposta | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+
+  // const { user } = useAuth();
+  const { hasPermission } = usePermissions();
 
   // Fetch clientes for the modal
   useEffect(() => {
@@ -56,17 +62,32 @@ const PropostasPage: React.FC = () => {
     fetchPropostas();
   }, [fetchPropostas]);
 
+
   const handleAddNewProposta = () => {
+    if (!hasPermission(Permission.CREATE_PROPOSTA)) {
+      toast.error('Sem permissão para criar proposta');
+      return;
+    }
     setPropostaToEdit(null);
     setShowModal(true);
   };
 
+
   const handleEditProposta = (proposta: Proposta) => {
+    if (!hasPermission(Permission.EDIT_PROPOSTA)) {
+      toast.error('Sem permissão para editar proposta');
+      return;
+    }
     setPropostaToEdit(proposta);
     setShowModal(true);
   };
 
+
   const handleDeleteProposta = async (id: number) => {
+    if (!hasPermission(Permission.DELETE_PROPOSTA)) {
+      toast.error('Sem permissão para excluir proposta');
+      return;
+    }
     try {
       await deletePropostaAPI(id);
       await fetchPropostas();
@@ -108,20 +129,23 @@ const PropostasPage: React.FC = () => {
         >
           <h2 className="page-title">Gestão de Propostas</h2>
           <div className="page-actions">
-            <Button
-              variant="primary"
-              onClick={handleAddNewProposta}
-              className="create-button"
-            >
-              <FontAwesomeIcon icon={faPlus} className="me-2" />
-              Adicionar Proposta
-            </Button>
+            {hasPermission(Permission.CREATE_PROPOSTA) && (
+              <Button
+                variant="primary"
+                onClick={handleAddNewProposta}
+                className="create-button"
+              >
+                <FontAwesomeIcon icon={faPlus} className="me-2" />
+                Adicionar Proposta
+              </Button>
+            )}
           </div>
         </div>
         <div style={{ width: '100%', marginTop: '3rem' }}>
           <PropostaTable
             propostas={propostas}
             onSelect={handleEditProposta}
+            onDeleteProposta={handleDeleteProposta}
             // Adapte para paginação se necessário
           />
         </div>

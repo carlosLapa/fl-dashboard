@@ -6,7 +6,13 @@ import com.fl.dashboard.enums.RoleType;
 import java.util.*;
 
 public class PermissionMapper {
-    private static final Map<RoleType, Set<Permission>> ROLE_PERMISSIONS = new HashMap<>();
+    // Usar EnumMap para eficiência com enums
+    private static final Map<RoleType, Set<Permission>> ROLE_PERMISSIONS = new EnumMap<>(RoleType.class);
+
+    // Construtor privado para esconder o construtor público implícito
+    private PermissionMapper() {
+        // Utility class
+    }
 
     static {
         // Admin has all permissions
@@ -26,6 +32,13 @@ public class PermissionMapper {
                 Permission.CREATE_PROJECT,
                 Permission.EDIT_PROJECT,
                 Permission.VIEW_ALL_PROJECTS,
+
+                // Proposta permissions
+                Permission.CREATE_PROPOSTA,
+                Permission.EDIT_PROPOSTA,
+                Permission.DELETE_PROPOSTA,
+                Permission.VIEW_ALL_PROPOSTAS,
+                Permission.VIEW_ASSIGNED_PROPOSTAS,
 
                 // Task permissions
                 Permission.CREATE_TASK,
@@ -62,6 +75,9 @@ public class PermissionMapper {
 
                 // Limited project access
                 Permission.VIEW_ASSIGNED_PROJECTS,
+
+                // Proposta permissions (apenas visualizar atribuídas)
+                Permission.VIEW_ASSIGNED_PROPOSTAS,
 
                 // Task permissions (limited)
                 Permission.CREATE_TASK,

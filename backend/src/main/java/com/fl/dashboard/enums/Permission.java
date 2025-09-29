@@ -15,6 +15,13 @@ public enum Permission {
     VIEW_ALL_PROJECTS,
     VIEW_ASSIGNED_PROJECTS,
 
+    // Proposta permissions
+    CREATE_PROPOSTA,
+    EDIT_PROPOSTA,
+    DELETE_PROPOSTA,
+    VIEW_ALL_PROPOSTAS,
+    VIEW_ASSIGNED_PROPOSTAS,
+
     // User permissions
     CREATE_USER,
     EDIT_USER,

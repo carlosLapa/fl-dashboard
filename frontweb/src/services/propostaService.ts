@@ -12,6 +12,21 @@ import {
   adjudicarPropostaAPI,
 } from '../api/propostaApi';
 import axios from 'axios';
+import { hasPermission } from '../utils/hasPermission';
+import { Permission } from '../permissions/rolePermissions';
+
+// Funções de permissão para Proposta
+export const canCreateProposta = (): boolean => {
+  return hasPermission(Permission.CREATE_PROPOSTA);
+};
+
+export const canEditProposta = (): boolean => {
+  return hasPermission(Permission.EDIT_PROPOSTA);
+};
+
+export const canDeleteProposta = (): boolean => {
+  return hasPermission(Permission.DELETE_PROPOSTA);
+};
 
 // Helper para construir filtros compatíveis com a API
 export const buildApiFilters = (filters: any) => {
@@ -71,6 +86,9 @@ export const createProposta = async (
   data: PropostaFormData
 ): Promise<Proposta | null> => {
   try {
+    if (!canCreateProposta()) {
+      throw new Error('Você não tem permissão para criar propostas');
+    }
     const proposta = await addPropostaAPI(data);
     return proposta;
   } catch (error) {
@@ -84,6 +102,9 @@ export const updateProposta = async (
   data: PropostaFormData
 ): Promise<Proposta | null> => {
   try {
+    if (!canEditProposta()) {
+      throw new Error('Você não tem permissão para editar propostas');
+    }
     const proposta = await updatePropostaAPI(id, data);
     return proposta;
   } catch (error) {
@@ -94,6 +115,9 @@ export const updateProposta = async (
 
 export const deleteProposta = async (id: number): Promise<void> => {
   try {
+    if (!canDeleteProposta()) {
+      throw new Error('Você não tem permissão para excluir propostas');
+    }
     await deletePropostaAPI(id);
   } catch (error) {
     console.error('Erro ao excluir proposta:', error);
