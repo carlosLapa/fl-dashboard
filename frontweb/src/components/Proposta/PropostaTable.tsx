@@ -4,15 +4,16 @@ import { Table } from 'react-bootstrap';
 import {
   PropostaTableHeader,
   PropostaTableRow,
-  PropostaPagination,
   PropostaEmptyState,
   PropostaLoadingState,
 } from './PropostaTableComponents';
+import PropostaPagination from './PropostaTableComponents/PropostaPagination';
 
 interface PropostaTableProps {
   propostas: Proposta[];
   onSelect: (proposta: Proposta) => void;
   onDeleteProposta?: (id: number) => void;
+  onGenerateProjeto?: (proposta: Proposta) => void;
   page?: number;
   onPageChange?: (page: number) => void;
   totalPages?: number;
@@ -23,6 +24,7 @@ const PropostaTable: React.FC<PropostaTableProps> = ({
   propostas,
   onSelect,
   onDeleteProposta,
+  onGenerateProjeto,
   page = 0,
   onPageChange = () => {},
   totalPages = 1,
@@ -43,6 +45,11 @@ const PropostaTable: React.FC<PropostaTableProps> = ({
                   proposta={proposta}
                   onEditProposta={onSelect}
                   onDeleteProposta={onDeleteProposta || (() => {})}
+                  onGenerateProjeto={
+                    typeof onGenerateProjeto === 'function'
+                      ? onGenerateProjeto
+                      : undefined
+                  }
                 />
               ))
             ) : (
@@ -51,7 +58,11 @@ const PropostaTable: React.FC<PropostaTableProps> = ({
           </tbody>
         </Table>
       </div>
-      <PropostaPagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
+      <PropostaPagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 };

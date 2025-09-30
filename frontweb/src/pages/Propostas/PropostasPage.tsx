@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Proposta, PropostaFormData } from '../../types/proposta';
 import { getPropostas } from '../../services/propostaService';
 import PropostaTable from '../../components/Proposta/PropostaTable';
+import ProjetoModal from '../../components/Projeto/ProjetoModal';
+import { ProjetoFormData } from '../../types/projeto';
 import PropostaModal from '../../components/Proposta/PropostaModal';
 import { Button } from 'react-bootstrap';
 import {
@@ -27,6 +30,39 @@ const PropostasPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [propostaToEdit, setPropostaToEdit] = useState<Proposta | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  // Projeto modal state
+  const [showProjetoModal, setShowProjetoModal] = useState(false);
+  const [projetoFormData, setProjetoFormData] =
+    useState<ProjetoFormData | null>(null);
+  // Função para converter Proposta em ProjetoFormData
+  const mapPropostaToProjetoFormData = (
+    proposta: Proposta
+  ): ProjetoFormData => ({
+    projetoAno: proposta.propostaAno,
+    designacao: proposta.designacao,
+    entidade: '', // Pode ser ajustado conforme necessário
+    prioridade: proposta.prioridade,
+    observacao: proposta.observacao,
+    prazo: proposta.prazo || '',
+    users: [],
+    status: 'ATIVO',
+    clienteId:
+      proposta.clientes && proposta.clientes.length > 0
+        ? proposta.clientes[0].id
+        : undefined,
+    coordenadorId: undefined,
+    dataProposta: proposta.dataProposta || '',
+    dataAdjudicacao: proposta.dataAdjudicacao || '',
+    externos: [],
+    externoIds: [],
+    tipo: proposta.tipo,
+  });
+
+  // Handler para abrir modal de Projeto pré-preenchido
+  const handleGenerateProjeto = (proposta: Proposta) => {
+    setProjetoFormData(mapPropostaToProjetoFormData(proposta));
+    setShowProjetoModal(true);
+  };
 
   // const { user } = useAuth();
   const { hasPermission } = usePermissions();
@@ -62,7 +98,6 @@ const PropostasPage: React.FC = () => {
     fetchPropostas();
   }, [fetchPropostas]);
 
-
   const handleAddNewProposta = () => {
     if (!hasPermission(Permission.CREATE_PROPOSTA)) {
       toast.error('Sem permissão para criar proposta');
@@ -72,7 +107,6 @@ const PropostasPage: React.FC = () => {
     setShowModal(true);
   };
 
-
   const handleEditProposta = (proposta: Proposta) => {
     if (!hasPermission(Permission.EDIT_PROPOSTA)) {
       toast.error('Sem permissão para editar proposta');
@@ -81,7 +115,6 @@ const PropostasPage: React.FC = () => {
     setPropostaToEdit(proposta);
     setShowModal(true);
   };
-
 
   const handleDeleteProposta = async (id: number) => {
     if (!hasPermission(Permission.DELETE_PROPOSTA)) {
@@ -146,6 +179,7 @@ const PropostasPage: React.FC = () => {
             propostas={propostas}
             onSelect={handleEditProposta}
             onDeleteProposta={handleDeleteProposta}
+            onGenerateProjeto={handleGenerateProjeto}
             // Adapte para paginação se necessário
           />
         </div>
@@ -157,6 +191,16 @@ const PropostasPage: React.FC = () => {
         onSave={handleAddOrUpdateProposta}
         isEditing={!!propostaToEdit}
         clientes={clientes}
+      />
+      {/* Modal para criar Projeto a partir de Proposta */}
+      <ProjetoModal
+        show={showProjetoModal}
+        onHide={() => setShowProjetoModal(false)}
+        projeto={null}
+        onSave={() => setShowProjetoModal(false)}
+        isEditing={false}
+        clienteInfo={undefined}
+        {...(projetoFormData ? { initialFormData: projetoFormData } : {})}
       />
     </div>
   );

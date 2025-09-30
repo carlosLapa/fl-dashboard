@@ -56,6 +56,28 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
     }
   }, [isEditing, show]);
 
+  // Função utilitária para garantir formato yyyy-mm-dd
+  function toInputDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    // Se já estiver no formato yyyy-mm-dd
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    // Se vier em formato dd/mm/yyyy ou d/m/yyyy
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const [d, m, y] = parts;
+      return `${y.padStart(4, '20')}-${m.padStart(2, '0')}-${d.padStart(
+        2,
+        '0'
+      )}`;
+    }
+    // Tenta converter usando Date
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().slice(0, 10);
+    }
+    return '';
+  }
+
   useEffect(() => {
     if (isEditing && proposta) {
       setFormData({
@@ -63,10 +85,10 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
         designacao: proposta.designacao,
         prioridade: proposta.prioridade,
         observacao: proposta.observacao,
-        prazo: proposta.prazo,
+        prazo: toInputDate(proposta.prazo),
         status: proposta.status,
-        dataProposta: proposta.dataProposta || '',
-        dataAdjudicacao: proposta.dataAdjudicacao || '',
+        dataProposta: toInputDate(proposta.dataProposta),
+        dataAdjudicacao: toInputDate(proposta.dataAdjudicacao),
         tipo: proposta.tipo,
         clienteIds: proposta.clientes.map((c) => c.id),
       });
@@ -86,7 +108,9 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
   const handleClientesChange = (selectedOptions: any) => {
     setFormData((prev) => ({
       ...prev,
-      clienteIds: selectedOptions ? selectedOptions.map((opt: any) => opt.value) : [],
+      clienteIds: selectedOptions
+        ? selectedOptions.map((opt: any) => opt.value)
+        : [],
     }));
   };
 
@@ -257,6 +281,31 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
                 <Form.Control.Feedback type="invalid">
                   Por favor, selecione o tipo.
                 </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+          </Row>
+          {/* Datas da Proposta e Adjudicação - igual ao ProjetoModal */}
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group controlId="formDataProposta">
+                <Form.Label>Data da Proposta</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dataProposta"
+                  value={formData.dataProposta || ''}
+                  onChange={handleInputChange}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group controlId="formDataAdjudicacao">
+                <Form.Label>Data da Adjudicação</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dataAdjudicacao"
+                  value={formData.dataAdjudicacao || ''}
+                  onChange={handleInputChange}
+                />
               </Form.Group>
             </Col>
           </Row>

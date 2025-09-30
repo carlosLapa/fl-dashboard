@@ -25,6 +25,7 @@ interface ProjetoModalProps {
   onSave: (formData: ProjetoFormData) => void;
   isEditing: boolean;
   clienteInfo?: ClienteInfo;
+  initialFormData?: ProjetoFormData | null;
 }
 
 const ProjetoModal: React.FC<ProjetoModalProps> = ({
@@ -34,6 +35,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   onSave,
   isEditing,
   clienteInfo,
+  initialFormData,
 }) => {
   const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<ProjetoFormData>({
@@ -86,10 +88,28 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     }
   }, [show]);
 
+  // Função utilitária para garantir formato yyyy-mm-dd
+  function toInputDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const [d, m, y] = parts;
+      return `${y.padStart(4, '20')}-${m.padStart(2, '0')}-${d.padStart(
+        2,
+        '0'
+      )}`;
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().slice(0, 10);
+    }
+    return '';
+  }
+
   useEffect(() => {
     if (!isEditing) {
-      // Reset form data when not editing
-      const newFormData: ProjetoFormData = {
+      let newFormData: ProjetoFormData = {
         projetoAno: new Date().getFullYear(),
         designacao: '',
         entidade: '',
@@ -103,15 +123,23 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         dataProposta: '',
         dataAdjudicacao: '',
       };
-
       if (clienteInfo) {
         newFormData.clienteId = clienteInfo.id;
       }
-
+      // Se vier initialFormData, usar para preencher
+      if (initialFormData) {
+        newFormData = {
+          ...newFormData,
+          ...initialFormData,
+          prazo: toInputDate(initialFormData.prazo),
+          dataProposta: toInputDate(initialFormData.dataProposta),
+          dataAdjudicacao: toInputDate(initialFormData.dataAdjudicacao),
+        };
+      }
       setFormData(newFormData);
       setValidated(false);
     }
-  }, [isEditing, show, clienteInfo]);
+  }, [isEditing, show, clienteInfo, initialFormData]);
 
   useEffect(() => {
     if (isEditing && projeto) {
