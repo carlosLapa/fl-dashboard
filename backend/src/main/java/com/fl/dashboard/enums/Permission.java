@@ -21,6 +21,7 @@ public enum Permission {
     DELETE_PROPOSTA,
     VIEW_ALL_PROPOSTAS,
     VIEW_ASSIGNED_PROPOSTAS,
+    ADJUDICAR_PROPOSTA,
 
     // User permissions
     CREATE_USER,

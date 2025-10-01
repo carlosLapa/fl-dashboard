@@ -6,6 +6,7 @@ export enum Permission {
   DELETE_PROPOSTA = 'DELETE_PROPOSTA',
   VIEW_ALL_PROPOSTAS = 'VIEW_ALL_PROPOSTAS',
   VIEW_ASSIGNED_PROPOSTAS = 'VIEW_ASSIGNED_PROPOSTAS',
+  ADJUDICAR_PROPOSTA = 'ADJUDICAR_PROPOSTA',
   // Kanban permissions
   MOVE_CARD_TO_BACKLOG = 'MOVE_CARD_TO_BACKLOG',
   MOVE_CARD_TO_TODO = 'MOVE_CARD_TO_TODO',
@@ -67,6 +68,7 @@ const rolePermissions: Record<string, Permission[]> = {
   Permission.EDIT_PROPOSTA,
   Permission.DELETE_PROPOSTA,
   Permission.VIEW_ALL_PROPOSTAS,
+  Permission.ADJUDICAR_PROPOSTA,
     // Kanban permissions
     Permission.MOVE_CARD_TO_BACKLOG,
     Permission.MOVE_CARD_TO_TODO,

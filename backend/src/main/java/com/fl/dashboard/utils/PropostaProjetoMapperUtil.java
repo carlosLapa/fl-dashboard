@@ -18,7 +18,6 @@ public class PropostaProjetoMapperUtil {
         projeto.setDataProposta(proposta.getDataProposta());
         projeto.setDataAdjudicacao(proposta.getDataAdjudicacao());
         projeto.setTipo(proposta.getTipo() != null ? TipoProjeto.valueOf(proposta.getTipo()) : null);
-        // Adicione outros campos se necessário
     }
 
     // Copia campos de PropostaDTO para Proposta

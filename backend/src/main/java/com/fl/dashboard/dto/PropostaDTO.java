@@ -24,6 +24,7 @@ public class PropostaDTO {
     private Date dataProposta;
     private Date dataAdjudicacao;
     private String tipo;
+    private Long projetoId;
 
     private Set<Long> clienteIds = new HashSet<>();
     private Set<ClienteDTO> clientes = new HashSet<>();
@@ -39,6 +40,7 @@ public class PropostaDTO {
         this.dataProposta = entity.getDataProposta();
         this.dataAdjudicacao = entity.getDataAdjudicacao();
         this.tipo = entity.getTipo();
+        this.projetoId = entity.getProjeto() != null ? entity.getProjeto().getId() : null;
 
         if (entity.getClientes() != null) {
             entity.getClientes().forEach(cliente -> {

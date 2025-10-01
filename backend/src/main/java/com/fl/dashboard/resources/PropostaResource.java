@@ -1,13 +1,12 @@
 package com.fl.dashboard.resources;
 
+import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.dto.PropostaDTO;
 import com.fl.dashboard.dto.PropostaWithClienteIdsDTO;
 import com.fl.dashboard.dto.PropostaWithClientesDTO;
-import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.services.PropostaService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +22,11 @@ import java.util.List;
 @RequestMapping(value = "/propostas")
 public class PropostaResource {
 
-    @Autowired
-    private PropostaService propostaService;
+    private final PropostaService propostaService;
+
+    public PropostaResource(PropostaService propostaService) {
+        this.propostaService = propostaService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<PropostaWithClientesDTO>> findAll(Pageable pageable) {
@@ -107,15 +109,10 @@ public class PropostaResource {
 
     @PostMapping("/{id}/adjudicar")
     @PreAuthorize("hasAuthority('ADJUDICAR_PROPOSTA')")
-    public ResponseEntity<?> adjudicarProposta(@PathVariable Long id) {
+    public ResponseEntity<ProjetoDTO> adjudicarProposta(@PathVariable Long id) {
         try {
-            // Adjudica e converte a proposta em projeto
-            Projeto novoProjeto = propostaService.adjudicarEConverterParaProjeto(id);
-            // Atualiza status da proposta para "ADJUDICADA" (se desejar)
-            propostaService.atualizarStatusAdjudicada(id);
-
-            // Retorna o novo projeto criado (pode ser um DTO)
-            return ResponseEntity.ok(novoProjeto);
+            ProjetoDTO projetoDTO = propostaService.adjudicarEConverterParaProjeto(id);
+            return ResponseEntity.ok(projetoDTO);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }

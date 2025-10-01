@@ -4,6 +4,7 @@ import {
   PropostaFormData,
   PaginatedPropostas,
 } from '../types/proposta';
+import { Projeto } from '../types/projeto';
 
 // Funções de request HTTP para Proposta
 export const getPropostasAPI = async (
@@ -42,6 +43,11 @@ export const deletePropostaAPI = async (id: number): Promise<void> => {
 };
 
 export const adjudicarPropostaAPI = async (id: number): Promise<any> => {
+  const response = await axios.post(`/propostas/${id}/adjudicar`);
+  return response.data;
+};
+
+export const converterParaProjetoAPI = async (id: number): Promise<Projeto> => {
   const response = await axios.post(`/propostas/${id}/adjudicar`);
   return response.data;
 };

@@ -78,6 +78,9 @@ public class Projeto {
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
+    @OneToOne(mappedBy = "projeto")
+    private Proposta proposta;
+
     public Projeto() {
     }
 

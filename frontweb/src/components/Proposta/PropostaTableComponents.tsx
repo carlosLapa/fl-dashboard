@@ -9,6 +9,8 @@ import {
   faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
 
 export const PropostaTableHeader: React.FC = () => (
   <thead>
@@ -41,6 +43,7 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
   onDeleteProposta,
   onGenerateProjeto,
 }) => {
+  const { hasPermission } = usePermissions();
   return (
     <tr>
       <td>{proposta.propostaAno}</td>
@@ -111,41 +114,79 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
               <FontAwesomeIcon icon={faInfoCircle} />
             </span>
           </OverlayTrigger>
-          {/* Botão para gerar projeto se adjudicada */}
-          {proposta.status === 'ADJUDICADA' && onGenerateProjeto && (
+          {/* Botão para gerar projeto se adjudicada, não possui projetoId e tem permissão */}
+          {proposta.status === 'ADJUDICADA' &&
+            onGenerateProjeto &&
+            !proposta.projetoId &&
+            hasPermission(Permission.ADJUDICAR_PROPOSTA) && (
+              <OverlayTrigger
+                placement="top"
+                overlay={
+                  <Tooltip id={`tooltip-generate-projeto-${proposta.id}`}>
+                    Gerar Projeto
+                  </Tooltip>
+                }
+              >
+                <span
+                  onClick={() => onGenerateProjeto(proposta)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    background: '#81a6f0', // $primary
+                    color: '#222',
+                    borderRadius: '10px',
+                    padding: '6px 14px 6px 10px',
+                    marginLeft: 10,
+                    fontWeight: 700,
+                    boxShadow: '0 2px 8px rgba(129,166,240,0.15)',
+                    cursor: 'pointer',
+                    fontSize: 16,
+                    border: 'none',
+                    transition: 'background 0.2s',
+                    letterSpacing: 0.2,
+                  }}
+                  className="highlight-generate-projeto-btn"
+                >
+                  <FontAwesomeIcon
+                    icon={faPlus}
+                    style={{ fontSize: 20, marginRight: 8, color: '#222' }}
+                  />
+                  Gerar Projeto
+                </span>
+              </OverlayTrigger>
+            )}
+          {/* Se já possui projetoId, mostra info */}
+          {proposta.status === 'ADJUDICADA' && proposta.projetoId && (
             <OverlayTrigger
               placement="top"
               overlay={
-                <Tooltip id={`tooltip-generate-projeto-${proposta.id}`}>
-                  Gerar Projeto
+                <Tooltip id={`tooltip-projeto-exists-${proposta.id}`}>
+                  Projeto já gerado
                 </Tooltip>
               }
             >
               <span
-                onClick={() => onGenerateProjeto(proposta)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  background: '#81a6f0', // $primary
-                  color: '#222',
+                  background: '#e0e0e0',
+                  color: '#888',
                   borderRadius: '10px',
                   padding: '6px 14px 6px 10px',
                   marginLeft: 10,
                   fontWeight: 700,
-                  boxShadow: '0 2px 8px rgba(129,166,240,0.15)',
-                  cursor: 'pointer',
                   fontSize: 16,
                   border: 'none',
-                  transition: 'background 0.2s',
                   letterSpacing: 0.2,
+                  opacity: 0.7,
+                  cursor: 'not-allowed',
                 }}
-                className="highlight-generate-projeto-btn"
               >
                 <FontAwesomeIcon
-                  icon={faPlus}
-                  style={{ fontSize: 20, marginRight: 8, color: '#222' }}
+                  icon={faInfoCircle}
+                  style={{ fontSize: 20, marginRight: 8, color: '#888' }}
                 />
-                Gerar Projeto
+                Projeto já gerado
               </span>
             </OverlayTrigger>
           )}

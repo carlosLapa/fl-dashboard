@@ -10,6 +10,7 @@ import {
   updatePropostaAPI,
   deletePropostaAPI,
   adjudicarPropostaAPI,
+  converterParaProjetoAPI,
 } from '../api/propostaApi';
 import axios from 'axios';
 import { hasPermission } from '../utils/hasPermission';
@@ -131,6 +132,16 @@ export const adjudicarProposta = async (id: number): Promise<any> => {
     return result;
   } catch (error) {
     console.error('Erro ao adjudicar proposta:', error);
+    throw error;
+  }
+};
+
+export const converterParaProjeto = async (id: number): Promise<any> => {
+  try {
+    const result = await converterParaProjetoAPI(id);
+    return result;
+  } catch (error) {
+    console.error('Erro ao converter proposta para projeto:', error);
     throw error;
   }
 };

@@ -21,6 +21,7 @@ export type Proposta = {
   dataAdjudicacao?: string;
   tipo?: TipoProposta;
   clientes: Cliente[];
+  projetoId?: number;
 };
 
 export interface PropostaFormData {

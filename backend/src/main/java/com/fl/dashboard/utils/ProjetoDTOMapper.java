@@ -92,5 +92,23 @@ public class ProjetoDTOMapper {
         }
     }
 
+    public ProjetoDTO toDTO(Projeto entity) {
+        ProjetoDTO dto = new ProjetoDTO();
+        dto.setId(entity.getId());
+        dto.setProjetoAno(entity.getProjetoAno());
+        dto.setDesignacao(entity.getDesignacao());
+        dto.setEntidade(entity.getEntidade());
+        dto.setPrazo(entity.getPrazo());
+        dto.setPrioridade(entity.getPrioridade());
+        dto.setObservacao(entity.getObservacao());
+        dto.setStatus(entity.getStatus());
+        dto.setTipo(entity.getTipo());
+        dto.setCoordenadorId(entity.getCoordenador() != null ? entity.getCoordenador().getId() : null);
+        dto.setDataProposta(entity.getDataProposta());
+        dto.setDataAdjudicacao(entity.getDataAdjudicacao());
+        // Adicione outros campos conforme necessário
+        return dto;
+    }
+
 
 }

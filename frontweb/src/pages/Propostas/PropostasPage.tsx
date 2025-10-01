@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Proposta, PropostaFormData } from '../../types/proposta';
-import { getPropostas } from '../../services/propostaService';
+import {
+  getPropostas,
+  converterParaProjeto,
+} from '../../services/propostaService';
 import PropostaTable from '../../components/Proposta/PropostaTable';
 import ProjetoModal from '../../components/Projeto/ProjetoModal';
 import { ProjetoFormData } from '../../types/projeto';
 import PropostaModal from '../../components/Proposta/PropostaModal';
 import { Button } from 'react-bootstrap';
+import { addProjetoAPI } from '../../api/requestsApi';
+import { useNavigate } from 'react-router-dom';
 import {
   addPropostaAPI,
   updatePropostaAPI,
@@ -34,6 +39,7 @@ const PropostasPage: React.FC = () => {
   const [showProjetoModal, setShowProjetoModal] = useState(false);
   const [projetoFormData, setProjetoFormData] =
     useState<ProjetoFormData | null>(null);
+
   // Função para converter Proposta em ProjetoFormData
   const mapPropostaToProjetoFormData = (
     proposta: Proposta
@@ -58,14 +64,53 @@ const PropostasPage: React.FC = () => {
     tipo: proposta.tipo,
   });
 
-  // Handler para abrir modal de Projeto pré-preenchido
-  const handleGenerateProjeto = (proposta: Proposta) => {
-    setProjetoFormData(mapPropostaToProjetoFormData(proposta));
-    setShowProjetoModal(true);
+  // Handler para converter Proposta em Projeto diretamente
+  const handleGenerateProjeto = async (proposta: Proposta) => {
+    // Verificar permissão antes de tentar converter
+    if (!hasPermission(Permission.ADJUDICAR_PROPOSTA)) {
+      toast.error('Sem permissão para converter proposta em projeto');
+      return;
+    }
+
+    try {
+      const projetoCriado = await converterParaProjeto(proposta.id);
+      toast.success('Projeto criado com sucesso!');
+      // Atualiza a lista de propostas para refletir o novo projetoId
+      await fetchPropostas();
+      toast.info(
+        'A proposta foi convertida em projeto e não pode ser convertida novamente.'
+      );
+      if (projetoCriado && projetoCriado.id) {
+        navigate(`/projetos/${projetoCriado.id}/details`);
+      }
+    } catch (error) {
+      toast.error('Erro ao converter proposta para projeto');
+      console.error('Erro na conversão:', error);
+    }
+  };
+
+  // Handler para criar Projeto manualmente (via modal)
+  const handleSaveProjeto = async (formData: ProjetoFormData) => {
+    try {
+      const projetoCriado = await addProjetoAPI(formData);
+      toast.success('Projeto criado com sucesso!');
+      setShowProjetoModal(false);
+      // Atualiza a lista de propostas para refletir o novo projetoId
+      await fetchPropostas();
+      toast.info(
+        'A proposta foi convertida em projeto e não pode ser convertida novamente.'
+      );
+      if (projetoCriado && projetoCriado.id) {
+        navigate(`/projetos/${projetoCriado.id}/details`);
+      }
+    } catch (error) {
+      toast.error('Erro ao criar projeto');
+    }
   };
 
   // const { user } = useAuth();
   const { hasPermission } = usePermissions();
+  const navigate = useNavigate();
 
   // Fetch clientes for the modal
   useEffect(() => {
@@ -197,7 +242,7 @@ const PropostasPage: React.FC = () => {
         show={showProjetoModal}
         onHide={() => setShowProjetoModal(false)}
         projeto={null}
-        onSave={() => setShowProjetoModal(false)}
+        onSave={handleSaveProjeto}
         isEditing={false}
         clienteInfo={undefined}
         {...(projetoFormData ? { initialFormData: projetoFormData } : {})}

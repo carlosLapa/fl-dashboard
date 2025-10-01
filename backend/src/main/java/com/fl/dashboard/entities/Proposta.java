@@ -54,6 +54,10 @@ public class Proposta {
             inverseJoinColumns = @JoinColumn(name = "cliente_id"))
     private Set<Cliente> clientes = new HashSet<>();
 
+    @OneToOne
+    @JoinColumn(name = "projeto_id")
+    private Projeto projeto;
+
     public void markAsDeleted() {
         this.deletedAt = LocalDateTime.now();
     }
