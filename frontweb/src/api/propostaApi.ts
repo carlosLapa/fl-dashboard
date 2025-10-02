@@ -23,6 +23,11 @@ export const getPropostaByIdAPI = async (id: number): Promise<Proposta> => {
   return response.data;
 };
 
+export const getPropostaWithClientesAPI = async (id: number): Promise<Proposta> => {
+  const response = await axios.get(`/propostas/${id}`);
+  return response.data;
+};
+
 export const addPropostaAPI = async (
   data: PropostaFormData
 ): Promise<Proposta> => {
@@ -49,5 +54,10 @@ export const adjudicarPropostaAPI = async (id: number): Promise<any> => {
 
 export const converterParaProjetoAPI = async (id: number): Promise<Projeto> => {
   const response = await axios.post(`/propostas/${id}/adjudicar`);
+  return response.data;
+};
+
+export const updatePropostaStatusAPI = async (id: number, status: string): Promise<Proposta> => {
+  const response = await axios.patch(`/propostas/${id}/status?status=${status}`);
   return response.data;
 };

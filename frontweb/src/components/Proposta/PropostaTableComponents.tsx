@@ -2,6 +2,7 @@ import React from 'react';
 import { Proposta } from '../../types/proposta';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import {
   faPencilAlt,
   faTrashAlt,
@@ -94,7 +95,7 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
               style={{ cursor: 'pointer', marginLeft: 8 }}
             />
           </OverlayTrigger>
-          {/* Futuro: Ver detalhes da proposta */}
+          {/* Ver detalhes da proposta */}
           <OverlayTrigger
             placement="top"
             overlay={
@@ -103,16 +104,17 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
               </Tooltip>
             }
           >
-            <span
-              style={{
-                marginLeft: 8,
-                color: '#0d6efd',
-                cursor: 'pointer',
-                opacity: 0.6,
-              }}
-            >
-              <FontAwesomeIcon icon={faInfoCircle} />
-            </span>
+            <Link to={`/propostas/${proposta.id}/details`}>
+              <span
+                style={{
+                  marginLeft: 8,
+                  color: '#0d6efd',
+                  cursor: 'pointer',
+                }}
+              >
+                <FontAwesomeIcon icon={faInfoCircle} />
+              </span>
+            </Link>
           </OverlayTrigger>
           {/* Botão para gerar projeto se adjudicada, não possui projetoId e tem permissão */}
           {proposta.status === 'ADJUDICADA' &&

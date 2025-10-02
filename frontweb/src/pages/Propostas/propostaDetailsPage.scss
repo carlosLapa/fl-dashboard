@@ -1,0 +1,43 @@
+.proposta-details-container {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+  
+  .details-table-wrapper {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    
+    table {
+      margin-bottom: 0;
+      
+      th {
+        width: 200px;
+        background-color: #f8f9fa;
+        font-weight: 600;
+      }
+    }
+  }
+  
+  .btn-primary {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    
+    &:hover {
+      background-color: #004494;
+      border-color: #003b7a;
+    }
+  }
+  
+  .badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
+  }
+}

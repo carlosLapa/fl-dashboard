@@ -6,11 +6,13 @@ import {
 import {
   getPropostasAPI,
   getPropostaByIdAPI,
+  getPropostaWithClientesAPI,
   addPropostaAPI,
   updatePropostaAPI,
   deletePropostaAPI,
   adjudicarPropostaAPI,
   converterParaProjetoAPI,
+  updatePropostaStatusAPI,
 } from '../api/propostaApi';
 import axios from 'axios';
 import { hasPermission } from '../utils/hasPermission';
@@ -83,6 +85,20 @@ export const getPropostaById = async (id: number): Promise<Proposta | null> => {
   }
 };
 
+export const getPropostaWithClientes = async (id: number): Promise<Proposta | null> => {
+  try {
+    const proposta = await getPropostaWithClientesAPI(id);
+    return proposta;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 404) {
+        throw new Error('Proposta não encontrada ou foi removida');
+      }
+    }
+    throw new Error('Erro ao carregar os detalhes da proposta. Por favor, tente novamente.');
+  }
+};
+
 export const createProposta = async (
   data: PropostaFormData
 ): Promise<Proposta | null> => {
@@ -142,6 +158,19 @@ export const converterParaProjeto = async (id: number): Promise<any> => {
     return result;
   } catch (error) {
     console.error('Erro ao converter proposta para projeto:', error);
+    throw error;
+  }
+};
+
+export const updatePropostaStatus = async (id: number, status: string): Promise<Proposta | null> => {
+  try {
+    if (!canEditProposta()) {
+      throw new Error('Você não tem permissão para editar propostas');
+    }
+    const proposta = await updatePropostaStatusAPI(id, status);
+    return proposta;
+  } catch (error) {
+    console.error('Erro ao atualizar status da proposta:', error);
     throw error;
   }
 };
