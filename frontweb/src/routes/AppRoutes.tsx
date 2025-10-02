@@ -30,7 +30,10 @@ const AppRoutes = () => {
       />
       <Route
         path="/propostas"
-        element={<ProtectedRoute element={<PropostasPage />} />}
+        element={<ProtectedRoute 
+          element={<PropostasPage />} 
+          permissions={[Permission.VIEW_ALL_PROPOSTAS, Permission.VIEW_ASSIGNED_PROPOSTAS]} 
+        />}
       />
       <Route
         path="/users"
@@ -58,7 +61,10 @@ const AppRoutes = () => {
       />
       <Route
         path="/propostas/:propostaId/details"
-        element={<ProtectedRoute element={<PropostaDetailsPage />} />}
+        element={<ProtectedRoute 
+          element={<PropostaDetailsPage />} 
+          permissions={[Permission.VIEW_ALL_PROPOSTAS, Permission.VIEW_ASSIGNED_PROPOSTAS]} 
+        />}
       />
       <Route
         path="/notifications/:userId"

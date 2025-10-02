@@ -1,11 +1,20 @@
 import React from 'react';
 import Nav from 'react-bootstrap/Nav';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
 import './styles.scss';
 
 const SidebarFL: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { hasAnyPermission } = usePermissions();
+  
+  // Verifica se o usuário tem permissão para visualizar propostas
+  const canViewPropostas = hasAnyPermission([
+    Permission.VIEW_ALL_PROPOSTAS,
+    Permission.VIEW_ASSIGNED_PROPOSTAS
+  ]);
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -50,18 +59,20 @@ const SidebarFL: React.FC = () => {
             Projetos
           </div>
         </Nav.Item>
-        <Nav.Item>
-          <div
-            className={`sidebar-link text-light mb-4 ${
-              location.pathname.startsWith('/propostas') ? 'active' : ''
-            }`}
-            onClick={() => handleNavigation('/propostas')}
-            role="button"
-            tabIndex={0}
-          >
-            Propostas
-          </div>
-        </Nav.Item>
+        {canViewPropostas && (
+          <Nav.Item>
+            <div
+              className={`sidebar-link text-light mb-4 ${
+                location.pathname.startsWith('/propostas') ? 'active' : ''
+              }`}
+              onClick={() => handleNavigation('/propostas')}
+              role="button"
+              tabIndex={0}
+            >
+              Propostas
+            </div>
+          </Nav.Item>
+        )}
         <Nav.Item>
           <div
             className={`sidebar-link text-light mb-4 ${
