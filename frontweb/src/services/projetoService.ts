@@ -22,7 +22,7 @@ export type FilterState = ProjetoFilterState;
 export const buildApiFilters = (filters: FilterState) => {
   return {
     designacao: filters.designacao || undefined,
-    entidade: filters.entidade || undefined,
+    cliente: filters.cliente || undefined,
     prioridade: filters.prioridade || undefined,
     status: filters.status !== 'ALL' ? filters.status : undefined,
     startDate: filters.startDate || undefined,

@@ -39,6 +39,9 @@ public class ProjetoDTO {
     private Date dataAdjudicacao;
     private TipoProjeto tipo;
 
+    private Long clienteId;
+    private ClienteDTO cliente;
+
     private Set<ExternoDTO> externos = new HashSet<>();
     private List<Long> externoIds = new ArrayList<>();
 
@@ -75,7 +78,11 @@ public class ProjetoDTO {
         this.dataProposta = entity.getDataProposta();
         this.dataAdjudicacao = entity.getDataAdjudicacao();
 
-        // Preencher os externoDTOs e externoIds a partir da entidade
+        if (entity.getCliente() != null) {
+            this.cliente = new ClienteDTO(entity.getCliente());
+            this.clienteId = entity.getCliente().getId();
+        }
+
         if (entity.getExternos() != null) {
             entity.getExternos().forEach(externo -> {
                 this.externos.add(new ExternoDTO(externo));

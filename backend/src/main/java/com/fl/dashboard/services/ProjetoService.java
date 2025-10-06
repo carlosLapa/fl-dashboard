@@ -13,7 +13,6 @@ import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.utils.ProjetoDTOMapper;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,20 +25,24 @@ import java.util.stream.Collectors;
 @Service
 public class ProjetoService {
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ProjetoRepository projetoRepository;
+    private final UserRepository userRepository;
+    private final ExternoRepository externoRepository;
+    private final ProjetoDTOMapper projetoDTOMapper;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ExternoRepository externoRepository;
-
-    @Autowired
-    private ProjetoDTOMapper projetoDTOMapper;
-
-    @Autowired
-    private NotificationService notificationService;
+    public ProjetoService(
+            ProjetoRepository projetoRepository,
+            UserRepository userRepository,
+            ExternoRepository externoRepository,
+            ProjetoDTOMapper projetoDTOMapper,
+            NotificationService notificationService) {
+        this.projetoRepository = projetoRepository;
+        this.userRepository = userRepository;
+        this.externoRepository = externoRepository;
+        this.projetoDTOMapper = projetoDTOMapper;
+        this.notificationService = notificationService;
+    }
 
     @Transactional(readOnly = true)
     public ProjetoDTO findById(Long id) {

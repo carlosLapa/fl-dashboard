@@ -71,12 +71,12 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
       </Col>
       <Col md={6} lg={4}>
         <Form.Group>
-          <Form.Label>Entidade</Form.Label>
+          <Form.Label>Cliente</Form.Label>
           <Form.Control
             type="text"
-            placeholder="Filtrar por entidade"
-            value={filters.entidade}
-            onChange={(e) => updateFilter('entidade', e.target.value)}
+            placeholder="Filtrar por cliente"
+            value={filters.cliente || ''}
+            onChange={(e) => updateFilter('cliente', e.target.value)}
           />
         </Form.Group>
       </Col>

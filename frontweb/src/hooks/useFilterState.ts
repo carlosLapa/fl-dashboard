@@ -4,11 +4,12 @@ import secureStorage from '../auth/secureStorage';
 
 const defaultProjetoFilterState: ProjetoFilterState = {
   designacao: '',
-  entidade: '',
+  cliente: '',
   prioridade: '',
   status: 'ALL',
   startDate: '',
   endDate: '',
+  tipo: undefined,
 };
 
 export function useFilterState<T extends BaseFilterState>(

@@ -35,7 +35,7 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
     <tr>
       <td>{projeto.projetoAno}</td>
       <td>{projeto.designacao}</td>
-      <td>{projeto.entidade}</td>
+      <td>{projeto.cliente?.name || 'N/A'}</td>
       <td>{projeto.tipo || 'N/A'}</td>
       <td>{projeto.prioridade}</td>
       <td>{projeto.coordenador?.name || 'N/A'}</td>

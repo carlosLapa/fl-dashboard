@@ -26,6 +26,10 @@ export type Projeto = {
   dataAdjudicacao?: string;
   externos?: Externo[];
   tipo?: TipoProjeto;
+  cliente?: {
+    id: number;
+    name: string;
+  };
 };
 
 export interface ProjetoFormData {

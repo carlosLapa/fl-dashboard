@@ -49,8 +49,8 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
               <td>{projeto.designacao}</td>
             </tr>
             <tr>
-              <th>Entidade</th>
-              <td>{projeto.entidade}</td>
+              <th>Cliente</th>
+              <td>{projeto.cliente ? projeto.cliente.name : 'N/A'}</td>
               <th>Tipo</th>
               <td>{projeto.tipo || 'N/A'}</td>
             </tr>

@@ -2,9 +2,11 @@ package com.fl.dashboard.utils;
 
 import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.dto.ProjetoWithUsersDTO;
+import com.fl.dashboard.entities.Cliente;
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.repositories.ClienteRepository;
 import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
@@ -17,10 +19,12 @@ public class ProjetoDTOMapper {
 
     private final UserRepository userRepository;
     private final ExternoRepository externoRepository;
+    private final ClienteRepository clienteRepository;
 
-    public ProjetoDTOMapper(UserRepository userRepository, ExternoRepository externoRepository) {
+    public ProjetoDTOMapper(UserRepository userRepository, ExternoRepository externoRepository, ClienteRepository clienteRepository) {
         this.userRepository = userRepository;
         this.externoRepository = externoRepository;
+        this.clienteRepository = clienteRepository;
     }
 
     public void copyDTOtoEntity(ProjetoWithUsersDTO projetoDTO, Projeto entity) {
@@ -28,7 +32,7 @@ public class ProjetoDTOMapper {
         // pois isso será feito separadamente no método update do ProjetoService
         copyBasicDTOtoEntityWithoutExternos(projetoDTO, entity);
 
-        // Processar usuários
+        // Processar Users
         entity.getUsers().clear();
         if (projetoDTO.getUsers() != null) {
             projetoDTO.getUsers().forEach(userDTO -> {
@@ -58,6 +62,14 @@ public class ProjetoDTOMapper {
             entity.setCoordenador(coordenador);
         } else {
             entity.setCoordenador(null);
+        }
+
+        if (projetoDTO.getClienteId() != null) {
+            Cliente cliente = clienteRepository.findById(projetoDTO.getClienteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente not found: " + projetoDTO.getClienteId()));
+            entity.setCliente(cliente);
+        } else {
+            entity.setCliente(null);
         }
 
         // Handle the date fields

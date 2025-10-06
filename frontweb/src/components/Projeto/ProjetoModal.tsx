@@ -10,6 +10,7 @@ import Select from 'react-select';
 import { getAllExternos } from '../../services/externoService';
 import { Externo } from '../../types/externo';
 import ExternosSelect from '../../components/ExternoSelect/ExternosSelect';
+import ClienteSelect from '../../components/ClienteSelect/ClienteSelect';
 import './ProjetoModal.scss';
 
 // Add the ClienteInfo interface
@@ -151,8 +152,11 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         ...projeto,
         prazo: formattedPrazo,
         externos: projeto.externos || [],
+        clienteId: projeto.cliente?.id || clienteInfo?.id,
       };
 
+      // If clienteInfo is provided (meaning we're adding a project from client view)
+      // override any existing clienteId
       if (clienteInfo) {
         newFormData.clienteId = clienteInfo.id;
       }
@@ -207,6 +211,12 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         return false;
       }
     }
+
+    if (!clienteInfo && !formData.clienteId) {
+      toast.error('Selecionar um cliente é obrigatório');
+      return false;
+    }
+
     return true;
   };
 
@@ -227,8 +237,12 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       delete formDataToSave.externos;
     }
 
+    // Priorize clienteId do clienteInfo (quando presente) sobre o clienteId do formulário
     if (clienteInfo) {
       formDataToSave.clienteId = clienteInfo.id;
+    } else if (!formDataToSave.clienteId) {
+      toast.error('É necessário selecionar um cliente');
+      return;
     }
 
     if (formData.users.length > 0) {
@@ -471,6 +485,25 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                 <Form.Control.Feedback type="invalid">
                   Por favor, selecione o tipo.
                 </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group controlId="formCliente">
+                <Form.Label>Cliente</Form.Label>
+                <ClienteSelect
+                  selectedClienteId={formData.clienteId}
+                  onChange={(clienteId) => {
+                    setFormData((prev) => ({ ...prev, clienteId }));
+                  }}
+                  required={!clienteInfo}
+                  placeholder="Selecione o cliente..."
+                  isDisabled={!!clienteInfo}
+                />
+                {validated && !formData.clienteId && !clienteInfo && (
+                  <div className="text-danger small mt-1">
+                    Por favor, selecione o cliente.
+                  </div>
+                )}
               </Form.Group>
             </Col>
           </Row>
