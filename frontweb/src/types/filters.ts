@@ -8,7 +8,6 @@ export interface BaseFilterState {
 // Projeto filter state
 export interface ProjetoFilterState {
   designacao?: string;
-  entidade?: string;
   prioridade?: string;
   status?: string;
   startDate?: string;
@@ -20,6 +19,7 @@ export interface ProjetoFilterState {
   adjudicacaoStartDate?: string;
   adjudicacaoEndDate?: string;
   cliente?: string;
+  clienteId?: number;
   tipo?: TipoProjeto | 'ALL'; // <-- mais explícito
 }
 

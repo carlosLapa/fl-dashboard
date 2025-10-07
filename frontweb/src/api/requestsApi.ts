@@ -289,7 +289,8 @@ export const getProjetosByDateRangeAPI = async (
 export const getProjetosWithFiltersAPI = async (
   filters: {
     designacao?: string;
-    entidade?: string;
+    cliente?: string;
+    clienteId?: number;
     prioridade?: string;
     startDate?: string;
     endDate?: string;
@@ -313,8 +314,11 @@ export const getProjetosWithFiltersAPI = async (
     if (filters.designacao) {
       url += `&designacao=${encodeURIComponent(filters.designacao)}`;
     }
-    if (filters.entidade) {
-      url += `&entidade=${encodeURIComponent(filters.entidade)}`;
+    if (filters.cliente) {
+      url += `&clienteName=${encodeURIComponent(filters.cliente)}`;
+    }
+    if (filters.clienteId) {
+      url += `&clienteId=${filters.clienteId}`;
     }
     if (filters.prioridade) {
       url += `&prioridade=${encodeURIComponent(filters.prioridade)}`;

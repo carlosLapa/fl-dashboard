@@ -2,10 +2,11 @@ import React from 'react';
 import { ProjetoFilterState } from '../../types/filters';
 import { Form, Col } from 'react-bootstrap';
 import BaseFilterPanel from '../common/BaseFilterPanel';
+import ClienteSelect from '../ClienteSelect/ClienteSelect';
 
 interface ProjetoFilterPanelProps {
   filters: ProjetoFilterState;
-  updateFilter: (name: keyof ProjetoFilterState, value: string) => void;
+  updateFilter: (name: keyof ProjetoFilterState, value: any) => void;
   onApplyFilters: () => void;
   onClearFilters: () => void;
   showFilters: boolean;
@@ -72,11 +73,16 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Cliente</Form.Label>
-          <Form.Control
-            type="text"
+          <ClienteSelect
+            selectedClienteId={filters.clienteId}
+            onChange={(clienteId, clienteName) => {
+              updateFilter('clienteId', clienteId);
+              
+              // Update cliente name based on selection
+              updateFilter('cliente', clienteName || '');
+            }}
             placeholder="Filtrar por cliente"
-            value={filters.cliente || ''}
-            onChange={(e) => updateFilter('cliente', e.target.value)}
+            isDisabled={false}
           />
         </Form.Group>
       </Col>

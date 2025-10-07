@@ -6,7 +6,7 @@ import { getAllClientes } from '../../services/clienteService';
 
 interface ClienteSelectProps {
   selectedClienteId?: number;
-  onChange: (clienteId: number | undefined) => void;
+  onChange: (clienteId: number | undefined, clienteName?: string) => void;
   className?: string;
   isDisabled?: boolean;
   placeholder?: string;
@@ -54,7 +54,10 @@ const ClienteSelect: React.FC<ClienteSelectProps> = ({
     : null;
 
   const handleChange = (selectedOption: any) => {
-    onChange(selectedOption ? selectedOption.value : undefined);
+    onChange(
+      selectedOption ? selectedOption.value : undefined,
+      selectedOption ? selectedOption.label : undefined
+    );
   };
 
   return (

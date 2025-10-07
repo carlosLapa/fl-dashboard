@@ -39,11 +39,11 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     Optional<Projeto> findByIdActive(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
-    @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL AND " +
-            "(LOWER(p.designacao) LIKE :designacaoQuery OR LOWER(p.entidade) LIKE :entidadeQuery)")
-    List<Projeto> findByDesignacaoLikeIgnoreCaseOrEntidadeLikeIgnoreCase(
-            @Param("designacaoQuery") String designacaoQuery,
-            @Param("entidadeQuery") String entidadeQuery
+    @Query("SELECT p FROM Projeto p LEFT JOIN p.cliente c WHERE p.deletedAt IS NULL AND " +
+            "(LOWER(p.designacao) LIKE :searchQuery OR " +
+            "LOWER(c.name) LIKE :searchQuery)")
+    List<Projeto> findByDesignacaoLikeIgnoreCaseOrClienteNomeLikeIgnoreCase(
+            @Param("searchQuery") String searchQuery
     );
 
     @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
@@ -61,7 +61,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
 
     @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL " +
             "AND (:designacao IS NULL OR LOWER(p.designacao) LIKE LOWER(CONCAT('%', :designacao, '%'))) " +
-            "AND (:entidade IS NULL OR LOWER(p.entidade) LIKE LOWER(CONCAT('%', :entidade, '%'))) " +
+            "AND (:clienteId IS NULL OR p.cliente.id = :clienteId) " +
+            "AND (:clienteName IS NULL OR LOWER(p.cliente.name) LIKE LOWER(CONCAT('%', :clienteName, '%'))) " +
             "AND (:prioridade IS NULL OR LOWER(p.prioridade) LIKE LOWER(CONCAT('%', :prioridade, '%'))) " +
             "AND (:startDate IS NULL OR p.prazo >= :startDate) " +
             "AND (:endDate IS NULL OR p.prazo <= :endDate) " +
@@ -74,7 +75,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             "AND (:tipo IS NULL OR p.tipo = :tipo)")
     Page<Projeto> findByFilters(
             @Param("designacao") String designacao,
-            @Param("entidade") String entidade,
+            @Param("clienteId") Long clienteId,
+            @Param("clienteName") String clienteName,
             @Param("prioridade") String prioridade,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,

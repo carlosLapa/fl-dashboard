@@ -57,11 +57,11 @@ const ClienteProjetosPage: React.FC = () => {
   const [filters, setFilters] = useState<ProjetoFilterState>({
     designacao: '',
     status: '',
-    entidade: '',
+    cliente: '',
+    clienteId: undefined,
     prioridade: '',
     startDate: '',
     endDate: '',
-    cliente: '',
   });
 
   // Use a ref to track component mount state
@@ -272,11 +272,11 @@ const ClienteProjetosPage: React.FC = () => {
     setFilters({
       designacao: '',
       status: '',
-      entidade: '',
+      cliente: '',
+      clienteId: undefined,
       prioridade: '',
       startDate: '',
       endDate: '',
-      cliente: '',
     });
   };
 
