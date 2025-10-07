@@ -22,7 +22,8 @@ export type FilterState = ProjetoFilterState;
 export const buildApiFilters = (filters: FilterState) => {
   return {
     designacao: filters.designacao || undefined,
-    cliente: filters.cliente || undefined,
+    clienteId: filters.clienteId || undefined,
+    clienteName: filters.cliente || undefined, // Send cliente name for backward compatibility
     prioridade: filters.prioridade || undefined,
     status: filters.status !== 'ALL' ? filters.status : undefined,
     startDate: filters.startDate || undefined,

@@ -9,8 +9,10 @@ export const hasActiveFilters = (filters: BaseFilterState): boolean => {
   return Object.entries(filters).some(([key, value]) => {
     // Skip status if it's 'ALL'
     if (key === 'status' && value === 'ALL') return false;
+    // Skip clienteId if it's undefined
+    if (key === 'clienteId' && value === undefined) return false;
     // Consider a filter applied if it has a non-empty value
-    return value !== '';
+    return value !== '' && value !== undefined && value !== null;
   });
 };
 

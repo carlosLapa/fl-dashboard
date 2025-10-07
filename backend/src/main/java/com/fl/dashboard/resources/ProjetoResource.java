@@ -226,7 +226,8 @@ public class ProjetoResource {
     @GetMapping("/filter")
     public ResponseEntity<?> filterProjetos(
             @RequestParam(required = false) String designacao,
-            @RequestParam(required = false) String entidade,
+            @RequestParam(required = false) Long clienteId,
+            @RequestParam(required = false) String clienteName,
             @RequestParam(required = false) String prioridade,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -245,7 +246,7 @@ public class ProjetoResource {
 
         if (canViewAll) {
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetos(
-                    designacao, entidade, prioridade, startDate, endDate, status,
+                    designacao, clienteId, clienteName, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
                     adjudicacaoStartDate, adjudicacaoEndDate, tipo, pageable);
             return ResponseEntity.ok().body(result);
@@ -257,7 +258,7 @@ public class ProjetoResource {
                 userEmail = authentication.getName();
             }
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetosForUser(
-                    designacao, entidade, prioridade, startDate, endDate, status,
+                    designacao, clienteId, clienteName, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
                     adjudicacaoStartDate, adjudicacaoEndDate, tipo, userEmail, pageable);
             return ResponseEntity.ok().body(result);

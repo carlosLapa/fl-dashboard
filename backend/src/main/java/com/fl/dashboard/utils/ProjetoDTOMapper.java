@@ -1,7 +1,6 @@
 package com.fl.dashboard.utils;
 
-import com.fl.dashboard.dto.ProjetoDTO;
-import com.fl.dashboard.dto.ProjetoWithUsersDTO;
+import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Cliente;
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
@@ -115,10 +114,30 @@ public class ProjetoDTOMapper {
         dto.setObservacao(entity.getObservacao());
         dto.setStatus(entity.getStatus());
         dto.setTipo(entity.getTipo());
-        dto.setCoordenadorId(entity.getCoordenador() != null ? entity.getCoordenador().getId() : null);
+
+        // Map coordenador if present
+        if (entity.getCoordenador() != null) {
+            dto.setCoordenadorId(entity.getCoordenador().getId());
+            dto.setCoordenador(new UserDTO(entity.getCoordenador()));
+        }
+
         dto.setDataProposta(entity.getDataProposta());
         dto.setDataAdjudicacao(entity.getDataAdjudicacao());
-        // Adicione outros campos conforme necessário
+
+        // Map cliente if present
+        if (entity.getCliente() != null) {
+            dto.setClienteId(entity.getCliente().getId());
+            dto.setCliente(new ClienteDTO(entity.getCliente()));
+        }
+
+        // Map externos if present
+        if (entity.getExternos() != null && !entity.getExternos().isEmpty()) {
+            entity.getExternos().forEach(externo -> {
+                dto.getExternos().add(new ExternoDTO(externo));
+                dto.getExternoIds().add(externo.getId());
+            });
+        }
+
         return dto;
     }
 

@@ -315,7 +315,7 @@ const ProjetosPage: React.FC = () => {
         >
           <h2 className="page-title">
             Gestão de Projetos
-            {hasActiveFilters(appliedFilters) && (
+            {isFiltered && hasActiveFilters(appliedFilters) && (
               <Badge
                 bg="info"
                 className="ms-2"

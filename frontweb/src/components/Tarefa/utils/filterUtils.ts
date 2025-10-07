@@ -4,7 +4,8 @@ import { ProjetoFilterState, TarefaFilterState } from '../../../types/filters';
 export const hasActiveFilters = (filters: ProjetoFilterState): boolean => {
   return (
     !!filters.designacao ||
-    !!filters.entidade ||
+    !!filters.cliente ||
+    !!filters.clienteId ||
     !!filters.prioridade ||
     (filters.status && filters.status !== 'ALL') ||
     !!filters.startDate ||

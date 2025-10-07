@@ -302,7 +302,7 @@ public class ProjetoService {
     @Transactional(readOnly = true)
     public List<ProjetoWithUsersAndTarefasDTO> searchProjetos(String query) {
         String searchQuery = "%" + query.toLowerCase() + "%";
-        List<Projeto> projetos = projetoRepository.findByDesignacaoLikeIgnoreCaseOrEntidadeLikeIgnoreCase(searchQuery, searchQuery);
+        List<Projeto> projetos = projetoRepository.findByDesignacaoLikeIgnoreCaseOrClienteNomeLikeIgnoreCase(searchQuery);
         List<ProjetoWithUsersAndTarefasDTO> list = new ArrayList<>();
         for (Projeto projeto : projetos) {
             ProjetoWithUsersAndTarefasDTO projetoWithUsersAndTarefasDTO = new ProjetoWithUsersAndTarefasDTO(projeto);
@@ -330,7 +330,8 @@ public class ProjetoService {
     @Transactional(readOnly = true)
     public Page<ProjetoWithUsersDTO> filterProjetos(
             String designacao,
-            String entidade,
+            Long clienteId,
+            String clienteName,
             String prioridade,
             Date startDate,
             Date endDate,
@@ -351,7 +352,7 @@ public class ProjetoService {
         String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
 
         Page<Projeto> result = projetoRepository.findByFilters(
-                designacao, entidade, prioridade, startDate, adjustedEndDate, statusFilter,
+                designacao, clienteId, clienteName, prioridade, startDate, adjustedEndDate, statusFilter,
                 coordenadorId, propostaStartDate, adjustedPropostaEndDate,
                 adjudicacaoStartDate, adjustedAdjudicacaoEndDate, tipo, pageable);
 
@@ -480,7 +481,8 @@ public class ProjetoService {
     @Transactional(readOnly = true)
     public Page<ProjetoWithUsersDTO> filterProjetosForUser(
             String designacao,
-            String entidade,
+            Long clienteId,
+            String clienteName,
             String prioridade,
             Date startDate,
             Date endDate,
@@ -514,7 +516,8 @@ public class ProjetoService {
                 .filter(projeto -> !projeto.isDeleted()) // Use isDeleted() method
                 .filter(projeto ->
                         (designacao == null || projeto.getDesignacao().toLowerCase().contains(designacao.toLowerCase())) &&
-                                (entidade == null || projeto.getEntidade().toLowerCase().contains(entidade.toLowerCase())) &&
+                                (clienteId == null || (projeto.getCliente() != null && projeto.getCliente().getId().equals(clienteId))) &&
+                                (clienteName == null || (projeto.getCliente() != null && projeto.getCliente().getName().toLowerCase().contains(clienteName.toLowerCase()))) &&
                                 (prioridade == null || projeto.getPrioridade().equals(prioridade)) &&
                                 (statusFilter == null || projeto.getStatus().equals(statusFilter)) &&
                                 (startDate == null || projeto.getDataAdjudicacao() == null || !projeto.getDataAdjudicacao().before(startDate)) &&

@@ -5,6 +5,7 @@ import secureStorage from '../auth/secureStorage';
 const defaultProjetoFilterState: ProjetoFilterState = {
   designacao: '',
   cliente: '',
+  clienteId: undefined,
   prioridade: '',
   status: 'ALL',
   startDate: '',
@@ -50,7 +51,7 @@ export function useFilterState<T extends BaseFilterState>(
   }, [filters, storageKey]);
 
   // Update a single filter value
-  const updateFilter = useCallback((name: keyof T, value: string) => {
+  const updateFilter = useCallback((name: keyof T, value: any) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   }, []);
 

@@ -22,7 +22,8 @@ const ExternoProjetosPage: React.FC = () => {
   // Single filter state object
   const [filters, setFilters] = useState<FilterState>({
     designacao: '',
-    entidade: '',
+    cliente: '',
+    clienteId: undefined,
     prioridade: '',
     status: 'ALL',
     startDate: '',
@@ -95,7 +96,8 @@ const ExternoProjetosPage: React.FC = () => {
   const handleClearFilters = () => {
     setFilters({
       designacao: '',
-      entidade: '',
+      cliente: '',
+      clienteId: undefined,
       prioridade: '',
       status: 'ALL',
       startDate: '',
