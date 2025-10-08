@@ -358,6 +358,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   required
                 >
                   <option value="">Selecione a prioridade</option>
+                  <option value="EM ESPERA">Em Espera</option>
                   <option value="BAIXA">Baixa</option>
                   <option value="MEDIA">Média</option>
                   <option value="ALTA">Alta</option>
