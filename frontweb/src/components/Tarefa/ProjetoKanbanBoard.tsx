@@ -310,15 +310,16 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
     // Admin override - skip permission checks for admins
     if (!isAdmin) {
-      // Check permissions for specific column movements
-      if (
-        destination.droppableId === 'IN_REVIEW' &&
-        !hasPermission(Permission.MOVE_CARD_TO_REVIEW)
-      ) {
-        toast.error('Não tem permissão para mover tarefas para Em Revisão');
-        return; // Block the movement
-      }
+      // Remoção da verificação para IN_REVIEW para permitir que Colaboradores possam mover
+      // if (
+      //   destination.droppableId === 'IN_REVIEW' &&
+      //   !hasPermission(Permission.MOVE_CARD_TO_REVIEW)
+      // ) {
+      //   toast.error('Não tem permissão para mover tarefas para Em Revisão');
+      //   return; // Block the movement
+      // }
 
+      // Manter apenas a verificação para DONE
       if (
         destination.droppableId === 'DONE' &&
         !hasPermission(Permission.MOVE_CARD_TO_DONE)
@@ -403,7 +404,6 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           statusTranslations[destination.droppableId as TarefaStatus]
         }"`
       );
-      
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
       toast.error('Falha ao atualizar o status da tarefa');
@@ -446,12 +446,12 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
   return (
     <div className="kanban-board-wrapper">
-      {/* Show different alerts based on user role */}
-      {!isAdmin && !hasPermission(Permission.MOVE_CARD_TO_REVIEW) && (
+      {/* Atualizar texto da mensagem informativa */}
+      {!isAdmin && !hasPermission(Permission.MOVE_CARD_TO_DONE) && (
         <Alert variant="info" className="mb-3">
-          Nota: Pode mover tarefas apenas entre as colunas "Backlog", "A Fazer"
-          e "Em Progresso". Só um gestor ou admin pode mover para "Em Revisão"
-          ou "Concluído".
+          Nota: Pode mover tarefas entre as colunas "Backlog", "A Fazer", "Em
+          Progresso" e "Em Revisão". Só um gestor ou admin pode mover tarefas
+          para "Concluído".
         </Alert>
       )}
 
@@ -465,11 +465,12 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="kanban-board-container">
           {columnsOrder.map((columnId) => {
-            // Define which columns are freely accessible to employees
+            // Atualizar as colunas sem restrição para incluir IN_REVIEW
             const isUnrestrictedColumn = [
               'BACKLOG',
               'TODO',
               'IN_PROGRESS',
+              'IN_REVIEW', // IN_REVIEW adicionada como coluna sem restrição
             ].includes(columnId);
 
             return (
@@ -481,8 +482,6 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
                 canDrop={
                   isAdmin || // Admin can drop anywhere
                   isUnrestrictedColumn || // Employees can drop in unrestricted columns
-                  (columnId === 'IN_REVIEW' &&
-                    hasPermission(Permission.MOVE_CARD_TO_REVIEW)) ||
                   (columnId === 'DONE' &&
                     hasPermission(Permission.MOVE_CARD_TO_DONE))
                 }
