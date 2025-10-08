@@ -144,13 +144,11 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
 
   useEffect(() => {
     if (isEditing && projeto) {
-      const formattedPrazo = projeto.prazo
-        ? new Date(projeto.prazo).toISOString().split('T')[0]
-        : '';
-
       const newFormData: ProjetoFormData = {
         ...projeto,
-        prazo: formattedPrazo,
+        prazo: toInputDate(projeto.prazo),
+        dataProposta: toInputDate(projeto.dataProposta),
+        dataAdjudicacao: toInputDate(projeto.dataAdjudicacao),
         externos: projeto.externos || [],
         clienteId: projeto.cliente?.id || clienteInfo?.id,
       };
