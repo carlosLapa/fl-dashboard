@@ -22,7 +22,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Cliente } from '../../types/cliente';
 import { getAllClientes } from '../../services/clienteService';
-// import { useAuth } from '../../AuthContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
 
@@ -32,6 +31,7 @@ const PropostasPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0); // Adicionado totalElements
   const [showModal, setShowModal] = useState(false);
   const [propostaToEdit, setPropostaToEdit] = useState<Proposta | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -108,7 +108,6 @@ const PropostasPage: React.FC = () => {
     }
   };
 
-  // const { user } = useAuth();
   const { hasPermission } = usePermissions();
   const navigate = useNavigate();
 
@@ -132,6 +131,7 @@ const PropostasPage: React.FC = () => {
       const response = await getPropostas(page, pageSize);
       setPropostas(response.content);
       setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements || 0); // Adicionado setter para totalElements
     } catch (error) {
       toast.error('Erro ao carregar propostas');
     } finally {
@@ -142,6 +142,11 @@ const PropostasPage: React.FC = () => {
   useEffect(() => {
     fetchPropostas();
   }, [fetchPropostas]);
+
+  // Handler para mudança de página
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   const handleAddNewProposta = () => {
     if (!hasPermission(Permission.CREATE_PROPOSTA)) {
@@ -225,8 +230,20 @@ const PropostasPage: React.FC = () => {
             onSelect={handleEditProposta}
             onDeleteProposta={handleDeleteProposta}
             onGenerateProjeto={handleGenerateProjeto}
-            // Adapte para paginação se necessário
+            page={page}
+            onPageChange={handlePageChange}
+            totalPages={totalPages}
+            isLoading={isLoading}
           />
+
+          {!isLoading && totalElements > 0 && (
+            <div className="d-flex justify-content-center mt-3 text-muted">
+              <small>
+                Exibindo {Math.min(pageSize, propostas.length)} de{' '}
+                {totalElements} propostas
+              </small>
+            </div>
+          )}
         </div>
       </div>
       <PropostaModal
