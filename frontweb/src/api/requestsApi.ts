@@ -691,7 +691,7 @@ export const getTarefasFilteredAPI = async (params: {
   direction?: string;
   descricao?: string;
   status?: string;
-  projeto?: string; // This will be the project ID
+  projetoId?: string; // Using projetoId to match service and component usage
   dateField?: string;
   startDate?: string;
   endDate?: string;
@@ -721,10 +721,10 @@ export const getTarefasFilteredAPI = async (params: {
       console.log('API - Adding status filter:', params.status);
     }
 
-    // FIXED: Use 'projetoId' parameter to match backend expectation
-    if (params.projeto) {
-      queryParams.append('projetoId', params.projeto);
-      console.log('API - Adding projetoId filter:', params.projeto);
+    // Use 'projetoId' parameter to match frontend and backend expectation
+    if (params.projetoId) {
+      queryParams.append('projetoId', params.projetoId);
+      console.log('API - Adding projetoId filter:', params.projetoId);
     }
 
     // Add date filter params if they exist

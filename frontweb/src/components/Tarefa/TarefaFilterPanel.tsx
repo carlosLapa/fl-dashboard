@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Form, Col } from 'react-bootstrap';
 import { TarefaFilterState } from '../../types/filters';
 import BaseFilterPanel from '../common/BaseFilterPanel';
-import { getProjetosAPI } from 'api/requestsApi';
-import { Projeto } from 'types/projeto';
+import ProjetoSelect from '../../components/ProjetoSelect';
 
 interface TarefaFilterPanelProps {
   filters: TarefaFilterState;
@@ -37,61 +36,10 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
   showFilters,
   setShowFilters,
 }) => {
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
-  const [filteredProjetos, setFilteredProjetos] = useState<Projeto[]>([]);
-  const [showProjetoDropdown, setShowProjetoDropdown] = useState(false);
-  const [projetoSearchText, setProjetoSearchText] = useState('');
-
-  useEffect(() => {
-    const fetchProjetos = async () => {
-      try {
-        const response = await getProjetosAPI(0, 1000);
-        setProjetos(response.content);
-      } catch (error) {
-        console.error('Error fetching projetos:', error);
-      }
-    };
-    fetchProjetos();
-  }, []);
-
-  useEffect(() => {
-    if (filters.projetoId && projetos.length > 0) {
-      const projeto = projetos.find(
-        (p) => p.id.toString() === filters.projetoId
-      );
-      if (projeto) {
-        setProjetoSearchText(projeto.designacao);
-      }
-    }
-  }, [filters.projetoId, projetos]);
-
-  useEffect(() => {
-    if (projetoSearchText) {
-      const filtered = projetos.filter((projeto) =>
-        projeto.designacao
-          .toLowerCase()
-          .includes(projetoSearchText.toLowerCase())
-      );
-      setFilteredProjetos(filtered);
-      setShowProjetoDropdown(filtered.length > 0);
-    } else {
-      setFilteredProjetos([]);
-      setShowProjetoDropdown(false);
-    }
-  }, [projetoSearchText, projetos]);
-
-  const handleProjetoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setProjetoSearchText(value);
-    if (value === '') {
-      updateFilter('projetoId', '');
-    }
-  };
-
-  const handleSelectProjeto = (projeto: Projeto) => {
-    setProjetoSearchText(projeto.designacao);
-    updateFilter('projetoId', projeto.id.toString());
-    setShowProjetoDropdown(false);
+  // Handle project selection using the ProjetoSelect component
+  const handleProjetoChange = (projetoId: number | undefined, projetoName?: string) => {
+    console.log('TarefaFilterPanel - Project selected:', projetoId, projetoName);
+    updateFilter('projetoId', projetoId ? projetoId.toString() : '');
   };
 
   const handleSelectKeyDown = (e: React.KeyboardEvent) => {
@@ -110,10 +58,7 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
       showFilters={showFilters}
       setShowFilters={setShowFilters}
       onApplyFilters={onApplyFilters}
-      onClearFilters={() => {
-        onClearFilters();
-        setProjetoSearchText('');
-      }}
+      onClearFilters={onClearFilters}
       activeFiltersCount={activeFiltersCount}
       title="Filtros Avançados"
     >
@@ -132,43 +77,12 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
       <Col md={6} lg={4}>
         <Form.Group>
           <Form.Label>Projeto</Form.Label>
-          <div className="position-relative">
-            <Form.Control
-              type="text"
-              placeholder="Filtrar por projeto"
-              value={projetoSearchText}
-              onChange={handleProjetoInputChange}
-              onFocus={() => {
-                if (filteredProjetos.length > 0) {
-                  setShowProjetoDropdown(true);
-                }
-              }}
-              onBlur={() => {
-                setTimeout(() => setShowProjetoDropdown(false), 200);
-              }}
-            />
-            {showProjetoDropdown && (
-              <div
-                className="position-absolute w-100 bg-white border rounded shadow-sm"
-                style={{
-                  zIndex: 1000,
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                }}
-              >
-                {filteredProjetos.map((projeto) => (
-                  <div
-                    key={projeto.id}
-                    className="p-2 border-bottom"
-                    style={{ cursor: 'pointer' }}
-                    onMouseDown={() => handleSelectProjeto(projeto)}
-                  >
-                    {projeto.designacao}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProjetoSelect
+            selectedProjetoId={filters.projetoId ? Number(filters.projetoId) : undefined}
+            onChange={handleProjetoChange}
+            placeholder="Filtrar por projeto"
+            className="mb-0"
+          />
         </Form.Group>
       </Col>
 

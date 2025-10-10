@@ -167,6 +167,29 @@ export const getProjetoWithUsersAndTarefas = async (
   }
 };
 
+/**
+ * Retrieves all projects with minimal pagination (large page size)
+ * This is primarily used for dropdowns and selectors
+ * @returns An array of projects for selection purposes
+ */
+export const getAllProjetos = async (): Promise<PaginatedProjetos> => {
+  try {
+    // Use a large page size to get all projetos in a single request
+    const response = await getProjetosAPI(0, 1000);
+    console.log('getAllProjetos - Retrieved projects:', response.content.length);
+    return response;
+  } catch (error) {
+    console.error('Error in getAllProjetos:', error);
+    return {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: 0,
+      number: 0,
+    };
+  }
+};
+
 export const fetchProjetosByDateRange = async (
   startDate: string,
   endDate: string,
