@@ -6,13 +6,46 @@ import { BaseFilterState } from '../../../types/filters';
  * @returns True if any filter has a value, false otherwise
  */
 export const hasActiveFilters = (filters: BaseFilterState): boolean => {
+  if (!filters) return false;
+  
+  // Debug para identificar os valores dos filtros
+  Object.entries(filters).forEach(([key, value]) => {
+    console.log(`Checking filter ${key}: ${value} (type: ${typeof value})`, 
+      key === 'clienteId' && value !== undefined ? 'ACTIVE' : '');
+  });
+  
   return Object.entries(filters).some(([key, value]) => {
-    // Skip status if it's 'ALL'
+    // Ignorar status se for 'ALL'
     if (key === 'status' && value === 'ALL') return false;
-    // Skip clienteId if it's undefined
-    if (key === 'clienteId' && value === undefined) return false;
-    // Consider a filter applied if it has a non-empty value
-    return value !== '' && value !== undefined && value !== null;
+    
+    // Ignorar tipo se for 'ALL' ou vazio
+    if (key === 'tipo' && (value === 'ALL' || value === '')) return false;
+    
+    // Caso especial para clienteId - é ativo se for um número válido
+    if (key === 'clienteId') {
+      const isActive = value !== undefined && value !== null;
+      if (isActive) console.log(`Filtro ativo: clienteId=${value}`);
+      return isActive;
+    }
+    
+    // Caso especial para cliente (nome) - é ativo apenas se não for vazio
+    if (key === 'cliente') {
+      const isActive = value !== undefined && value !== null && value !== '';
+      if (isActive) console.log(`Filtro ativo: cliente="${value}"`);
+      return isActive;
+    }
+    
+    // Para strings, só é ativo se não for vazio
+    if (typeof value === 'string') {
+      const isActive = value.trim() !== '';
+      if (isActive) console.log(`Filtro ativo: ${key}="${value}"`);
+      return isActive;
+    }
+    
+    // Para outros tipos, é ativo se não for undefined ou null
+    const isActive = value !== undefined && value !== null;
+    if (isActive) console.log(`Filtro ativo: ${key}=${value}`);
+    return isActive;
   });
 };
 

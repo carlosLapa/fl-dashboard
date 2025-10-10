@@ -8,18 +8,18 @@ export interface BaseFilterState {
 // Projeto filter state
 export interface ProjetoFilterState {
   designacao?: string;
+  // Remover entidade
   prioridade?: string;
   status?: string;
   startDate?: string;
   endDate?: string;
-  // Add new filter fields
   coordenadorId?: number;
   propostaStartDate?: string;
   propostaEndDate?: string;
   adjudicacaoStartDate?: string;
   adjudicacaoEndDate?: string;
-  cliente?: string;
-  clienteId?: number;
+  cliente?: string; // Nome do cliente para filtragem por texto
+  clienteId?: number; // ID do cliente para filtragem exata
   tipo?: TipoProjeto | 'ALL'; // <-- mais explícito
 }
 

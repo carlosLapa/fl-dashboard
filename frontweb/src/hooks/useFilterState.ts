@@ -57,15 +57,39 @@ export function useFilterState<T extends BaseFilterState>(
 
   // Apply all current filters
   const applyFilters = useCallback(() => {
-    const hasFilters = Object.entries(filters).some(
-      ([key, value]) => value !== '' && (key !== 'status' || value !== 'ALL')
-    );
+    // Verificação mais robusta para detecção de filtros ativos
+    const hasFilters = Object.entries(filters).some(([key, value]) => {
+      // Log para debug
+      console.log(`Verificando filtro ${key}: ${value} (${typeof value})`);
+      
+      // Ignorar status ALL
+      if (key === 'status' && value === 'ALL') return false;
+      
+      // Ignorar tipo vazio ou ALL
+      if (key === 'tipo' && (value === 'ALL' || value === '' || value === undefined)) return false;
+      
+      // Tratamento especial para clienteId
+      if (key === 'clienteId') {
+        return value !== undefined && value !== null;
+      }
+      
+      // Tratamento para strings
+      if (typeof value === 'string') {
+        return value.trim() !== '';
+      }
+      
+      // Outros tipos
+      return value !== undefined && value !== null && value !== '';
+    });
+
+    // Log da decisão
+    console.log(`Filtros ativos detectados: ${hasFilters}`, filters);
 
     if (!hasFilters) {
       return false; // Return false to indicate no filters were applied
     }
 
-    setAppliedFilters(filters);
+    setAppliedFilters({...filters}); // Usar um objeto novo para garantir reatividade
     setIsFiltered(true);
     return true; // Return true to indicate filters were applied
   }, [filters]);

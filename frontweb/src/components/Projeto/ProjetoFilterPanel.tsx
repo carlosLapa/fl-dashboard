@@ -10,8 +10,7 @@ interface ProjetoFilterPanelProps {
   onApplyFilters: () => void;
   onClearFilters: () => void;
   showFilters: boolean;
-  setShowFilters: (show: boolean) => void;
-  filterKeyDownHandler?: (e: React.KeyboardEvent) => void;
+  setShowFilters: (show: boolean) => void; // Adicionando a prop obrigatória
 }
 
 const PRIORITY_OPTIONS = [
@@ -28,15 +27,8 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
   onApplyFilters,
   onClearFilters,
   showFilters,
-  setShowFilters,
-  filterKeyDownHandler,
+  setShowFilters, // Inclua na desestruturação
 }) => {
-  // Calculate active filters count
-  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    // Skip empty values and 'ALL' status
-    return value && value !== '' && (key !== 'status' || value !== 'ALL');
-  }).length;
-
   // Handle Enter key in select elements
   const handleSelectKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -52,11 +44,10 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
 
   return (
     <BaseFilterPanel
-      showFilters={showFilters}
-      setShowFilters={setShowFilters}
       onApplyFilters={onApplyFilters}
       onClearFilters={onClearFilters}
-      activeFiltersCount={activeFiltersCount}
+      showFilters={showFilters}
+      setShowFilters={setShowFilters} // Passe a prop para o BaseFilterPanel
     >
       {/* Text Filters */}
       <Col md={6} lg={4}>
@@ -76,10 +67,18 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
           <ClienteSelect
             selectedClienteId={filters.clienteId}
             onChange={(clienteId, clienteName) => {
-              updateFilter('clienteId', clienteId);
-              
-              // Update cliente name based on selection
+              console.log(
+                `Cliente selecionado: ID=${clienteId}, Nome=${clienteName}`
+              );
+
+              // Atualizar os dois campos relevantes - garantindo que clienteId seja undefined quando não selecionado
+              // e clienteName seja string vazia quando não selecionado
+              updateFilter('clienteId', clienteId === undefined ? undefined : clienteId);
               updateFilter('cliente', clienteName || '');
+              
+              // Verificar os valores após a atualização
+              console.log('ClienteId após update:', filters.clienteId, 'tipo:', typeof filters.clienteId);
+              console.log('Cliente após update:', filters.cliente, 'tipo:', typeof filters.cliente);
             }}
             placeholder="Filtrar por cliente"
             isDisabled={false}
@@ -163,5 +162,13 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
     </BaseFilterPanel>
   );
 };
+
+function filterKeyDownHandler(e: React.KeyboardEvent<Element>) {
+  // Prevent form submission on Enter in select elements, but allow navigation
+  if (e.key === 'Enter') {
+    e.preventDefault();
+  }
+  // You can add more custom key handling logic here if needed
+}
 
 export default ProjetoFilterPanel;

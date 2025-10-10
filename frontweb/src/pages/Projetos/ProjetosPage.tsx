@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { getProjetosWithFilters } from '../../services/projetoService';
+import { fetchProjetosWithFilters } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
@@ -27,10 +27,10 @@ const ProjetosPage: React.FC = () => {
   const { user } = useAuth();
   const { sendNotification } = useNotification();
   const { isEmployee } = usePermissions(); // Add this hook
-  
+
   // Check if user is an employee (not admin or manager)
   const shouldDisableActions = isEmployee();
-  
+
   // Define disabled style for the button
   const disabledStyle: React.CSSProperties = {
     color: '#ccc',
@@ -95,20 +95,36 @@ const ProjetosPage: React.FC = () => {
     setIsLoading(true);
     try {
       console.log('Fetching filtered projetos');
-      console.log('Applying filters:', appliedFilters);
+      console.log('Applying filters:', JSON.stringify(appliedFilters, null, 2));
       console.log('With sort:', sortField, sortDirection);
-      const response = await getProjetosWithFilters(
+      
+      // Debug clienteId especificamente
+      if (appliedFilters.clienteId !== undefined) {
+        console.log(`clienteId filtro: ${appliedFilters.clienteId} (${typeof appliedFilters.clienteId})`);
+      }
+      
+      const response = await fetchProjetosWithFilters(
         appliedFilters,
         page,
         pageSize,
         sortField,
         sortDirection
       );
-      setProjetos(response.content);
-      setTotalPages(response.totalPages);
+      
+      if (response && response.data) {
+        console.log(`Projetos encontrados: ${response.data.content?.length || 0}`);
+        setProjetos(response.data.content || []);
+        setTotalPages(response.data.totalPages || 0);
+      } else {
+        console.warn('Resposta sem dados válidos');
+        setProjetos([]);
+        setTotalPages(0);
+      }
     } catch (error) {
       console.error('Erro ao filtrar projetos:', error);
       toast.error('Erro ao filtrar projetos');
+      setProjetos([]);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }
@@ -173,6 +189,11 @@ const ProjetosPage: React.FC = () => {
   // Filter handlers
   const handleApplyFilters = useCallback(() => {
     console.log('handleApplyFilters called with filters:', filters);
+    
+    // Debug para clienteId especificamente
+    console.log('clienteId antes de aplicar:', filters.clienteId, 'tipo:', typeof filters.clienteId);
+    console.log('cliente nome antes de aplicar:', filters.cliente);
+    
     const success = applyFilters();
 
     if (!success) {
@@ -180,12 +201,16 @@ const ProjetosPage: React.FC = () => {
       return;
     }
 
+    // Log dos filtros aplicados
+    console.log('Filtros aplicados com sucesso:', appliedFilters);
+    console.log('clienteId após aplicar:', appliedFilters.clienteId, 'tipo:', typeof appliedFilters.clienteId);
+
     // Reset to page 0 when applying filters
     setPage(0);
 
     // Important: Clear search query when applying filters
     setSearchQuery('');
-  }, [filters, applyFilters]);
+  }, [filters, applyFilters, appliedFilters]);
 
   // CRUD operations
   const handleEditProjeto = useCallback(
@@ -202,7 +227,7 @@ const ProjetosPage: React.FC = () => {
   const handleAddNewProjeto = useCallback(() => {
     // Add check for employee permissions
     if (shouldDisableActions) return;
-    
+
     setProjetoToEdit(null);
     setShowModal(true);
   }, [shouldDisableActions]); // Add dependency

@@ -1,4 +1,5 @@
-import axios from 'api/apiConfig';
+import axios from '../api/apiConfig';
+import { getApiUrl } from '../api/apiConfig';
 import {
   PaginatedProjetos,
   Projeto,
@@ -289,79 +290,109 @@ export const getProjetosByDateRangeAPI = async (
 export const getProjetosWithFiltersAPI = async (
   filters: {
     designacao?: string;
-    cliente?: string;
-    clienteId?: number;
+    clienteName?: string; // Nome do cliente para filtragem
+    clienteId?: number; // ID do cliente para filtragem exata
     prioridade?: string;
     startDate?: string;
     endDate?: string;
     status?: string;
-    coordenadorId?: number; // Add this new filter
-    propostaStartDate?: string; // Add this new filter
-    propostaEndDate?: string; // Add this new filter
-    adjudicacaoStartDate?: string; // Add this new filter
-    adjudicacaoEndDate?: string; // Add this new filter
+    coordenadorId?: number;
+    propostaStartDate?: string;
+    propostaEndDate?: string;
+    adjudicacaoStartDate?: string;
+    adjudicacaoEndDate?: string;
     tipo?: string;
   },
   page: number = 0,
   size: number = 10,
-  sort?: string,
-  direction?: 'ASC' | 'DESC'
-): Promise<PaginatedProjetos> => {
+  sort: string = 'id,asc'
+): Promise<any> => {
   try {
-    let url = `/projetos/filter?page=${page}&size=${size}`;
-
-    // Add all filters to the URL
+    // Log para debug
+    console.log('getProjetosWithFiltersAPI - Received filters:', JSON.stringify(filters, null, 2));
+    
+    let url = `${getApiUrl()}/projetos/filter?page=${page}&size=${size}&sort=${sort}`;
+    
+    // Somente adicionar parâmetros se tiverem valor real
     if (filters.designacao) {
       url += `&designacao=${encodeURIComponent(filters.designacao)}`;
     }
-    if (filters.cliente) {
-      url += `&clienteName=${encodeURIComponent(filters.cliente)}`;
-    }
-    if (filters.clienteId) {
+    
+    // Verificar explicitamente se clienteId é um número válido
+    if (filters.clienteId !== undefined && filters.clienteId !== null) {
       url += `&clienteId=${filters.clienteId}`;
     }
-    if (filters.prioridade) {
+    
+    // Importante: só adicionar clienteName se existir e não for vazio
+    if (filters.clienteName && filters.clienteName.trim() !== '') {
+      url += `&clienteName=${encodeURIComponent(filters.clienteName)}`;
+    }
+    
+    // Outros filtros...
+    if (filters.prioridade && filters.prioridade.trim() !== '') {
       url += `&prioridade=${encodeURIComponent(filters.prioridade)}`;
     }
-    if (filters.startDate) {
-      url += `&startDate=${filters.startDate}`;
-    }
-    if (filters.endDate) {
-      url += `&endDate=${filters.endDate}`;
-    }
+    
     if (filters.status && filters.status !== 'ALL') {
       url += `&status=${filters.status}`;
     }
 
-    // Add new filters
+    if (filters.startDate) {
+      url += `&startDate=${encodeURIComponent(filters.startDate)}`;
+    }
+
+    if (filters.endDate) {
+      url += `&endDate=${encodeURIComponent(filters.endDate)}`;
+    }
+
     if (filters.coordenadorId) {
       url += `&coordenadorId=${filters.coordenadorId}`;
     }
+
     if (filters.propostaStartDate) {
-      url += `&propostaStartDate=${filters.propostaStartDate}`;
-    }
-    if (filters.propostaEndDate) {
-      url += `&propostaEndDate=${filters.propostaEndDate}`;
-    }
-    if (filters.adjudicacaoStartDate) {
-      url += `&adjudicacaoStartDate=${filters.adjudicacaoStartDate}`;
-    }
-    if (filters.adjudicacaoEndDate) {
-      url += `&adjudicacaoEndDate=${filters.adjudicacaoEndDate}`;
-    }
-    if (filters.tipo) {
-      url += `&tipo=${filters.tipo}`;
+      url += `&propostaStartDate=${encodeURIComponent(
+        filters.propostaStartDate
+      )}`;
     }
 
-    // Add sort parameters
-    if (sort) {
-      url += `&sort=${sort},${direction || 'ASC'}`;
+    if (filters.propostaEndDate) {
+      url += `&propostaEndDate=${encodeURIComponent(filters.propostaEndDate)}`;
     }
+
+    if (filters.adjudicacaoStartDate) {
+      url += `&adjudicacaoStartDate=${encodeURIComponent(
+        filters.adjudicacaoStartDate
+      )}`;
+    }
+
+    if (filters.adjudicacaoEndDate) {
+      url += `&adjudicacaoEndDate=${encodeURIComponent(
+        filters.adjudicacaoEndDate
+      )}`;
+    }
+
+    if (filters.tipo) {
+      url += `&tipo=${encodeURIComponent(filters.tipo)}`;
+    }
+
+    console.log("Requesting URL:", url);
 
     const response = await axios.get(url);
-    return response.data;
+    
+    // Log da resposta para debug
+    console.log("Response status:", response.status);
+    console.log("Response has data:", !!response.data);
+    if (response.data && response.data.content) {
+      console.log("Response content length:", response.data.content.length);
+    }
+    
+    return response;
   } catch (error) {
     console.error('Error fetching projetos with filters:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+    }
     throw error;
   }
 };

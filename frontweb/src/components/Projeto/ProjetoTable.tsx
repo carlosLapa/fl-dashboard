@@ -21,7 +21,7 @@ interface ProjetoTableProps {
   onPageChange: (page: number) => void;
   totalPages: number;
   filters: ProjetoFilterState;
-  updateFilter: (name: keyof ProjetoFilterState, value: string) => void;
+  updateFilter: (name: keyof ProjetoFilterState, value: any) => void;
   onApplyFilters: () => void;
   onClearFilters: () => void;
   isLoading?: boolean;
@@ -31,7 +31,7 @@ interface ProjetoTableProps {
 }
 
 const ProjetoTable: React.FC<ProjetoTableProps> = ({
-  projetos,
+  projetos = [], // Definir valor padrão como array vazio
   onEditProjeto,
   onDeleteProjeto,
   page,
@@ -41,12 +41,15 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
   updateFilter,
   onApplyFilters,
   onClearFilters,
-  isLoading,
+  isLoading = false,
   sortField,
   sortDirection,
   onSort,
 }) => {
   const [showFilters, setShowFilters] = useState(false);
+
+  // Garantir que projetos seja sempre um array válido
+  const projetosToRender = Array.isArray(projetos) ? projetos : [];
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -82,7 +85,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
 
       {/* Table Section */}
       <div className="table-responsive">
-        {projetos.length > 0 ? (
+        {projetosToRender.length > 0 ? (
           <Table striped bordered hover>
             <ProjetoTableHeader
               sortField={sortField}
@@ -90,7 +93,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
               onSort={onSort}
             />
             <tbody>
-              {projetos.map((projeto) => (
+              {projetosToRender.map((projeto) => (
                 <ProjetoTableRow
                   key={projeto.id}
                   projeto={projeto}

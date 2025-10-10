@@ -20,22 +20,52 @@ export type FilterState = ProjetoFilterState;
 
 // Function to build API-compatible filter object
 export const buildApiFilters = (filters: FilterState) => {
-  return {
-    designacao: filters.designacao || undefined,
-    clienteId: filters.clienteId || undefined,
-    clienteName: filters.cliente || undefined, // Send cliente name for backward compatibility
-    prioridade: filters.prioridade || undefined,
+  // Para debug
+  console.log('Building API filters from:', filters);
+  
+  // Função auxiliar para tratar strings vazias vs valores reais
+  const valueOrUndefined = (value: string | undefined | null): string | undefined => {
+    if (value === undefined || value === null) return undefined;
+    if (value.trim() === '') return undefined;
+    return value;
+  };
+
+  // Função auxiliar para tratar números que podem ser undefined ou zero
+  const numberOrUndefined = (value: number | undefined | null): number | undefined => {
+    return (value !== undefined && value !== null) ? value : undefined;
+  };
+  
+  const apiFilters = {
+    designacao: valueOrUndefined(filters.designacao),
+    // Tratamento específico para clienteId - usar numberOrUndefined para evitar valores zero
+    clienteId: numberOrUndefined(filters.clienteId),
+    // Se filters.cliente for string vazia, não será enviado como parâmetro
+    clienteName: valueOrUndefined(filters.cliente),
+    prioridade: valueOrUndefined(filters.prioridade),
     status: filters.status !== 'ALL' ? filters.status : undefined,
-    startDate: filters.startDate || undefined,
-    endDate: filters.endDate || undefined,
-    // Add the new filter fields
-    coordenadorId: filters.coordenadorId || undefined,
-    propostaStartDate: filters.propostaStartDate || undefined,
-    propostaEndDate: filters.propostaEndDate || undefined,
-    adjudicacaoStartDate: filters.adjudicacaoStartDate || undefined,
-    adjudicacaoEndDate: filters.adjudicacaoEndDate || undefined,
+    startDate: valueOrUndefined(filters.startDate),
+    endDate: valueOrUndefined(filters.endDate),
+    coordenadorId: numberOrUndefined(filters.coordenadorId),
+    propostaStartDate: valueOrUndefined(filters.propostaStartDate),
+    propostaEndDate: valueOrUndefined(filters.propostaEndDate),
+    adjudicacaoStartDate: valueOrUndefined(filters.adjudicacaoStartDate),
+    adjudicacaoEndDate: valueOrUndefined(filters.adjudicacaoEndDate),
     tipo: filters.tipo !== 'ALL' ? filters.tipo : undefined,
   };
+  
+  // Remove propriedades undefined para maior clareza nos logs
+  const cleanedFilters = Object.fromEntries(
+    Object.entries(apiFilters).filter(([_, value]) => value !== undefined)
+  );
+  
+  // Para debug mais detalhado
+  console.log('API filters built:', cleanedFilters);
+  console.log('clienteId (original):', filters.clienteId, 'type:', typeof filters.clienteId);
+  console.log('clienteId (processed):', apiFilters.clienteId, 'type:', typeof apiFilters.clienteId);
+  console.log('clienteName (original):', filters.cliente, 'type:', typeof filters.cliente);
+  console.log('clienteName (processed):', apiFilters.clienteName, 'type:', typeof apiFilters.clienteName);
+  
+  return apiFilters;
 };
 
 export const getProjetos = async (
@@ -137,68 +167,126 @@ export const getProjetoWithUsersAndTarefas = async (
   }
 };
 
-export const getProjetosByDateRange = async (
+export const fetchProjetosByDateRange = async (
   startDate: string,
   endDate: string,
   page: number = 0,
-  size: number = 10,
-  sort?: string,
-  direction?: 'ASC' | 'DESC'
+  size: number = 10
 ) => {
   try {
     const response = await getProjetosByDateRangeAPI(
       startDate,
       endDate,
       page,
-      size,
-      sort,
-      direction
+      size
     );
     return response;
   } catch (error) {
     console.error('Error fetching projetos by date range:', error);
-    return {
-      content: [],
-      totalPages: 0,
-      totalElements: 0,
-      size: size,
-      number: page,
-    };
+    throw error;
   }
 };
 
 // Updated to use the FilterState interface and the buildApiFilters helper
-export const getProjetosWithFilters = async (
+export const fetchProjetosWithFilters = async (
   filters: FilterState,
   page: number = 0,
   size: number = 10,
-  sort?: string,
-  direction?: 'ASC' | 'DESC'
+  sort: string = 'id',
+  direction: 'ASC' | 'DESC' = 'ASC'
 ) => {
   try {
-    // Use our helper function to build API-compatible filters
+    console.log('fetchProjetosWithFilters - Original filters:', JSON.stringify(filters, null, 2));
+    
     const apiFilters = buildApiFilters(filters);
+    console.log('fetchProjetosWithFilters - Processed apiFilters:', JSON.stringify(apiFilters, null, 2));
 
-    // Log the filters being sent to the API
-    console.log('Sending filters to API:', apiFilters);
+    // Combine sort and direction into a single parameter
+    const sortParam = `${sort},${direction.toLowerCase()}`;
+    console.log('fetchProjetosWithFilters - Sort parameter:', sortParam);
 
     const response = await getProjetosWithFiltersAPI(
       apiFilters,
       page,
       size,
-      sort,
-      direction
+      sortParam // Pass as a single formatted sort parameter
     );
+    
+    console.log('fetchProjetosWithFilters - API Response:', response.status);
+    
+    if (response.data && response.data.content) {
+      console.log('fetchProjetosWithFilters - Found items:', response.data.content.length);
+      
+      // Verificar se está retornando os dados corretamente
+      if (response.data.content.length > 0) {
+        console.log('fetchProjetosWithFilters - Primeiro projeto:', response.data.content[0].id);
+        
+        // Incluir mais dados para debug
+        if (apiFilters.clienteId) {
+          console.log('fetchProjetosWithFilters - Filtrou por clienteId:', apiFilters.clienteId);
+          console.log('fetchProjetosWithFilters - Cliente do primeiro projeto:', 
+            response.data.content[0].cliente?.name || 'N/A',
+            'ID:', response.data.content[0].cliente?.id || 'N/A');
+        }
+      }
+    } else {
+      console.warn('fetchProjetosWithFilters - Resposta sem conteúdo válido:', response.data);
+    }
+    
     return response;
   } catch (error) {
     console.error('Error fetching projetos with filters:', error);
-    return {
-      content: [],
-      totalPages: 0,
-      totalElements: 0,
-      size: size,
-      number: page,
+    // Mais detalhes sobre erros do Axios
+    if (axios.isAxiosError(error)) {
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error config:', error.config);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Fetch projetos with filters for the active cliente
+ * @param clienteId The ID of the cliente to filter by
+ * @param filters Additional filters to apply
+ * @param page Page number
+ * @param size Items per page
+ * @param sort Field to sort by
+ * @param direction Sort direction
+ * @returns Response from API
+ */
+export const fetchProjetosForCliente = async (
+  clienteId: number,
+  filters: FilterState,
+  page: number = 0,
+  size: number = 10,
+  sort: string = 'id',
+  direction: 'ASC' | 'DESC' = 'ASC'
+) => {
+  try {
+    // Include clienteId in the filters
+    const clienteFilters = {
+      ...filters,
+      clienteId,
     };
+
+    const apiFilters = buildApiFilters(clienteFilters);
+
+    // Combine sort and direction
+    const sortParam = `${sort},${direction.toLowerCase()}`;
+
+    const response = await getProjetosWithFiltersAPI(
+      apiFilters,
+      page,
+      size,
+      sortParam // Pass as a single formatted sort parameter
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching projetos for cliente ${clienteId}:`, error);
+    throw error;
   }
 };
 

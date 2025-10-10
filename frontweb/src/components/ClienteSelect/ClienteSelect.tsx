@@ -54,10 +54,17 @@ const ClienteSelect: React.FC<ClienteSelectProps> = ({
     : null;
 
   const handleChange = (selectedOption: any) => {
-    onChange(
-      selectedOption ? selectedOption.value : undefined,
-      selectedOption ? selectedOption.label : undefined
-    );
+    console.log('ClienteSelect onChange:', selectedOption);
+
+    // Extrair valores do objeto selecionado ou undefined se nada foi selecionado
+    // Garantir que o ID é um número quando presente
+    const clienteId = selectedOption ? Number(selectedOption.value) : undefined;
+    const clienteName = selectedOption ? selectedOption.label : undefined;
+    
+    console.log(`ClienteSelect - Preparando valores: ID=${clienteId} (${typeof clienteId}), Nome=${clienteName}`);
+
+    // Passar tanto o ID quanto o nome
+    onChange(clienteId, clienteName);
   };
 
   return (
