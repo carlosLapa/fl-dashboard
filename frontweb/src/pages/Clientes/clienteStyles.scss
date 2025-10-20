@@ -261,3 +261,122 @@
     }
   }
 }
+
+// Adicionar no final do arquivo - mantenha o .table-responsive original intacto
+
+// Container específico para a tabela de projetos na página de cliente
+.cliente-projetos-table-container {
+  margin-bottom: 1.5rem;
+  border-radius: 0.25rem;
+
+  // Classe específica para sobrescrever comportamentos da table-responsive apenas neste contexto
+  .cliente-projetos-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    // Estilização da barra de rolagem para diferentes navegadores
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #adb5bd;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #6c757d;
+    }
+
+    // Estilos para a tabela dentro do container específico
+    table {
+      margin-bottom: 0;
+
+      // Garantir que todas as colunas tenham uma largura mínima adequada
+      th,
+      td {
+        min-width: 100px;
+        white-space: nowrap;
+      }
+
+      // Definir larguras específicas para cada coluna baseado no conteúdo
+      th:first-child,
+      td:first-child {
+        min-width: 80px; // Ano
+      }
+
+      th:nth-child(2),
+      td:nth-child(2) {
+        min-width: 150px; // Designação
+      }
+
+      th:nth-child(3),
+      td:nth-child(3) {
+        min-width: 120px; // Cliente
+      }
+
+      th:nth-child(4),
+      td:nth-child(4) {
+        min-width: 100px; // Tipo
+      }
+
+      th:nth-child(5),
+      td:nth-child(5) {
+        min-width: 110px; // Prioridade
+      }
+
+      th:nth-child(6),
+      td:nth-child(6) {
+        min-width: 130px; // Coordenador
+      }
+
+      th:nth-child(7),
+      td:nth-child(7),
+      th:nth-child(8),
+      td:nth-child(8) {
+        min-width: 120px; // Datas
+      }
+
+      th:nth-child(9),
+      td:nth-child(9) {
+        min-width: 130px; // Observação
+      }
+
+      th:nth-child(10),
+      td:nth-child(10) {
+        min-width: 100px; // Prazo
+      }
+
+      th:nth-child(11),
+      td:nth-child(11) {
+        min-width: 150px; // Colaboradores
+      }
+
+      th:nth-child(12),
+      td:nth-child(12) {
+        min-width: 80px; // Status
+      }
+
+      // Coluna de ações normalmente fica no final
+      th:last-child,
+      td:last-child {
+        min-width: 100px; // Ações
+      }
+    }
+  }
+}
+
+// Ajustes responsivos apenas para a tabela de projetos de cliente
+@media (max-width: 768px) {
+  .cliente-projetos-table-container {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    width: calc(100% + 1rem);
+  }
+}

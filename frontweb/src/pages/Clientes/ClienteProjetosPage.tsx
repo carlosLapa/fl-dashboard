@@ -71,60 +71,73 @@ const ClienteProjetosPage: React.FC = () => {
 
   // Fetch client data with projects and users in a single call
   const fetchClienteData = async (id: number, forceRefresh = false) => {
-    // Reset the logged cache hit flag on each fetch attempt
+    // Reset do flag de cache hit
     loggedCacheHitRef.current = false;
 
-    // If we're already fetching or have data for this ID and don't need to refresh, use cached data
+    // Se estamos forçando refresh, ignoramos o cache completamente
+    if (forceRefresh) {
+      apiCache.clienteData = null;
+      apiCache.lastFetchedId = null;
+    }
+
+    // Se já estamos buscando, não iniciamos outra requisição
+    if (apiCache.isFetching) {
+      console.log('Already fetching data, skipping duplicate request');
+      return;
+    }
+
+    // Se temos dados em cache para este ID e não precisamos forçar um refresh
     if (
       !forceRefresh &&
       apiCache.lastFetchedId === id &&
-      apiCache.clienteData !== null &&
-      !apiCache.isFetching
+      apiCache.clienteData !== null
     ) {
-      // Only log once per component instance to reduce console spam
       if (!loggedCacheHitRef.current) {
         apiCache.cacheHits++;
         console.log(`Using cached client data (hit #${apiCache.cacheHits})`);
         loggedCacheHitRef.current = true;
       }
 
-      setCliente(apiCache.clienteData);
-      setProjetos(apiCache.clienteData.projetos || []);
-      setTotalPages(
-        Math.ceil((apiCache.clienteData.projetos?.length || 0) / 10)
-      );
-      setLoading(false);
+      // Atualize os estados mesmo usando o cache
+      if (isMountedRef.current) {
+        setCliente(apiCache.clienteData);
+        setProjetos(apiCache.clienteData.projetos || []);
+        setTotalPages(
+          Math.ceil((apiCache.clienteData.projetos?.length || 0) / 10)
+        );
+        setLoading(false);
+      }
       return;
     }
 
-    // If we're already fetching, don't start another fetch
-    if (apiCache.isFetching) {
-      console.log('Already fetching data, skipping duplicate request');
-      return;
-    }
-
+    // Marca que começamos a buscar dados
     apiCache.isFetching = true;
-    setLoading(true);
 
     try {
       console.log(`Fetching client data for ID: ${id}`);
       const clienteData = await getClienteWithProjetosAndUsersAPI(id);
 
+      // Debug para verificar se os dados foram carregados corretamente
+      console.log('Client data received:', clienteData ? 'Data OK' : 'No data');
+
       if (clienteData) {
-        // Update cache
+        // Atualiza o cache
         apiCache.clienteData = clienteData;
         apiCache.lastFetchedId = id;
 
-        // Only update state if component is still mounted
+        console.log('Projects count:', clienteData.projetos?.length || 0);
+
+        // Atualiza os estados apenas se o componente ainda estiver montado
         if (isMountedRef.current) {
           setCliente(clienteData);
           setProjetos(clienteData.projetos || []);
           setTotalPages(Math.ceil((clienteData.projetos?.length || 0) / 10));
-          console.log('Client data fetched successfully');
+          setError(null); // Limpa qualquer erro anterior
         }
       } else {
         if (isMountedRef.current) {
-          setError('Cliente não encontrado');
+          console.error('Cliente data is empty or invalid');
+          setError('Cliente não encontrado ou dados inválidos');
         }
       }
     } catch (err) {
@@ -133,6 +146,7 @@ const ClienteProjetosPage: React.FC = () => {
         setError('Erro ao carregar dados do cliente');
       }
     } finally {
+      // Importante: sempre defina isFetching como false e atualize o estado de loading
       apiCache.isFetching = false;
       if (isMountedRef.current) {
         setLoading(false);
@@ -142,17 +156,35 @@ const ClienteProjetosPage: React.FC = () => {
 
   // Load data when component mounts or clienteId changes
   useEffect(() => {
-    // Set mounted flag
+    // Define o flag de montagem ANTES de qualquer operação assíncrona
     isMountedRef.current = true;
 
-    if (clienteId) {
-      const id = parseInt(clienteId);
-      fetchClienteData(id);
-    }
+    const loadData = async () => {
+      if (clienteId) {
+        const id = parseInt(clienteId);
+        try {
+          // Certifica-se que o loading é definido antes de iniciar o carregamento
+          setLoading(true);
+          await fetchClienteData(id);
+        } catch (error) {
+          console.error('Falha ao carregar dados do cliente:', error);
+          if (isMountedRef.current) {
+            setError(
+              'Erro ao carregar os dados do cliente. Por favor, tente novamente.'
+            );
+            setLoading(false);
+          }
+        }
+      }
+    };
+
+    loadData();
 
     // Cleanup function
     return () => {
       isMountedRef.current = false;
+      // Importante: limpe também o estado de isFetching para evitar estados inconsistentes em navegações futuras
+      apiCache.isFetching = false;
     };
   }, [clienteId]);
 
@@ -279,6 +311,31 @@ const ClienteProjetosPage: React.FC = () => {
       endDate: '',
     });
   };
+
+  // Adicione um timeout de segurança para evitar o loading infinito
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (loading) {
+      timeoutId = setTimeout(() => {
+        if (loading && isMountedRef.current) {
+          console.warn('Loading timeout reached, forcing state update');
+          setLoading(false);
+          if (!cliente) {
+            setError(
+              'Tempo limite de carregamento atingido. Tente recarregar a página.'
+            );
+          }
+        }
+      }, 8000); // 8 segundos de timeout
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [loading, cliente]);
 
   if (loading) {
     return (
@@ -446,22 +503,26 @@ const ClienteProjetosPage: React.FC = () => {
           </Button>
         </Alert>
       ) : (
-        <ProjetoTable
-          projetos={projetos}
-          onEditProjeto={handleEditProjeto}
-          onDeleteProjeto={handleDeleteProjeto}
-          isLoading={false}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          filters={filters}
-          updateFilter={updateFilter}
-          onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-        />
+        <div className="cliente-projetos-table-container">
+          <div className="cliente-projetos-table">
+            <ProjetoTable
+              projetos={projetos}
+              onEditProjeto={handleEditProjeto}
+              onDeleteProjeto={handleDeleteProjeto}
+              isLoading={false}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              filters={filters}
+              updateFilter={updateFilter}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+          </div>
+        </div>
       )}
 
       {/* Projeto Modal */}
