@@ -189,7 +189,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal show={show} onHide={onHide} size="lg" centered backdrop="static" keyboard={false}>
       <Modal.Header closeButton>
         <Modal.Title>Adicionar Cliente</Modal.Title>
       </Modal.Header>

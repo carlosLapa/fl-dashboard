@@ -21,10 +21,7 @@ public class ProjetoDTO {
     @NotBlank(message = "Campo requerido")
     private String designacao;
 
-    @Size(min = 4, max = 50, message = "Entidade deve conter de 4 a 50 caracteres")
-    @NotBlank(message = "Campo requerido")
     private String entidade;
-
     private String prioridade;
     private String observacao;
 

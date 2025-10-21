@@ -197,8 +197,8 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   };
 
   const validateForm = (): boolean => {
-    if (formData.designacao.trim() === '' || formData.entidade.trim() === '') {
-      toast.error('Designação e Entidade são campos obrigatórios');
+    if (formData.designacao.trim() === '') {
+      toast.error('Designação é um campo obrigatório');
       return false;
     }
 
@@ -285,7 +285,14 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     : [];
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal
+      show={show}
+      onHide={onHide}
+      size="lg"
+      centered
+      backdrop="static"
+      keyboard={false}
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditing ? 'Editar Projeto' : 'Registar novo Projeto'}
@@ -341,7 +348,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   name="entidade"
                   value={formData.entidade}
                   onChange={handleInputChange}
-                  required
+                  maxLength={50}
                 />
                 <Form.Control.Feedback type="invalid">
                   Por favor, insira a entidade.

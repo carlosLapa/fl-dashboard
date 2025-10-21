@@ -15,7 +15,7 @@ export type Projeto = {
   id: number;
   projetoAno: number;
   designacao: string;
-  entidade: string;
+  entidade?: string;
   prioridade: string;
   observacao: string;
   prazo: string;
@@ -35,7 +35,7 @@ export type Projeto = {
 export interface ProjetoFormData {
   projetoAno: number;
   designacao: string;
-  entidade: string;
+  entidade?: string;
   prioridade: string;
   observacao: string;
   prazo: string;

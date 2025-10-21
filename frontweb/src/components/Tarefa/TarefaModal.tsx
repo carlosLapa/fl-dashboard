@@ -411,7 +411,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal show={show} onHide={onHide} size="lg" centered backdrop="static" keyboard={false}>
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditing ? 'Editar Tarefa' : 'Criar Nova Tarefa'}

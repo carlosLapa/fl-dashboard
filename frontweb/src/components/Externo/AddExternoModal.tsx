@@ -116,7 +116,7 @@ const AddExternoModal: React.FC<AddExternoModalProps> = ({
   ];
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} centered backdrop="static" keyboard={false}>
       <Modal.Header closeButton>
         <Modal.Title>Adicionar Colaborador Externo</Modal.Title>
       </Modal.Header>

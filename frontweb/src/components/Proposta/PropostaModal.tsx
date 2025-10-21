@@ -150,7 +150,14 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
   );
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal
+      show={show}
+      onHide={onHide}
+      size="lg"
+      centered
+      backdrop="static"
+      keyboard={false}
+    >
       <Modal.Header closeButton>
         <Modal.Title>
           {isEditing ? 'Editar Proposta' : 'Registar nova Proposta'}
