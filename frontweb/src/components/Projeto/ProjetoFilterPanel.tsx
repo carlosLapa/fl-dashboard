@@ -27,7 +27,7 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
   onApplyFilters,
   onClearFilters,
   showFilters,
-  setShowFilters, // Inclua na desestruturação
+  setShowFilters, // Include in destructuring
 }) => {
   // Handle Enter key in select elements
   const handleSelectKeyDown = (e: React.KeyboardEvent) => {
@@ -47,7 +47,7 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
       onApplyFilters={onApplyFilters}
       onClearFilters={onClearFilters}
       showFilters={showFilters}
-      setShowFilters={setShowFilters} // Passe a prop para o BaseFilterPanel
+      setShowFilters={setShowFilters} // Pass the prop to BaseFilterPanel
     >
       {/* Text Filters */}
       <Col md={6} lg={4}>
@@ -71,12 +71,12 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
                 `Cliente selecionado: ID=${clienteId}, Nome=${clienteName}`
               );
 
-              // Atualizar os dois campos relevantes - garantindo que clienteId seja undefined quando não selecionado
-              // e clienteName seja string vazia quando não selecionado
+              // Update the two relevant fields - ensuring that clienteId is undefined when not selected
+              // and clienteName is an empty string when not selected
               updateFilter('clienteId', clienteId === undefined ? undefined : clienteId);
               updateFilter('cliente', clienteName || '');
-              
-              // Verificar os valores após a atualização
+
+              // Check the values after the update
               console.log('ClienteId após update:', filters.clienteId, 'tipo:', typeof filters.clienteId);
               console.log('Cliente após update:', filters.cliente, 'tipo:', typeof filters.cliente);
             }}

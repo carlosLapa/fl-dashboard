@@ -54,6 +54,7 @@ const ProjetoExternosManager: React.FC<ProjetoExternosManagerProps> = ({
   useEffect(() => {
     loadExternos();
     loadAllExternos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projetoId]);
 
   const handleOpenModal = () => {
@@ -101,11 +102,11 @@ const ProjetoExternosManager: React.FC<ProjetoExternosManagerProps> = ({
     }
   };
 
-  // Função para formatar e exibir as especialidades de forma legível
+  // Function to format and display specialties in a readable way
   const formatEspecialidades = (especialidades?: EspecialidadesExterno[]) => {
     if (!especialidades || especialidades.length === 0) return '';
 
-    // Substituir underscores por espaços e converter para formato mais legível
+    // Replace underscores with spaces and convert to a more readable format
     return especialidades
       .map((esp) => {
         const formatted = esp.replace(/_/g, ' ').toLowerCase();
@@ -136,7 +137,7 @@ const ProjetoExternosManager: React.FC<ProjetoExternosManagerProps> = ({
               size="sm"
               className="me-2"
             />
-            <span>Carregando colaboradores externos...</span>
+            <span>A carregar colaboradores externos...</span>
           </div>
         ) : externos.length > 0 ? (
           <ListGroup>
@@ -219,7 +220,7 @@ const ProjetoExternosManager: React.FC<ProjetoExternosManagerProps> = ({
             {isModalLoading ? (
               <>
                 <Spinner animation="border" size="sm" className="me-2" />
-                <span>Adicionando...</span>
+                <span>A adicionar...</span>
               </>
             ) : (
               'Adicionar'

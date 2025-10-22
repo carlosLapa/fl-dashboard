@@ -31,7 +31,7 @@ interface ProjetoTableProps {
 }
 
 const ProjetoTable: React.FC<ProjetoTableProps> = ({
-  projetos = [], // Definir valor padrão como array vazio
+  projetos = [], // Define default value as empty array
   onEditProjeto,
   onDeleteProjeto,
   page,
@@ -48,7 +48,7 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
 }) => {
   const [showFilters, setShowFilters] = useState(false);
 
-  // Garantir que projetos seja sempre um array válido
+  // Ensure projetos is always a valid array
   const projetosToRender = Array.isArray(projetos) ? projetos : [];
 
   // Global keyboard shortcuts

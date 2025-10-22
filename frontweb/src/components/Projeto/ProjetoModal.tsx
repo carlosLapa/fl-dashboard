@@ -65,7 +65,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   const [validated, setValidated] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Buscar usuários e colaboradores externos quando o modal é aberto
+  // Fetch users and externals when the modal is opened
   useEffect(() => {
     const fetchUsersAndExternos = async () => {
       try {
@@ -89,7 +89,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     }
   }, [show]);
 
-  // Função utilitária para garantir formato yyyy-mm-dd
+  // Auxiliary function to ensure yyyy-mm-dd format
   function toInputDate(dateStr?: string): string {
     if (!dateStr) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
@@ -127,7 +127,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
       if (clienteInfo) {
         newFormData.clienteId = clienteInfo.id;
       }
-      // Se vier initialFormData, usar para preencher
+      // If initialFormData is provided, use it to populate
       if (initialFormData) {
         newFormData = {
           ...newFormData,
@@ -179,7 +179,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     }));
   };
 
-  // Manipulador para colaboradores externos usando o novo componente
+  // Handler for external collaborators using the new component
   const handleExternoChange = (selectedExternos: Externo[]) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -225,17 +225,17 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     // Create a copy of the form data to send
     const formDataToSave = { ...formData };
 
-    // Sempre incluir o campo externoIds, mesmo que vazio
-    // Isso sinalizará ao backend que queremos atualizar a lista de externos
+    // Always include the externoIds field, even if empty
+    // This will signal to the backend that we want to update the list of externals
     formDataToSave.externoIds =
       formData.externos?.map((externo) => externo.id) || [];
 
-    // Se o backend não espera o campo 'externos' completo, removê-lo
+    // If the backend does not expect the complete 'externos' field, remove it
     if (formDataToSave.externos) {
       delete formDataToSave.externos;
     }
 
-    // Priorize clienteId do clienteInfo (quando presente) sobre o clienteId do formulário
+    // Prioritize clienteId from clienteInfo (when present) over clienteId from the form
     if (clienteInfo) {
       formDataToSave.clienteId = clienteInfo.id;
     } else if (!formDataToSave.clienteId) {
@@ -545,8 +545,8 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               className="basic-multi-select"
             />
             <Form.Text className="text-muted">
-              Opcional. Você poderá adicionar ou remover colaboradores externos
-              após a criação do projeto.
+              Opcional. Poderá adicionar ou remover colaboradores externos após
+              a criação do projeto.
             </Form.Text>
           </Form.Group>
         </Form>
