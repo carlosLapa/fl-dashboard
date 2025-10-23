@@ -14,7 +14,9 @@ export type EspecialidadesExterno =
   | 'REDES_ESGOTOS'
   | 'REDES_PLUVIAIS'
   | 'SEGURANCA_CONTRA_INCENDIOS'
-  | 'TERMICA';
+  | 'TERMICA'
+  | 'INSPECOES'
+  | 'ARQUITETURA_PAISAGISTICA';
 
 // Enum for FaseProjeto
 export type FaseProjeto =

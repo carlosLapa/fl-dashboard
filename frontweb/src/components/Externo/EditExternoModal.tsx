@@ -122,6 +122,8 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
       label: 'Segurança Contra Incêndios',
     },
     { value: 'TERMICA', label: 'Térmica' },
+    { value: 'INSPECOES', label: 'Inspeções' },
+    { value: 'ARQUITETURA_PAISAGISTICA', label: 'Arquitetura Paisagística' },
   ];
 
   const selectedEspecialidadesOptions: EspecialidadeOption[] =
