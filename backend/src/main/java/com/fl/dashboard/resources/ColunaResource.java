@@ -2,7 +2,6 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.ColunaWithProjetoDTO;
 import com.fl.dashboard.services.ColunaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,8 +11,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/colunas")
 public class ColunaResource {
-    @Autowired
-    private ColunaService colunaService;
+
+    private final ColunaService colunaService;
+
+    public ColunaResource(ColunaService colunaService) {
+        this.colunaService = colunaService;
+    }
 
     @GetMapping("/projeto/{projetoId}")
     public ResponseEntity<List<ColunaWithProjetoDTO>> getColumnsForProject(@PathVariable Long projetoId) {

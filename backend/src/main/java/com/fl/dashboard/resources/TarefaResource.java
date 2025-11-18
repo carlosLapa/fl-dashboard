@@ -4,7 +4,6 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.services.TarefaService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.CacheControl;
@@ -24,8 +23,11 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping(value = "/tarefas")
 public class TarefaResource {
 
-    @Autowired
-    private TarefaService tarefaService;
+    private final TarefaService tarefaService;
+
+    public TarefaResource(TarefaService tarefaService) {
+        this.tarefaService = tarefaService;
+    }
 
     // Helper method to extract email from Authentication
     private String extractUserEmail(Authentication authentication) {
@@ -190,7 +192,7 @@ public class TarefaResource {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        System.out.println("getAllUserTasksPaginated called for userId: " + userId + ", page: " + page + ", size: " + size);
+        //System.out.println("getAllUserTasksPaginated called for userId: " + userId + ", page: " + page + ", size: " + size);
         Page<TarefaWithUserAndProjetoDTO> taskPage = tarefaService.findAllActiveByUserIdPaginated(userId, page, size);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))

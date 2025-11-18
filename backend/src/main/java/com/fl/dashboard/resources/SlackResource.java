@@ -7,7 +7,6 @@ import com.fl.dashboard.services.TarefaService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +19,13 @@ import java.util.Map;
 public class SlackResource {
 
     private static final Logger logger = LoggerFactory.getLogger(SlackResource.class);
+    private final SlackService slackService;
+    private final TarefaService tarefaService;
 
-    @Autowired
-    private SlackService slackService;
-
-    @Autowired
-    private TarefaService tarefaService;
+    public SlackResource(SlackService slackService, TarefaService tarefaService) {
+        this.slackService = slackService;
+        this.tarefaService = tarefaService;
+    }
 
     /**
      * Endpoint para testar envio de mensagem simples para o Slack
@@ -36,10 +36,7 @@ public class SlackResource {
         String message = payload.getOrDefault("message", "Teste de integração com Slack");
         boolean success = slackService.sendMessage(message);
 
-        return ResponseEntity.ok(Map.of(
-                "success", success,
-                "message", success ? "Mensagem enviada com sucesso" : "Falha ao enviar mensagem"
-        ));
+        return ResponseEntity.ok(Map.of("success", success, "message", success ? "Mensagem enviada com sucesso" : "Falha ao enviar mensagem"));
     }
 
     /**
@@ -79,10 +76,7 @@ public class SlackResource {
         try {
             // Validação básica
             if (!payload.containsKey("tarefaId")) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "success", false,
-                        "message", "É necessário fornecer o ID da tarefa"
-                ));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "É necessário fornecer o ID da tarefa"));
             }
 
             Long tarefaId = Long.valueOf(payload.get("tarefaId").toString());
@@ -90,10 +84,7 @@ public class SlackResource {
             // Buscar a tarefa com users usando o método extraído
             TarefaWithUsersDTO tarefaDTO = fetchTarefaWithUsers(tarefaId);
             if (tarefaDTO == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "success", false,
-                        "message", "Tarefa não encontrada"
-                ));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Tarefa não encontrada"));
             }
 
             String title = (String) payload.getOrDefault("title", "Teste de Notificação Agrupada");
@@ -110,15 +101,9 @@ public class SlackResource {
             // Enviar notificação
             boolean success = slackService.sendGroupedNotification(notification);
 
-            return ResponseEntity.ok(Map.of(
-                    "success", success,
-                    "message", success ? "Notificação agrupada enviada com sucesso" : "Falha ao enviar notificação agrupada"
-            ));
+            return ResponseEntity.ok(Map.of("success", success, "message", success ? "Notificação agrupada enviada com sucesso" : "Falha ao enviar notificação agrupada"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                    "success", false,
-                    "message", "Erro: " + e.getMessage()
-            ));
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Erro: " + e.getMessage()));
         }
     }
 

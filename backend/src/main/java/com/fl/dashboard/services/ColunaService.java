@@ -1,13 +1,11 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.ColunaWithProjetoDTO;
-import com.fl.dashboard.dto.ProjetoDTO;
 import com.fl.dashboard.entities.Coluna;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.repositories.ColunaRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +13,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class ColunaService {
-    @Autowired
-    private ColunaRepository colunaRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    private final ColunaRepository colunaRepository;
+    private final ProjetoRepository projetoRepository;
+
+    public ColunaService(ColunaRepository colunaRepository, ProjetoRepository projetoRepository) {
+        this.colunaRepository = colunaRepository;
+        this.projetoRepository = projetoRepository;
+    }
 
     public List<ColunaWithProjetoDTO> getColumnsForProject(Long projetoId) {
         List<Coluna> colunas = colunaRepository.findByProjetoIdOrderByOrdemAsc(projetoId);
@@ -33,7 +34,6 @@ public class ColunaService {
     }
 
     private ColunaWithProjetoDTO convertToDTO(Coluna coluna) {
-        //ProjetoDTO projetoDTO = new ProjetoDTO(coluna.getProjeto().getId(), coluna.getProjeto().getDesignacao());
         return new ColunaWithProjetoDTO(coluna.getId(), coluna.getStatus(), coluna.getTitulo(), coluna.getOrdem(), coluna.getProjeto().getId());
     }
 

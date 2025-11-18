@@ -94,7 +94,7 @@ public class SlackService {
     }
 
     /**
-     * Limpa notificações antigas do registro para evitar crescimento ilimitado do mapa
+     * Limpa notificações antigas do registo para evitar crescimento ilimitado do mapa
      */
     private void cleanupOldNotifications() {
         try {
@@ -314,113 +314,146 @@ public class SlackService {
         logger.info("SlackService - sendGroupedNotification chamado para tarefa ID={}, tipo={}, título='{}'",
                 notification.getTarefa().getId(), notification.getType(), notification.getTitle());
 
-        TarefaWithUsersDTO tarefa = notification.getTarefa();
-
-        // Definir a chave de mensagem, usando uniqueId se disponível
-        String messageKey;
-        if (notification.getUniqueId() != null && !notification.getUniqueId().isEmpty()) {
-            // Se tiver uniqueId, usá-lo para evitar deduplicação
-            messageKey = notification.getType() + "-" + tarefa.getId() + "-" + notification.getUniqueId();
-            logger.info("Usando identificador único para notificação: {}", messageKey);
-        } else {
-            // Caso contrário, usar a chave padrão
-            messageKey = notification.getType() + "-" + tarefa.getId();
-
-            // Verificar se temos duplicação para notificações normais
-            long currentTime = System.currentTimeMillis();
-            Long lastSent = recentNotifications.get(messageKey);
-
-            // Somente verificar duplicação para notificações que não são de alteração de status
-            // ou que não têm ID único
-            if (lastSent != null && !"TAREFA_STATUS_ALTERADO".equals(notification.getType())) {
-                long timeSinceLastSent = currentTime - lastSent;
-                logger.info("Encontrada notificação anterior para a mesma chave '{}' enviada há {} ms (limite: 30000 ms)",
-                        messageKey, timeSinceLastSent);
-
-                if (timeSinceLastSent < 30000) {
-                    logger.info("IGNORANDO notificação duplicada dentro do período de 30 segundos");
-                    return true; // Consideramos como sucesso, já que a mensagem já foi enviada
-                }
-            }
-        }
-
-        if (!enabled || webhookUrl == null || webhookUrl.isEmpty()) {
+        if (!isNotificationEnabled()) {
             logger.info("Grouped Slack notification not sent: integration disabled or webhook missing. Title: {}",
                     notification.getTitle());
             return false;
         }
 
+        String messageKey = generateMessageKey(notification);
+        if (isDuplicateNotification(messageKey, notification)) {
+            return true;
+        }
+
         try {
-            // Construir a mensagem formatada
-            StringBuilder content = new StringBuilder();
-
-            // Adicionar informação do projeto se disponível
-            if (notification.getProjeto() != null && notification.getProjeto().getDesignacao() != null) {
-                content.append("*Projeto:* ").append(notification.getProjeto().getDesignacao()).append("\n\n");
-                logger.info("Incluindo projeto na notificação: {}", notification.getProjeto().getDesignacao());
-            } else {
-                logger.warn("Notificação sem informação de projeto");
-            }
-
-            // Resto do código permanece igual
-            content.append("*Título:* ").append(tarefa.getDescricao()).append("\n");
-
-            // Adicionar prazo se disponível
-            if (tarefa.getPrazoReal() != null) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                content.append("*Prazo:* ").append(dateFormat.format(tarefa.getPrazoReal())).append("\n");
-            }
-
-            // Adicionar prioridade se disponível
-            if (tarefa.getPrioridade() != null && !tarefa.getPrioridade().isEmpty()) {
-                content.append("*Prioridade:* ").append(tarefa.getPrioridade()).append("\n");
-            }
-
-            // Adicionar status
-            content.append("*Status:* ").append(tarefa.getStatus()).append("\n");
-
-            // Adicionar conteúdo adicional se houver
-            if (notification.getAdditionalContent() != null && !notification.getAdditionalContent().isEmpty()) {
-                content.append("\n").append(notification.getAdditionalContent()).append("\n");
-            }
-
-            // SOLUÇÃO: Adicionar lista de colaboradores sem duplicação
-            List<UserDTO> allUsers = notification.getAllUsers();
-            if (allUsers != null && !allUsers.isEmpty()) {
-                content.append("\n*Colaboradores:* ");
-                content.append(allUsers.stream()
-                        .map(UserDTO::getName)
-                        .distinct()  // Elimina duplicações pelo nome
-                        .collect(Collectors.joining(", ")));
-            }
-
-            String color = getColorForNotificationType(notification.getType());
-
-            // Log dos dados antes de enviar
-            String contentString = content.toString();
-            String contentPreview = contentString.length() > 50 ? contentString.substring(0, 50) + "..." : contentString;
-
-            logger.info("Enviando para Slack - Título: '{}', Conteúdo: '{}', Cor: '{}'",
-                    notification.getTitle(),
-                    contentPreview,
-                    color);
-
-            boolean result = sendNotification(notification.getTitle(), content.toString(), color);
-
-            // Se enviou com sucesso, registrar a mensagem como recentemente enviada
-            if (result) {
-                recentNotifications.put(messageKey, System.currentTimeMillis());
-                logger.info("Successfully sent grouped notification for task {} with {} users",
-                        tarefa.getId(), allUsers != null ? allUsers.size() : 0);
-            } else {
-                logger.error("Failed to send grouped notification for task {}", tarefa.getId());
-            }
-
-            return result;
+            return processAndSendNotification(notification, messageKey);
         } catch (Exception e) {
             logger.error("Error sending grouped Slack notification", e);
             return false;
         }
+    }
+
+    private boolean isNotificationEnabled() {
+        return enabled && webhookUrl != null && !webhookUrl.isEmpty();
+    }
+
+    /**
+     * Gera uma chave única para a mensagem, usando uniqueId se disponível
+     */
+    private String generateMessageKey(SlackGroupedNotificationDTO notification) {
+        TarefaWithUsersDTO tarefa = notification.getTarefa();
+        if (notification.getUniqueId() != null && !notification.getUniqueId().isEmpty()) {
+            String key = notification.getType() + "-" + tarefa.getId() + "-" + notification.getUniqueId();
+            logger.info("Usando identificador único para notificação: {}", key);
+            return key;
+        }
+        return notification.getType() + "-" + tarefa.getId();
+    }
+
+    /**
+     * Verifica se a notificação é uma duplicata dentro do período especificado
+     */
+    private boolean isDuplicateNotification(String messageKey, SlackGroupedNotificationDTO notification) {
+        // Somente verificar duplicação para notificações que não são de alteração de status
+        if (!"TAREFA_STATUS_ALTERADO".equals(notification.getType())) {
+            Long lastSent = recentNotifications.get(messageKey);
+            if (lastSent != null) {
+                long timeSinceLastSent = System.currentTimeMillis() - lastSent;
+                logger.info("Encontrada notificação anterior para a mesma chave '{}' enviada há {} ms (limite: 30000 ms)",
+                        messageKey, timeSinceLastSent);
+
+                if (timeSinceLastSent < 30000) {
+                    logger.info("IGNORANDO notificação duplicada dentro do período de 30 segundos");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Processa e envia a notificação ao Slack
+     */
+    private boolean processAndSendNotification(SlackGroupedNotificationDTO notification, String messageKey) {
+        String content = buildNotificationContent(notification);
+        String color = getColorForNotificationType(notification.getType());
+
+        // Log dos dados antes de enviar
+        logNotificationDetails(notification.getTitle(), content, color);
+
+        boolean result = sendNotification(notification.getTitle(), content, color);
+
+        if (result) {
+            recentNotifications.put(messageKey, System.currentTimeMillis());
+            List<UserDTO> allUsers = notification.getAllUsers();
+            logger.info("Successfully sent grouped notification for task {} with {} users",
+                    notification.getTarefa().getId(), allUsers != null ? allUsers.size() : 0);
+        } else {
+            logger.error("Failed to send grouped notification for task {}", notification.getTarefa().getId());
+        }
+
+        return result;
+    }
+
+    /**
+     * Constrói o conteúdo formatado da notificação
+     */
+    private String buildNotificationContent(SlackGroupedNotificationDTO notification) {
+        StringBuilder content = new StringBuilder();
+        TarefaWithUsersDTO tarefa = notification.getTarefa();
+
+        appendProjectInfo(content, notification);
+        appendTaskDetails(content, tarefa);
+        appendAdditionalContent(content, notification.getAdditionalContent());
+        appendCollaborators(content, notification.getAllUsers());
+
+        return content.toString();
+    }
+
+    private void appendProjectInfo(StringBuilder content, SlackGroupedNotificationDTO notification) {
+        if (notification.getProjeto() != null && notification.getProjeto().getDesignacao() != null) {
+            content.append("*Projeto:* ").append(notification.getProjeto().getDesignacao()).append("\n\n");
+            logger.info("Incluindo projeto na notificação: {}", notification.getProjeto().getDesignacao());
+        } else {
+            logger.warn("Notificação sem informação de projeto");
+        }
+    }
+
+    private void appendTaskDetails(StringBuilder content, TarefaWithUsersDTO tarefa) {
+        content.append("*Título:* ").append(tarefa.getDescricao()).append("\n");
+
+        if (tarefa.getPrazoReal() != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            content.append("*Prazo:* ").append(dateFormat.format(tarefa.getPrazoReal())).append("\n");
+        }
+
+        if (tarefa.getPrioridade() != null && !tarefa.getPrioridade().isEmpty()) {
+            content.append("*Prioridade:* ").append(tarefa.getPrioridade()).append("\n");
+        }
+
+        content.append("*Status:* ").append(tarefa.getStatus()).append("\n");
+    }
+
+    private void appendAdditionalContent(StringBuilder content, String additionalContent) {
+        if (additionalContent != null && !additionalContent.isEmpty()) {
+            content.append("\n").append(additionalContent).append("\n");
+        }
+    }
+
+    private void appendCollaborators(StringBuilder content, List<UserDTO> users) {
+        if (users != null && !users.isEmpty()) {
+            content.append("\n*Colaboradores:* ")
+                    .append(users.stream()
+                            .map(UserDTO::getName)
+                            .distinct()
+                            .collect(Collectors.joining(", ")));
+        }
+    }
+
+    private void logNotificationDetails(String title, String content, String color) {
+        String contentPreview = content.length() > 50 ? content.substring(0, 50) + "..." : content;
+        logger.info("Enviando para Slack - Título: '{}', Conteúdo: '{}', Cor: '{}'",
+                title, contentPreview, color);
     }
 
     @PostConstruct

@@ -69,11 +69,6 @@ public class ProjetoService {
         Projeto projeto = projetoRepository.findByIdWithTarefas(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + id));
 
-        System.out.println("Tarefas size: " + projeto.getTarefas().size());
-        for (Tarefa tarefa : projeto.getTarefas()) {
-            System.out.println("Tarefa: " + tarefa.getId() + " - " + tarefa.getDescricao());
-        }
-
         return new ProjetoWithTarefasDTO(projeto);
     }
 
@@ -139,11 +134,18 @@ public class ProjetoService {
             String oldStatus = entity.getStatus();
             Set<User> oldUsers = new HashSet<>(entity.getUsers());
 
-            // Salvar a lista atual de externos antes de atualizar
-            Set<Externo> currentExternos = new HashSet<>();
-            if (entity.getExternos() != null) {
-                currentExternos = new HashSet<>(entity.getExternos());
-            }
+            /*
+             * Nota: Código removido - não há necessidade de salvar a lista atual de externos
+             * pois não há comparação ou notificação relacionada a mudanças em externos.
+             * Se futuramente for necessário implementar notificações para externos
+             * (similar ao que é feito com Users), este seria o local para salvar a lista.
+             *
+             * Código original:
+             * Set<Externo> currentExternos = new HashSet<>();
+             * if (entity.getExternos() != null) {
+             *     currentExternos = new HashSet<>(entity.getExternos());
+             * }
+             */
 
             // Tratar explicitamente o campo externoIds
             List<Long> externoIds = projetoDTO.getExternoIds();
@@ -162,7 +164,6 @@ public class ProjetoService {
                 Set<Long> uniqueExternoIds = new HashSet<>(externoIds);
                 if (uniqueExternoIds.size() < externoIds.size()) {
                     externoIds = new ArrayList<>(uniqueExternoIds);
-                    System.out.println("Duplicações de externoIds foram removidas. IDs únicos: " + uniqueExternoIds);
                 }
 
                 // Adicionar apenas os externos que estão na lista de IDs
@@ -186,9 +187,6 @@ public class ProjetoService {
 
             Projeto savedEntity = projetoRepository.save(entity);
             projetoRepository.flush();
-
-            System.out.println("Externos após atualização: " +
-                    (savedEntity.getExternos() == null ? 0 : savedEntity.getExternos().size()));
 
             // Resto do código para notificações permanece o mesmo...
             NotificationType notificationType = determineNotificationType(oldStatus, savedEntity.getStatus());
@@ -287,7 +285,10 @@ public class ProjetoService {
     @Transactional
     public void delete(Long id) {
         try {
-            Projeto projeto = findByIdForDelete(id);
+            // Buscar projeto diretamente aqui em vez de chamar findByIdForDelete
+            Projeto projeto = projetoRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
+
             // Mark all associated tasks as deleted
             for (Tarefa tarefa : projeto.getTarefas()) {
                 tarefa.markAsDeleted();
@@ -309,12 +310,6 @@ public class ProjetoService {
             list.add(projetoWithUsersAndTarefasDTO);
         }
         return list;
-    }
-
-    @Transactional(readOnly = true)
-    public Projeto findByIdForDelete(Long id) {
-        Optional<Projeto> obj = projetoRepository.findById(id);
-        return obj.orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
     }
 
     @Transactional(readOnly = true)
@@ -460,7 +455,7 @@ public class ProjetoService {
             throw new ResourceNotFoundException("User not found with email: " + userEmail);
         }
 
-        String searchQuery = "%" + query.toLowerCase() + "%";
+        //String searchQuery = "%" + query.toLowerCase() + "%";
 
         // Get all projects for this user that match the search query
         List<Projeto> userProjects = user.getProjetos().stream()
@@ -468,11 +463,14 @@ public class ProjetoService {
                 .filter(projeto ->
                         projeto.getDesignacao().toLowerCase().contains(query.toLowerCase()) ||
                                 projeto.getEntidade().toLowerCase().contains(query.toLowerCase()))
-                .collect(Collectors.toList());
+                .toList();
 
-        return userProjects.stream()
-                .map(ProjetoWithUsersAndTarefasDTO::new)
-                .collect(Collectors.toList());
+        List<ProjetoWithUsersAndTarefasDTO> list = new ArrayList<>();
+        for (Projeto userProject : userProjects) {
+            ProjetoWithUsersAndTarefasDTO projetoWithUsersAndTarefasDTO = new ProjetoWithUsersAndTarefasDTO(userProject);
+            list.add(projetoWithUsersAndTarefasDTO);
+        }
+        return list;
     }
 
     /**
@@ -528,7 +526,7 @@ public class ProjetoService {
                                 (adjudicacaoStartDate == null || projeto.getDataAdjudicacao() == null || !projeto.getDataAdjudicacao().before(adjudicacaoStartDate)) &&
                                 (adjustedAdjudicacaoEndDate == null || projeto.getDataAdjudicacao() == null || !projeto.getDataAdjudicacao().after(adjustedAdjudicacaoEndDate))
                 )
-                .collect(Collectors.toList());
+                .toList();
 
         // Apply pagination manually
         int start = (int) pageable.getOffset();
@@ -539,9 +537,11 @@ public class ProjetoService {
                 : Collections.emptyList();
 
         // Convert to DTOs
-        List<ProjetoWithUsersDTO> dtos = pagedProjects.stream()
-                .map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()))
-                .collect(Collectors.toList());
+        List<ProjetoWithUsersDTO> dtos = new ArrayList<>();
+        for (Projeto projeto : pagedProjects) {
+            ProjetoWithUsersDTO projetoWithUsersDTO = new ProjetoWithUsersDTO(projeto, projeto.getUsers());
+            dtos.add(projetoWithUsersDTO);
+        }
 
         return new PageImpl<>(dtos, pageable, filteredProjects.size());
     }
@@ -561,10 +561,6 @@ public class ProjetoService {
 
         // Remover IDs que já estão associados
         uniqueExternoIds.removeAll(existingExternoIds);
-
-        if (uniqueExternoIds.size() < externoIds.size()) {
-            System.out.println("Ignorando adição de colaboradores externos duplicados ou já associados");
-        }
 
         for (Long externoId : uniqueExternoIds) {
             Externo externo = externoRepository.findByIdAndActiveStatus(externoId)

@@ -11,7 +11,6 @@ import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,14 +28,15 @@ public class ExternoService {
     private static final String EXTERNO_NOT_FOUND_MSG = "Externo com o id: ";
     private static final String NOT_FOUND_MSG = " não encontrado";
 
-    @Autowired
-    private ExternoRepository externoRepository;
+    private final ExternoRepository externoRepository;
+    private final ProjetoRepository projetoRepository;
+    private final TarefaRepository tarefaRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
-
-    @Autowired
-    private TarefaRepository tarefaRepository;
+    public ExternoService(ExternoRepository externoRepository, ProjetoRepository projetoRepository, TarefaRepository tarefaRepository) {
+        this.externoRepository = externoRepository;
+        this.projetoRepository = projetoRepository;
+        this.tarefaRepository = tarefaRepository;
+    }
 
     @Transactional(readOnly = true)
     public Page<ExternoDTO> findAllPaged(Pageable pageable) {
@@ -192,7 +192,10 @@ public class ExternoService {
     @Transactional(readOnly = true)
     public List<ExternoDTO> searchExternos(String query) {
         if (query == null || query.isEmpty()) {
-            return findAll();
+            List<Externo> list = externoRepository.findAll();
+            return list.stream()
+                    .map(ExternoDTO::new)
+                    .toList();
         }
         List<Externo> externos = externoRepository.searchByNameOrEmail(query);
         return externos.stream()

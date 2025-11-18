@@ -8,7 +8,6 @@ import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,12 +24,15 @@ import java.util.Set;
 public class ClienteService {
     private static final String CLIENTE_NOT_FOUND_MSG = "Cliente com o id: ";
     private static final String NOT_FOUND_MSG = " não encontrado";
+    public static final String PROJETO_NOT_FOUND = "Projeto não encontrado, com o id: %s";
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
+    private final ProjetoRepository projetoRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    public ClienteService(ClienteRepository clienteRepository, ProjetoRepository projetoRepository) {
+        this.clienteRepository = clienteRepository;
+        this.projetoRepository = projetoRepository;
+    }
 
     @Transactional(readOnly = true)
     public Page<ClienteDTO> findAllPaged(Pageable pageable) {
@@ -67,7 +69,7 @@ public class ClienteService {
     @Transactional
     public List<ProjetoDTO> getProjetosByCliente(Long clienteId) {
         Cliente cliente = clienteRepository.findByIdAndActiveStatus(clienteId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente not found with ID: " + clienteId));
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
         return cliente.getProjetos().stream()
                 .map(ProjetoDTO::new)
                 .toList();
@@ -77,7 +79,7 @@ public class ClienteService {
     public List<ProjetoWithUsersDTO> getProjetosWithUsersByClienteId(Long clienteId) {
         // First check if the client exists - just verify it exists without assigning to a variable
         if (!clienteRepository.existsById(clienteId)) {
-            throw new ResourceNotFoundException("Cliente not found with id: " + clienteId);
+            throw new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG);
         }
         // Get all projects for this client with eager loading of users
         List<Projeto> projetos = projetoRepository.findByClienteIdWithUsers(clienteId);
@@ -90,7 +92,7 @@ public class ClienteService {
     @Transactional(readOnly = true)
     public ClienteWithProjetosAndUsersDTO getClienteWithProjetosAndUsers(Long clienteId) {
         Cliente cliente = clienteRepository.findByIdWithProjetosAndUsers(clienteId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente not found with id: " + clienteId));
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
         return new ClienteWithProjetosAndUsersDTO(cliente);
     }
 
@@ -134,7 +136,9 @@ public class ClienteService {
     @Transactional(readOnly = true)
     public List<ClienteDTO> searchClientes(String query) {
         if (query == null || query.isEmpty()) {
-            return findAll();
+            // Evita self-invocation. Chama diretamente o repositório e mapeia.
+            List<Cliente> list = clienteRepository.findAllActive();
+            return list.stream().map(ClienteDTO::new).toList();
         }
         // Updated to use the renamed repository method
         List<Cliente> clientes = clienteRepository.searchByNameOrNifOrContacts(query);
@@ -229,7 +233,7 @@ public class ClienteService {
     private void associateProjetosWithCliente(Set<ProjetoMinDTO> projetoDTOs, Cliente cliente) {
         for (ProjetoMinDTO projetoDTO : projetoDTOs) {
             Projeto projeto = projetoRepository.findById(projetoDTO.getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + projetoDTO.getId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(String.format(PROJETO_NOT_FOUND, projetoDTO.getId())));
             projeto.setCliente(cliente);
             projetoRepository.save(projeto);
         }
@@ -239,28 +243,28 @@ public class ClienteService {
     @Transactional
     public ClienteWithProjetosDTO associateProjetoWithCliente(Long clienteId, Long projetoId) {
         Cliente cliente = clienteRepository.findById(clienteId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente not found with id: " + clienteId));
+                .orElseThrow(() -> new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG));
         Projeto projeto = projetoRepository.findById(projetoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + projetoId));
+                .orElseThrow(() -> new ResourceNotFoundException(PROJETO_NOT_FOUND + projetoId));
         projeto.setCliente(cliente);
         projetoRepository.save(projeto);
         return new ClienteWithProjetosDTO(cliente);
     }
 
-    // to disassociate a projeto from a cliente
+    // to dissociate a projeto from a cliente
     @Transactional
     public void disassociateProjetoFromCliente(Long clienteId, Long projetoId) {
         // First check if cliente exists
         if (!clienteRepository.existsById(clienteId)) {
-            throw new ResourceNotFoundException("Cliente not found with id: " + clienteId);
+            throw new ResourceNotFoundException(CLIENTE_NOT_FOUND_MSG + clienteId + NOT_FOUND_MSG);
         }
         Projeto projeto = projetoRepository.findById(projetoId)
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found with id: " + projetoId));
+                .orElseThrow(() -> new ResourceNotFoundException(PROJETO_NOT_FOUND + projetoId));
         if (projeto.getCliente() != null && projeto.getCliente().getId().equals(clienteId)) {
             projeto.setCliente(null);
             projetoRepository.save(projeto);
         } else {
-            throw new ResourceNotFoundException("Projeto is not associated with this Cliente");
+            throw new ResourceNotFoundException("Projeto não está associado com este Cliente");
         }
     }
 

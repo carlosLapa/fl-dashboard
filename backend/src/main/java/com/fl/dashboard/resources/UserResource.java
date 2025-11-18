@@ -6,7 +6,6 @@ import com.fl.dashboard.dto.UserWithProjetosDTO;
 import com.fl.dashboard.dto.UserWithRolesDTO;
 import com.fl.dashboard.services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -24,8 +23,11 @@ import java.util.List;
 @RequestMapping(value = "/users")
 public class UserResource {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserResource(UserService userService) {
+        this.userService = userService;
+    }
 
     // Current user endpoint - no permission needed as users can access their own data
     @GetMapping("/me")

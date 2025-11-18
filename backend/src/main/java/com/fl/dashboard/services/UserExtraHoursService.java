@@ -6,22 +6,23 @@ import com.fl.dashboard.entities.User;
 import com.fl.dashboard.entities.UserExtraHours;
 import com.fl.dashboard.repositories.UserExtraHoursRepository;
 import com.fl.dashboard.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.temporal.WeekFields;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserExtraHoursService {
 
-    @Autowired
-    private UserExtraHoursRepository extraHoursRepository;
+    private final UserExtraHoursRepository extraHoursRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public UserExtraHoursService(UserExtraHoursRepository extraHoursRepository, UserRepository userRepository) {
+        this.extraHoursRepository = extraHoursRepository;
+        this.userRepository = userRepository;
+    }
+
 
     @Transactional
     public UserExtraHoursDTO save(UserExtraHoursDTO dto) {
@@ -56,7 +57,7 @@ public class UserExtraHoursService {
     public List<UserExtraHoursDTO> findByUser(Long userId) {
         return extraHoursRepository.findByUserId(userId).stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional

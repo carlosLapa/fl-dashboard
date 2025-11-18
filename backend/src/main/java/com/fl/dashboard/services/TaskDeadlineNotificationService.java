@@ -4,7 +4,6 @@ import com.fl.dashboard.dto.NotificationInsertDTO;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.enums.EstadoTarefa;
 import com.fl.dashboard.repositories.TarefaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ public class TaskDeadlineNotificationService {
     private final TarefaRepository tarefaRepository;
     private final NotificationService notificationService;
 
-    @Autowired
     public TaskDeadlineNotificationService(TarefaRepository tarefaRepository, NotificationService notificationService) {
         this.tarefaRepository = tarefaRepository;
         this.notificationService = notificationService;

@@ -4,7 +4,6 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.services.ClienteService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,8 +17,12 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/clientes")
 public class ClienteResource {
-    @Autowired
-    private ClienteService clienteService;
+
+    private final ClienteService clienteService;
+
+    public ClienteResource(ClienteService clienteService) {
+        this.clienteService = clienteService;
+    }
 
     @GetMapping
     public ResponseEntity<List<ClienteDTO>> findAll() {
