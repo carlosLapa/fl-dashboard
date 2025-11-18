@@ -18,7 +18,6 @@ import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,20 +44,22 @@ public class UserService implements UserDetailsService {
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
     private static final long MAX_FILE_SIZE = 2097152; // 2MB
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final ProjetoRepository projetoRepository;
+    private final NotificationRepository notificationRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private ProjetoRepository projetoRepository;
+    public UserService(UserRepository userRepository, ProjetoRepository projetoRepository,
+                       NotificationRepository notificationRepository, PasswordEncoder passwordEncoder,
+                       RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.projetoRepository = projetoRepository;
+        this.notificationRepository = notificationRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
+    }
 
-    @Autowired
-    private NotificationRepository notificationRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private RoleRepository roleRepository;
 
     // Helper method to assign default role
     private void assignDefaultRole(User entity) {
@@ -79,7 +80,7 @@ public class UserService implements UserDetailsService {
             defaultRole = new Role();
             defaultRole.setAuthority(defaultRoleName);
             defaultRole = roleRepository.save(defaultRole);
-            System.out.println("Created new role: " + defaultRoleName);
+            // System.out.println("Created new role: " + defaultRoleName);
         }
 
         entity.addRole(defaultRole);
@@ -404,7 +405,7 @@ public class UserService implements UserDetailsService {
                 }
             } catch (IllegalArgumentException e) {
                 // If role doesn't match any RoleType, just continue
-                System.out.println("Warning: Couldn't parse role as RoleType: " + role.getAuthority());
+                // System.out.println("Warning: Couldn't parse role as RoleType: " + role.getAuthority());
             }
         }
 

@@ -3,7 +3,6 @@ package com.fl.dashboard.resources;
 import com.fl.dashboard.dto.ResetPasswordDTO;
 import com.fl.dashboard.services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +18,12 @@ import java.util.Map;
 @RequestMapping("/admin")
 public class AdminResource {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public AdminResource(UserService userService) {
+        this.userService = userService;
+    }
+
 
     @PostMapping("/reset-password")
     @PreAuthorize("hasAuthority('MANAGE_USER_PASSWORDS')")

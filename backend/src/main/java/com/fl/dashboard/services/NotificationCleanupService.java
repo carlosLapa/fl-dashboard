@@ -1,7 +1,6 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.repositories.NotificationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ public class NotificationCleanupService {
 
     private final NotificationRepository notificationRepository;
 
-    @Autowired
     public NotificationCleanupService(NotificationRepository notificationRepository) {
         this.notificationRepository = notificationRepository;
     }

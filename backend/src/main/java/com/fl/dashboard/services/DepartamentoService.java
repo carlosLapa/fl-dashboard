@@ -6,25 +6,28 @@ import com.fl.dashboard.repositories.DepartamentoRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DepartamentoService {
 
-    @Autowired
-    private DepartamentoRepository departamentoRepository;
+    private final DepartamentoRepository departamentoRepository;
+
+    public DepartamentoService(DepartamentoRepository departamentoRepository) {
+        this.departamentoRepository = departamentoRepository;
+    }
 
     @Transactional(readOnly = true)
     public List<DepartamentoDTO> findAll() {
         List<Departamento> list = departamentoRepository.findAll();
-        return list.stream().map(DepartamentoDTO::new).collect(Collectors.toList());
+        return list.stream()
+                .map(DepartamentoDTO::new)
+                .toList();
     }
 
     @Transactional(readOnly = true)

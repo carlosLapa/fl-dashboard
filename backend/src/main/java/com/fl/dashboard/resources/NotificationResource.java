@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/notifications")
@@ -36,12 +34,16 @@ public class NotificationResource {
     private static final Logger logger = LoggerFactory.getLogger(NotificationResource.class);
     private static final String TOPIC_NOTIFICATIONS = "/topic/notifications";
 
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final NotificationService notificationService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper;
+
+    public NotificationResource(NotificationService notificationService, SimpMessagingTemplate messagingTemplate,
+                                ObjectMapper objectMapper) {
+        this.notificationService = notificationService;
+        this.messagingTemplate = messagingTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     @Operation(summary = "Handle WebSocket notification", description = "Process notification received via WebSocket")
     @MessageMapping("/send-notification")
@@ -172,7 +174,7 @@ public class NotificationResource {
             throw new IllegalArgumentException("Invalid notification type: " + type + ". Valid types are: " +
                     String.join(", ", Arrays.stream(NotificationType.values())
                             .map(Enum::name)
-                            .collect(Collectors.toList())));
+                            .toList()));
         }
     }
 

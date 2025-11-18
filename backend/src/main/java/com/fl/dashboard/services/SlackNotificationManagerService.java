@@ -6,10 +6,10 @@ import com.fl.dashboard.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,16 +30,16 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private ApplicationContext applicationContext;
 
-    @Autowired
-    private SlackService slackService;
+    private final SlackService slackService;
 
-    public SlackNotificationManagerService() {
+    public SlackNotificationManagerService(SlackService slackService) {
+        this.slackService = slackService;
         // Iniciar o processador que envia as notificações a cada 3 segundos
         scheduler.scheduleAtFixedRate(this::processPendingNotifications, 3, 3, TimeUnit.SECONDS);
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
@@ -493,4 +493,5 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
             return pendingNotifications.size();
         }
     }
+
 }

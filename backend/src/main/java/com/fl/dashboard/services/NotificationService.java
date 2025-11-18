@@ -15,7 +15,6 @@ import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,47 +37,68 @@ public class NotificationService {
     private static final String TOPIC_NOTIFICATIONS_NOTIFICATION_NOT_FOUND = "Notification not found";
     private static final String TOPIC_NOTIFICATIONS_NOTIFICATION_SENT = "Notification sent";
     private static final String USER_NOT_FOUND = "User not found";
+    private static final String NOTIFICATION = "Notificação ";
 
-    @Autowired
-    private NotificationRepository notificationRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TarefaRepository tarefaRepository;
-    @Autowired
-    private ProjetoRepository projetoRepository;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    @Autowired
-    private SlackService slackService;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final TarefaRepository tarefaRepository;
+    private final ProjetoRepository projetoRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final SlackService slackService;
+
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            UserRepository userRepository,
+            TarefaRepository tarefaRepository,
+            ProjetoRepository projetoRepository,
+            SimpMessagingTemplate messagingTemplate,
+            SlackService slackService) {
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.tarefaRepository = tarefaRepository;
+        this.projetoRepository = projetoRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.slackService = slackService;
+    }
 
     @PostConstruct
     public void validateSlackIntegration() {
         logger.info("Validating Slack integration setup...");
         try {
-            boolean slackEnabled = false;
-            try {
-                slackEnabled = slackService.isEnabled();
-            } catch (Exception e) {
-                logger.error("Error checking if Slack is enabled", e);
-            }
-
+            boolean slackEnabled = checkSlackEnabled();
             logger.info("Slack integration enabled: {}", slackEnabled);
 
             if (slackEnabled) {
-                logger.info("Notification types that will be sent to Slack:");
-                for (NotificationType type : NotificationType.values()) {
-                    boolean shouldSend = false;
-                    try {
-                        shouldSend = slackService.shouldSendNotificationType(type.name());
-                    } catch (Exception e) {
-                        logger.error("Error checking if type {} should be sent to Slack", type.name(), e);
-                    }
-                    logger.info("  - {}: {}", type.name(), shouldSend ? "YES" : "NO");
-                }
+                logNotificationTypeSettings();
             }
         } catch (Exception e) {
             logger.error("Error during Slack integration validation", e);
+        }
+    }
+
+    private boolean checkSlackEnabled() {
+        try {
+            return slackService.isEnabled();
+        } catch (Exception e) {
+            logger.error("Error checking if Slack is enabled", e);
+            return false;
+        }
+    }
+
+    private void logNotificationTypeSettings() {
+        logger.info("Notification types that will be sent to Slack:");
+        for (NotificationType type : NotificationType.values()) {
+            boolean shouldSend = checkNotificationType(type);
+            logger.info("  - {}: {}", type.name(), shouldSend ? "YES" : "NO");
+        }
+    }
+
+    private boolean checkNotificationType(NotificationType type) {
+        try {
+            return slackService.shouldSendNotificationType(type.name());
+        } catch (Exception e) {
+            logger.error("Error checking if type {} should be sent to Slack", type.name(), e);
+            return false;
         }
     }
 
@@ -192,7 +212,7 @@ public class NotificationService {
     private String getTitleForNotificationType(String type) {
         if (type == null) {
             logger.warn("Notification type is null, using default title");
-            return "Notificação";
+            return NOTIFICATION;
         }
 
         logger.debug("Getting title for notification type: {}", type);
@@ -210,12 +230,12 @@ public class NotificationService {
                 case "NOTIFICACAO_GERAL" -> "Notificação";
                 default -> {
                     logger.warn("Unknown notification type: {}", type);
-                    yield "Notificação";
+                    yield NOTIFICATION;
                 }
             };
         } catch (Exception e) {
             logger.error("Error determining notification title for type: {}", type, e);
-            title = "Notificação";
+            title = NOTIFICATION;
         }
 
         logger.debug("Selected title '{}' for notification type '{}'", title, type);

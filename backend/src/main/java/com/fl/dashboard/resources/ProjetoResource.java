@@ -8,7 +8,6 @@ import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,11 +27,13 @@ import java.util.List;
 @RequestMapping(value = "/projetos")
 public class ProjetoResource {
 
-    @Autowired
-    private ProjetoService projetoService;
+    private final ProjetoService projetoService;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private NotificationService notificationService;
+    public ProjetoResource(ProjetoService projetoService, NotificationService notificationService) {
+        this.projetoService = projetoService;
+        this.notificationService = notificationService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<ProjetoWithUsersDTO>> findAll(Pageable pageable, Authentication authentication) {

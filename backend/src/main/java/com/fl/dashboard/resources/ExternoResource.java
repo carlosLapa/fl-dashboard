@@ -3,7 +3,6 @@ package com.fl.dashboard.resources;
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.services.ExternoService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +16,11 @@ import java.util.List;
 @RequestMapping(value = "/externos")
 public class ExternoResource {
 
-    @Autowired
-    private ExternoService externoService;
+    private final ExternoService externoService;
+
+    public ExternoResource(ExternoService externoService) {
+        this.externoService = externoService;
+    }
 
     @GetMapping
     public ResponseEntity<List<ExternoDTO>> findAll() {

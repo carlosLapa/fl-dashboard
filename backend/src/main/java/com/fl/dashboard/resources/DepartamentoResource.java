@@ -3,7 +3,6 @@ package com.fl.dashboard.resources;
 import com.fl.dashboard.dto.DepartamentoDTO;
 import com.fl.dashboard.services.DepartamentoService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -15,8 +14,11 @@ import java.util.List;
 @RequestMapping(value = "/departamentos")
 public class DepartamentoResource {
 
-    @Autowired
-    private DepartamentoService departamentoService;
+    private final DepartamentoService departamentoService;
+
+    public DepartamentoResource(DepartamentoService departamentoService) {
+        this.departamentoService = departamentoService;
+    }
 
     @GetMapping
     public ResponseEntity<List<DepartamentoDTO>> findAll() {
