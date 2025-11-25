@@ -6,6 +6,7 @@ export interface Cliente {
   name: string;
   morada: string;
   nif: string;
+  numero: number;
 
   // Keep old fields for backward compatibility
   contacto?: string;
@@ -27,6 +28,7 @@ export interface ClienteDTO {
   name: string;
   morada: string;
   nif: string;
+  numero: number;
 
   // Keep old fields for backward compatibility
   contacto?: string;
@@ -47,6 +49,7 @@ export interface ClienteInsertDTO {
   name: string;
   morada: string;
   nif: string;
+  numero: number;
 
   // Keep old fields for backward compatibility
   contacto?: string;
@@ -63,6 +66,7 @@ export interface ClienteUpdateDTO {
   name: string;
   morada: string;
   nif: string;
+  numero: number;
 
   // Keep old fields for backward compatibility
   contacto?: string;

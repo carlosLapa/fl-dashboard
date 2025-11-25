@@ -44,6 +44,13 @@ public class ClienteUpdateValidator implements ConstraintValidator<ClienteUpdate
             }
         }
 
+        // Check if numero is already in use by another cliente
+        if (dto.getNumero() != null) {
+            if (clienteRepository.existsByNumeroAndIdNot(dto.getNumero(), clienteId)) {
+                list.add(new FieldMessage("numero", "Número já existe! Por favor insira um número único"));
+            }
+        }
+
         // Add validation errors to the context
         for (FieldMessage e : list) {
             context.disableDefaultConstraintViolation();

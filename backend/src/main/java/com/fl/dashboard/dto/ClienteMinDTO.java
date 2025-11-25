@@ -11,9 +11,11 @@ import lombok.NoArgsConstructor;
 public class ClienteMinDTO {
     private Long id;
     private String name;
+    private Integer numero;
 
     public ClienteMinDTO(Cliente entity) {
         this.id = entity.getId();
         this.name = entity.getName();
+        this.numero = entity.getNumero();
     }
 }

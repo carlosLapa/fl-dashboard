@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ClienteDTO, ClienteUpdateDTO } from 'types/cliente';
 import { updateClienteAPI } from 'api/clienteApi';
+import { toast } from 'react-toastify';
 import './clienteDetailsCard.scss';
 
 interface EditClienteModalProps {
@@ -23,6 +24,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
     name: '',
     morada: '',
     nif: '',
+    numero: 0, // Add numero field
     contacto: '',
     responsavel: '',
     contactos: [],
@@ -42,6 +44,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
         name: cliente.name,
         morada: cliente.morada,
         nif: cliente.nif,
+        numero: cliente.numero || 0, // Initialize numero from cliente
         contacto: cliente.contacto || '',
         responsavel: cliente.responsavel || '',
         // Filter out the main contact/responsible from the collections
@@ -66,26 +69,32 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
     >
   ) => {
     const { name, value } = event.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+
+    // Special handling for numero field
+    if (name === 'numero') {
+      const numValue = value === '' ? 0 : parseInt(value, 10);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: isNaN(numValue) ? 0 : numValue,
+      }));
+    } else {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: value,
+      }));
+    }
   };
 
   const handleAddContacto = () => {
     if (newContacto.trim()) {
-      // Don't add if it's the same as the main contact
       if (newContacto.trim() === formData.contacto) {
         setNewContacto('');
         return;
       }
-
-      // Don't add if it already exists in the list
       if (formData.contactos.includes(newContacto.trim())) {
         setNewContacto('');
         return;
       }
-
       setFormData((prev) => ({
         ...prev,
         contactos: [...prev.contactos, newContacto.trim()],
@@ -103,18 +112,14 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
 
   const handleAddResponsavel = () => {
     if (newResponsavel.trim()) {
-      // Don't add if it's the same as the main responsible
       if (newResponsavel.trim() === formData.responsavel) {
         setNewResponsavel('');
         return;
       }
-
-      // Don't add if it already exists in the list
       if (formData.responsaveis.includes(newResponsavel.trim())) {
         setNewResponsavel('');
         return;
       }
-
       setFormData((prev) => ({
         ...prev,
         responsaveis: [...prev.responsaveis, newResponsavel.trim()],
@@ -132,12 +137,10 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
 
   const handleAddEmail = () => {
     if (newEmail.trim()) {
-      // Don't add if it already exists in the list
       if (formData.emails.includes(newEmail.trim())) {
         setNewEmail('');
         return;
       }
-
       setFormData((prev) => ({
         ...prev,
         emails: [...prev.emails, newEmail.trim()],
@@ -161,24 +164,25 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
       return;
     }
 
+    // Validate numero
+    if (!formData.numero || formData.numero <= 0) {
+      setError('Número deve ser um valor inteiro positivo.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Create a copy of the form data to manipulate
       const dataToSend = { ...formData };
 
-      // Ensure main contacto is included in contactos array
       if (dataToSend.contacto) {
-        // If contactos doesn't include the main contacto, add it
         if (!dataToSend.contactos.includes(dataToSend.contacto)) {
           dataToSend.contactos = [dataToSend.contacto, ...dataToSend.contactos];
         }
       }
 
-      // Ensure main responsavel is included in responsaveis array
       if (dataToSend.responsavel) {
-        // If responsaveis doesn't include the main responsavel, add it
         if (!dataToSend.responsaveis.includes(dataToSend.responsavel)) {
           dataToSend.responsaveis = [
             dataToSend.responsavel,
@@ -190,16 +194,40 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
       const savedCliente = await updateClienteAPI(cliente.id, dataToSend);
       onClienteSaved(savedCliente);
       onHide();
-    } catch (error) {
+      toast.success('Cliente atualizado com sucesso!');
+    } catch (error: any) {
       console.error('Error updating cliente:', error);
-      setError('Erro ao atualizar cliente. Por favor, tente novamente.');
+
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const numeroError = errors.find(
+          (err: any) => err.fieldName === 'numero'
+        );
+        if (numeroError) {
+          setError(numeroError.message);
+        } else {
+          setError('Erro ao atualizar cliente. Por favor, tente novamente.');
+        }
+      } else {
+        setError('Erro ao atualizar cliente. Por favor, tente novamente.');
+      }
+
+      toast.error('Erro ao atualizar cliente');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg">
+    <Modal
+      show={show}
+      onHide={onHide}
+      size="lg"
+      centered
+      backdrop="static"
+      keyboard={false}
+    >
       <Modal.Header closeButton>
         <Modal.Title>Editar Cliente</Modal.Title>
       </Modal.Header>
@@ -210,6 +238,37 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
           </div>
         )}
         <Form>
+          <Form.Group controlId="formNumero" className="mb-3">
+            <Form.Label>
+              Número <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              type="number"
+              name="numero"
+              value={formData.numero || ''}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                // Prevent decimal point, minus sign, and 'e'
+                if (
+                  e.key === '.' ||
+                  e.key === '-' ||
+                  e.key === 'e' ||
+                  e.key === 'E' ||
+                  e.key === '+'
+                ) {
+                  e.preventDefault();
+                }
+              }}
+              min="1"
+              step="1"
+              required
+              placeholder="Ex: 1234"
+            />
+            <Form.Text className="text-muted">
+              Número único do cliente (apenas números inteiros positivos)
+            </Form.Text>
+          </Form.Group>
+
           <Form.Group controlId="formName" className="mb-3">
             <Form.Label>
               Nome <span className="text-danger">*</span>
@@ -222,6 +281,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
               required
             />
           </Form.Group>
+
           <Form.Group controlId="formMorada" className="mb-3">
             <Form.Label>
               Morada <span className="text-danger">*</span>
@@ -234,6 +294,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
               required
             />
           </Form.Group>
+
           <Form.Group controlId="formNIF" className="mb-3">
             <Form.Label>
               NIF <span className="text-danger">*</span>
@@ -246,6 +307,7 @@ const EditClienteModal: React.FC<EditClienteModalProps> = ({
               required
             />
           </Form.Group>
+
           <Form.Group controlId="formContacto" className="mb-3">
             <Form.Label className="primary-field">
               Contacto Principal

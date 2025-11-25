@@ -32,7 +32,13 @@ public class ClienteInsertValidator implements ConstraintValidator<ClienteInsert
             }
         }
 
-        // Add more validations as needed
+        // Check if numero is already in use
+        if (dto.getNumero() != null) {
+            var clienteWithSameNumero = clienteRepository.findByNumero(dto.getNumero());
+            if (clienteWithSameNumero.isPresent()) {
+                list.add(new FieldMessage("numero", "Número já existe! Por favor insira um número único"));
+            }
+        }
 
         // Add validation errors to the context
         for (FieldMessage e : list) {

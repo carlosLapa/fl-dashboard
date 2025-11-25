@@ -2,6 +2,7 @@ package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Cliente;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,6 +26,9 @@ public class ClienteDTO {
     @Size(max = 20, message = "NIF deve ter no máximo 20 caracteres")
     private String nif;
 
+    @NotNull(message = "Número é obrigatório")
+    private Integer numero;
+
     // Keep old fields for backward compatibility
     @Size(max = 50, message = "Contacto deve ter no máximo 50 caracteres")
     private String contacto;
@@ -42,6 +46,7 @@ public class ClienteDTO {
         this.name = entity.getName();
         this.morada = entity.getMorada();
         this.nif = entity.getNif();
+        this.numero = entity.getNumero();
 
         // Handle new collection fields
         this.contactos = entity.getContactos() != null ? new ArrayList<>(entity.getContactos()) : new ArrayList<>();

@@ -193,6 +193,7 @@ public class ClienteService {
         entity.setName(dto.getName());
         entity.setMorada(dto.getMorada());
         entity.setNif(dto.getNif());
+        entity.setNumero(dto.getNumero());
 
         // Handle the new collection fields
         if (dto.getContactos() != null) {

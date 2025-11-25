@@ -33,7 +33,7 @@ interface ClienteTableProps {
   onPageChange: (page: number) => void;
   totalPages: number;
   isLoading?: boolean;
-  shouldDisableActions?: boolean; // Add this property
+  shouldDisableActions?: boolean;
 }
 
 const ClienteTable: React.FC<ClienteTableProps> = ({
@@ -45,14 +45,13 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
   onPageChange,
   totalPages,
   isLoading = false,
-  shouldDisableActions = false, // Default to false
+  shouldDisableActions = false,
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(
     null
   );
   const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
 
-  // Define disabled style for buttons/icons
   const disabledStyle: React.CSSProperties = {
     color: '#ccc',
     cursor: 'not-allowed',
@@ -178,6 +177,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
           <thead>
             <tr>
               <th style={{ width: '40px' }}></th>
+              <th style={{ width: '100px' }}>Número</th>
               <th>Nome</th>
               <th>Morada</th>
               <th>NIF</th>
@@ -206,6 +206,9 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
                         className="text-secondary"
                       />
                     </Button>
+                  </td>
+                  <td>
+                    <strong className="text-primary">{cliente.numero}</strong>
                   </td>
                   <td>{cliente.name}</td>
                   <td>{cliente.morada}</td>
@@ -308,7 +311,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
                   </td>
                 </tr>
                 <tr className="expandable-row">
-                  <td colSpan={7} className="p-0">
+                  <td colSpan={8} className="p-0">
                     <Collapse in={expandedRows[cliente.id]}>
                       <div className="p-3">
                         <div className="row">

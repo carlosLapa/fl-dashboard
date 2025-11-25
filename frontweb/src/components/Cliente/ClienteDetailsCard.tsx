@@ -1,11 +1,12 @@
 import React from 'react';
-import { Card, Button, ListGroup } from 'react-bootstrap';
+import { Card, Button, ListGroup, Badge } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTimes,
   faPhone,
   faUser,
   faEnvelope,
+  faHashtag,
 } from '@fortawesome/free-solid-svg-icons';
 import { ClienteDTO } from 'types/cliente';
 import './clienteDetailsCard.scss';
@@ -31,8 +32,18 @@ const ClienteDetailsCard: React.FC<ClienteDetailsCardProps> = ({
             </Button>
           </Card.Header>
           <Card.Body>
-            <Card.Title>{cliente.name}</Card.Title>
+            <div className="d-flex justify-content-between align-items-start mb-3">
+              <Card.Title className="mb-0">{cliente.name}</Card.Title>
+              <Badge bg="primary" className="fs-6">
+                <FontAwesomeIcon icon={faHashtag} className="me-1" />
+                {cliente.numero}
+              </Badge>
+            </div>
             <div className="mt-3">
+              <p className="mb-2">
+                <strong>Número:</strong>{' '}
+                <span className="text-primary fw-bold">{cliente.numero}</span>
+              </p>
               <p className="mb-2">
                 <strong>Morada:</strong> {cliente.morada || 'Não disponível'}
               </p>

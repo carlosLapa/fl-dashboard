@@ -16,6 +16,13 @@ import java.util.Optional;
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByNif(String nif);
 
+    // For INSERT validation - check if numero exists at all
+    Optional<Cliente> findByNumero(Integer numero);
+
+    // For UPDATE validation - check if numero exists excluding the current cliente
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Cliente c WHERE c.numero = :numero AND c.id <> :clienteId AND c.deletedAt IS NULL")
+    boolean existsByNumeroAndIdNot(@Param("numero") Integer numero, @Param("clienteId") Long clienteId);
+
     @Query("SELECT c FROM Cliente c WHERE c.deletedAt IS NULL")
     Page<Cliente> findAllActive(Pageable pageable);
 

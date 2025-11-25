@@ -24,6 +24,9 @@ public class Cliente {
     private String morada;
     private String nif;
 
+    @Column(nullable = false, unique = true)
+    private Integer numero;
+
     // New collection fields using JPA converters
     @Convert(converter = JsonListConverter.class)
     @Column(columnDefinition = "json")
@@ -52,11 +55,12 @@ public class Cliente {
     public Cliente() {
     }
 
-    public Cliente(Long id, String name, String morada, String nif, List<String> contactos, List<String> responsaveis, List<String> emails, Timestamp deletedAt) {
+    public Cliente(Long id, String name, String morada, String nif, Integer numero, List<String> contactos, List<String> responsaveis, List<String> emails, Timestamp deletedAt) {
         this.id = id;
         this.name = name;
         this.morada = morada;
         this.nif = nif;
+        this.numero = numero;
         this.contactos = contactos;
         this.responsaveis = responsaveis;
         this.emails = emails;
@@ -79,4 +83,5 @@ public class Cliente {
                 ? hibernateProxy.getHibernateLazyInitializer().getPersistentClass().hashCode()
                 : getClass().hashCode();
     }
+
 }
