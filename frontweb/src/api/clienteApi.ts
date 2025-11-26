@@ -15,12 +15,23 @@ export const getAllClientesAPI = async (): Promise<ClienteDTO[]> => {
   return response.data;
 };
 
-// Get all clientes with pagination
+// Get all clientes with pagination and sorting
 export const getClientesPagedAPI = async (
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sortField?: string,
+  sortDirection?: 'asc' | 'desc'
 ): Promise<PaginatedClientes> => {
-  const response = await axios.get(`/clientes/paged?page=${page}&size=${size}`);
+  const params: any = {
+    page,
+    size,
+  };
+
+  if (sortField) {
+    params.sort = `${sortField},${sortDirection || 'asc'}`;
+  }
+
+  const response = await axios.get('/clientes/paged', { params });
   return response.data;
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClienteTable from 'components/Cliente/ClienteTable';
 import { getClientesPaged } from 'services/clienteService';
@@ -22,13 +22,14 @@ const ClientePage: React.FC = () => {
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortField, setSortField] = useState<string>('numero');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   const navigate = useNavigate();
   const { isEmployee } = usePermissions();
-  
-  // Check if user is an employee (not admin or manager)
+
   const shouldDisableActions = isEmployee();
-  
-  // Define disabled style for buttons
+
   const disabledStyle: React.CSSProperties = {
     color: '#ccc',
     cursor: 'not-allowed',
@@ -36,10 +37,15 @@ const ClientePage: React.FC = () => {
     pointerEvents: 'none',
   };
 
-  const fetchClientes = async () => {
+  const fetchClientes = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getClientesPaged(page, pageSize);
+      const response = await getClientesPaged(
+        page,
+        pageSize,
+        sortField,
+        sortDirection
+      );
       console.log('Clientes API response:', JSON.stringify(response));
       setClientes(response.content || []);
       setTotalPages(response.totalPages || 0);
@@ -49,12 +55,23 @@ const ClientePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, pageSize, sortField, sortDirection]);
 
   useEffect(() => {
     fetchClientes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize]);
+  }, [fetchClientes]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setPage(0); // Reset to first page when sorting changes
+  };
 
   const handleAddCliente = () => {
     if (shouldDisableActions) return;
@@ -86,7 +103,7 @@ const ClientePage: React.FC = () => {
     } else {
       setClientes([...clientes, savedCliente]);
     }
-    await fetchClientes(); // Refresh the paginated data
+    await fetchClientes();
     toast.success(
       clienteToEdit
         ? 'Cliente atualizado com sucesso!'
@@ -98,7 +115,7 @@ const ClientePage: React.FC = () => {
     if (shouldDisableActions) return;
     try {
       await deleteClienteAPI(clienteId);
-      await fetchClientes(); // Refresh the paginated data
+      await fetchClientes();
       toast.success('Cliente eliminado com sucesso!');
     } catch (error) {
       console.error('Error deleting cliente:', error);
@@ -112,7 +129,6 @@ const ClientePage: React.FC = () => {
 
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the title container and table in a div with consistent width and margins */}
       <div
         style={{
           width: '98%',
@@ -131,10 +147,10 @@ const ClientePage: React.FC = () => {
               variant="primary"
               onClick={handleAddCliente}
               className="create-button"
-              style={{ 
-                position: 'relative', 
+              style={{
+                position: 'relative',
                 left: '20px',
-                ...(shouldDisableActions ? disabledStyle : {})
+                ...(shouldDisableActions ? disabledStyle : {}),
               }}
               disabled={shouldDisableActions}
             >
@@ -143,7 +159,6 @@ const ClientePage: React.FC = () => {
             </Button>
           </div>
         </div>
-        {/* Table wrapped in a div with the same width */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
           <ClienteTable
             clientes={clientes}
@@ -155,10 +170,12 @@ const ClientePage: React.FC = () => {
             totalPages={totalPages}
             isLoading={isLoading}
             shouldDisableActions={shouldDisableActions}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
           />
         </div>
       </div>
-      {/* Modals */}
       <AddClienteModal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}

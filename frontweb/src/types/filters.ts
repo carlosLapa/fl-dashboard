@@ -39,3 +39,9 @@ export interface UserFilterState extends BaseFilterState {
   email: string;
   role: string;
 }
+
+// Cliente filter state (apenas sorting)
+export interface ClienteFilterState extends BaseFilterState {
+  sortField?: 'numero' | 'name' | 'morada' | 'responsavel';
+  sortDirection?: 'asc' | 'desc';
+}

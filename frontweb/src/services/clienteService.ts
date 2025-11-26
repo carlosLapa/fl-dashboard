@@ -39,13 +39,15 @@ export const getAllClientes = async (): Promise<ClienteDTO[]> => {
   }
 };
 
-// Get all clientes with pagination
+// Get all clientes with pagination and sorting
 export const getClientesPaged = async (
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  sortField?: string,
+  sortDirection?: 'asc' | 'desc'
 ): Promise<PaginatedClientes> => {
   try {
-    return await getClientesPagedAPI(page, size);
+    return await getClientesPagedAPI(page, size, sortField, sortDirection);
   } catch (error) {
     console.error('Error in cliente service:', error);
     return {

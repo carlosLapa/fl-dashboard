@@ -21,8 +21,8 @@ import {
   faUser,
   faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
-import { ClienteDTO } from 'types/cliente';
-import './clienteTableStyles.scss';
+import { ClienteDTO } from '../../types/cliente';
+import ClienteTableHeader from './ClienteTableHeader';
 
 interface ClienteTableProps {
   clientes: ClienteDTO[];
@@ -34,6 +34,9 @@ interface ClienteTableProps {
   totalPages: number;
   isLoading?: boolean;
   shouldDisableActions?: boolean;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSort: (field: string) => void;
 }
 
 const ClienteTable: React.FC<ClienteTableProps> = ({
@@ -46,6 +49,9 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
   totalPages,
   isLoading = false,
   shouldDisableActions = false,
+  sortField,
+  sortDirection,
+  onSort,
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState<number | null>(
     null
@@ -91,7 +97,6 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
     );
     const endPage = Math.min(startPage + maxVisiblePages, totalPages);
 
-    // Previous button
     items.push(
       <Pagination.Prev
         key="prev"
@@ -100,7 +105,6 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
       />
     );
 
-    // First page
     if (startPage > 0) {
       items.push(
         <Pagination.Item key={0} onClick={() => onPageChange(0)}>
@@ -112,7 +116,6 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
       }
     }
 
-    // Page numbers
     for (let i = startPage; i < endPage; i++) {
       items.push(
         <Pagination.Item
@@ -125,7 +128,6 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
       );
     }
 
-    // Last page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         items.push(<Pagination.Ellipsis key="ellipsis2" />);
@@ -140,7 +142,6 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
       );
     }
 
-    // Next button
     items.push(
       <Pagination.Next
         key="next"
@@ -175,16 +176,11 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
       <div className="table-responsive">
         <Table striped bordered hover className="cliente-table">
           <thead>
-            <tr>
-              <th style={{ width: '40px' }}></th>
-              <th style={{ width: '100px' }}>Número</th>
-              <th>Nome</th>
-              <th>Morada</th>
-              <th>NIF</th>
-              <th>Contacto</th>
-              <th>Responsável</th>
-              <th>Ações</th>
-            </tr>
+            <ClienteTableHeader
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+            />
           </thead>
           <tbody>
             {clientes.map((cliente) => (
