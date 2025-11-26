@@ -47,11 +47,19 @@ export const buildApiFilters = (filters: any) => {
 export const getPropostas = async (
   page: number = 0,
   size: number = 10,
-  filters: any = {}
+  filters: any = {},
+  sortField?: string,
+  sortDirection?: 'asc' | 'desc'
 ): Promise<PaginatedPropostas> => {
   try {
     const apiFilters = buildApiFilters(filters);
-    const response = await getPropostasAPI(page, size, apiFilters);
+    const response = await getPropostasAPI(
+      page,
+      size,
+      apiFilters,
+      sortField,
+      sortDirection
+    );
     return {
       content: response.content || [],
       totalPages: response.totalPages || 0,
@@ -85,7 +93,9 @@ export const getPropostaById = async (id: number): Promise<Proposta | null> => {
   }
 };
 
-export const getPropostaWithClientes = async (id: number): Promise<Proposta | null> => {
+export const getPropostaWithClientes = async (
+  id: number
+): Promise<Proposta | null> => {
   try {
     const proposta = await getPropostaWithClientesAPI(id);
     return proposta;
@@ -95,7 +105,9 @@ export const getPropostaWithClientes = async (id: number): Promise<Proposta | nu
         throw new Error('Proposta não encontrada ou foi removida');
       }
     }
-    throw new Error('Erro ao carregar os detalhes da proposta. Por favor, tente novamente.');
+    throw new Error(
+      'Erro ao carregar os detalhes da proposta. Por favor, tente novamente.'
+    );
   }
 };
 
@@ -162,7 +174,10 @@ export const converterParaProjeto = async (id: number): Promise<any> => {
   }
 };
 
-export const updatePropostaStatus = async (id: number, status: string): Promise<Proposta | null> => {
+export const updatePropostaStatus = async (
+  id: number,
+  status: string
+): Promise<Proposta | null> => {
   try {
     if (!canEditProposta()) {
       throw new Error('Você não tem permissão para editar propostas');

@@ -45,3 +45,18 @@ export interface ClienteFilterState extends BaseFilterState {
   sortField?: 'numero' | 'name' | 'morada' | 'responsavel';
   sortDirection?: 'asc' | 'desc';
 }
+
+// Proposta filter state (sorting - clientes é client-side)
+export interface PropostaFilterState extends BaseFilterState {
+  sortField?:
+    | 'propostaAno'
+    | 'designacao'
+    | 'clientes'
+    | 'tipo'
+    | 'dataProposta'
+    | 'dataAdjudicacao'
+    | 'prazo'
+    | 'prioridade'
+    | 'status';
+  sortDirection?: 'asc' | 'desc';
+}

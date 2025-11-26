@@ -18,6 +18,9 @@ interface PropostaTableProps {
   onPageChange?: (page: number) => void;
   totalPages?: number;
   isLoading?: boolean;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSort: (field: string) => void;
 }
 
 const PropostaTable: React.FC<PropostaTableProps> = ({
@@ -29,12 +32,19 @@ const PropostaTable: React.FC<PropostaTableProps> = ({
   onPageChange = () => {},
   totalPages = 1,
   isLoading = false,
+  sortField,
+  sortDirection,
+  onSort,
 }) => {
   return (
     <div className="proposta-container">
       <div className="table-responsive">
         <Table striped bordered hover>
-          <PropostaTableHeader />
+          <PropostaTableHeader
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={onSort}
+          />
           <tbody>
             {isLoading ? (
               <PropostaLoadingState />

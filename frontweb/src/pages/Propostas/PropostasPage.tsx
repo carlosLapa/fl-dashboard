@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Proposta, PropostaFormData } from '../../types/proposta';
 import {
   getPropostas,
   converterParaProjeto,
 } from '../../services/propostaService';
+import { PropostaFilterState } from '../../types/filters';
 import PropostaTable from '../../components/Proposta/PropostaTable';
 import ProjetoModal from '../../components/Projeto/ProjetoModal';
 import { ProjetoFormData } from '../../types/projeto';
@@ -31,14 +32,34 @@ const PropostasPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0); // Adicionado totalElements
+  const [totalElements, setTotalElements] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [propostaToEdit, setPropostaToEdit] = useState<Proposta | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  // Projeto modal state
   const [showProjetoModal, setShowProjetoModal] = useState(false);
   const [projetoFormData, setProjetoFormData] =
     useState<ProjetoFormData | null>(null);
+
+  // Estados de sorting APENAS para UI (visualização)
+  const [sortField, setSortField] =
+    useState<PropostaFilterState['sortField']>('propostaAno');
+  const [sortDirection, setSortDirection] =
+    useState<PropostaFilterState['sortDirection']>('desc');
+
+  // Estados de sorting para backend (separados!)
+  const [serverSortField, setServerSortField] =
+    useState<PropostaFilterState['sortField']>('propostaAno');
+  const [serverSortDirection, setServerSortDirection] =
+    useState<PropostaFilterState['sortDirection']>('desc');
+
+  const [filters, setFilters] = useState<PropostaFilterState>({
+    search: '',
+    clienteId: undefined,
+    status: undefined,
+    prioridade: undefined,
+    sortField: 'propostaAno',
+    sortDirection: 'desc',
+  });
 
   // Função para converter Proposta em ProjetoFormData
   const mapPropostaToProjetoFormData = (
@@ -126,18 +147,38 @@ const PropostasPage: React.FC = () => {
 
   // Fetch propostas
   const fetchPropostas = useCallback(async () => {
+    console.log('🌐 Fetching propostas with:', {
+      page,
+      pageSize,
+      serverSortField,
+      serverSortDirection,
+    });
+
     setIsLoading(true);
     try {
-      const response = await getPropostas(page, pageSize);
-      setPropostas(response.content);
-      setTotalPages(response.totalPages);
-      setTotalElements(response.totalElements || 0); // Adicionado setter para totalElements
+      const response = await getPropostas(
+        page,
+        pageSize,
+        filters,
+        serverSortField,
+        serverSortDirection
+      );
+      setPropostas(response.content || []);
+      setTotalPages(response.totalPages || 0);
+      setTotalElements(response.totalElements || 0);
+
+      // Após carregar do servidor, sincronizar estados de UI se não for clientes
+      if (serverSortField !== 'clientes') {
+        setSortField(serverSortField);
+        setSortDirection(serverSortDirection);
+      }
     } catch (error) {
+      console.error('Error fetching propostas:', error);
       toast.error('Erro ao carregar propostas');
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, filters, serverSortField, serverSortDirection]);
 
   useEffect(() => {
     fetchPropostas();
@@ -196,6 +237,64 @@ const PropostasPage: React.FC = () => {
     }
   };
 
+  const handleSort = (field: string) => {
+    console.log('🔍 handleSort called:', { field, sortField, sortDirection });
+
+    // Ordenação client-side APENAS para coluna Cliente
+    if (field === 'clientes') {
+      console.log('✅ Client-side sorting para clientes');
+
+      // Determinar nova direção
+      let newDirection: 'asc' | 'desc' = 'asc';
+
+      if (sortField === 'clientes') {
+        newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        console.log('🔄 Toggling direction:', sortDirection, '→', newDirection);
+      } else {
+        console.log('🆕 First time sorting by clientes');
+      }
+
+      const sorted = [...propostas].sort((a, b) => {
+        const nameA = a.clientes?.[0]?.name || '';
+        const nameB = b.clientes?.[0]?.name || '';
+
+        const comparison = nameA.localeCompare(nameB, 'pt-PT', {
+          sensitivity: 'base',
+        });
+
+        return newDirection === 'asc' ? comparison : -comparison;
+      });
+
+      console.log(
+        '📊 Sorted:',
+        sorted.map((p) => p.clientes?.[0]?.name)
+      );
+
+      // Atualizar APENAS estados de UI (NÃO afeta fetchPropostas)
+      setSortField('clientes');
+      setSortDirection(newDirection);
+      setPropostas(sorted);
+
+      return; // IMPORTANTE: não alterar serverSortField/Direction
+    }
+
+    // Ordenação server-side para outros campos
+    console.log('🌐 Server-side sorting for field:', field);
+
+    const newDirection =
+      sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+
+    // Atualizar estados de UI
+    setSortField(field as PropostaFilterState['sortField']);
+    setSortDirection(newDirection);
+
+    // Atualizar estados de backend (isso vai disparar fetchPropostas)
+    setServerSortField(field as PropostaFilterState['sortField']);
+    setServerSortDirection(newDirection);
+
+    setPage(0);
+  };
+
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
       <div
@@ -234,6 +333,9 @@ const PropostasPage: React.FC = () => {
             onPageChange={handlePageChange}
             totalPages={totalPages}
             isLoading={isLoading}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
           />
 
           {!isLoading && totalElements > 0 && (

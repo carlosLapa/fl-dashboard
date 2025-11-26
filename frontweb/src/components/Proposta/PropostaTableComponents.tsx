@@ -8,28 +8,66 @@ import {
   faTrashAlt,
   faInfoCircle,
   faPlus,
+  faSort,
+  faSortUp,
+  faSortDown,
 } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
 
-export const PropostaTableHeader: React.FC = () => (
-  <thead>
-    <tr>
-      <th>Ano</th>
-      <th>Designação</th>
-      <th>Cliente</th>
-      <th>Tipo</th>
-      <th>Data Proposta</th>
-      <th>Data Adjudicação</th>
-      <th>Prazo</th>
-      <th>Prioridade</th>
-      <th>Observação</th>
-      <th>Status</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-);
+interface PropostaTableHeaderProps {
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSort: (field: string) => void;
+}
+
+export const PropostaTableHeader: React.FC<PropostaTableHeaderProps> = ({
+  sortField,
+  sortDirection,
+  onSort,
+}) => {
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return faSort;
+    }
+    return sortDirection === 'asc' ? faSortUp : faSortDown;
+  };
+
+  const renderSortableHeader = (field: string, label: string) => (
+    <th
+      onClick={() => onSort(field)}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
+      className="sortable-header"
+    >
+      {label}{' '}
+      <FontAwesomeIcon
+        icon={getSortIcon(field)}
+        className={sortField === field ? 'text-primary' : 'text-muted'}
+        size="sm"
+      />
+    </th>
+  );
+
+  return (
+    <thead>
+      <tr>
+        {renderSortableHeader('propostaAno', 'Ano')}
+        {renderSortableHeader('designacao', 'Designação')}
+        {renderSortableHeader('clientes', 'Cliente')}{' '}
+        {/* Client-side sorting */}
+        {renderSortableHeader('tipo', 'Tipo')}
+        {renderSortableHeader('dataProposta', 'Data Proposta')}
+        {renderSortableHeader('dataAdjudicacao', 'Data Adjudicação')}
+        {renderSortableHeader('prazo', 'Prazo')}
+        {renderSortableHeader('prioridade', 'Prioridade')}
+        <th>Observação</th>
+        {renderSortableHeader('status', 'Status')}
+        <th>Ações</th>
+      </tr>
+    </thead>
+  );
+};
 
 interface PropostaTableRowProps {
   proposta: Proposta;
@@ -95,7 +133,6 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
               style={{ cursor: 'pointer', marginLeft: 8 }}
             />
           </OverlayTrigger>
-          {/* Ver detalhes da proposta */}
           <OverlayTrigger
             placement="top"
             overlay={
@@ -116,7 +153,6 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
               </span>
             </Link>
           </OverlayTrigger>
-          {/* Botão para gerar projeto se adjudicada, não possui projetoId e tem permissão */}
           {proposta.status === 'ADJUDICADA' &&
             onGenerateProjeto &&
             !proposta.projetoId &&
@@ -134,7 +170,7 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    background: '#81a6f0', // $primary
+                    background: '#81a6f0',
                     color: '#222',
                     borderRadius: '10px',
                     padding: '6px 14px 6px 10px',
@@ -157,7 +193,6 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
                 </span>
               </OverlayTrigger>
             )}
-          {/* Se já possui projetoId, mostra info */}
           {proposta.status === 'ADJUDICADA' && proposta.projetoId && (
             <OverlayTrigger
               placement="top"
@@ -236,7 +271,7 @@ export const PropostaPagination: React.FC<PropostaPaginationProps> = ({
 
 export const PropostaEmptyState: React.FC = () => (
   <tr>
-    <td colSpan={10} className="text-center text-muted py-4">
+    <td colSpan={11} className="text-center text-muted py-4">
       Nenhuma proposta encontrada.
     </td>
   </tr>
@@ -244,7 +279,7 @@ export const PropostaEmptyState: React.FC = () => (
 
 export const PropostaLoadingState: React.FC = () => (
   <tr>
-    <td colSpan={10} className="text-center py-4">
+    <td colSpan={11} className="text-center py-4">
       A carregar propostas...
     </td>
   </tr>
