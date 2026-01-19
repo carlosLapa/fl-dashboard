@@ -53,6 +53,23 @@ export const getCurrentUserWithRolesAPI = async () => {
   }
 };
 
+/**
+ * Validate if the current access token is still valid on the server
+ * Lightweight check without fetching full user data
+ * @returns boolean True if token is valid
+ */
+export const validateTokenAPI = async (): Promise<boolean> => {
+  try {
+    const response = await axios.get('/users/validate');
+    return response.status === 200;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.warn('Token validation failed:', error.response?.status);
+    }
+    return false;
+  }
+};
+
 export const createUserAPI = async (formData: FormData) => {
   const response = await axios.post('/users', formData, {
     headers: {

@@ -4,6 +4,8 @@ import React, {
   useContext,
   ReactNode,
   useEffect,
+  useRef,
+  useCallback,
 } from 'react';
 import axios from 'api/apiConfig';
 import { User } from './types/user';
@@ -16,6 +18,10 @@ import { setupTokenRefreshInterceptor } from './auth/axiosInterceptors';
 import { login as apiLogin, refreshToken } from './auth/authApi';
 import { setupCsrfInterceptor, generateCsrfToken } from './auth/csrf';
 
+// Configurações de timeout (em milissegundos)
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutos
+const WARNING_TIME = 1 * 60 * 1000; // Aviso 1 minuto antes do logout
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -23,6 +29,8 @@ interface AuthContextType {
   logout: () => void;
   refreshUserToken: () => Promise<boolean>;
   isTokenExpired: () => boolean;
+  showExpirationWarning: boolean;
+  extendSession: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,7 +40,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showExpirationWarning, setShowExpirationWarning] = useState(false);
   const navigate = useNavigate();
+
+  // Refs para os timers de inatividade
+  const inactivityTimerRef = useRef<NodeJS.Timeout>();
+  const warningTimerRef = useRef<NodeJS.Timeout>();
 
   // Wrapper for the refreshToken function for consistency
   const refreshUserToken = async (): Promise<boolean> => {
@@ -92,9 +105,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         const tokenType = 'Bearer';
-        axios.defaults.headers.common[
-          'Authorization'
-        ] = `${tokenType} ${token}`;
+        axios.defaults.headers.common['Authorization'] =
+          `${tokenType} ${token}`;
 
         try {
           // Try to get user with roles first
@@ -109,7 +121,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         } catch (error) {
           console.warn(
             'Failed to initialize user with roles, falling back:',
-            error
+            error,
           );
 
           // Fallback to original method
@@ -155,9 +167,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const { tokenType, accessToken } = await apiLogin(email, password);
 
       // Set authorization header for subsequent requests
-      axios.defaults.headers.common[
-        'Authorization'
-      ] = `${tokenType} ${accessToken}`;
+      axios.defaults.headers.common['Authorization'] =
+        `${tokenType} ${accessToken}`;
 
       // Try to get user with roles first
       try {
@@ -173,7 +184,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       } catch (error) {
         console.warn(
           'Failed to get user with roles, falling back to basic user data:',
-          error
+          error,
         );
 
         // Fallback: Get basic user data from users list
@@ -211,17 +222,86 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     console.log('Logging out user');
+
+    // Salvar path atual antes de limpar (se não for landing page)
+    if (window.location.pathname !== '/') {
+      sessionStorage.setItem('lastPath', window.location.pathname);
+    }
+
     // Clear CSRF token on logout
     secureStorage.removeItem('csrf_token');
     // Clear all token data
     clearTokenData();
     secureStorage.setItem('logout', Date.now().toString());
     setUser(null);
+    setShowExpirationWarning(false);
+
+    // Limpar timers
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+
     delete axios.defaults.headers.common['Authorization'];
     navigate('/');
-  };
+  }, [navigate]);
+
+  /**
+   * Reseta os timers de inatividade
+   */
+  const resetInactivityTimer = useCallback(() => {
+    // Limpar timers existentes
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+
+    // Só iniciar timers se houver usuário logado
+    if (user) {
+      console.log('Resetting inactivity timer');
+
+      // Timer para mostrar aviso
+      warningTimerRef.current = setTimeout(() => {
+        console.log('Showing session expiration warning');
+        setShowExpirationWarning(true);
+      }, INACTIVITY_TIMEOUT - WARNING_TIME);
+
+      // Timer para logout automático
+      inactivityTimerRef.current = setTimeout(() => {
+        console.log('Auto-logout due to inactivity');
+        logout();
+      }, INACTIVITY_TIMEOUT);
+    }
+  }, [user, logout]);
+
+  /**
+   * Estende a sessão do usuário (fecha modal e reseta timer)
+   */
+  const extendSession = useCallback(() => {
+    console.log('Session extended by user');
+    setShowExpirationWarning(false);
+    resetInactivityTimer();
+  }, [resetInactivityTimer]);
+
+  // Monitorar atividade do usuário
+  useEffect(() => {
+    if (!user) return;
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+
+    events.forEach((event) => {
+      document.addEventListener(event, resetInactivityTimer);
+    });
+
+    // Iniciar timer na primeira vez
+    resetInactivityTimer();
+
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, resetInactivityTimer);
+      });
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    };
+  }, [user, resetInactivityTimer]);
 
   const value = {
     user,
@@ -230,6 +310,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     logout,
     refreshUserToken,
     isTokenExpired,
+    showExpirationWarning,
+    extendSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

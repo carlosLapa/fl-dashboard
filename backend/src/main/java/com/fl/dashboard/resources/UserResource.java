@@ -37,6 +37,18 @@ public class UserResource {
         return ResponseEntity.ok().body(userDTO);
     }
 
+    /**
+     * Validate if the current access token is still valid
+     * Lightweight endpoint for session management - does not return user data
+     *
+     * @return HTTP 200 if token is valid, HTTP 401 if invalid
+     */
+    @GetMapping("/validate")
+    public ResponseEntity<Void> validateToken() {
+        // If the request "gets here", the token is valid (Spring Security already validated)
+        return ResponseEntity.ok().build();
+    }
+
     // Get user by ID with projects - requires VIEW_ALL_USERS permission
     @GetMapping("/{id}/with-projetos")
     @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
