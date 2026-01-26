@@ -1,15 +1,5 @@
 import React, { useMemo } from 'react';
-import { Card } from 'react-bootstrap';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { Card, Table } from 'react-bootstrap';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
 import './CollaboratorPerformanceChart.scss';
 
@@ -50,11 +40,31 @@ const CollaboratorPerformanceChart: React.FC<
     return null;
   };
 
+  // Sort collaborators by completion rate (descending)
+  const sortedCollaborators = useMemo(() => {
+    return [...metrics.colaboradores].sort((a, b) => {
+      const rateA =
+        a.totalTarefas > 0 ? (a.tarefasConcluidas / a.totalTarefas) * 100 : 0;
+      const rateB =
+        b.totalTarefas > 0 ? (b.tarefasConcluidas / b.totalTarefas) * 100 : 0;
+      return rateB - rateA;
+    });
+  }, [metrics.colaboradores]);
+
+  // Extract first name with fallback for undefined
+  const getFirstName = (fullName: string | undefined): string => {
+    if (!fullName) {
+      return 'Desconhecido';
+    }
+    const firstName = fullName.split(' ')[0];
+    return firstName || 'Desconhecido';
+  };
+
   return (
     <Card className="collaborator-performance-chart">
       <Card.Body>
         <Card.Title className="mb-4">
-          Performance dos Colaboradores (Top 10)
+          Performance dos Colaboradores
         </Card.Title>
 
         {chartData.length === 0 ? (
@@ -62,30 +72,76 @@ const CollaboratorPerformanceChart: React.FC<
             Nenhum colaborador encontrado
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar
-                dataKey="concluidas"
-                fill="#28a745"
-                name="Concluídas"
-                radius={[8, 8, 0, 0]}
-              />
-              <Bar
-                dataKey="pendentes"
-                fill="#ffc107"
-                name="Pendentes"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <>
+            <div className="table-responsive">
+              <Table striped hover>
+                <thead>
+                  <tr>
+                    <th>Colaborador</th>
+                    <th className="text-center">Total</th>
+                    <th className="text-center">Concluídas</th>
+                    <th className="text-center">Em Progresso</th>
+                    <th className="text-center">Pendentes</th>
+                    <th className="text-center">Taxa de Conclusão</th>
+                    <th className="text-center">Tempo Médio (dias)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedCollaborators.length > 0 ? (
+                    sortedCollaborators.map((col) => {
+                      const completionRate =
+                        col.totalTarefas > 0
+                          ? (
+                              (col.tarefasConcluidas / col.totalTarefas) *
+                              100
+                            ).toFixed(1)
+                          : '0.0';
+
+                      return (
+                        <tr key={col.colaboradorId || Math.random()}>
+                          <td>
+                            <strong>{getFirstName(col.colaboradorNome)}</strong>
+                          </td>
+                          <td className="text-center">{col.totalTarefas}</td>
+                          <td className="text-center text-success">
+                            {col.tarefasConcluidas}
+                          </td>
+                          <td className="text-center text-warning">
+                            {col.tarefasEmProgresso}
+                          </td>
+                          <td className="text-center text-danger">
+                            {col.tarefasPendentes}
+                          </td>
+                          <td className="text-center">
+                            <span
+                              className={`badge ${
+                                Number(completionRate) >= 75
+                                  ? 'bg-success'
+                                  : Number(completionRate) >= 50
+                                    ? 'bg-warning'
+                                    : 'bg-danger'
+                              }`}
+                            >
+                              {completionRate}%
+                            </span>
+                          </td>
+                          <td className="text-center">
+                            {col.tempoMedioDias.toFixed(1)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="text-center text-muted">
+                        Nenhum colaborador encontrado
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
+          </>
         )}
       </Card.Body>
     </Card>

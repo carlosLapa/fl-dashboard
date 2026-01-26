@@ -41,7 +41,7 @@ const LongestTasksTable: React.FC<LongestTasksTableProps> = ({ metrics }) => {
   return (
     <Card className="longest-tasks-table">
       <Card.Body>
-        <Card.Title className="mb-4">Top 10 Tarefas Mais Longas</Card.Title>
+        <Card.Title className="mb-4">Tarefas Mais Longas</Card.Title>
 
         {metrics.tarefasMaisLongas.length === 0 ? (
           <div className="text-center text-muted py-4">

@@ -23,6 +23,7 @@ export interface CollaboratorMetricsDTO {
   totalTarefas: number;
   tarefasConcluidas: number;
   tarefasEmProgresso: number;
+  tarefasPendentes: number;
   tempoMedioDias: number;
   tarefasPorStatus: Record<string, number>; // Map of status -> count
 }
@@ -30,10 +31,13 @@ export interface CollaboratorMetricsDTO {
 /**
  * Main DTO containing all project metrics
  * Corresponds to backend ProjetoMetricsDTO
+ *
+ * Uses 'designacao' instead of 'projetoNome' to match existing Projeto type
+ * and maintain consistency across the application
  */
 export interface ProjetoMetricsDTO {
   projetoId: number;
-  projetoNome: string;
+  designacao: string; // ✅ Changed from 'projetoNome' to match projeto.ts convention
 
   // General KPIs
   totalTarefas: number;

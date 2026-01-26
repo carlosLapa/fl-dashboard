@@ -54,7 +54,7 @@ const CollaboratorPerformanceChart: React.FC<
     <Card className="collaborator-performance-chart">
       <Card.Body>
         <Card.Title className="mb-4">
-          Performance dos Colaboradores (Top 10)
+          Performance dos Colaboradores
         </Card.Title>
 
         {chartData.length === 0 ? (

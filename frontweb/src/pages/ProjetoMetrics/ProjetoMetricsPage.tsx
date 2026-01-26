@@ -73,9 +73,9 @@ const ProjetoMetricsPage: React.FC = () => {
         <div className="metrics-content">
           <div className="text-center" style={{ padding: '3rem' }}>
             <Spinner animation="border" role="status" variant="primary">
-              <span className="visually-hidden">Carregando métricas...</span>
+              <span className="visually-hidden">A Carregar métricas...</span>
             </Spinner>
-            <p className="mt-3 text-muted">Carregando métricas do projeto...</p>
+            <p className="mt-3 text-muted">A Carregar métricas do projeto...</p>
           </div>
         </div>
       </div>
@@ -125,10 +125,11 @@ const ProjetoMetricsPage: React.FC = () => {
             </Button>
             <div>
               <h2 className="page-title mb-1">
-                <FontAwesomeIcon icon={faChartLine} className="me-2" />
-                Métricas do Projeto
+                Métricas do Projeto: {metrics.designacao}
               </h2>
-              <p className="text-muted mb-0">{metrics.projetoNome}</p>
+              <p className="text-muted mb-0">
+                Análise de desempenho e estatísticas detalhadas
+              </p>
             </div>
           </div>
         </div>
