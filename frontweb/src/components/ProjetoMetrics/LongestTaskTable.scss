@@ -1,0 +1,60 @@
+@import '../../assets/styles/variables';
+@import '../../assets/styles/responsive-table';
+
+.longest-tasks-table {
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+  }
+
+  .table {
+    th {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6c757d;
+      border-bottom: 2px solid #dee2e6;
+      white-space: nowrap;
+    }
+
+    td {
+      vertical-align: middle;
+      font-size: 0.9375rem;
+    }
+
+    .task-description {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .duration-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background-color: #f8f9fa;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    tbody tr {
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f8f9fa;
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .longest-tasks-table {
+    .task-description {
+      max-width: 150px;
+    }
+  }
+}

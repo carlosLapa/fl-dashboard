@@ -1,15 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Alert, Spinner, Badge, Button } from 'react-bootstrap';
+import { Card, Row, Col, Alert, Spinner, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowLeft,
+  faChartLine,
+  faTasks,
+  faCheckCircle,
+  faSpinner,
+  faClock,
+} from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
 import {
   getProjetoMetrics,
   canViewProjetoMetrics,
 } from '../../services/projetoMetricsService';
+import MetricsKpiCard from '../../components/ProjetoMetrics/MetricsKpiCard';
+import StatusDistributionChart from '../../components/ProjetoMetrics/StatusDistributionChart';
+import CollaboratorMetricsTable from '../../components/ProjetoMetrics/CollaboratorMetricsTable';
+import LongestTasksTable from '../../components/ProjetoMetrics/LongestTasksTable';
 import './ProjetoMetricsPage.scss';
+import CollaboratorPerformanceChart from 'components/ProjetoMetrics/CollaboratorPerformanceChart';
 
 const ProjetoMetricsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -139,7 +151,7 @@ const ProjetoMetricsPage: React.FC = () => {
     <div className="page-container" style={{ marginTop: '2rem' }}>
       <div className="metrics-content">
         {/* Page Header */}
-        <div className="page-title-container">
+        <div className="page-title-container mb-4">
           <div className="d-flex align-items-center">
             <Button
               variant="outline-secondary"
@@ -159,102 +171,69 @@ const ProjetoMetricsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Metrics Overview - KPI Cards */}
-        <Row className="mt-4 g-3">
+        {/* KPI Cards */}
+        <Row className="g-3 mb-4">
           <Col xs={12} sm={6} lg={3}>
-            <Card className="metrics-card">
-              <Card.Body>
-                <div className="metrics-card-header">
-                  <span className="metrics-card-label">Total de Tarefas</span>
-                </div>
-                <div className="metrics-card-value">{metrics.totalTarefas}</div>
-              </Card.Body>
-            </Card>
+            <MetricsKpiCard
+              label="Total de Tarefas"
+              value={metrics.totalTarefas}
+              icon={<FontAwesomeIcon icon={faTasks} />}
+            />
           </Col>
 
           <Col xs={12} sm={6} lg={3}>
-            <Card className="metrics-card metrics-card-success">
-              <Card.Body>
-                <div className="metrics-card-header">
-                  <span className="metrics-card-label">Tarefas Concluídas</span>
-                </div>
-                <div className="metrics-card-value">
-                  {metrics.tarefasConcluidas}
-                </div>
-                <div className="metrics-card-footer">
-                  <Badge bg="success">
-                    {metrics.taxaConclusao.toFixed(1)}%
-                  </Badge>
-                </div>
-              </Card.Body>
-            </Card>
+            <MetricsKpiCard
+              label="Tarefas Concluídas"
+              value={metrics.tarefasConcluidas}
+              variant="success"
+              badge={{
+                text: `${metrics.taxaConclusao.toFixed(1)}%`,
+                variant: 'success',
+              }}
+              icon={<FontAwesomeIcon icon={faCheckCircle} />}
+            />
           </Col>
 
           <Col xs={12} sm={6} lg={3}>
-            <Card className="metrics-card metrics-card-warning">
-              <Card.Body>
-                <div className="metrics-card-header">
-                  <span className="metrics-card-label">Em Progresso</span>
-                </div>
-                <div className="metrics-card-value">
-                  {metrics.tarefasEmProgresso}
-                </div>
-              </Card.Body>
-            </Card>
+            <MetricsKpiCard
+              label="Em Progresso"
+              value={metrics.tarefasEmProgresso}
+              variant="warning"
+              icon={<FontAwesomeIcon icon={faSpinner} />}
+            />
           </Col>
 
           <Col xs={12} sm={6} lg={3}>
-            <Card className="metrics-card metrics-card-info">
-              <Card.Body>
-                <div className="metrics-card-header">
-                  <span className="metrics-card-label">Tempo Médio</span>
-                </div>
-                <div className="metrics-card-value">
-                  {metrics.tempoMedioDias.toFixed(1)}
-                </div>
-                <div className="metrics-card-footer">
-                  <small className="text-muted">dias úteis</small>
-                </div>
-              </Card.Body>
-            </Card>
+            <MetricsKpiCard
+              label="Tempo Médio"
+              value={metrics.tempoMedioDias.toFixed(1)}
+              variant="info"
+              footer="dias úteis"
+              icon={<FontAwesomeIcon icon={faClock} />}
+            />
           </Col>
         </Row>
 
-        {/* Placeholder for future components */}
-        <Row className="mt-4">
+        {/* Charts Row */}
+        <Row className="g-3 mb-4">
+          <Col xs={12} lg={6}>
+            <StatusDistributionChart metrics={metrics} />
+          </Col>
+          <Col xs={12} lg={6}>
+            <CollaboratorPerformanceChart metrics={metrics} />
+          </Col>
+        </Row>
+
+        {/* Tables Row */}
+        <Row className="g-3">
           <Col xs={12}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Distribuição por Status</Card.Title>
-                <Alert variant="info" className="mb-0">
-                  Componente de gráfico será implementado em breve
-                </Alert>
-              </Card.Body>
-            </Card>
+            <CollaboratorMetricsTable metrics={metrics} />
           </Col>
         </Row>
 
-        <Row className="mt-4">
-          <Col xs={12} lg={6}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Métricas por Colaborador</Card.Title>
-                <Alert variant="info" className="mb-0">
-                  Tabela de colaboradores será implementada em breve
-                </Alert>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          <Col xs={12} lg={6}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Tarefas Mais Longas</Card.Title>
-                <Alert variant="info" className="mb-0">
-                  Top 10 tarefas será implementado em breve
-                </Alert>
-              </Card.Body>
-            </Card>
+        <Row className="g-3 mt-3">
+          <Col xs={12}>
+            <LongestTasksTable metrics={metrics} />
           </Col>
         </Row>
       </div>
