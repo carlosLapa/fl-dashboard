@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Alert, Spinner, Button } from 'react-bootstrap';
+import { Row, Col, Alert, Spinner, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowLeft,
@@ -12,16 +12,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
-import {
-  getProjetoMetrics,
-  canViewProjetoMetrics,
-} from '../../services/projetoMetricsService';
+import { getProjetoMetrics } from '../../services/projetoMetricsService';
 import MetricsKpiCard from '../../components/ProjetoMetrics/MetricsKpiCard';
 import StatusDistributionChart from '../../components/ProjetoMetrics/StatusDistributionChart';
 import CollaboratorMetricsTable from '../../components/ProjetoMetrics/CollaboratorMetricsTable';
 import LongestTasksTable from '../../components/ProjetoMetrics/LongestTasksTable';
+import CollaboratorPerformanceChart from '../../components/ProjetoMetrics/CollaboratorPerformanceChart';
 import './ProjetoMetricsPage.scss';
-import CollaboratorPerformanceChart from 'components/ProjetoMetrics/CollaboratorPerformanceChart';
 
 const ProjetoMetricsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,21 +29,11 @@ const ProjetoMetricsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Permission check
-  const canViewMetrics = canViewProjetoMetrics();
-
   // Fetch metrics data
   const fetchMetrics = useCallback(async () => {
     if (!id) {
       setError('ID do projeto não fornecido');
       setIsLoading(false);
-      return;
-    }
-
-    if (!canViewMetrics) {
-      setError('Você não tem permissão para visualizar métricas de projetos');
-      setIsLoading(false);
-      toast.error('Acesso negado: permissão insuficiente');
       return;
     }
 
@@ -57,7 +44,7 @@ const ProjetoMetricsPage: React.FC = () => {
       console.log(`[ProjetoMetricsPage] Fetching metrics for projeto ${id}`);
       const data = await getProjetoMetrics(Number(id));
       setMetrics(data);
-      console.log('[ProjetoMetricsPage] Metrics loaded successfully');
+      console.log('[ProjetoMetricsPage] Metrics loaded successfully:', data);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Erro ao carregar métricas';
@@ -67,7 +54,7 @@ const ProjetoMetricsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [id, canViewMetrics]);
+  }, [id]);
 
   // Initial data fetch
   useEffect(() => {
@@ -78,31 +65,6 @@ const ProjetoMetricsPage: React.FC = () => {
   const handleGoBack = useCallback(() => {
     navigate('/projetos');
   }, [navigate]);
-
-  // Permission denied state
-  if (!canViewMetrics) {
-    return (
-      <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div className="metrics-content">
-          <Alert variant="danger">
-            <Alert.Heading>Acesso Negado</Alert.Heading>
-            <p>
-              Você não tem permissão para visualizar métricas de projetos. Esta
-              funcionalidade requer permissão <strong>VIEW_ALL_PROJECTS</strong>
-              .
-            </p>
-            <hr />
-            <div className="d-flex justify-content-end">
-              <Button variant="outline-danger" onClick={handleGoBack}>
-                <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-                Voltar aos Projetos
-              </Button>
-            </div>
-          </Alert>
-        </div>
-      </div>
-    );
-  }
 
   // Loading state
   if (isLoading) {

@@ -36,19 +36,20 @@ public class ProjetoMetricsService {
         this.projetoService = projetoService;
     }
 
+    /**
+     * Check if user should be denied access to project metrics
+     * Delegates to ProjetoService for consistent access control
+     *
+     * @param projetoId Project ID
+     * @param userEmail User email
+     * @return true if access should be denied, false otherwise
+     */
+    public boolean shouldDenyMetricsAccess(Long projetoId, String userEmail) {
+        return projetoService.shouldDenyProjectAccess(projetoId, userEmail);
+    }
+
     @Transactional(readOnly = true)
     public ProjetoMetricsDTO getProjetoMetrics(Long projetoId) {
-        String email = getCurrentUserEmail();
-
-        User currentUser = userRepository.findByEmail(email);
-        if (currentUser == null) {
-            throw new RuntimeException("Utilizador não encontrado");
-        }
-
-        if (projetoService.shouldDenyProjectAccess(projetoId, email)) {
-            throw new RuntimeException("Acesso negado ao projeto");
-        }
-
         Projeto projeto = projetoRepository.findById(projetoId)
                 .orElseThrow(() -> new RuntimeException("Projeto não encontrado"));
 
