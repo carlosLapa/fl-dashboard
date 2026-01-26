@@ -19,6 +19,7 @@ import ClientePage from 'pages/Clientes/ClientePage';
 import ClienteProjetosPage from 'pages/Clientes/ClienteProjetosPage';
 import PasswordReset from '../components/User/PasswordReset';
 import { Permission } from 'permissions/rolePermissions';
+import ProjetoMetricsPage from 'pages/ProjetoMetrics/ProjetoMetricsPage';
 
 const AppRoutes = () => {
   return (
@@ -30,10 +31,15 @@ const AppRoutes = () => {
       />
       <Route
         path="/propostas"
-        element={<ProtectedRoute 
-          element={<PropostasPage />} 
-          permissions={[Permission.VIEW_ALL_PROPOSTAS, Permission.VIEW_ASSIGNED_PROPOSTAS]} 
-        />}
+        element={
+          <ProtectedRoute
+            element={<PropostasPage />}
+            permissions={[
+              Permission.VIEW_ALL_PROPOSTAS,
+              Permission.VIEW_ASSIGNED_PROPOSTAS,
+            ]}
+          />
+        }
       />
       <Route
         path="/users"
@@ -61,10 +67,15 @@ const AppRoutes = () => {
       />
       <Route
         path="/propostas/:propostaId/details"
-        element={<ProtectedRoute 
-          element={<PropostaDetailsPage />} 
-          permissions={[Permission.VIEW_ALL_PROPOSTAS, Permission.VIEW_ASSIGNED_PROPOSTAS]} 
-        />}
+        element={
+          <ProtectedRoute
+            element={<PropostaDetailsPage />}
+            permissions={[
+              Permission.VIEW_ALL_PROPOSTAS,
+              Permission.VIEW_ASSIGNED_PROPOSTAS,
+            ]}
+          />
+        }
       />
       <Route
         path="/notifications/:userId"
@@ -94,6 +105,15 @@ const AppRoutes = () => {
       <Route
         path="/clientes/:clienteId/projetos"
         element={<ProtectedRoute element={<ClienteProjetosPage />} />}
+      />
+      <Route
+        path="/projetos/:id/metrics"
+        element={
+          <ProtectedRoute
+            element={<ProjetoMetricsPage />}
+            permissions={Permission.VIEW_ALL_PROJECTS}
+          />
+        }
       />
       <Route
         path="/admin/password-reset"
