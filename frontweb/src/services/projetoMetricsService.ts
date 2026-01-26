@@ -1,22 +1,15 @@
 import { ProjetoMetricsDTO } from '../types/projetoMetrics';
 import { getProjetoMetricsAPI } from '../api/projetoMetricsApi';
-import { hasPermission } from '../utils/hasPermission';
-import { Permission } from '../permissions/rolePermissions';
-
-/**
- * Check if the current user can view project metrics
- * Requires VIEW_ALL_PROJECTS permission (Admin/Manager roles)
- *
- * @returns boolean True if user has permission to view metrics
- */
-export const canViewProjetoMetrics = (): boolean => {
-  return hasPermission(Permission.VIEW_ALL_PROJECTS);
-};
 
 /**
  * Fetch comprehensive metrics for a specific project
  *
- * This service validates permissions and fetches metrics including:
+ * Permission validation is handled at two levels:
+ * 1. Frontend: ProtectedRoute component checks VIEW_ALL_PROJECTS
+ * 2. Backend: ProjetoMetricsResource validates access control
+ *
+ * This service focuses on API communication and error handling.
+ * Metrics include:
  * - General KPIs (tasks overview, completion rate, average working days)
  * - Status distribution
  * - Top 10 longest tasks
@@ -25,19 +18,12 @@ export const canViewProjetoMetrics = (): boolean => {
  *
  * @param projetoId The ID of the project to fetch metrics for
  * @returns Promise<ProjetoMetricsDTO> Complete project metrics
- * @throws Error if user doesn't have permission or project not found
+ * @throws Error if API call fails (403, 404, network error, etc.)
  */
 export const getProjetoMetrics = async (
   projetoId: number,
 ): Promise<ProjetoMetricsDTO> => {
   try {
-    // Validate permissions before making API call
-    if (!canViewProjetoMetrics()) {
-      throw new Error(
-        'Você não tem permissão para visualizar métricas de projetos',
-      );
-    }
-
     console.log(`[Service] Fetching metrics for projeto ${projetoId}`);
     const metrics = await getProjetoMetricsAPI(projetoId);
 
