@@ -9,7 +9,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Cell,
 } from 'recharts';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
 import './CollaboratorPerformanceChart.scss';

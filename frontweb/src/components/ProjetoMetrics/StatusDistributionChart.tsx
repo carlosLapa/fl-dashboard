@@ -1,13 +1,6 @@
 import React, { useMemo } from 'react';
 import { Card } from 'react-bootstrap';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from 'recharts';
+import { PieChart, Pie, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
 import { getStatusLabel } from '../../services/projetoMetricsService';
 import './StatusDistributionChart.scss';
@@ -27,14 +20,15 @@ const STATUS_COLORS: Record<string, string> = {
 const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({
   metrics,
 }) => {
-  // Transform backend data to chart format
+  // Transform backend data to chart format with colors
   const chartData = useMemo(() => {
     return Object.entries(metrics.tarefasPorStatus)
-      .filter(([_, count]) => count > 0) // Only show statuses with tasks
+      .filter(([_, count]) => count > 0)
       .map(([status, count]) => ({
         name: getStatusLabel(status),
         value: count,
         status: status,
+        fill: STATUS_COLORS[status] || '#6c757d', // ✅ Cor diretamente nos dados
         percentage:
           metrics.totalTarefas > 0
             ? ((count / metrics.totalTarefas) * 100).toFixed(1)
@@ -80,16 +74,9 @@ const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({
                 labelLine={false}
                 label={renderCustomLabel}
                 outerRadius={120}
-                fill="#8884d8"
                 dataKey="value"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={STATUS_COLORS[entry.status] || '#6c757d'}
-                  />
-                ))}
-              </Pie>
+                // ✅ Não precisa de Cell, usa fill dos dados
+              />
               <Tooltip content={<CustomTooltip />} />
               <Legend
                 verticalAlign="bottom"
