@@ -108,12 +108,7 @@ const AppRoutes = () => {
       />
       <Route
         path="/projetos/:id/metrics"
-        element={
-          <ProtectedRoute
-            element={<ProjetoMetricsPage />}
-            permissions={Permission.VIEW_ALL_PROJECTS}
-          />
-        }
+        element={<ProtectedRoute element={<ProjetoMetricsPage />} />}
       />
       <Route
         path="/admin/password-reset"
