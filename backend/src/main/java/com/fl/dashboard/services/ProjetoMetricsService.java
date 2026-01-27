@@ -9,10 +9,7 @@ import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
-import com.fl.dashboard.repositories.UserRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,17 +34,14 @@ public class ProjetoMetricsService {
 
     private final TarefaRepository tarefaRepository;
     private final ProjetoRepository projetoRepository;
-    private final UserRepository userRepository;
     private final ProjetoService projetoService;
 
     public ProjetoMetricsService(
             TarefaRepository tarefaRepository,
             ProjetoRepository projetoRepository,
-            UserRepository userRepository,
             ProjetoService projetoService) {
         this.tarefaRepository = tarefaRepository;
         this.projetoRepository = projetoRepository;
-        this.userRepository = userRepository;
         this.projetoService = projetoService;
     }
 
