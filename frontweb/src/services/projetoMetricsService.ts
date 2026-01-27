@@ -45,7 +45,7 @@ export const calculateCompletionRate = (
   total: number,
 ): number => {
   if (total === 0) return 0;
-  return Math.round((completed / total) * 100 * 100) / 100;
+  return (completed / total) * 100;
 };
 
 /**
