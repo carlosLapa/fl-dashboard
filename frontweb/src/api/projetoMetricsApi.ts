@@ -21,22 +21,15 @@ export const getProjetoMetricsAPI = async (
   projetoId: number,
 ): Promise<ProjetoMetricsDTO> => {
   try {
-    console.log(`Fetching metrics for projeto ID: ${projetoId}`);
-
     const response = await axios.get<ProjetoMetricsDTO>(
       `/projetos/${projetoId}/metrics`,
     );
 
-    console.log('Metrics data received:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching projeto metrics:', error);
-
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 403) {
-        throw new Error(
-          'Não tem permissão para visualizar estas métricas',
-        );
+        throw new Error('Não tem permissão para visualizar estas métricas');
       } else if (error.response?.status === 404) {
         throw new Error('Projeto não encontrado');
       }
