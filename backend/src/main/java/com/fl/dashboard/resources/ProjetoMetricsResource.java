@@ -88,13 +88,6 @@ public class ProjetoMetricsResource {
         } catch (ResourceNotFoundException e) {
             // Project not found
             return ResponseEntity.notFound().build();
-        } catch (RuntimeException e) {
-            // Handle unexpected runtime exceptions
-            if (e.getMessage() != null && e.getMessage().contains("Acesso negado")) {
-                return ResponseEntity.status(403).build();
-            }
-            // Re-throw other exceptions for global error handler
-            throw e;
         }
     }
 }
