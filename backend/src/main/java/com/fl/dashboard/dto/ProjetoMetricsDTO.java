@@ -37,8 +37,7 @@ public class ProjetoMetricsDTO {
 
     // Métricas por colaborador
     private List<CollaboratorMetricsDTO> colaboradores;
-
-    // Constructor personalizado (se necessário)
+    
     public ProjetoMetricsDTO(Long projetoId, String designacao) {
         this.projetoId = projetoId;
         this.designacao = designacao;

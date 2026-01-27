@@ -227,7 +227,7 @@ public class ProjetoMetricsService {
                     colabMetrics.setTotalTarefas(totalTarefas);
                     colabMetrics.setTarefasConcluidas(tarefasConcluidas);
                     colabMetrics.setTarefasEmProgresso(tarefasEmProgresso);
-                    colabMetrics.setTarefasPendentes(tarefasPendentes); // ✅ Added missing field
+                    colabMetrics.setTarefasPendentes(tarefasPendentes);
                     colabMetrics.setTempoMedioDias(calculateAverageWorkingDays(tarefasDoUser));
 
                     // Calculate status distribution for this collaborator
