@@ -28,7 +28,7 @@ const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({
         name: getStatusLabel(status),
         value: count,
         status: status,
-        fill: STATUS_COLORS[status] || '#6c757d', // ✅ Cor diretamente nos dados
+        fill: STATUS_COLORS[status] || '#6c757d',
         percentage:
           metrics.totalTarefas > 0
             ? ((count / metrics.totalTarefas) * 100).toFixed(1)
@@ -75,7 +75,6 @@ const StatusDistributionChart: React.FC<StatusDistributionChartProps> = ({
                 label={renderCustomLabel}
                 outerRadius={120}
                 dataKey="value"
-                // ✅ Não precisa de Cell, usa fill dos dados
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend
