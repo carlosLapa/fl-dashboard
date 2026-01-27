@@ -65,6 +65,25 @@
       color: #138496;
     }
   }
+
+  .metrics-icon {
+    color: #6f42c1; // Purple color (diferente dos outros ícones)
+    cursor: pointer;
+    padding: 2px;
+    text-decoration: none; // Remove underline do Link
+    display: inline-flex;
+    align-items: center;
+
+    &:hover {
+      color: #5a32a3; // Darker purple no hover
+      text-decoration: none;
+    }
+
+    svg {
+      width: 1em;
+      height: 1em;
+    }
+  }
 }
 
 // Filter section styling
