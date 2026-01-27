@@ -95,22 +95,6 @@ public class ProjetoMetricsService {
     }
 
     /**
-     * Extract current user email from security context
-     * Supports both JWT and standard authentication
-     *
-     * @return User email
-     */
-    private String getCurrentUserEmail() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth instanceof JwtAuthenticationToken jwtToken) {
-            return jwtToken.getToken().getClaimAsString("email");
-        }
-
-        return auth.getName();
-    }
-
-    /**
      * Calculate general KPIs: total tasks, completion rate, average working days
      *
      * @param metrics DTO to populate
