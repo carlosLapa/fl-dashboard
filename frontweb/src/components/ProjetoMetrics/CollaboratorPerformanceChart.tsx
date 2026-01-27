@@ -17,24 +17,70 @@ interface CollaboratorPerformanceChartProps {
   metrics: ProjetoMetricsDTO;
 }
 
+/**
+ * Component displaying a bar chart of completed vs pending tasks per collaborator
+ * Shows top 10 collaborators by completed tasks count
+ * Uses initials format (e.g., "João S.") to avoid ambiguity with duplicate first names
+ */
 const CollaboratorPerformanceChart: React.FC<
   CollaboratorPerformanceChartProps
 > = ({ metrics }) => {
-  // Transform data for chart (top 10 collaborators)
+  /**
+   * Format collaborator name to "FirstName LastInitial." format
+   * Handles edge cases (single name, missing surname, undefined)
+   *
+   * Examples:
+   * - "João Silva" → "João S."
+   * - "Maria Costa Pereira" → "Maria P." (uses last word)
+   * - "Pedro" → "Pedro" (no surname)
+   * - undefined → "Desconhecido"
+   *
+   * @param fullName - Complete name of collaborator
+   * @returns Formatted name with initials
+   */
+  const formatNameWithInitials = (fullName: string | undefined): string => {
+    if (!fullName) {
+      return 'Desconhecido';
+    }
+
+    const nameParts = fullName
+      .trim()
+      .split(' ')
+      .filter((part) => part.length > 0);
+
+    if (nameParts.length === 0) {
+      return 'Desconhecido';
+    }
+
+    if (nameParts.length === 1) {
+      // Single name (e.g., "João")
+      return nameParts[0];
+    }
+
+    // First name + last name initial
+    const firstName = nameParts[0];
+    const lastNameInitial = nameParts[nameParts.length - 1][0].toUpperCase();
+
+    return `${firstName} ${lastNameInitial}.`;
+  };
+
+  // Transform data for chart (top 10 collaborators by completed tasks)
   const chartData = useMemo(() => {
     return metrics.colaboradores
       .sort((a, b) => b.tarefasConcluidas - a.tarefasConcluidas)
       .slice(0, 10)
       .map((collab) => ({
-        name: collab.colaboradorNome.split(' ')[0], // First name only
-        fullName: collab.colaboradorNome,
+        name: formatNameWithInitials(collab.colaboradorNome),
+        fullName: collab.colaboradorNome || 'Desconhecido',
         concluidas: collab.tarefasConcluidas,
         pendentes: collab.totalTarefas - collab.tarefasConcluidas,
         total: collab.totalTarefas,
       }));
   }, [metrics]);
 
-  // Custom tooltip
+  /**
+   * Custom tooltip displaying full name and task breakdown
+   */
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
