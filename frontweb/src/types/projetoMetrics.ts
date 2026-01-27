@@ -37,7 +37,7 @@ export interface CollaboratorMetricsDTO {
  */
 export interface ProjetoMetricsDTO {
   projetoId: number;
-  designacao: string; // ✅ Changed from 'projetoNome' to match projeto.ts convention
+  designacao: string;
 
   // General KPIs
   totalTarefas: number;
