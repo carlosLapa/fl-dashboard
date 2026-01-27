@@ -6,6 +6,7 @@ import {
   faTrashAlt,
   faEye,
   faInfoCircle,
+  faChartLine,
 } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -51,6 +52,7 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
       </td>
       <td>
         <div className="action-icons">
+          {/* Edit Project */}
           <OverlayTrigger
             placement="top"
             overlay={
@@ -63,6 +65,8 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
               className="mr-2 edit-icon"
             />
           </OverlayTrigger>
+
+          {/* Delete Project */}
           <OverlayTrigger
             placement="top"
             overlay={
@@ -75,6 +79,8 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
               className="delete-icon"
             />
           </OverlayTrigger>
+
+          {/* View Kanban Board */}
           <OverlayTrigger
             placement="top"
             overlay={
@@ -87,6 +93,8 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
               <FontAwesomeIcon icon={faEye} />
             </Link>
           </OverlayTrigger>
+
+          {/* View Project Details */}
           <OverlayTrigger
             placement="top"
             overlay={
@@ -101,6 +109,24 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
               style={{ marginLeft: '2px' }}
             >
               <FontAwesomeIcon icon={faInfoCircle} />
+            </Link>
+          </OverlayTrigger>
+
+          {/* View Project Metrics */}
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`tooltip-metrics-${projeto.id}`}>
+                Ver Métricas do Projeto
+              </Tooltip>
+            }
+          >
+            <Link
+              to={`/projetos/${projeto.id}/metrics`}
+              className="metrics-icon"
+              style={{ marginLeft: '2px' }}
+            >
+              <FontAwesomeIcon icon={faChartLine} />
             </Link>
           </OverlayTrigger>
         </div>

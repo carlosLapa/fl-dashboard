@@ -1,0 +1,53 @@
+@import '../../assets/styles/variables';
+@import '../../assets/styles/responsive-table';
+
+.collaborator-metrics-table {
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+  }
+
+  .table {
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f8f9fa;
+      }
+
+      .fa-icon {
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+
+      &:hover .fa-icon {
+        opacity: 1;
+      }
+    }
+
+    th {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6c757d;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    td {
+      vertical-align: middle;
+      font-size: 0.9375rem;
+    }
+
+    tbody tr {
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f8f9fa;
+      }
+    }
+  }
+}

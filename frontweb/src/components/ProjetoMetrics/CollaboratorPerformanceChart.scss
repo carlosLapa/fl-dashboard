@@ -1,0 +1,22 @@
+@import '../../assets/styles/variables';
+
+.collaborator-performance-chart {
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+  }
+
+  .custom-tooltip {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+    p {
+      margin-bottom: 0.25rem;
+      font-size: 0.875rem;
+    }
+  }
+}
