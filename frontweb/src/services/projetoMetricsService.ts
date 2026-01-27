@@ -24,19 +24,10 @@ export const getProjetoMetrics = async (
   projetoId: number,
 ): Promise<ProjetoMetricsDTO> => {
   try {
-    console.log(`[Service] Fetching metrics for projeto ${projetoId}`);
     const metrics = await getProjetoMetricsAPI(projetoId);
-
-    console.log(
-      `[Service] Metrics loaded successfully for projeto ${projetoId}`,
-    );
-    console.log(
-      `[Service] Total tasks: ${metrics.totalTarefas}, Completion rate: ${metrics.taxaConclusao}%`,
-    );
 
     return metrics;
   } catch (error) {
-    console.error('[Service] Error fetching projeto metrics:', error);
     throw error;
   }
 };
