@@ -4,7 +4,6 @@ import { Row, Col, Alert, Spinner, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowLeft,
-  faChartLine,
   faTasks,
   faCheckCircle,
   faSpinner,
@@ -41,14 +40,11 @@ const ProjetoMetricsPage: React.FC = () => {
     setError(null);
 
     try {
-      console.log(`[ProjetoMetricsPage] Fetching metrics for projeto ${id}`);
       const data = await getProjetoMetrics(Number(id));
       setMetrics(data);
-      console.log('[ProjetoMetricsPage] Metrics loaded successfully:', data);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Erro ao carregar métricas';
-      console.error('[ProjetoMetricsPage] Error:', errorMessage);
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
