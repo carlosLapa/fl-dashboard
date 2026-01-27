@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Card, Table } from 'react-bootstrap';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
-import './CollaboratorPerformanceChart.scss';
+import './CollaboratorMetricsTable.scss';
 
 interface CollaboratorMetricsTableProps {
   metrics: ProjetoMetricsDTO;
@@ -42,7 +42,7 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
   return (
     <Card className="collaborator-metrics-table">
       <Card.Body>
-        <Card.Title className="mb-4">Performance dos Colaboradores</Card.Title>
+        <Card.Title className="mb-4">Performance Geral dos Colaboradores</Card.Title>
 
         {sortedCollaborators.length === 0 ? (
           <div className="text-center text-muted py-5">
