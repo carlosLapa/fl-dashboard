@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, Table, Badge } from 'react-bootstrap';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
-import { formatWorkingDays } from '../../services/projetoMetricsService';
 import { format } from 'date-fns';
 import './LongestTasksTable.scss';
 
@@ -16,7 +15,17 @@ const PRIORITY_COLORS: Record<string, string> = {
   URGENTE: 'danger',
 };
 
+/**
+ * Component displaying the top 10 longest tasks by working days
+ * Shows task description, priority, start/end dates, and duration in working days
+ * Data is pre-sorted by backend based on workingDays field
+ */
 const LongestTasksTable: React.FC<LongestTasksTableProps> = ({ metrics }) => {
+  /**
+   * Format ISO date string to Brazilian format (dd/MM/yyyy)
+   * @param dateString - ISO date string from backend
+   * @returns Formatted date or '-' if invalid
+   */
   const formatDate = (dateString?: string): string => {
     if (!dateString) return '-';
     try {
@@ -26,16 +35,16 @@ const LongestTasksTable: React.FC<LongestTasksTableProps> = ({ metrics }) => {
     }
   };
 
-  const calculateDuration = (startDate?: string, endDate?: string): number => {
-    if (!startDate || !endDate) return 0;
-    try {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const diffTime = Math.abs(end.getTime() - start.getTime());
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    } catch {
-      return 0;
-    }
+  /**
+   * Format working days with proper pluralization
+   * @param days - Number of working days (from backend calculation)
+   * @returns Formatted string (e.g., "5 dias úteis" or "1 dia útil")
+   */
+  const formatWorkingDays = (days?: number): string => {
+    if (days === undefined || days === null) return '-';
+    if (days === 0) return '0 dias';
+    if (days === 1) return '1 dia útil';
+    return `${days} dias úteis`;
   };
 
   return (
@@ -65,45 +74,38 @@ const LongestTasksTable: React.FC<LongestTasksTableProps> = ({ metrics }) => {
                   <th className="text-center" style={{ width: '120px' }}>
                     Fim
                   </th>
-                  <th className="text-center" style={{ width: '100px' }}>
-                    Duração
+                  <th className="text-center" style={{ width: '140px' }}>
+                    Duração (úteis)
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {metrics.tarefasMaisLongas.map((tarefa, index) => {
-                  const duration = calculateDuration(
-                    tarefa.dataInicio,
-                    tarefa.dataFim,
-                  );
-
-                  return (
-                    <tr key={tarefa.tarefaId}>
-                      <td className="text-center text-muted fw-semibold">
-                        {index + 1}
-                      </td>
-                      <td className="task-description">{tarefa.descricao}</td>
-                      <td className="text-center">
-                        <Badge
-                          bg={PRIORITY_COLORS[tarefa.prioridade] || 'secondary'}
-                        >
-                          {tarefa.prioridade}
-                        </Badge>
-                      </td>
-                      <td className="text-center text-muted">
-                        {formatDate(tarefa.dataInicio)}
-                      </td>
-                      <td className="text-center text-muted">
-                        {formatDate(tarefa.dataFim)}
-                      </td>
-                      <td className="text-center">
-                        <span className="duration-badge">
-                          {formatWorkingDays(duration)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {metrics.tarefasMaisLongas.map((tarefa, index) => (
+                  <tr key={tarefa.tarefaId}>
+                    <td className="text-center text-muted fw-semibold">
+                      {index + 1}
+                    </td>
+                    <td className="task-description">{tarefa.descricao}</td>
+                    <td className="text-center">
+                      <Badge
+                        bg={PRIORITY_COLORS[tarefa.prioridade] || 'secondary'}
+                      >
+                        {tarefa.prioridade}
+                      </Badge>
+                    </td>
+                    <td className="text-center text-muted">
+                      {formatDate(tarefa.dataInicio)}
+                    </td>
+                    <td className="text-center text-muted">
+                      {formatDate(tarefa.dataFim)}
+                    </td>
+                    <td className="text-center">
+                      <span className="duration-badge">
+                        {formatWorkingDays(tarefa.workingDays)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </Table>
           </div>
