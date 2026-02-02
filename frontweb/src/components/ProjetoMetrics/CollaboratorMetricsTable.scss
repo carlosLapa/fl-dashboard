@@ -49,5 +49,17 @@
         background-color: #f8f9fa;
       }
     }
+
+    // Enhanced font size for all numeric data cells
+    .numeric-cell {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    // Custom warning color with better contrast
+    .text-warning-dark {
+      color: #d97706 !important;
+      font-weight: 500;
+    }
   }
 }

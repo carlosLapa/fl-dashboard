@@ -42,7 +42,9 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
   return (
     <Card className="collaborator-metrics-table">
       <Card.Body>
-        <Card.Title className="mb-4">Performance Geral dos Colaboradores</Card.Title>
+        <Card.Title className="mb-4">
+          Performance Geral dos Colaboradores
+        </Card.Title>
 
         {sortedCollaborators.length === 0 ? (
           <div className="text-center text-muted py-5">
@@ -59,7 +61,7 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
                   <th className="text-center">Em Progresso</th>
                   <th className="text-center">Pendentes</th>
                   <th className="text-center">Taxa de Conclusão</th>
-                  <th className="text-center">Tempo Médio (dias)</th>
+                  <th className="text-center">Tempo Médio (dias úteis)</th>
                 </tr>
               </thead>
               <tbody>
@@ -77,17 +79,19 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
                       <td>
                         <strong>{getFirstName(col.colaboradorNome)}</strong>
                       </td>
-                      <td className="text-center">{col.totalTarefas}</td>
-                      <td className="text-center text-success">
+                      <td className="text-center numeric-cell">
+                        {col.totalTarefas}
+                      </td>
+                      <td className="text-center text-success numeric-cell">
                         {col.tarefasConcluidas}
                       </td>
-                      <td className="text-center text-warning">
+                      <td className="text-center text-warning-dark numeric-cell">
                         {col.tarefasEmProgresso}
                       </td>
-                      <td className="text-center text-danger">
+                      <td className="text-center text-danger numeric-cell">
                         {col.tarefasPendentes}
                       </td>
-                      <td className="text-center">
+                      <td className="text-center numeric-cell">
                         <span
                           className={`badge ${
                             Number(completionRate) >= 75
@@ -100,7 +104,7 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
                           {completionRate}%
                         </span>
                       </td>
-                      <td className="text-center">
+                      <td className="text-center numeric-cell">
                         {col.tempoMedioDias.toFixed(1)}
                       </td>
                     </tr>
