@@ -17,12 +17,13 @@
     .label {
       margin: 0;
       font-weight: 600;
+      font-size: 1rem;
       color: #212529;
     }
 
     .percentage {
       margin: 0;
-      font-size: 0.875rem;
+      font-size: 0.9375rem;
       color: #6c757d;
     }
   }
@@ -32,6 +33,14 @@
   }
 
   .recharts-legend-item-text {
-    font-size: 0.875rem;
+    font-size: 1rem; 
+    font-weight: 500;
+  }
+
+  // Style for percentage labels of each slice
+  .recharts-pie-label-text {
+    font-size: 1.1rem; // Increased label size
+    font-weight: 600;
+    fill: #0c0c0c; // color for percentage of each slice
   }
 }
