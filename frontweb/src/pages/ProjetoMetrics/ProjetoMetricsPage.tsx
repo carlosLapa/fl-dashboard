@@ -155,7 +155,7 @@ const ProjetoMetricsPage: React.FC = () => {
 
           <Col xs={12} sm={6} lg={3}>
             <MetricsKpiCard
-              label="Em Progresso"
+              label="Em Execução"
               value={metrics.tarefasEmProgresso}
               variant="warning"
               icon={<FontAwesomeIcon icon={faSpinner} />}
