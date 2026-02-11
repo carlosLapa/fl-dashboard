@@ -24,7 +24,7 @@ const PasswordReset: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | ''>(
-    initialUserId
+    initialUserId,
   );
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -43,7 +43,7 @@ const PasswordReset: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await getUsersAPI();
+        const response = await getUsersAPI(0, 1000);
         if (response && 'content' in response) {
           setUsers(response.content);
         } else if (Array.isArray(response)) {
@@ -116,7 +116,7 @@ const PasswordReset: React.FC = () => {
 
     if (
       !window.confirm(
-        'ATENÇÃO: Está prestes a redefinir a senha de TODOS os colaboradores. Esta ação não pode ser desfeita. Continuar?'
+        'ATENÇÃO: Está prestes a redefinir a senha de TODOS os colaboradores. Esta ação não pode ser desfeita. Continuar?',
       )
     ) {
       return;
@@ -189,7 +189,7 @@ const PasswordReset: React.FC = () => {
                   value={selectedUserId}
                   onChange={(e) =>
                     setSelectedUserId(
-                      e.target.value ? Number(e.target.value) : ''
+                      e.target.value ? Number(e.target.value) : '',
                     )
                   }
                   required
