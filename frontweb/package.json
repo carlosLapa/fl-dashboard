@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "overrides": {
+    "lodash-es": "^4.18.0",
     "node-forge": "^1.4.0",
     "glob": "^10.5.0",
     "js-yaml": "^4.1.1",
@@ -32,7 +33,7 @@
     "bootstrap-icons": "^1.11.3",
     "bufferutil": "^4.0.8",
     "date-fns": "^4.1.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.0",
     "lodash.debounce": "^4.0.8",
     "net": "^1.0.2",
     "react": "^18.3.1",
