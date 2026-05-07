@@ -31,21 +31,21 @@ FL Dashboard is a full-stack internal tool designed to streamline the management
 
 ## Features
 
-- 📁 **Projects** — Create, list, and manage projects with status tracking
-- ✅ **Tasks (Tarefas)** — Full task lifecycle management with assignment and status updates
-- 🗂️ **Kanban Board** — Drag-and-drop task board (react-beautiful-dnd)
-- 📊 **Project Metrics** — Visual analytics with charts (Recharts)
-- 📅 **Calendar** — Task and project calendar view (React Big Calendar)
-- 👥 **Users & Clients** — Manage internal users, external collaborators, and clients
-- 📄 **Proposals (Propostas)** — Manage project proposals
-- 🔔 **Real-time Notifications** — WebSocket-based in-app notifications (STOMP/SockJS)
-- 💬 **Slack Integration** — Automated notifications for key events:
-  - Task assigned (`TAREFA_ATRIBUIDA`)
-  - Task status changed (`TAREFA_STATUS_ALTERADO`)
-  - Task completed (`TAREFA_CONCLUIDA`)
-  - Project completed (`PROJETO_CONCLUIDO`)
-- 🔍 **Global Search**
-- 🔐 **Authentication & Authorization** — OAuth2 Authorization Server + Resource Server (role-based permissions)
+- **Projects** — Create, list, and manage projects with status tracking
+- **Tasks (Tarefas)** — Full task lifecycle management with assignment and status updates
+- **Kanban Board** — Drag-and-drop task board (react-beautiful-dnd)
+- **Project Metrics** — Visual analytics with charts (Recharts)
+- **Calendar** — Task and project calendar view (React Big Calendar)
+- **Users & Clients** — Manage internal users, external collaborators, and clients
+- **Proposals (Propostas)** — Manage project proposals
+- **Real-time Notifications** — WebSocket-based in-app notifications (STOMP/SockJS)
+- **Slack Integration** — Automated notifications for key events, such as:
+  - Task assigned 
+  - Task status changed 
+  - Task completed 
+  - Project completed 
+- **Global Search**
+- **Authentication & Authorization** — OAuth2 Authorization Server + Resource Server (role-based permissions)
 
 ---
 
