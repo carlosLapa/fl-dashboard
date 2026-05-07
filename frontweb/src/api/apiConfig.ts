@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 const API_URL =
   process.env.REACT_APP_API_URL ||
   'https://fl-backend-app-6v3xd.ondigitalocean.app';
-console.log('API_URL is set to:', API_URL);
+//console.log('API_URL is set to:', API_URL);
 
 // Configure axios defaults
 axios.defaults.baseURL = API_URL;
@@ -24,11 +24,11 @@ axios.interceptors.response.use(
     if (axios.isAxiosError(error)) {
       // Handle 403 Forbidden errors
       if (error.response?.status === 403) {
-        console.warn('Permission denied for this operation');
+        //console.warn('Permission denied for this operation');
 
         // For user-related endpoints
         if (error.config?.url?.includes('/users')) {
-          console.log('Handling 403 for users endpoint');
+          //console.log('Handling 403 for users endpoint');
           // Return empty result instead of throwing
           return Promise.resolve({
             data: {
@@ -58,7 +58,7 @@ axios.interceptors.response.use(
 
         // For projetos-related endpoints
         if (error.config?.url?.includes('/projetos')) {
-          console.log('Handling 403 for projetos endpoint');
+          //console.log('Handling 403 for projetos endpoint');
           // Return empty result instead of throwing
           return Promise.resolve({
             data: {
@@ -79,7 +79,7 @@ axios.interceptors.response.use(
 
       // Handle 404 errors
       if (error.response?.status === 404) {
-        console.warn('Resource not found');
+        //console.warn('Resource not found');
 
         // For endpoints that return paginated data
         if (
@@ -101,7 +101,7 @@ axios.interceptors.response.use(
 
       // Handle 401 Unauthorized errors (e.g., token expired)
       if (error.response?.status === 401) {
-        console.error('Authentication error - session may have expired');
+        //console.error('Authentication error - session may have expired');
         if (toast) {
           toast.error('Sua sessão expirou. Por favor, faça login novamente.');
         }
