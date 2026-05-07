@@ -2,11 +2,11 @@
 
 > **Internal Admin Dashboard** for project, task, client, and team management — built with a React + TypeScript frontend and a Spring Boot backend.
 
-🌐 **Live:** [ferreiralapa-dashboard.pt](https://ferreiralapa-dashboard.pt)
+**Live:** [ferreiralapa-dashboard.pt](https://ferreiralapa-dashboard.pt)
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
