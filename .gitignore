@@ -13,3 +13,5 @@ backend/flyway-local.conf
 /backups
 backups/
 backups/*.sql
+
+.env
