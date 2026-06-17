@@ -1,16 +1,13 @@
+FROM maven:3.9-eclipse-temurin-17-alpine AS builder
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+COPY src ./src
+RUN mvn package -DskipTests
+
 FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
-
-# Install wget for healthcheck
 RUN apk add --no-cache wget
-
-COPY target/*.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
-
-ENV SPRING_PROFILES_ACTIVE=prod
-ENV CORS_ORIGINS=https://ferreiralapa-dashboard.pt
-ENV SLACK_ENABLED=true
-ENV SLACK_DEFAULT_CHANNEL=#fl-dashboard-notificacoes
-ENV SLACK_NOTIFICATION_TYPES=TAREFA_ATRIBUIDA,TAREFA_STATUS_ALTERADO,PROJETO_CONCLUIDO,TAREFA_CONCLUIDA
-
 CMD ["java", "-jar", "app.jar"]
