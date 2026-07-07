@@ -769,6 +769,10 @@ public class TarefaService {
                 (tarefa.getProjeto() == null || !tarefa.getProjeto().getId().equals(filterDTO.getProjetoId()))) {
             return false;
         }
+        if (filterDTO.getPrioridade() != null &&
+                (tarefa.getPrioridade() == null || !tarefa.getPrioridade().equalsIgnoreCase(filterDTO.getPrioridade()))) {
+            return false;
+        }
         if (filterDTO.getDateField() != null && filterDTO.getStartDate() != null && adjustedEndDate != null) {
             Date date = "prazoEstimado".equals(filterDTO.getDateField()) ? tarefa.getPrazoEstimado() : tarefa.getPrazoReal();
             if (date == null || date.before(filterDTO.getStartDate()) || date.after(adjustedEndDate)) {
@@ -804,6 +808,7 @@ public class TarefaService {
                     filterDTO.getDescricao(),
                     filterDTO.getStatus(),
                     filterDTO.getProjetoId(),
+                    filterDTO.getPrioridade(),
                     filterDTO.getDateField(),
                     filterDTO.getStartDate(),
                     adjustedEndDate,

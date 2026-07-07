@@ -11,6 +11,7 @@ public class TarefaFilterDTO {
     private String descricao;
     private TarefaStatus status;
     private Long projetoId;
+    private String prioridade;
     private String dateField;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")

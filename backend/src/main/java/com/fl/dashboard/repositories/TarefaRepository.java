@@ -107,6 +107,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "AND (:descricao IS NULL OR LOWER(t.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
             "AND (:status IS NULL OR t.status = :status) " +
             "AND (:projetoId IS NULL OR t.projeto.id = :projetoId) " +
+            "AND (:prioridade IS NULL OR LOWER(t.prioridade) = LOWER(:prioridade)) " +
             "AND ((:dateField IS NULL) OR " +
             "     (:dateField = 'prazoEstimado' AND (:startDate IS NULL OR t.prazoEstimado >= :startDate) AND (:endDate IS NULL OR t.prazoEstimado <= :endDate)) OR " +
             "     (:dateField = 'prazoReal' AND (:startDate IS NULL OR t.prazoReal >= :startDate) AND (:endDate IS NULL OR t.prazoReal <= :endDate)))")
@@ -114,6 +115,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             @Param("descricao") String descricao,
             @Param("status") TarefaStatus status,
             @Param("projetoId") Long projetoId,
+            @Param("prioridade") String prioridade,
             @Param("dateField") String dateField,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
