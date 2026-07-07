@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             ? `data:image/jpeg;base64,${userData.profileImage}`
             : userData.profileImage,
         });
-        navigate('/projetos');
+        navigate(`/users/${userData.id}/tarefas`);
       } catch (error) {
         console.warn(
           'Failed to get user with roles, falling back to basic user data:',
@@ -197,7 +197,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             ...currentUser,
             profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
           });
-          navigate('/projetos');
+          navigate(`/users/${currentUser.id}/tarefas`);
         } else {
           throw new Error('User not found');
         }
