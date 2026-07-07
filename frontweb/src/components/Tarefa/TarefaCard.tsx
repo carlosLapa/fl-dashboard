@@ -1,6 +1,7 @@
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
 import {
   KanbanTarefa,
   KanbanTarefaWithProjectDeadline,
@@ -31,20 +32,6 @@ const getStatusColor = (status: TarefaStatus) => {
   return colors[status];
 };
 
-const getPriorityStyle = (priority: string) => {
-  const styles: { [key: string]: { backgroundColor: string; color: string } } =
-    {
-      Alta: { backgroundColor: '#EF4444', color: '#FFFFFF' },
-      Média: { backgroundColor: '#FBBF24', color: '#1F2937' },
-      Baixa: { backgroundColor: '#34D399', color: '#1F2937' },
-    };
-  return {
-    padding: '4px 8px',
-    borderRadius: '4px',
-    fontWeight: 500,
-    ...styles[priority],
-  };
-};
 
 // Function to get card style based on deadline status
 const getCardStyle = (tarefa: KanbanTarefa): string => {
@@ -130,9 +117,7 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
               }}
               className="tarefa-meta"
             >
-              <span style={getPriorityStyle(tarefa.prioridade)}>
-                {tarefa.prioridade}
-              </span>
+              <TarefaPrioridadeBadge prioridade={tarefa.prioridade} />
               <span className="tarefa-date">
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                 Prazo: {formatDate(tarefa.prazoReal)}

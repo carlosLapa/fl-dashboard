@@ -4,6 +4,7 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
 
 interface TarefaDetailsCardProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -52,7 +53,7 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
               </p>
               <p className="mb-2">
                 <strong>Prioridade:</strong>{' '}
-                {tarefa.prioridade || 'Não definida'}
+                <TarefaPrioridadeBadge prioridade={tarefa.prioridade} />
               </p>
               <p className="mb-2">
                 <strong>Projeto:</strong> {tarefa.projeto?.designacao || 'N/A'}
