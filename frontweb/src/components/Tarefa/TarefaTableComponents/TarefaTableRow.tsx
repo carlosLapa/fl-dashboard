@@ -12,6 +12,7 @@ import {
   TarefaStatus,
 } from '../../../types/tarefa';
 import { formatDate, getDeadlineStatus } from '../../../utils/dateUtils';
+import TarefaPrioridadeBadge from '../TarefaPrioridadeBadge';
 
 interface TarefaTableRowProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -95,6 +96,7 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
       </td>
       <td>{tarefa.descricao}</td>
       <td>{tarefa.status}</td>
+      <td><TarefaPrioridadeBadge prioridade={tarefa.prioridade} /></td>
       <td className="prazo-column">
         {tarefa.prazoEstimado ? formatDate(tarefa.prazoEstimado) : '-'}
       </td>
