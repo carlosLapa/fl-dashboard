@@ -30,6 +30,7 @@ export interface TarefaFilterParams {
   direction?: string;
   descricao?: string;
   status?: string;
+  prioridade?: string;
   projetoId?: string;
   dateField?: string;
   startDate?: string;

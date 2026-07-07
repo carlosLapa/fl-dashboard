@@ -22,6 +22,14 @@ const STATUS_OPTIONS = [
   { value: 'DONE', label: 'Done' },
 ];
 
+const PRIORIDADE_OPTIONS = [
+  { value: '', label: 'Todas' },
+  { value: 'Urgente', label: 'Urgente' },
+  { value: 'Alta', label: 'Alta' },
+  { value: 'Média', label: 'Média' },
+  { value: 'Baixa', label: 'Baixa' },
+];
+
 const DATE_FIELD_OPTIONS = [
   { value: 'prazoEstimado', label: 'Prazo Estimado' },
   { value: 'dataCriacao', label: 'Data de Criação' },
@@ -95,6 +103,23 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
             onKeyDown={handleSelectKeyDown}
           >
             {STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Form.Select>
+        </Form.Group>
+      </Col>
+
+      <Col md={6} lg={4}>
+        <Form.Group>
+          <Form.Label>Prioridade</Form.Label>
+          <Form.Select
+            value={filters.prioridade}
+            onChange={(e) => updateFilter('prioridade', e.target.value)}
+            onKeyDown={handleSelectKeyDown}
+          >
+            {PRIORIDADE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

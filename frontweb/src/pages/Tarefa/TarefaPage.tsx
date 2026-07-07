@@ -142,6 +142,7 @@ const TarefaPage: React.FC = () => {
         direction: sortDirection,
         descricao: filters.descricao || undefined,
         status: filters.status || undefined,
+        prioridade: filters.prioridade || undefined,
         projetoId: filters.projetoId || undefined,
         dateField:
           filters.startDate || filters.endDate

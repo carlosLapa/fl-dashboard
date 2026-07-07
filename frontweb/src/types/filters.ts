@@ -27,6 +27,7 @@ export interface ProjetoFilterState {
 export interface TarefaFilterState extends BaseFilterState {
   descricao: string;
   status: string;
+  prioridade: string;
   projetoId: string;
   startDate: string;
   endDate: string;

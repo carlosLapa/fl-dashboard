@@ -4,6 +4,7 @@ import { TarefaFilterState } from '../types/filters';
 const initialFilters: TarefaFilterState = {
   descricao: '',
   status: '',
+  prioridade: '',
   projetoId: '',
   startDate: '',
   endDate: '',
