@@ -166,7 +166,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
   if (clientes.length === 0) {
     return (
       <div className="text-center p-4">
-        <p>Nenhum cliente encontrado.</p>
+        <p>Nenhum cliente encontrado</p>
       </div>
     );
   }
