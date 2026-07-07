@@ -4,6 +4,7 @@ import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import './userTarefaTable.scss';
 
 interface UserTarefaTableProps {
@@ -25,6 +26,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
             <tr>
               <th>Descrição</th>
               <th className="d-none d-md-table-cell">Status</th>
+              <th className="d-none d-md-table-cell">Prioridade</th>
               <th className="d-none d-md-table-cell">Ínicio</th>
               <th className="d-none d-lg-table-cell">Prazo</th>
               <th className="d-none d-lg-table-cell">Dias Úteis</th>
@@ -38,6 +40,9 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                 <tr key={tarefa.id}>
                   <td>{tarefa.descricao}</td>
                   <td className="d-none d-md-table-cell">{tarefa.status}</td>
+                  <td className="d-none d-md-table-cell">
+                    <TarefaPrioridadeBadge prioridade={tarefa.prioridade} />
+                  </td>
                   <td className="d-none d-md-table-cell">
                     {new Date(tarefa.prazoEstimado).toLocaleDateString()}
                   </td>
@@ -90,7 +95,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center">
+                <td colSpan={8} className="text-center">
                   Não existem tarefas para este utilizador
                 </td>
               </tr>
