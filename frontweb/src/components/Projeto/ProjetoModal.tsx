@@ -340,22 +340,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
             </Col>
           </Row>
           <Row className="mb-3">
-            <Col md={6}>
-              <Form.Group controlId="formEntidade">
-                <Form.Label>Entidade</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="entidade"
-                  value={formData.entidade}
-                  onChange={handleInputChange}
-                  maxLength={50}
-                />
-                <Form.Control.Feedback type="invalid">
-                  Por favor, insira a entidade.
-                </Form.Control.Feedback>
-              </Form.Group>
-            </Col>
-            <Col md={6}>
+            <Col md={12}>
               <Form.Group controlId="formPrioridade">
                 <Form.Label>Prioridade</Form.Label>
                 <Form.Select
