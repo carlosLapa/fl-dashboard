@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Card } from 'react-bootstrap';
+import { Table, Card, Badge } from 'react-bootstrap';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import { Tarefa, TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 
