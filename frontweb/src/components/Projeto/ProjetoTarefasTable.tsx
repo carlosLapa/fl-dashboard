@@ -1,5 +1,6 @@
 import React from 'react';
-import { Table, Card, Badge } from 'react-bootstrap';
+import { Table, Card } from 'react-bootstrap';
+import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import { Tarefa, TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 
 interface ProjetoTarefasTableProps {
@@ -39,23 +40,6 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
     return <Badge bg={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
-  const getPrioridadeBadge = (prioridade: string) => {
-    let variant = 'secondary';
-
-    switch (prioridade) {
-      case 'BAIXA':
-        variant = 'info';
-        break;
-      case 'MEDIA':
-        variant = 'warning';
-        break;
-      case 'ALTA':
-        variant = 'danger';
-        break;
-    }
-
-    return <Badge bg={variant}>{prioridade}</Badge>;
-  };
 
   // Before using tarefas
   const tarefasSafe = tarefas ?? [];
@@ -87,7 +71,7 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
                   <tr key={tarefa.id}>
                     <td>{tarefa.descricao}</td>
                     <td>{getStatusBadge(tarefa.status)}</td>
-                    <td>{getPrioridadeBadge(tarefa.prioridade)}</td>
+                    <td><TarefaPrioridadeBadge prioridade={tarefa.prioridade} /></td>
                     <td>{formatDate(tarefa.prazoEstimado)}</td>
                     <td className="d-none d-md-table-cell">
                       {formatDate(tarefa.prazoReal)}

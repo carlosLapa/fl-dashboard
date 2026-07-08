@@ -4,6 +4,7 @@ import { Projeto } from '../../types/projeto';
 import { User } from '../../types/user';
 import { Externo } from '../../types/externo';
 import ProjetoStatusBadge from './ProjetoStatusBadge';
+import ProjetoPrioridadeBadge from './ProjetoPrioridadeBadge';
 import './ProjetoDetailsTable.scss';
 
 interface ProjetoDetailsTableProps {
@@ -68,7 +69,7 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
             </tr>
             <tr>
               <th>Prioridade</th>
-              <td>{projeto.prioridade}</td>
+              <td><ProjetoPrioridadeBadge prioridade={projeto.prioridade} /></td>
               <th></th>
               <td></td>
             </tr>

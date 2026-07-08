@@ -11,6 +11,7 @@ import {
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import ProjetoStatusBadge from '../ProjetoStatusBadge';
+import ProjetoPrioridadeBadge from '../ProjetoPrioridadeBadge';
 import { formatDate } from '../../../utils/dateUtils';
 
 interface ProjetoTableRowProps {
@@ -38,7 +39,7 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
       <td>{projeto.designacao}</td>
       <td>{projeto.cliente?.name || 'N/A'}</td>
       <td>{projeto.tipo || 'N/A'}</td>
-      <td>{projeto.prioridade}</td>
+      <td><ProjetoPrioridadeBadge prioridade={projeto.prioridade} /></td>
       <td>{projeto.coordenador?.name || 'N/A'}</td>
       <td>{projeto.dataProposta ? formatDate(projeto.dataProposta) : 'N/A'}</td>
       <td>
