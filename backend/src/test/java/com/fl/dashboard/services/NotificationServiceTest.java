@@ -394,7 +394,7 @@ class NotificationServiceTest {
         projetoDTO.setId(1L);
         projetoDTO.setDesignacao("Test Project");
 
-        UserDTO userDTO = new UserDTO();
+        UserSummaryDTO userDTO = new UserSummaryDTO();
         userDTO.setId(1L);
 
         Projeto projetoEntity = new Projeto();
@@ -469,7 +469,7 @@ class NotificationServiceTest {
         ProjetoWithUsersDTO projetoDTO = new ProjetoWithUsersDTO();
         projetoDTO.setId(1L);
 
-        UserDTO authorizedUser = new UserDTO();
+        UserSummaryDTO authorizedUser = new UserSummaryDTO();
         authorizedUser.setId(1L);
         authorizedUser.setName("Admin User");
         authorizedUser.setEmail("admin@example.com");
@@ -504,7 +504,7 @@ class NotificationServiceTest {
 
     @Test
     void managerUserShouldAccessProjectNotifications() {
-        UserDTO managerUser = new UserDTO();
+        UserSummaryDTO managerUser = new UserSummaryDTO();
         managerUser.setId(1L);
         managerUser.setName("Manager User");
         managerUser.setEmail("manager@example.com");
