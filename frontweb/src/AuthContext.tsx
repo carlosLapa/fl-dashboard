@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useRef,
   useCallback,
+  useMemo,
 } from 'react';
 import axios from 'api/apiConfig';
 import { User } from './types/user';
@@ -48,9 +49,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const warningTimerRef = useRef<NodeJS.Timeout>();
 
   // Wrapper for the refreshToken function for consistency
-  const refreshUserToken = async (): Promise<boolean> => {
+  const refreshUserToken = useCallback((): Promise<boolean> => {
     return refreshToken();
-  };
+  }, []);
 
   useEffect(() => {
     // Setup token refresh interceptor
@@ -67,7 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       axios.interceptors.response.eject(refreshInterceptor);
       axios.interceptors.request.eject(csrfInterceptor);
     };
-  }, []);
+  }, [refreshUserToken]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -152,9 +153,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('auth:sessionExpired', handleSessionExpired);
     };
-  }, [navigate]);
+  }, [navigate, refreshUserToken]);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
     setLoading(true);
     let errorMessage = 'An unknown error occurred';
@@ -220,7 +221,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   const logout = useCallback(() => {
     console.log('Logging out user');
@@ -303,16 +304,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, [user, resetInactivityTimer]);
 
-  const value = {
-    user,
-    loading,
-    login,
-    logout,
-    refreshUserToken,
-    isTokenExpired,
-    showExpirationWarning,
-    extendSession,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      login,
+      logout,
+      refreshUserToken,
+      isTokenExpired,
+      showExpirationWarning,
+      extendSession,
+    }),
+    [
+      user,
+      loading,
+      login,
+      logout,
+      refreshUserToken,
+      showExpirationWarning,
+      extendSession,
+    ]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

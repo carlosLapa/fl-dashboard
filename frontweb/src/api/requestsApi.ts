@@ -584,41 +584,36 @@ export const getTarefasWithUsersAndProjetoByUser = async (
     return pendingRequests[requestKey];
   }
 
-  try {
-    console.log(`Making new request for ${requestKey}`);
-    // Create the promise for this request
-    const requestPromise = axios
-      .get(`/tarefas/user/${userId}/full`, {
-        params: { page, size },
-      })
-      .then((response) => response.data);
+  console.log(`Making new request for ${requestKey}`);
 
-    // Store the promise
-    pendingRequests[requestKey] = requestPromise;
+  // Error handling lives on the shared promise itself, so both the
+  // caller that creates it and any caller that reuses it (via
+  // pendingRequests) always resolve to the same safe fallback instead
+  // of one of them seeing a rejected promise.
+  const requestPromise = axios
+    .get(`/tarefas/user/${userId}/full`, {
+      params: { page, size },
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error(
+        `Error fetching full tasks for user with id ${userId}:`,
+        error
+      );
+      return {
+        content: [],
+        totalPages: 0,
+        totalElements: 0,
+        size,
+        number: page,
+      };
+    })
+    .finally(() => {
+      delete pendingRequests[requestKey];
+    });
 
-    // Wait for the response
-    const response = await requestPromise;
-
-    // Request completed, remove from pending
-    delete pendingRequests[requestKey];
-
-    return response;
-  } catch (error) {
-    // Request failed, remove from pending
-    delete pendingRequests[requestKey];
-
-    console.error(
-      `Error fetching full tasks for user with id ${userId}:`,
-      error
-    );
-    return {
-      content: [],
-      totalPages: 0,
-      totalElements: 0,
-      size,
-      number: page,
-    };
-  }
+  pendingRequests[requestKey] = requestPromise;
+  return requestPromise;
 };
 
 export const getTarefasByDateRangeAPI = async (
