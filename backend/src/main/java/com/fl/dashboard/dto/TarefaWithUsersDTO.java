@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @Setter
 public class TarefaWithUsersDTO extends TarefaDTO {
 
-    private Set<UserDTO> users = new HashSet<>();
+    private Set<UserSummaryDTO> users = new HashSet<>();
 
     public TarefaWithUsersDTO(Tarefa entity) {
         super(entity);
         this.users = entity.getUsers().stream()
-                .map(UserDTO::new)
+                .map(UserSummaryDTO::new)
                 .collect(Collectors.toSet());
     }
 

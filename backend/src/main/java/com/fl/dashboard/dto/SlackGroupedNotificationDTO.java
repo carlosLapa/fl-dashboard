@@ -9,7 +9,7 @@ public class SlackGroupedNotificationDTO {
     private String type;
     private String title;
     private TarefaWithUsersDTO tarefa;
-    private Set<UserDTO> additionalUsers = new HashSet<>();
+    private Set<UserSummaryDTO> additionalUsers = new HashSet<>();
     private ProjetoDTO projeto;
     private String additionalContent;
     private String uniqueId; // Novo campo para evitar deduplicação
@@ -20,21 +20,21 @@ public class SlackGroupedNotificationDTO {
         this.tarefa = tarefa;
     }
 
-    public void addUser(UserDTO user) {
+    public void addUser(UserSummaryDTO user) {
         if (user != null) {
             this.additionalUsers.add(user);
         }
     }
 
-    public void addUsers(List<UserDTO> users) {
+    public void addUsers(List<UserSummaryDTO> users) {
         if (users != null) {
             this.additionalUsers.addAll(users);
         }
     }
 
     // Método helper para obter todos os users (da tarefa + adicionais)
-    public List<UserDTO> getAllUsers() {
-        Set<UserDTO> allUsers = new HashSet<>(tarefa.getUsers());
+    public List<UserSummaryDTO> getAllUsers() {
+        Set<UserSummaryDTO> allUsers = new HashSet<>(tarefa.getUsers());
         allUsers.addAll(additionalUsers);
         return new ArrayList<>(allUsers);
     }
@@ -51,7 +51,7 @@ public class SlackGroupedNotificationDTO {
         return tarefa;
     }
 
-    public Set<UserDTO> getUsers() {
+    public Set<UserSummaryDTO> getUsers() {
         return tarefa.getUsers();
     }
 

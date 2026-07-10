@@ -3,7 +3,7 @@ package com.fl.dashboard.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fl.dashboard.dto.SlackGroupedNotificationDTO;
 import com.fl.dashboard.dto.TarefaWithUsersDTO;
-import com.fl.dashboard.dto.UserDTO;
+import com.fl.dashboard.dto.UserSummaryDTO;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -385,7 +385,7 @@ public class SlackService {
 
         if (result) {
             recentNotifications.put(messageKey, System.currentTimeMillis());
-            List<UserDTO> allUsers = notification.getAllUsers();
+            List<UserSummaryDTO> allUsers = notification.getAllUsers();
             logger.info("Successfully sent grouped notification for task {} with {} users",
                     notification.getTarefa().getId(), allUsers != null ? allUsers.size() : 0);
         } else {
@@ -440,11 +440,11 @@ public class SlackService {
         }
     }
 
-    private void appendCollaborators(StringBuilder content, List<UserDTO> users) {
+    private void appendCollaborators(StringBuilder content, List<UserSummaryDTO> users) {
         if (users != null && !users.isEmpty()) {
             content.append("\n*Colaboradores:* ")
                     .append(users.stream()
-                            .map(UserDTO::getName)
+                            .map(UserSummaryDTO::getName)
                             .distinct()
                             .collect(Collectors.joining(", ")));
         }

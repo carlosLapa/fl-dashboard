@@ -394,8 +394,8 @@ public class TarefaService {
             }
 
             // Adicionar UMA notificação agrupada para o Slack com todos os users
-            List<UserDTO> userDTOs = notifiedUsers.stream()
-                    .map(UserDTO::new)
+            List<UserSummaryDTO> userDTOs = notifiedUsers.stream()
+                    .map(UserSummaryDTO::new)
                     .collect(Collectors.toList());
             slackNotificationManagerService.addNotification(
                     "TAREFA_ATRIBUIDA",

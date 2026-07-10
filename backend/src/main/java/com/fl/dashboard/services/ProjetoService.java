@@ -117,7 +117,7 @@ public class ProjetoService {
                 notificationService.createProjectNotification(
                         savedDTO,
                         NotificationType.PROJETO_ATRIBUIDO,  // Already correct
-                        new UserDTO(user)
+                        new UserSummaryDTO(user)
                 );
             }
         }
@@ -204,7 +204,7 @@ public class ProjetoService {
                 notificationService.createProjectNotification(
                         new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
                         NotificationType.PROJETO_ATRIBUIDO,
-                        new UserDTO(newUser)
+                        new UserSummaryDTO(newUser)
                 );
             }
 
@@ -228,7 +228,7 @@ public class ProjetoService {
                 notificationService.createProjectNotification(
                         new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
                         notificationType,
-                        new UserDTO(user)
+                        new UserSummaryDTO(user)
                 );
             }
 
@@ -262,7 +262,7 @@ public class ProjetoService {
             notificationService.createProjectNotification(
                     new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers()),
                     notificationType,
-                    new UserDTO(user)
+                    new UserSummaryDTO(user)
             );
         }
 

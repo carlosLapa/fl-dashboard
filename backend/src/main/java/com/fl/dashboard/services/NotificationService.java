@@ -496,7 +496,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void createProjectNotification(ProjetoWithUsersDTO projeto, NotificationType type, UserDTO user) {
+    public void createProjectNotification(ProjetoWithUsersDTO projeto, NotificationType type, UserSummaryDTO user) {
         // Verify project exists first
         Projeto projetoEntity = projetoRepository.findById(projeto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));

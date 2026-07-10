@@ -115,7 +115,7 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
 
                 // Adicionar o usuário, se fornecido
                 if (user != null) {
-                    notification.addUser(new UserDTO(user));
+                    notification.addUser(new UserSummaryDTO(user));
                     logger.info("Usuário adicionado à notificação imediata: {}", user.getName());
                 }
 
@@ -150,7 +150,7 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
 
                 // O user já deve estar incluído na tarefa, mas por segurança:
                 if (user != null) {
-                    notification.addUser(new UserDTO(user));
+                    notification.addUser(new UserSummaryDTO(user));
                 }
             }
 
@@ -211,8 +211,8 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
 
                 // Adicionar os usuários recebidos como parâmetro
                 if (users != null && !users.isEmpty()) {
-                    List<UserDTO> userDTOs = users.stream()
-                            .map(UserDTO::new)
+                    List<UserSummaryDTO> userDTOs = users.stream()
+                            .map(UserSummaryDTO::new)
                             .collect(Collectors.toList());
                     notification.addUsers(userDTOs);
                     logger.info("Adicionados {} usuários à notificação imediata", userDTOs.size());
@@ -253,8 +253,8 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
 
                 // Adicionar qualquer user adicional que possa não estar na tarefa
                 if (users != null) {
-                    List<UserDTO> userDTOs = users.stream()
-                            .map(UserDTO::new)
+                    List<UserSummaryDTO> userDTOs = users.stream()
+                            .map(UserSummaryDTO::new)
                             .collect(Collectors.toList());
                     notification.addUsers(userDTOs);
                 }
@@ -271,7 +271,7 @@ public class SlackNotificationManagerService implements ApplicationContextAware 
      * Adiciona uma notificação usando diretamente o ID da tarefa.
      * Versão recomendada para novos desenvolvimentos.
      */
-    public void addNotification(String type, String title, Long tarefaId, List<UserDTO> additionalUsers) {
+    public void addNotification(String type, String title, Long tarefaId, List<UserSummaryDTO> additionalUsers) {
         if (!slackService.isEnabled() || !slackService.shouldSendNotificationType(type)) {
             return;
         }

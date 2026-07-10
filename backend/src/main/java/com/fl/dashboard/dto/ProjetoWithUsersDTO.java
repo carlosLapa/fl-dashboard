@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Setter
 public class ProjetoWithUsersDTO extends ProjetoDTO {
 
-    private Set<UserDTO> users = new HashSet<>();
+    private Set<UserSummaryDTO> users = new HashSet<>();
     private Set<ExternoDTO> externos = new HashSet<>();
     private List<Long> externoIds;
 
@@ -24,7 +24,7 @@ public class ProjetoWithUsersDTO extends ProjetoDTO {
 
     public ProjetoWithUsersDTO(Projeto entity) {
         super(entity);
-        this.users = entity.getUsers().stream().map(UserDTO::new).collect(Collectors.toSet());
+        this.users = entity.getUsers().stream().map(UserSummaryDTO::new).collect(Collectors.toSet());
 
         // Adicionar mapeamento dos externos
         if (entity.getExternos() != null) {
@@ -36,7 +36,7 @@ public class ProjetoWithUsersDTO extends ProjetoDTO {
 
     public ProjetoWithUsersDTO(Projeto entity, Set<User> users) {
         super(entity);
-        this.users = users.stream().map(UserDTO::new).collect(Collectors.toSet());
+        this.users = users.stream().map(UserSummaryDTO::new).collect(Collectors.toSet());
 
         // Adicionar mapeamento dos externos
         if (entity.getExternos() != null) {
