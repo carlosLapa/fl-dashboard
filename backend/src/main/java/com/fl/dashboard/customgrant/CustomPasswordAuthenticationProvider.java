@@ -153,10 +153,21 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
             authorizationBuilder.accessToken(accessToken);
         }
 
+        //-----------REFRESH TOKEN----------
+        OAuth2RefreshToken refreshToken = null;
+        if (registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN)) {
+            OAuth2TokenContext refreshTokenContext = tokenContextBuilder.tokenType(OAuth2TokenType.REFRESH_TOKEN).build();
+            OAuth2Token generatedRefreshToken = this.tokenGenerator.generate(refreshTokenContext);
+            if (generatedRefreshToken instanceof OAuth2RefreshToken) {
+                refreshToken = (OAuth2RefreshToken) generatedRefreshToken;
+                authorizationBuilder.refreshToken(refreshToken);
+            }
+        }
+
         OAuth2Authorization authorization = authorizationBuilder.build();
         this.authorizationService.save(authorization);
 
-        return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken);
+        return new OAuth2AccessTokenAuthenticationToken(registeredClient, clientPrincipal, accessToken, refreshToken);
     }
 
     @Override
