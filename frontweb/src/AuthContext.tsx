@@ -153,7 +153,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('auth:sessionExpired', handleSessionExpired);
     };
-  }, [navigate, refreshUserToken]);
+    // Intentionally run once on mount: this initializes the session from
+    // storage and should not re-run on navigation. `navigate` and
+    // `refreshUserToken` are stable in practice; re-including them here
+    // would re-trigger the /users/me fetch on every route change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     console.log('Initiating login process for email:', email);
