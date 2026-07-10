@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class TarefaWithUserAndProjetoDTO extends TarefaDTO {
-    private Set<UserDTO> users = new HashSet<>();
+    private Set<UserSummaryDTO> users = new HashSet<>();
     private ProjetoDTO projeto;
     private Set<ExternoDTO> externos;
 
@@ -28,7 +28,7 @@ public class TarefaWithUserAndProjetoDTO extends TarefaDTO {
         if (entity.getUsers() != null) {
             Hibernate.initialize(entity.getUsers());
             this.users = entity.getUsers().stream()
-                    .map(UserDTO::new)
+                    .map(UserSummaryDTO::new)
                     .collect(Collectors.toSet());
         }
 

@@ -118,7 +118,7 @@ public class ProjetoDTOMapper {
         // Map coordenador if present
         if (entity.getCoordenador() != null) {
             dto.setCoordenadorId(entity.getCoordenador().getId());
-            dto.setCoordenador(new UserDTO(entity.getCoordenador()));
+            dto.setCoordenador(new UserSummaryDTO(entity.getCoordenador()));
         }
 
         dto.setDataProposta(entity.getDataProposta());

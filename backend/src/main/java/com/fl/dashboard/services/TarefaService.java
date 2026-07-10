@@ -612,49 +612,6 @@ public class TarefaService {
         return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
     }
 
-    private TarefaWithUserAndProjetoDTO convertToDTO(Tarefa tarefa) {
-        TarefaWithUserAndProjetoDTO dto = new TarefaWithUserAndProjetoDTO();
-        // Map basic properties
-        dto.setId(tarefa.getId());
-        dto.setDescricao(tarefa.getDescricao());
-        dto.setStatus(tarefa.getStatus());
-        dto.setPrioridade(tarefa.getPrioridade());
-        dto.setPrazoEstimado(tarefa.getPrazoEstimado());
-        dto.setPrazoReal(tarefa.getPrazoReal());
-        dto.setWorkingDays(tarefa.getWorkingDays()); // Add working days to DTO
-
-        // Map users (these will be loaded lazily)
-        Set<UserDTO> userDtos = tarefa.getUsers().stream()
-                .map(user -> {
-                    UserDTO userDto = new UserDTO();
-                    userDto.setId(user.getId());
-                    userDto.setName(user.getName());
-                    userDto.setEmail(user.getEmail());
-                    userDto.setCargo(user.getCargo());
-                    userDto.setFuncao(user.getFuncao());
-                    userDto.setProfileImage(user.getProfileImage());
-                    return userDto;
-                })
-                .collect(Collectors.toSet());
-        dto.setUsers(userDtos);
-
-        // Map projeto (this will be loaded lazily)
-        if (tarefa.getProjeto() != null) {
-            ProjetoDTO projetoDto = new ProjetoDTO();
-            projetoDto.setId(tarefa.getProjeto().getId());
-            projetoDto.setDesignacao(tarefa.getProjeto().getDesignacao());
-            projetoDto.setEntidade(tarefa.getProjeto().getEntidade());
-            projetoDto.setObservacao(tarefa.getProjeto().getObservacao());
-            projetoDto.setPrazo(tarefa.getProjeto().getPrazo());
-            projetoDto.setPrioridade(tarefa.getProjeto().getPrioridade());
-            projetoDto.setProjetoAno(tarefa.getProjeto().getProjetoAno());
-            projetoDto.setStatus(tarefa.getProjeto().getStatus());
-            dto.setProjeto(projetoDto);
-        }
-
-        return dto;
-    }
-
     @Transactional(readOnly = true)
     public Page<TarefaWithUserAndProjetoDTO> findByDateRange(
             String dateField, Date startDate, Date endDate, int page, int size, String userEmail, boolean canViewAll) {

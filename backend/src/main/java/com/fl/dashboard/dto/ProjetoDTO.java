@@ -31,7 +31,7 @@ public class ProjetoDTO {
     private String status;
 
     private Long coordenadorId;
-    private UserDTO coordenador;
+    private UserSummaryDTO coordenador;
     private Date dataProposta;
     private Date dataAdjudicacao;
     private TipoProjeto tipo;
@@ -68,7 +68,7 @@ public class ProjetoDTO {
         this.tipo = entity.getTipo();
 
         if (entity.getCoordenador() != null) {
-            this.coordenador = new UserDTO(entity.getCoordenador());
+            this.coordenador = new UserSummaryDTO(entity.getCoordenador());
             this.coordenadorId = entity.getCoordenador().getId();
         }
 
