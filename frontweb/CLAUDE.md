@@ -21,6 +21,18 @@ mvn clean package         # Build backend JAR
 mvn test                  # Run JUnit tests
 ```
 
+### Updating dependencies
+
+`Dockerfile.frontend` builds with `node:20-alpine`, which bundles a specific npm version. If your local npm version differs, `npm install` can resolve optional peer dependencies differently and produce a `package-lock.json` that passes locally but fails `npm ci` in the Docker build (CI) with "Missing: X from lock file" errors.
+
+After changing any dependency (`npm install <pkg>@<version>`), regenerate the lockfile against the same environment the Docker build uses:
+
+```bash
+npm run lockfile:sync   # runs `npm install --package-lock-only` inside node:20-alpine
+```
+
+Then verify `git diff package-lock.json` only contains the expected changes before committing.
+
 ## Architecture
 
 ### Folder Structure
