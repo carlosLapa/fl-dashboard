@@ -18,6 +18,8 @@ import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +45,7 @@ public class UserService implements UserDetailsService {
 
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
     private static final long MAX_FILE_SIZE = 2097152; // 2MB
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final ProjetoRepository projetoRepository;
@@ -93,7 +96,7 @@ public class UserService implements UserDetailsService {
         // First try to find by email directly
         user = userRepository.findByEmail(emailOrClientId);
 
-        // If not found and it looks like a client ID, we need to get the email from the SecurityContext
+        // If not found, and it looks like a client ID, we need to get the email from the SecurityContext
         if (user == null) {
             // Get the current authentication from SecurityContext
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -440,21 +443,25 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    @Transactional
     public int resetAllPasswords(String newPassword) {
         if (newPassword == null || newPassword.length() < 6) {
             throw new IllegalArgumentException("A senha deve ter pelo menos 6 caracteres");
         }
 
-        String encodedPassword = passwordEncoder.encode(newPassword);
         List<User> users = userRepository.findAll();
+        int successCount = 0;
 
         for (User user : users) {
-            user.setPassword(encodedPassword);
-            userRepository.save(user);
+            try {
+                resetPassword(user.getId(), newPassword);
+                successCount++;
+            } catch (Exception e) {
+                logger.error("Falha ao redefinir password para o utilizador id={}, email={}: {}",
+                        user.getId(), user.getEmail(), e.getMessage());
+            }
         }
 
-        return users.size();
+        return successCount;
     }
 
 }
