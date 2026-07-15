@@ -35,3 +35,5 @@ jobs:
             endovelic/fldashboard-frontend:${{ github.sha }}
           build-args: |
             REACT_APP_API_URL=https://fl-backend-app-6v3xd.ondigitalocean.app
+            REACT_APP_CLIENT_ID=${{ secrets.REACT_APP_CLIENT_ID }}
+            REACT_APP_CLIENT_SECRET=${{ secrets.REACT_APP_CLIENT_SECRET }}
