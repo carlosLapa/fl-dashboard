@@ -53,8 +53,18 @@ public class ProjetoService {
 
     @Transactional(readOnly = true)
     public Page<ProjetoWithUsersDTO> findAllPaged(Pageable pageable) {
-        Page<Projeto> list = projetoRepository.findAll(pageable);
-        return list.map(ProjetoWithUsersDTO::new);
+        Page<Long> idsPage = projetoRepository.findAllActiveIds(pageable);
+        if (idsPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Map<Long, Projeto> projetoById = projetoRepository.findAllByIdInWithDetails(idsPage.getContent()).stream()
+                .collect(Collectors.toMap(Projeto::getId, p -> p));
+        List<ProjetoWithUsersDTO> dtos = idsPage.getContent().stream()
+                .map(projetoById::get)
+                .filter(Objects::nonNull)
+                .map(ProjetoWithUsersDTO::new)
+                .toList();
+        return new PageImpl<>(dtos, pageable, idsPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)

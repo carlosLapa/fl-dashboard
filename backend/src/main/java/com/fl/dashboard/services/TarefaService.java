@@ -625,14 +625,14 @@ public class TarefaService {
             if (!dateField.equals("prazoEstimado") && !dateField.equals("prazoReal")) {
                 throw new IllegalArgumentException("Field must be either 'prazoEstimado' or 'prazoReal'");
             }
-            Page<Tarefa> tarefaPage = tarefaRepository.findByDateRange(dateField, startDate, endDate, pageRequest);
-            if (tarefaPage.isEmpty()) {
+            Page<Long> idsPage = tarefaRepository.findByDateRangeIds(dateField, startDate, endDate, pageRequest);
+            if (idsPage.isEmpty()) {
                 return Page.empty(pageRequest);
             }
-            List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+            List<TarefaWithUserAndProjetoDTO> dtos = fetchTarefasByIdsInOrder(idsPage.getContent()).stream()
                     .map(TarefaWithUserAndProjetoDTO::new)
                     .toList();
-            return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+            return new PageImpl<>(dtos, pageRequest, idsPage.getTotalElements());
         } else {
             // Filter for non-privileged users
             User user = userRepository.findByEmail(userEmail);
@@ -661,11 +661,14 @@ public class TarefaService {
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
         if (canViewAll) {
-            Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveSorted(pageRequest);
-            List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+            Page<Long> idsPage = tarefaRepository.findAllActiveSortedIds(pageRequest);
+            if (idsPage.isEmpty()) {
+                return Page.empty(pageRequest);
+            }
+            List<TarefaWithUserAndProjetoDTO> dtos = fetchTarefasByIdsInOrder(idsPage.getContent()).stream()
                     .map(TarefaWithUserAndProjetoDTO::new)
                     .toList();
-            return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+            return new PageImpl<>(dtos, pageRequest, idsPage.getTotalElements());
         } else {
             User user = userRepository.findByEmail(userEmail);
             if (user == null) return Page.empty(pageRequest);
@@ -687,6 +690,17 @@ public class TarefaService {
                     .toList();
             return new PageImpl<>(dtos, pageRequest, tarefas.size());
         }
+    }
+
+    // Preserves the paginated ID order from a Page<Long> query while fetching full entities
+    // (with users/projeto) via a single IN-clause query, avoiding N+1 and OOM from collection-fetch pagination.
+    private List<Tarefa> fetchTarefasByIdsInOrder(List<Long> ids) {
+        Map<Long, Tarefa> tarefaById = tarefaRepository.findAllByIdInWithUsersAndProjeto(ids).stream()
+                .collect(Collectors.toMap(Tarefa::getId, t -> t));
+        return ids.stream()
+                .map(tarefaById::get)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     // Add a method to recalculate working days for a specific tarefa
@@ -761,7 +775,7 @@ public class TarefaService {
         PageRequest pageRequest = PageRequest.of(page, size, sort);
 
         if (canViewAll) {
-            Page<Tarefa> tarefaPage = tarefaRepository.findWithFilters(
+            Page<Long> idsPage = tarefaRepository.findWithFiltersIds(
                     filterDTO.getDescricao(),
                     filterDTO.getStatus(),
                     filterDTO.getProjetoId(),
@@ -771,13 +785,13 @@ public class TarefaService {
                     adjustedEndDate,
                     pageRequest
             );
-            if (tarefaPage.isEmpty()) {
+            if (idsPage.isEmpty()) {
                 return Page.empty(pageRequest);
             }
-            List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+            List<TarefaWithUserAndProjetoDTO> dtos = fetchTarefasByIdsInOrder(idsPage.getContent()).stream()
                     .map(TarefaWithUserAndProjetoDTO::new)
                     .toList();
-            return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+            return new PageImpl<>(dtos, pageRequest, idsPage.getTotalElements());
         } else {
             User user = userRepository.findByEmail(userEmail);
             if (user == null) return Page.empty(pageRequest);

@@ -87,23 +87,22 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
     Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL " +
+    // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
+    // pagination (HHH90003004), which loads the whole result set into heap before slicing it.
+    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL " +
             "AND ((:dateField = 'prazoEstimado' AND t.prazoEstimado BETWEEN :startDate AND :endDate) OR " +
             "(:dateField = 'prazoReal' AND t.prazoReal BETWEEN :startDate AND :endDate))")
-    Page<Tarefa> findByDateRange(
+    Page<Long> findByDateRangeIds(
             @Param("dateField") String dateField,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
             Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL")
-    Page<Tarefa> findAllActiveSorted(Pageable pageable);
+    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL")
+    Page<Long> findAllActiveSortedIds(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL " +
+    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL " +
             "AND (:descricao IS NULL OR LOWER(t.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
             "AND (:status IS NULL OR t.status = :status) " +
             "AND (:projetoId IS NULL OR t.projeto.id = :projetoId) " +
@@ -111,7 +110,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "AND ((:dateField IS NULL) OR " +
             "     (:dateField = 'prazoEstimado' AND (:startDate IS NULL OR t.prazoEstimado >= :startDate) AND (:endDate IS NULL OR t.prazoEstimado <= :endDate)) OR " +
             "     (:dateField = 'prazoReal' AND (:startDate IS NULL OR t.prazoReal >= :startDate) AND (:endDate IS NULL OR t.prazoReal <= :endDate)))")
-    Page<Tarefa> findWithFilters(
+    Page<Long> findWithFiltersIds(
             @Param("descricao") String descricao,
             @Param("status") TarefaStatus status,
             @Param("projetoId") Long projetoId,
@@ -121,5 +120,9 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             @Param("endDate") Date endDate,
             Pageable pageable
     );
+
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT t FROM Tarefa t WHERE t.id IN :ids")
+    List<Tarefa> findAllByIdInWithUsersAndProjeto(@Param("ids") List<Long> ids);
 
 }

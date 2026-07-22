@@ -18,10 +18,15 @@ import java.util.Optional;
 @Repository
 public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
 
-    // Update existing methods to check deletedAt
+    // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
+    // pagination (HHH90003004), which loaded the whole active Projeto table (with users/tarefas/
+    // tarefas.users/colunas joined) into heap before slicing it — root cause of a prod OOM.
+    @Query("SELECT p.id FROM Projeto p WHERE p.deletedAt IS NULL")
+    Page<Long> findAllActiveIds(Pageable pageable);
+
     @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
-    @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL")
-    Page<Projeto> findAll(Pageable pageable);
+    @Query("SELECT p FROM Projeto p WHERE p.id IN :ids")
+    List<Projeto> findAllByIdInWithDetails(@Param("ids") List<Long> ids);
 
     @EntityGraph(attributePaths = {"tarefas", "tarefas.users", "colunas"})
     @Query("SELECT p FROM Projeto p LEFT JOIN p.tarefas t " +
@@ -50,7 +55,9 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL")
     List<Projeto> findAllActive();
 
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    // No @EntityGraph here: combining a Pageable query with a collection-fetch EntityGraph
+    // forces Hibernate to paginate in memory (see findAllActiveIds above for the pattern to
+    // follow if this method starts being used and needs eager users/tarefas/colunas).
     @Query("SELECT p FROM Projeto p WHERE p.deletedAt IS NULL " +
             "AND (:startDate IS NULL OR p.prazo >= :startDate) " +
             "AND (:endDate IS NULL OR p.prazo <= :endDate)")
