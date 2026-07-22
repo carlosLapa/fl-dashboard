@@ -38,16 +38,19 @@ public class TarefaService {
     private final ExternoRepository externoRepository;
     private final NotificationService notificationService;
     private final SlackNotificationManagerService slackNotificationManagerService;
+    private final SubtarefaService subtarefaService;
 
     public TarefaService(TarefaRepository tarefaRepository, ProjetoRepository projetoRepository,
                          UserRepository userRepository, ExternoRepository externoRepository,
-                         NotificationService notificationService, SlackNotificationManagerService slackNotificationManagerService) {
+                         NotificationService notificationService, SlackNotificationManagerService slackNotificationManagerService,
+                         SubtarefaService subtarefaService) {
         this.tarefaRepository = tarefaRepository;
         this.projetoRepository = projetoRepository;
         this.userRepository = userRepository;
         this.externoRepository = externoRepository;
         this.notificationService = notificationService;
         this.slackNotificationManagerService = slackNotificationManagerService;
+        this.subtarefaService = subtarefaService;
     }
 
     // Method to calculate working days
@@ -414,6 +417,8 @@ public class TarefaService {
 
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        subtarefaService.assertCanTransitionStatus(id);
 
         TarefaStatus previousStatus = tarefa.getStatus();
         String descricao = tarefa.getDescricao();
