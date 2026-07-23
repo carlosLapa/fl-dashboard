@@ -2,9 +2,11 @@ import React from 'react';
 import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
+import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
+import { useSubtarefas } from '../../hooks/useSubtarefas';
 
 interface TarefaDetailsCardProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -15,6 +17,8 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
   tarefa,
   onClose,
 }) => {
+  const { isDividida, totalPercentual } = useSubtarefas(tarefa.id);
+
   return (
     <>
       <div className="tarefa-details-card-overlay" onClick={onClose}></div>
@@ -64,6 +68,23 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
                   ? tarefa.users.map((user) => user.name).join(', ')
                   : 'Não atribuída'}
               </p>
+              {isDividida && (
+                <div className="mb-2">
+                  <strong>Subtarefas:</strong> {totalPercentual}% concluído
+                  <ProgressBar
+                    now={totalPercentual}
+                    variant={
+                      totalPercentual >= 100
+                        ? 'success'
+                        : totalPercentual >= 50
+                        ? 'warning'
+                        : 'danger'
+                    }
+                    className="mt-1"
+                    style={{ height: '8px' }}
+                  />
+                </div>
+              )}
               {/* Add Externos information */}
               <p className="mb-2">
                 <strong>Externos:</strong>{' '}

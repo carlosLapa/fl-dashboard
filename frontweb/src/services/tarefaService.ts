@@ -416,6 +416,15 @@ export const updateTarefaStatus = async (
     return updatedTarefa;
   } catch (error) {
     console.error('[Service] Erro em updateTarefaStatus:', error);
+
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 409 &&
+      error.response?.data?.message
+    ) {
+      throw new Error(error.response.data.message);
+    }
+
     throw error;
   }
 };

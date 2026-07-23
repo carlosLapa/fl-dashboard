@@ -23,10 +23,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class SubtarefaService {
@@ -72,9 +72,14 @@ public class SubtarefaService {
                 .sorted(Comparator.comparing(User::getId))
                 .toList();
 
-        Map<Long, String> descricaoPorUserId = itens == null ? Map.of() : itens.stream()
-                .filter(item -> item.getUserId() != null)
-                .collect(Collectors.toMap(SubtarefaDivisaoItemDTO::getUserId, SubtarefaDivisaoItemDTO::getDescricao, (a, b) -> a));
+        Map<Long, String> descricaoPorUserId = new HashMap<>();
+        if (itens != null) {
+            for (SubtarefaDivisaoItemDTO item : itens) {
+                if (item.getUserId() != null) {
+                    descricaoPorUserId.putIfAbsent(item.getUserId(), item.getDescricao());
+                }
+            }
+        }
 
         int n = orderedUsers.size();
         BigDecimal base = BigDecimal.valueOf(100).divide(BigDecimal.valueOf(n), 2, RoundingMode.DOWN);

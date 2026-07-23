@@ -13,6 +13,7 @@ import {
 } from '../../../types/tarefa';
 import { formatDate, getDeadlineStatus } from '../../../utils/dateUtils';
 import TarefaPrioridadeBadge from '../TarefaPrioridadeBadge';
+import { useSubtarefas } from '../../../hooks/useSubtarefas';
 
 interface TarefaTableRowProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -29,6 +30,8 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
   onViewDetails,
   onStatusChange,
 }) => {
+  const { isDividida, totalPercentual } = useSubtarefas(tarefa.id);
+
   // Add this function to render deadline with warning indicators
   const renderDeadlineWithWarning = () => {
     if (!tarefa.prazoReal) return '-';
@@ -116,6 +119,23 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
         {tarefa.externos && tarefa.externos.length > 0
           ? tarefa.externos.map((externo) => externo.name).join(', ')
           : '-'}
+      </td>
+      <td>
+        {isDividida ? (
+          <Badge
+            bg={
+              totalPercentual >= 100
+                ? 'success'
+                : totalPercentual >= 50
+                ? 'warning'
+                : 'danger'
+            }
+          >
+            {totalPercentual}%
+          </Badge>
+        ) : (
+          '-'
+        )}
       </td>
 
       <td>

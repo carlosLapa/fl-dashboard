@@ -8,6 +8,8 @@ import {
   InputGroup,
   Tabs,
   Tab,
+  ProgressBar,
+  Badge,
 } from 'react-bootstrap';
 import {
   Tarefa,
@@ -28,6 +30,10 @@ import {
 import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
+import { useAuth } from '../../AuthContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
+import { useSubtarefas } from '../../hooks/useSubtarefas';
 
 interface TarefaModalProps {
   show: boolean;
@@ -80,6 +86,15 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   onStatusChange,
 }) => {
   const { sendNotification } = useNotification();
+  const { user } = useAuth();
+  const { hasPermission, isAdmin, isManager } = usePermissions();
+  const {
+    subtarefas,
+    isDividida,
+    totalPercentual,
+    dividir,
+    concluir,
+  } = useSubtarefas(isEditing ? tarefa?.id : undefined);
   const [formData, setFormData] = useState<
     TarefaInsertFormData | TarefaUpdateFormData
   >({
@@ -110,6 +125,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   // Add state for deadline validation
   const [isDeadlineValid, setIsDeadlineValid] = useState(true);
   const [deadlineErrorMessage, setDeadlineErrorMessage] = useState('');
+  const [subtarefaDescricoes, setSubtarefaDescricoes] = useState<
+    Record<number, string>
+  >({});
 
   // Fetch users and externos when modal opens
   useEffect(() => {
@@ -147,6 +165,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 
   // Set form data when editing
   useEffect(() => {
+    setSubtarefaDescricoes({});
     if (isEditing && tarefa) {
       setFormData({
         id: tarefa.id,
@@ -646,6 +665,133 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       </div>
                     </Form.Group>
                   </Tab>
+                  {isEditing && tarefa && (
+                    <Tab eventKey="subtarefas" title="Subtarefas">
+                      <div className="mb-3">
+                        {!isDividida ? (
+                          <>
+                            <p className="text-muted">
+                              Divida esta tarefa em subtarefas, uma para cada
+                              colaborador atribuído, com percentual igual
+                              entre todos. Pode descrever, opcionalmente, em
+                              que consiste a parte de cada colaborador.
+                            </p>
+                            {tarefa.users.length >= 2 &&
+                              (hasPermission(Permission.ASSIGN_TASK) ||
+                                isAdmin() ||
+                                isManager()) && (
+                                <div className="mb-3">
+                                  {tarefa.users.map((tarefaUser) => (
+                                    <Form.Group
+                                      key={tarefaUser.id}
+                                      className="mb-2"
+                                    >
+                                      <Form.Label className="mb-1">
+                                        {tarefaUser.name}
+                                      </Form.Label>
+                                      <Form.Control
+                                        as="textarea"
+                                        rows={2}
+                                        placeholder="Descrição da subtarefa (opcional)"
+                                        value={
+                                          subtarefaDescricoes[
+                                            tarefaUser.id
+                                          ] || ''
+                                        }
+                                        onChange={(e) =>
+                                          setSubtarefaDescricoes((prev) => ({
+                                            ...prev,
+                                            [tarefaUser.id]: e.target.value,
+                                          }))
+                                        }
+                                      />
+                                    </Form.Group>
+                                  ))}
+                                </div>
+                              )}
+                            {(hasPermission(Permission.ASSIGN_TASK) ||
+                              isAdmin() ||
+                              isManager()) && (
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                disabled={tarefa.users.length < 2}
+                                onClick={() =>
+                                  dividir(
+                                    tarefa.users.map((tarefaUser) => ({
+                                      userId: tarefaUser.id,
+                                      descricao:
+                                        subtarefaDescricoes[tarefaUser.id]?.trim() ||
+                                        undefined,
+                                    }))
+                                  )
+                                }
+                              >
+                                Dividir em subtarefas entre colaboradores
+                              </Button>
+                            )}
+                            {tarefa.users.length < 2 && (
+                              <Form.Text className="d-block text-muted mt-2">
+                                A tarefa precisa de pelo menos 2 colaboradores
+                                atribuídos para poder ser dividida.
+                              </Form.Text>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <strong>Progresso total</strong>
+                              <span>{totalPercentual}%</span>
+                            </div>
+                            <ProgressBar
+                              now={totalPercentual}
+                              variant={
+                                totalPercentual >= 100
+                                  ? 'success'
+                                  : totalPercentual >= 50
+                                  ? 'warning'
+                                  : 'danger'
+                              }
+                              className="mb-3"
+                            />
+                            <ul className="list-group">
+                              {subtarefas.map((subtarefa) => (
+                                <li
+                                  key={subtarefa.id}
+                                  className="list-group-item d-flex justify-content-between align-items-center"
+                                >
+                                  <div>
+                                    <div>{subtarefa.user.name}</div>
+                                    <small className="text-muted">
+                                      {subtarefa.percentual}%
+                                      {subtarefa.descricao
+                                        ? ` — ${subtarefa.descricao}`
+                                        : ''}
+                                    </small>
+                                  </div>
+                                  {subtarefa.concluida ? (
+                                    <Badge bg="success">Concluída</Badge>
+                                  ) : user?.id === subtarefa.user.id ? (
+                                    <Button
+                                      variant="outline-success"
+                                      size="sm"
+                                      onClick={() =>
+                                        concluir(subtarefa.id)
+                                      }
+                                    >
+                                      Marcar como concluída
+                                    </Button>
+                                  ) : (
+                                    <Badge bg="secondary">Pendente</Badge>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                      </div>
+                    </Tab>
+                  )}
                 </Tabs>
               </Col>
             </Row>
