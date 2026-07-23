@@ -34,12 +34,15 @@ import { useAuth } from '../../AuthContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
+import { dividirSubtarefas } from '../../services/subtarefaService';
 
 interface TarefaModalProps {
   show: boolean;
   onHide: () => void;
   tarefa?: Tarefa | null;
-  onSave: (formData: TarefaInsertFormData | TarefaUpdateFormData) => void;
+  onSave: (
+    formData: TarefaInsertFormData | TarefaUpdateFormData
+  ) => void | Promise<Tarefa | void>;
   isEditing: boolean;
   onStatusChange?: (tarefaId: number, newStatus: TarefaStatus) => void;
 }
@@ -133,6 +136,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   const [subtarefaDescricoes, setSubtarefaDescricoes] = useState<
     Record<number, string>
   >({});
+  const [divideOnCreate, setDivideOnCreate] = useState(false);
 
   // Fetch users and externos when modal opens
   useEffect(() => {
@@ -171,6 +175,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   // Set form data when editing
   useEffect(() => {
     setSubtarefaDescricoes({});
+    setDivideOnCreate(false);
     if (isEditing && tarefa) {
       setFormData({
         id: tarefa.id,
@@ -416,7 +421,30 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       };
       sendNotification(notification);
     } else {
-      onSave(updatedFormData as TarefaInsertFormData);
+      const savePromise = onSave(updatedFormData as TarefaInsertFormData);
+      if (divideOnCreate && formData.userIds.length >= 2) {
+        Promise.resolve(savePromise)
+          .then((created) => {
+            if (!created) return undefined;
+            const itens = formData.userIds.map((userId) => ({
+              userId,
+              descricao: subtarefaDescricoes[userId]?.trim() || undefined,
+            }));
+            return dividirSubtarefas(created.id, itens);
+          })
+          .then((result) => {
+            if (result) {
+              toast.success('Tarefa dividida em subtarefas.');
+            }
+          })
+          .catch((err) => {
+            const message =
+              err instanceof Error
+                ? err.message
+                : 'Erro ao dividir a tarefa em subtarefas.';
+            toast.error(message);
+          });
+      }
       formData.userIds.forEach((userId) => {
         const notification = {
           type: NotificationType.TAREFA_ATRIBUIDA,
@@ -670,10 +698,64 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       </div>
                     </Form.Group>
                   </Tab>
-                  {isEditing && tarefa && (
-                    <Tab eventKey="subtarefas" title="Subtarefas">
-                      <div className="mb-3">
-                        {!isDividida ? (
+                  <Tab eventKey="subtarefas" title="Subtarefas">
+                    <div className="mb-3">
+                      {!isEditing ? (
+                        <>
+                          <p className="text-muted">
+                            Pode dividir já esta tarefa em subtarefas, uma
+                            para cada colaborador selecionado, assim que a
+                            criar.
+                          </p>
+                          {formData.userIds.length >= 2 ? (
+                            <>
+                              <Form.Check
+                                type="checkbox"
+                                label="Dividir esta tarefa em subtarefas entre os colaboradores selecionados"
+                                checked={divideOnCreate}
+                                onChange={(e) =>
+                                  setDivideOnCreate(e.target.checked)
+                                }
+                                className="mb-2"
+                              />
+                              {divideOnCreate && (
+                                <div className="mb-3">
+                                  {users
+                                    .filter((u) =>
+                                      formData.userIds.includes(u.id)
+                                    )
+                                    .map((u) => (
+                                      <Form.Group key={u.id} className="mb-2">
+                                        <Form.Label className="mb-1">
+                                          {u.name}
+                                        </Form.Label>
+                                        <Form.Control
+                                          as="textarea"
+                                          rows={2}
+                                          placeholder="Descrição da subtarefa (opcional)"
+                                          value={
+                                            subtarefaDescricoes[u.id] || ''
+                                          }
+                                          onChange={(e) =>
+                                            setSubtarefaDescricoes((prev) => ({
+                                              ...prev,
+                                              [u.id]: e.target.value,
+                                            }))
+                                          }
+                                        />
+                                      </Form.Group>
+                                    ))}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <Form.Text className="d-block text-muted">
+                              Selecione pelo menos 2 colaboradores para poder
+                              dividir a tarefa em subtarefas.
+                            </Form.Text>
+                          )}
+                        </>
+                      ) : tarefa && !isDividida ? (
                           <>
                             <p className="text-muted">
                               Divida esta tarefa em subtarefas, uma para cada
@@ -742,7 +824,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                               </Form.Text>
                             )}
                           </>
-                        ) : (
+                        ) : tarefa ? (
                           <>
                             <div className="d-flex justify-content-between align-items-center mb-2">
                               <strong>Progresso total</strong>
@@ -870,10 +952,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                               })}
                             </ul>
                           </>
-                        )}
+                        ) : null}
                       </div>
                     </Tab>
-                  )}
                 </Tabs>
               </Col>
             </Row>
