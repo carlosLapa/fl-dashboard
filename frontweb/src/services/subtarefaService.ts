@@ -3,6 +3,7 @@ import {
   dividirSubtarefasAPI,
   atualizarSubtarefaAPI,
   concluirSubtarefaAPI,
+  reabrirSubtarefaAPI,
 } from 'api/subtarefaApi';
 import { Subtarefa, SubtarefaDivisaoItem } from 'types/subtarefa';
 
@@ -24,6 +25,11 @@ export const concluirSubtarefa = async (
   tarefaId: number,
   subtarefaId: number,
 ): Promise<Subtarefa> => concluirSubtarefaAPI(tarefaId, subtarefaId);
+
+export const reabrirSubtarefa = async (
+  tarefaId: number,
+  subtarefaId: number,
+): Promise<Subtarefa> => reabrirSubtarefaAPI(tarefaId, subtarefaId);
 
 export const getTotalPercentualConcluido = (
   subtarefas: Subtarefa[],

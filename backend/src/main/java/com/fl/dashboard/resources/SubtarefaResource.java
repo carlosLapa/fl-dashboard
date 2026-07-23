@@ -88,4 +88,16 @@ public class SubtarefaResource {
         return ResponseEntity.ok(subtarefaService.concluirSubtarefa(tarefaId, subtarefaId));
     }
 
+    @PutMapping("/{subtarefaId}/reabrir")
+    public ResponseEntity<SubtarefaDTO> reabrirSubtarefa(
+            @PathVariable Long tarefaId,
+            @PathVariable Long subtarefaId,
+            Authentication authentication) {
+        String userEmail = extractUserEmail(authentication);
+        if (!subtarefaService.isOwnerOfSubtarefa(tarefaId, subtarefaId, userEmail)) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(subtarefaService.reabrirSubtarefa(tarefaId, subtarefaId));
+    }
+
 }

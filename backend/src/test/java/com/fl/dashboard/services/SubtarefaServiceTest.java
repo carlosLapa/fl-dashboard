@@ -260,6 +260,41 @@ class SubtarefaServiceTest {
         verify(notificationService, never()).processNotification(any());
     }
 
+    // --- reabrirSubtarefa ---
+
+    @Test
+    void reabrirSubtarefaShouldThrowResourceNotFoundExceptionWhenSubtarefaDoesNotExist() {
+        when(subtarefaRepository.findByIdAndTarefaId(5L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> subtarefaService.reabrirSubtarefa(1L, 5L));
+    }
+
+    @Test
+    void reabrirSubtarefaShouldClearConcluidaAndConcluidaEm() {
+        Subtarefa subtarefa = buildSubtarefa(10L, user(1L), new BigDecimal("50.00"), true);
+        subtarefa.setConcluidaEm(LocalDateTime.of(2026, 1, 1, 0, 0));
+        when(subtarefaRepository.findByIdAndTarefaId(10L, 1L)).thenReturn(Optional.of(subtarefa));
+        when(subtarefaRepository.save(any(Subtarefa.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SubtarefaDTO result = subtarefaService.reabrirSubtarefa(1L, 10L);
+
+        assertFalse(result.isConcluida());
+        assertNull(result.getConcluidaEm());
+        verify(subtarefaRepository).save(subtarefa);
+    }
+
+    @Test
+    void reabrirSubtarefaShouldBeIdempotentWhenNotCompleted() {
+        Subtarefa subtarefa = buildSubtarefa(10L, user(1L), new BigDecimal("50.00"), false);
+        when(subtarefaRepository.findByIdAndTarefaId(10L, 1L)).thenReturn(Optional.of(subtarefa));
+
+        SubtarefaDTO result = subtarefaService.reabrirSubtarefa(1L, 10L);
+
+        assertFalse(result.isConcluida());
+        verify(subtarefaRepository, never()).save(any());
+    }
+
     // --- isOwnerOfSubtarefa ---
 
     @Test

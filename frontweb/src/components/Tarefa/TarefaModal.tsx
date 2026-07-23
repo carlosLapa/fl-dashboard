@@ -98,6 +98,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     dividir,
     atualizar,
     concluir,
+    reabrir,
   } = useSubtarefas(isEditing ? tarefa?.id : undefined);
   const [editingSubtarefaId, setEditingSubtarefaId] = useState<number | null>(
     null,
@@ -924,9 +925,23 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                                               </Button>
                                             )}
                                             {subtarefa.concluida ? (
-                                              <Badge bg="success">
-                                                Concluída
-                                              </Badge>
+                                              <>
+                                                <Badge bg="success">
+                                                  Concluída
+                                                </Badge>
+                                                {user?.id ===
+                                                  subtarefa.user.id && (
+                                                  <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      reabrir(subtarefa.id)
+                                                    }
+                                                  >
+                                                    Reabrir
+                                                  </Button>
+                                                )}
+                                              </>
                                             ) : user?.id ===
                                               subtarefa.user.id ? (
                                               <Button

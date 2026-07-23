@@ -28,6 +28,28 @@ export const dividirSubtarefasAPI = async (
   }
 };
 
+export const reabrirSubtarefaAPI = async (
+  tarefaId: number,
+  subtarefaId: number,
+): Promise<Subtarefa> => {
+  try {
+    const response = await axios.put<Subtarefa>(
+      `/tarefas/${tarefaId}/subtarefas/${subtarefaId}/reabrir`,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Só pode reabrir a sua própria subtarefa.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao reabrir a subtarefa.');
+  }
+};
+
 export const atualizarSubtarefaAPI = async (
   tarefaId: number,
   subtarefaId: number,

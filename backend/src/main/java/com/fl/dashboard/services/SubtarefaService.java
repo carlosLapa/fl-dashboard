@@ -161,6 +161,22 @@ public class SubtarefaService {
         return new SubtarefaDTO(subtarefa);
     }
 
+    @Transactional
+    public SubtarefaDTO reabrirSubtarefa(Long tarefaId, Long subtarefaId) {
+        Subtarefa subtarefa = subtarefaRepository.findByIdAndTarefaId(subtarefaId, tarefaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subtarefa não foi encontrada"));
+
+        if (!subtarefa.isConcluida()) {
+            return new SubtarefaDTO(subtarefa);
+        }
+
+        subtarefa.setConcluida(false);
+        subtarefa.setConcluidaEm(null);
+        subtarefa = subtarefaRepository.save(subtarefa);
+
+        return new SubtarefaDTO(subtarefa);
+    }
+
     @Transactional(readOnly = true)
     public boolean isOwnerOfSubtarefa(Long tarefaId, Long subtarefaId, String userEmail) {
         User user = userRepository.findByEmail(userEmail);

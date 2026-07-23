@@ -5,6 +5,7 @@ import {
   dividirSubtarefas,
   atualizarSubtarefa,
   concluirSubtarefa,
+  reabrirSubtarefa,
   getTotalPercentualConcluido,
 } from 'services/subtarefaService';
 import { Subtarefa, SubtarefaDivisaoItem } from 'types/subtarefa';
@@ -87,6 +88,24 @@ export const useSubtarefas = (tarefaId?: number) => {
     [tarefaId],
   );
 
+  const reabrir = useCallback(
+    async (subtarefaId: number) => {
+      if (!tarefaId) return;
+      try {
+        const updated = await reabrirSubtarefa(tarefaId, subtarefaId);
+        setSubtarefas((prev) =>
+          prev.map((s) => (s.id === updated.id ? updated : s)),
+        );
+        toast.success('Subtarefa reaberta.');
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Erro ao reabrir subtarefa.';
+        toast.error(message);
+      }
+    },
+    [tarefaId],
+  );
+
   return {
     subtarefas,
     isLoading,
@@ -96,6 +115,7 @@ export const useSubtarefas = (tarefaId?: number) => {
     dividir,
     atualizar,
     concluir,
+    reabrir,
     refetch,
   };
 };
