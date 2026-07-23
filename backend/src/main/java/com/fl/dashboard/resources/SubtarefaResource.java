@@ -2,6 +2,7 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.SubtarefaDTO;
 import com.fl.dashboard.dto.SubtarefaDivisaoItemDTO;
+import com.fl.dashboard.dto.SubtarefaUpdateDTO;
 import com.fl.dashboard.services.SubtarefaService;
 import com.fl.dashboard.services.TarefaService;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,21 @@ public class SubtarefaResource {
             }
         }
         return ResponseEntity.ok(subtarefaService.dividirEmSubtarefas(tarefaId, itens));
+    }
+
+    @PutMapping("/{subtarefaId}")
+    public ResponseEntity<SubtarefaDTO> updateSubtarefa(
+            @PathVariable Long tarefaId,
+            @PathVariable Long subtarefaId,
+            @RequestBody SubtarefaUpdateDTO dto,
+            Authentication authentication) {
+        if (!canViewAll(authentication)) {
+            String userEmail = extractUserEmail(authentication);
+            if (!subtarefaService.isOwnerOfSubtarefa(tarefaId, subtarefaId, userEmail)) {
+                return ResponseEntity.status(403).build();
+            }
+        }
+        return ResponseEntity.ok(subtarefaService.updateSubtarefa(tarefaId, subtarefaId, dto.getDescricao()));
     }
 
     @PutMapping("/{subtarefaId}/concluir")

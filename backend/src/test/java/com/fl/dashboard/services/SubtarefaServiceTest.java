@@ -187,6 +187,41 @@ class SubtarefaServiceTest {
         verify(notificationService, times(2)).processNotification(any());
     }
 
+    // --- updateSubtarefa ---
+
+    @Test
+    void updateSubtarefaShouldThrowResourceNotFoundExceptionWhenSubtarefaDoesNotExist() {
+        when(subtarefaRepository.findByIdAndTarefaId(5L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> subtarefaService.updateSubtarefa(1L, 5L, "Nova descrição"));
+    }
+
+    @Test
+    void updateSubtarefaShouldUpdateDescricaoAndPersist() {
+        Subtarefa subtarefa = buildSubtarefa(10L, user(1L), new BigDecimal("50.00"), false);
+        subtarefa.setDescricao("Descrição antiga");
+        when(subtarefaRepository.findByIdAndTarefaId(10L, 1L)).thenReturn(Optional.of(subtarefa));
+        when(subtarefaRepository.save(any(Subtarefa.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SubtarefaDTO result = subtarefaService.updateSubtarefa(1L, 10L, "Descrição nova");
+
+        assertEquals("Descrição nova", result.getDescricao());
+        verify(subtarefaRepository).save(subtarefa);
+    }
+
+    @Test
+    void updateSubtarefaShouldAllowClearingDescricao() {
+        Subtarefa subtarefa = buildSubtarefa(10L, user(1L), new BigDecimal("50.00"), false);
+        subtarefa.setDescricao("Descrição antiga");
+        when(subtarefaRepository.findByIdAndTarefaId(10L, 1L)).thenReturn(Optional.of(subtarefa));
+        when(subtarefaRepository.save(any(Subtarefa.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        SubtarefaDTO result = subtarefaService.updateSubtarefa(1L, 10L, null);
+
+        assertNull(result.getDescricao());
+    }
+
     // --- concluirSubtarefa ---
 
     @Test

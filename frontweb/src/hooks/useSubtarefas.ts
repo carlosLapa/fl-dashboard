@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import {
   getSubtarefas,
   dividirSubtarefas,
+  atualizarSubtarefa,
   concluirSubtarefa,
   getTotalPercentualConcluido,
 } from 'services/subtarefaService';
@@ -50,6 +51,24 @@ export const useSubtarefas = (tarefaId?: number) => {
     [tarefaId],
   );
 
+  const atualizar = useCallback(
+    async (subtarefaId: number, descricao: string) => {
+      if (!tarefaId) return;
+      try {
+        const updated = await atualizarSubtarefa(tarefaId, subtarefaId, descricao);
+        setSubtarefas((prev) =>
+          prev.map((s) => (s.id === updated.id ? updated : s)),
+        );
+        toast.success('Subtarefa atualizada.');
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Erro ao atualizar subtarefa.';
+        toast.error(message);
+      }
+    },
+    [tarefaId],
+  );
+
   const concluir = useCallback(
     async (subtarefaId: number) => {
       if (!tarefaId) return;
@@ -75,6 +94,7 @@ export const useSubtarefas = (tarefaId?: number) => {
     isDividida: subtarefas.length > 0,
     totalPercentual: getTotalPercentualConcluido(subtarefas),
     dividir,
+    atualizar,
     concluir,
     refetch,
   };

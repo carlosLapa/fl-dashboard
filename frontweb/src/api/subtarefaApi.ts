@@ -28,6 +28,30 @@ export const dividirSubtarefasAPI = async (
   }
 };
 
+export const atualizarSubtarefaAPI = async (
+  tarefaId: number,
+  subtarefaId: number,
+  descricao: string,
+): Promise<Subtarefa> => {
+  try {
+    const response = await axios.put<Subtarefa>(
+      `/tarefas/${tarefaId}/subtarefas/${subtarefaId}`,
+      { descricao },
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Não tem permissão para editar esta subtarefa.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao atualizar a subtarefa.');
+  }
+};
+
 export const concluirSubtarefaAPI = async (
   tarefaId: number,
   subtarefaId: number,

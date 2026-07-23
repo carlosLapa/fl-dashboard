@@ -123,6 +123,17 @@ public class SubtarefaService {
     }
 
     @Transactional
+    public SubtarefaDTO updateSubtarefa(Long tarefaId, Long subtarefaId, String descricao) {
+        Subtarefa subtarefa = subtarefaRepository.findByIdAndTarefaId(subtarefaId, tarefaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subtarefa não foi encontrada"));
+
+        subtarefa.setDescricao(descricao);
+        subtarefa = subtarefaRepository.save(subtarefa);
+
+        return new SubtarefaDTO(subtarefa);
+    }
+
+    @Transactional
     public SubtarefaDTO concluirSubtarefa(Long tarefaId, Long subtarefaId) {
         Subtarefa subtarefa = subtarefaRepository.findByIdAndTarefaId(subtarefaId, tarefaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subtarefa não foi encontrada"));

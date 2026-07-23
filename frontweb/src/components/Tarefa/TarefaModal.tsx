@@ -93,8 +93,13 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     isDividida,
     totalPercentual,
     dividir,
+    atualizar,
     concluir,
   } = useSubtarefas(isEditing ? tarefa?.id : undefined);
+  const [editingSubtarefaId, setEditingSubtarefaId] = useState<number | null>(
+    null,
+  );
+  const [editingDescricao, setEditingDescricao] = useState('');
   const [formData, setFormData] = useState<
     TarefaInsertFormData | TarefaUpdateFormData
   >({
@@ -755,37 +760,114 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                               className="mb-3"
                             />
                             <ul className="list-group">
-                              {subtarefas.map((subtarefa) => (
-                                <li
-                                  key={subtarefa.id}
-                                  className="list-group-item d-flex justify-content-between align-items-center"
-                                >
-                                  <div>
-                                    <div>{subtarefa.user.name}</div>
-                                    <small className="text-muted">
-                                      {subtarefa.percentual}%
-                                      {subtarefa.descricao
-                                        ? ` — ${subtarefa.descricao}`
-                                        : ''}
-                                    </small>
-                                  </div>
-                                  {subtarefa.concluida ? (
-                                    <Badge bg="success">Concluída</Badge>
-                                  ) : user?.id === subtarefa.user.id ? (
-                                    <Button
-                                      variant="outline-success"
-                                      size="sm"
-                                      onClick={() =>
-                                        concluir(subtarefa.id)
-                                      }
-                                    >
-                                      Marcar como concluída
-                                    </Button>
-                                  ) : (
-                                    <Badge bg="secondary">Pendente</Badge>
-                                  )}
-                                </li>
-                              ))}
+                              {subtarefas.map((subtarefa) => {
+                                const canEdit =
+                                  user?.id === subtarefa.user.id ||
+                                  hasPermission(Permission.ASSIGN_TASK) ||
+                                  isAdmin() ||
+                                  isManager();
+                                const isEditingThis =
+                                  editingSubtarefaId === subtarefa.id;
+                                return (
+                                  <li
+                                    key={subtarefa.id}
+                                    className="list-group-item"
+                                  >
+                                    <div className="d-flex justify-content-between align-items-center">
+                                      <div className="flex-grow-1 me-2">
+                                        <div>{subtarefa.user.name}</div>
+                                        {isEditingThis ? (
+                                          <Form.Control
+                                            as="textarea"
+                                            rows={2}
+                                            className="mt-1"
+                                            value={editingDescricao}
+                                            onChange={(e) =>
+                                              setEditingDescricao(
+                                                e.target.value,
+                                              )
+                                            }
+                                          />
+                                        ) : (
+                                          <small className="text-muted">
+                                            {subtarefa.percentual}%
+                                            {subtarefa.descricao
+                                              ? ` — ${subtarefa.descricao}`
+                                              : ''}
+                                          </small>
+                                        )}
+                                      </div>
+                                      <div className="d-flex align-items-center gap-2">
+                                        {isEditingThis ? (
+                                          <>
+                                            <Button
+                                              variant="outline-primary"
+                                              size="sm"
+                                              onClick={async () => {
+                                                await atualizar(
+                                                  subtarefa.id,
+                                                  editingDescricao.trim(),
+                                                );
+                                                setEditingSubtarefaId(null);
+                                              }}
+                                            >
+                                              Guardar
+                                            </Button>
+                                            <Button
+                                              variant="outline-secondary"
+                                              size="sm"
+                                              onClick={() =>
+                                                setEditingSubtarefaId(null)
+                                              }
+                                            >
+                                              Cancelar
+                                            </Button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            {canEdit && (
+                                              <Button
+                                                variant="outline-secondary"
+                                                size="sm"
+                                                onClick={() => {
+                                                  setEditingSubtarefaId(
+                                                    subtarefa.id,
+                                                  );
+                                                  setEditingDescricao(
+                                                    subtarefa.descricao || '',
+                                                  );
+                                                }}
+                                              >
+                                                Editar
+                                              </Button>
+                                            )}
+                                            {subtarefa.concluida ? (
+                                              <Badge bg="success">
+                                                Concluída
+                                              </Badge>
+                                            ) : user?.id ===
+                                              subtarefa.user.id ? (
+                                              <Button
+                                                variant="outline-success"
+                                                size="sm"
+                                                onClick={() =>
+                                                  concluir(subtarefa.id)
+                                                }
+                                              >
+                                                Marcar como concluída
+                                              </Button>
+                                            ) : (
+                                              <Badge bg="secondary">
+                                                Pendente
+                                              </Badge>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </li>
+                                );
+                              })}
                             </ul>
                           </>
                         )}
