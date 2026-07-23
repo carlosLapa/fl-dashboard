@@ -641,6 +641,12 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                   <Tab eventKey="colaboradores" title="Colaboradores">
                     <Form.Group controlId="formUsers" className="mb-3">
                       <Form.Label>Colaboradores Atribuídos</Form.Label>
+                      {isEditing && isDividida && (
+                        <Form.Text className="d-block text-muted mb-2">
+                          Esta tarefa já foi dividida em subtarefas; não é
+                          possível alterar os colaboradores.
+                        </Form.Text>
+                      )}
                       <div
                         className="user-checkbox-container"
                         style={{ maxHeight: '200px', overflowY: 'auto' }}
@@ -653,6 +659,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                                   type="checkbox"
                                   label={user.name}
                                   checked={formData.userIds.includes(user.id)}
+                                  disabled={isEditing && isDividida}
                                   onChange={() => handleUserSelect(user.id)}
                                   className="mb-2"
                                 />

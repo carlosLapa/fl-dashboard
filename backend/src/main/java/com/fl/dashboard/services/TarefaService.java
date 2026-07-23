@@ -13,6 +13,7 @@ import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
+import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -190,6 +191,11 @@ public class TarefaService {
     public void updateTarefaUsers(Long tarefaId, Set<Long> userIds) {
         Tarefa tarefa = tarefaRepository.findByIdActive(tarefaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        if (subtarefaService.isDividida(tarefaId)) {
+            throw new SubtarefaDivisaoInvalidaException(
+                    "Não é possível alterar os colaboradores: esta tarefa já foi dividida em subtarefas.");
+        }
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
         tarefa.getUsers().clear();

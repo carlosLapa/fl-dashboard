@@ -187,6 +187,11 @@ public class SubtarefaService {
     }
 
     @Transactional(readOnly = true)
+    public boolean isDividida(Long tarefaId) {
+        return subtarefaRepository.existsByTarefaId(tarefaId);
+    }
+
+    @Transactional(readOnly = true)
     public void assertCanTransitionStatus(Long tarefaId) {
         if (!subtarefaRepository.existsByTarefaId(tarefaId)) {
             return;
