@@ -31,6 +31,8 @@ After changing any dependency (`npm install <pkg>@<version>`), regenerate the lo
 npm run lockfile:sync   # runs `npm install --package-lock-only` inside node:20-alpine
 ```
 
+The script copies only `package.json`/`package-lock.json` into an isolated temp directory before running Docker, so a local `node_modules` (built with a different node/npm version) never leaks into the resolution.
+
 Then verify `git diff package-lock.json` only contains the expected changes before committing.
 
 ## Architecture
