@@ -19,7 +19,11 @@ public interface SubtarefaRepository extends JpaRepository<Subtarefa, Long> {
 
     boolean existsByTarefaId(Long tarefaId);
 
+    boolean existsByTarefaIdAndConcluidaTrue(Long tarefaId);
+
     Optional<Subtarefa> findByIdAndTarefaId(Long id, Long tarefaId);
+
+    long deleteByTarefaId(Long tarefaId);
 
     @Query("SELECT COALESCE(SUM(s.percentual), 0) FROM Subtarefa s WHERE s.tarefa.id = :tarefaId AND s.concluida = true")
     BigDecimal sumPercentualConcluidoByTarefaId(@Param("tarefaId") Long tarefaId);

@@ -99,6 +99,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     atualizar,
     concluir,
     reabrir,
+    desfazer,
   } = useSubtarefas(isEditing ? tarefa?.id : undefined);
   const [editingSubtarefaId, setEditingSubtarefaId] = useState<number | null>(
     null,
@@ -849,6 +850,36 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                               }
                               className="mb-3"
                             />
+                            {(hasPermission(Permission.ASSIGN_TASK) ||
+                              isAdmin() ||
+                              isManager()) && (
+                              <div className="mb-3">
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  disabled={subtarefas.some(
+                                    (s) => s.concluida,
+                                  )}
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        'Tem a certeza que quer desfazer a divisão em subtarefas? Esta ação não pode ser revertida.',
+                                      )
+                                    ) {
+                                      desfazer();
+                                    }
+                                  }}
+                                >
+                                  Desfazer divisão
+                                </Button>
+                                {subtarefas.some((s) => s.concluida) && (
+                                  <Form.Text className="d-block text-muted mt-1">
+                                    Não é possível desfazer: já existem
+                                    subtarefas concluídas.
+                                  </Form.Text>
+                                )}
+                              </div>
+                            )}
                             <ul className="list-group">
                               {subtarefas.map((subtarefa) => {
                                 const canEdit =

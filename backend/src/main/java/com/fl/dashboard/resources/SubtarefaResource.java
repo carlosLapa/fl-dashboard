@@ -61,6 +61,15 @@ public class SubtarefaResource {
         return ResponseEntity.ok(subtarefaService.dividirEmSubtarefas(tarefaId, itens));
     }
 
+    @DeleteMapping
+    public ResponseEntity<Void> desfazerDivisao(@PathVariable Long tarefaId, Authentication authentication) {
+        if (!canViewAll(authentication)) {
+            return ResponseEntity.status(403).build();
+        }
+        subtarefaService.desfazerDivisao(tarefaId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{subtarefaId}")
     public ResponseEntity<SubtarefaDTO> updateSubtarefa(
             @PathVariable Long tarefaId,

@@ -191,6 +191,18 @@ public class SubtarefaService {
         return subtarefaRepository.existsByTarefaId(tarefaId);
     }
 
+    @Transactional
+    public void desfazerDivisao(Long tarefaId) {
+        if (!subtarefaRepository.existsByTarefaId(tarefaId)) {
+            throw new ResourceNotFoundException("Esta tarefa ainda não foi dividida em subtarefas.");
+        }
+        if (subtarefaRepository.existsByTarefaIdAndConcluidaTrue(tarefaId)) {
+            throw new SubtarefaDivisaoInvalidaException(
+                    "Não é possível desfazer a divisão: já existem subtarefas concluídas.");
+        }
+        subtarefaRepository.deleteByTarefaId(tarefaId);
+    }
+
     @Transactional(readOnly = true)
     public void assertCanTransitionStatus(Long tarefaId) {
         if (!subtarefaRepository.existsByTarefaId(tarefaId)) {

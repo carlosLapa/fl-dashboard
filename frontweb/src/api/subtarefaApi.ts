@@ -74,6 +74,22 @@ export const atualizarSubtarefaAPI = async (
   }
 };
 
+export const desfazerDivisaoAPI = async (tarefaId: number): Promise<void> => {
+  try {
+    await axios.delete(`/tarefas/${tarefaId}/subtarefas`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Não tem permissão para desfazer esta divisão.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao desfazer a divisão em subtarefas.');
+  }
+};
+
 export const concluirSubtarefaAPI = async (
   tarefaId: number,
   subtarefaId: number,

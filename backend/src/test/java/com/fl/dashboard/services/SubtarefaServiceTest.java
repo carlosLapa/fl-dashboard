@@ -260,6 +260,39 @@ class SubtarefaServiceTest {
         verify(notificationService, never()).processNotification(any());
     }
 
+    // --- desfazerDivisao ---
+
+    @Test
+    void desfazerDivisaoShouldThrowResourceNotFoundExceptionWhenTarefaWasNeverSplit() {
+        when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> subtarefaService.desfazerDivisao(1L));
+
+        verify(subtarefaRepository, never()).deleteByTarefaId(anyLong());
+    }
+
+    @Test
+    void desfazerDivisaoShouldThrowWhenAnySubtarefaAlreadyCompleted() {
+        when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(true);
+        when(subtarefaRepository.existsByTarefaIdAndConcluidaTrue(1L)).thenReturn(true);
+
+        assertThrows(SubtarefaDivisaoInvalidaException.class,
+                () -> subtarefaService.desfazerDivisao(1L));
+
+        verify(subtarefaRepository, never()).deleteByTarefaId(anyLong());
+    }
+
+    @Test
+    void desfazerDivisaoShouldDeleteAllSubtarefasWhenNoneCompleted() {
+        when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(true);
+        when(subtarefaRepository.existsByTarefaIdAndConcluidaTrue(1L)).thenReturn(false);
+
+        subtarefaService.desfazerDivisao(1L);
+
+        verify(subtarefaRepository).deleteByTarefaId(1L);
+    }
+
     // --- reabrirSubtarefa ---
 
     @Test

@@ -6,6 +6,7 @@ import {
   atualizarSubtarefa,
   concluirSubtarefa,
   reabrirSubtarefa,
+  desfazerDivisao,
   getTotalPercentualConcluido,
 } from 'services/subtarefaService';
 import { Subtarefa, SubtarefaDivisaoItem } from 'types/subtarefa';
@@ -106,6 +107,21 @@ export const useSubtarefas = (tarefaId?: number) => {
     [tarefaId],
   );
 
+  const desfazer = useCallback(async () => {
+    if (!tarefaId) return;
+    try {
+      await desfazerDivisao(tarefaId);
+      setSubtarefas([]);
+      toast.success('Divisão em subtarefas desfeita.');
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Erro ao desfazer a divisão em subtarefas.';
+      toast.error(message);
+    }
+  }, [tarefaId]);
+
   return {
     subtarefas,
     isLoading,
@@ -116,6 +132,7 @@ export const useSubtarefas = (tarefaId?: number) => {
     atualizar,
     concluir,
     reabrir,
+    desfazer,
     refetch,
   };
 };

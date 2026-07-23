@@ -4,6 +4,7 @@ import {
   atualizarSubtarefaAPI,
   concluirSubtarefaAPI,
   reabrirSubtarefaAPI,
+  desfazerDivisaoAPI,
 } from 'api/subtarefaApi';
 import { Subtarefa, SubtarefaDivisaoItem } from 'types/subtarefa';
 
@@ -25,6 +26,9 @@ export const concluirSubtarefa = async (
   tarefaId: number,
   subtarefaId: number,
 ): Promise<Subtarefa> => concluirSubtarefaAPI(tarefaId, subtarefaId);
+
+export const desfazerDivisao = async (tarefaId: number): Promise<void> =>
+  desfazerDivisaoAPI(tarefaId);
 
 export const reabrirSubtarefa = async (
   tarefaId: number,
