@@ -41,8 +41,12 @@ axios.interceptors.response.use(
           });
         }
 
-        // For tarefas-related endpoints
-        if (error.config?.url?.includes('/tarefas')) {
+        // For tarefas-related endpoints (list/board fetches only — not the
+        // nested subtarefas sub-resource, which needs real 403s to propagate)
+        if (
+          error.config?.url?.includes('/tarefas') &&
+          !error.config?.url?.includes('/subtarefas')
+        ) {
           console.log('Handling 403 for tarefas endpoint');
           // Return empty result instead of throwing
           return Promise.resolve({
@@ -85,7 +89,8 @@ axios.interceptors.response.use(
         if (
           error.config?.url?.includes('/projetos') ||
           error.config?.url?.includes('/users') ||
-          error.config?.url?.includes('/tarefas')
+          (error.config?.url?.includes('/tarefas') &&
+            !error.config?.url?.includes('/subtarefas'))
         ) {
           return Promise.resolve({
             data: {

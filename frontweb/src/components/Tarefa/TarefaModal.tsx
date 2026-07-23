@@ -8,6 +8,8 @@ import {
   InputGroup,
   Tabs,
   Tab,
+  ProgressBar,
+  Badge,
 } from 'react-bootstrap';
 import {
   Tarefa,
@@ -28,12 +30,19 @@ import {
 import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
+import { useAuth } from '../../AuthContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
+import { useSubtarefas } from '../../hooks/useSubtarefas';
+import { dividirSubtarefas } from '../../services/subtarefaService';
 
 interface TarefaModalProps {
   show: boolean;
   onHide: () => void;
   tarefa?: Tarefa | null;
-  onSave: (formData: TarefaInsertFormData | TarefaUpdateFormData) => void;
+  onSave: (
+    formData: TarefaInsertFormData | TarefaUpdateFormData
+  ) => void | Promise<Tarefa | void>;
   isEditing: boolean;
   onStatusChange?: (tarefaId: number, newStatus: TarefaStatus) => void;
 }
@@ -80,6 +89,22 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   onStatusChange,
 }) => {
   const { sendNotification } = useNotification();
+  const { user } = useAuth();
+  const { hasPermission, isAdmin, isManager } = usePermissions();
+  const {
+    subtarefas,
+    isDividida,
+    totalPercentual,
+    dividir,
+    atualizar,
+    concluir,
+    reabrir,
+    desfazer,
+  } = useSubtarefas(isEditing ? tarefa?.id : undefined);
+  const [editingSubtarefaId, setEditingSubtarefaId] = useState<number | null>(
+    null,
+  );
+  const [editingDescricao, setEditingDescricao] = useState('');
   const [formData, setFormData] = useState<
     TarefaInsertFormData | TarefaUpdateFormData
   >({
@@ -110,6 +135,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   // Add state for deadline validation
   const [isDeadlineValid, setIsDeadlineValid] = useState(true);
   const [deadlineErrorMessage, setDeadlineErrorMessage] = useState('');
+  const [subtarefaDescricoes, setSubtarefaDescricoes] = useState<
+    Record<number, string>
+  >({});
+  const [divideOnCreate, setDivideOnCreate] = useState(false);
 
   // Fetch users and externos when modal opens
   useEffect(() => {
@@ -147,6 +176,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 
   // Set form data when editing
   useEffect(() => {
+    setSubtarefaDescricoes({});
+    setDivideOnCreate(false);
     if (isEditing && tarefa) {
       setFormData({
         id: tarefa.id,
@@ -392,7 +423,30 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       };
       sendNotification(notification);
     } else {
-      onSave(updatedFormData as TarefaInsertFormData);
+      const savePromise = onSave(updatedFormData as TarefaInsertFormData);
+      if (divideOnCreate && formData.userIds.length >= 2) {
+        Promise.resolve(savePromise)
+          .then((created) => {
+            if (!created) return undefined;
+            const itens = formData.userIds.map((userId) => ({
+              userId,
+              descricao: subtarefaDescricoes[userId]?.trim() || undefined,
+            }));
+            return dividirSubtarefas(created.id, itens);
+          })
+          .then((result) => {
+            if (result) {
+              toast.success('Tarefa dividida em subtarefas.');
+            }
+          })
+          .catch((err) => {
+            const message =
+              err instanceof Error
+                ? err.message
+                : 'Erro ao dividir a tarefa em subtarefas.';
+            toast.error(message);
+          });
+      }
       formData.userIds.forEach((userId) => {
         const notification = {
           type: NotificationType.TAREFA_ATRIBUIDA,
@@ -588,6 +642,12 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                   <Tab eventKey="colaboradores" title="Colaboradores">
                     <Form.Group controlId="formUsers" className="mb-3">
                       <Form.Label>Colaboradores Atribuídos</Form.Label>
+                      {isEditing && isDividida && (
+                        <Form.Text className="d-block text-muted mb-2">
+                          Esta tarefa já foi dividida em subtarefas; não é
+                          possível alterar os colaboradores.
+                        </Form.Text>
+                      )}
                       <div
                         className="user-checkbox-container"
                         style={{ maxHeight: '200px', overflowY: 'auto' }}
@@ -600,6 +660,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                                   type="checkbox"
                                   label={user.name}
                                   checked={formData.userIds.includes(user.id)}
+                                  disabled={isEditing && isDividida}
                                   onChange={() => handleUserSelect(user.id)}
                                   className="mb-2"
                                 />
@@ -646,6 +707,307 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       </div>
                     </Form.Group>
                   </Tab>
+                  <Tab eventKey="subtarefas" title="Subtarefas">
+                    <div className="mb-3">
+                      {!isEditing ? (
+                        <>
+                          <p className="text-muted">
+                            Pode dividir já esta tarefa em subtarefas, uma
+                            para cada colaborador selecionado, assim que a
+                            criar.
+                          </p>
+                          {formData.userIds.length >= 2 ? (
+                            <>
+                              <Form.Check
+                                type="checkbox"
+                                label="Dividir esta tarefa em subtarefas entre os colaboradores selecionados"
+                                checked={divideOnCreate}
+                                onChange={(e) =>
+                                  setDivideOnCreate(e.target.checked)
+                                }
+                                className="mb-2"
+                              />
+                              {divideOnCreate && (
+                                <div className="mb-3">
+                                  {users
+                                    .filter((u) =>
+                                      formData.userIds.includes(u.id)
+                                    )
+                                    .map((u) => (
+                                      <Form.Group key={u.id} className="mb-2">
+                                        <Form.Label className="mb-1">
+                                          {u.name}
+                                        </Form.Label>
+                                        <Form.Control
+                                          as="textarea"
+                                          rows={2}
+                                          placeholder="Descrição da subtarefa (opcional)"
+                                          value={
+                                            subtarefaDescricoes[u.id] || ''
+                                          }
+                                          onChange={(e) =>
+                                            setSubtarefaDescricoes((prev) => ({
+                                              ...prev,
+                                              [u.id]: e.target.value,
+                                            }))
+                                          }
+                                        />
+                                      </Form.Group>
+                                    ))}
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <Form.Text className="d-block text-muted">
+                              Selecione pelo menos 2 colaboradores para poder
+                              dividir a tarefa em subtarefas.
+                            </Form.Text>
+                          )}
+                        </>
+                      ) : tarefa && !isDividida ? (
+                          <>
+                            <p className="text-muted">
+                              Divida esta tarefa em subtarefas, uma para cada
+                              colaborador atribuído, com percentual igual
+                              entre todos. Pode descrever, opcionalmente, em
+                              que consiste a parte de cada colaborador.
+                            </p>
+                            {tarefa.users.length >= 2 &&
+                              (hasPermission(Permission.ASSIGN_TASK) ||
+                                isAdmin() ||
+                                isManager()) && (
+                                <div className="mb-3">
+                                  {tarefa.users.map((tarefaUser) => (
+                                    <Form.Group
+                                      key={tarefaUser.id}
+                                      className="mb-2"
+                                    >
+                                      <Form.Label className="mb-1">
+                                        {tarefaUser.name}
+                                      </Form.Label>
+                                      <Form.Control
+                                        as="textarea"
+                                        rows={2}
+                                        placeholder="Descrição da subtarefa (opcional)"
+                                        value={
+                                          subtarefaDescricoes[
+                                            tarefaUser.id
+                                          ] || ''
+                                        }
+                                        onChange={(e) =>
+                                          setSubtarefaDescricoes((prev) => ({
+                                            ...prev,
+                                            [tarefaUser.id]: e.target.value,
+                                          }))
+                                        }
+                                      />
+                                    </Form.Group>
+                                  ))}
+                                </div>
+                              )}
+                            {(hasPermission(Permission.ASSIGN_TASK) ||
+                              isAdmin() ||
+                              isManager()) && (
+                              <Button
+                                variant="outline-primary"
+                                size="sm"
+                                disabled={tarefa.users.length < 2}
+                                onClick={() =>
+                                  dividir(
+                                    tarefa.users.map((tarefaUser) => ({
+                                      userId: tarefaUser.id,
+                                      descricao:
+                                        subtarefaDescricoes[tarefaUser.id]?.trim() ||
+                                        undefined,
+                                    }))
+                                  )
+                                }
+                              >
+                                Dividir em subtarefas entre colaboradores
+                              </Button>
+                            )}
+                            {tarefa.users.length < 2 && (
+                              <Form.Text className="d-block text-muted mt-2">
+                                A tarefa precisa de pelo menos 2 colaboradores
+                                atribuídos para poder ser dividida.
+                              </Form.Text>
+                            )}
+                          </>
+                        ) : tarefa ? (
+                          <>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                              <strong>Progresso total</strong>
+                              <span>{totalPercentual}%</span>
+                            </div>
+                            <ProgressBar
+                              now={totalPercentual}
+                              variant={
+                                totalPercentual >= 100
+                                  ? 'success'
+                                  : totalPercentual >= 50
+                                  ? 'warning'
+                                  : 'danger'
+                              }
+                              className="mb-3"
+                            />
+                            {(hasPermission(Permission.ASSIGN_TASK) ||
+                              isAdmin() ||
+                              isManager()) && (
+                              <div className="mb-3">
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  disabled={subtarefas.some(
+                                    (s) => s.concluida,
+                                  )}
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        'Tem a certeza que quer desfazer a divisão em subtarefas? Esta ação não pode ser revertida.',
+                                      )
+                                    ) {
+                                      desfazer();
+                                    }
+                                  }}
+                                >
+                                  Desfazer divisão
+                                </Button>
+                                {subtarefas.some((s) => s.concluida) && (
+                                  <Form.Text className="d-block text-muted mt-1">
+                                    Não é possível desfazer: já existem
+                                    subtarefas concluídas.
+                                  </Form.Text>
+                                )}
+                              </div>
+                            )}
+                            <ul className="list-group">
+                              {subtarefas.map((subtarefa) => {
+                                const canEdit =
+                                  user?.id === subtarefa.user.id ||
+                                  hasPermission(Permission.ASSIGN_TASK) ||
+                                  isAdmin() ||
+                                  isManager();
+                                const isEditingThis =
+                                  editingSubtarefaId === subtarefa.id;
+                                return (
+                                  <li
+                                    key={subtarefa.id}
+                                    className="list-group-item"
+                                  >
+                                    <div className="d-flex justify-content-between align-items-center">
+                                      <div className="flex-grow-1 me-2">
+                                        <div>{subtarefa.user.name}</div>
+                                        {isEditingThis ? (
+                                          <Form.Control
+                                            as="textarea"
+                                            rows={2}
+                                            className="mt-1"
+                                            value={editingDescricao}
+                                            onChange={(e) =>
+                                              setEditingDescricao(
+                                                e.target.value,
+                                              )
+                                            }
+                                          />
+                                        ) : (
+                                          <small className="text-muted">
+                                            {subtarefa.percentual}%
+                                            {subtarefa.descricao
+                                              ? ` — ${subtarefa.descricao}`
+                                              : ''}
+                                          </small>
+                                        )}
+                                      </div>
+                                      <div className="d-flex align-items-center gap-2">
+                                        {isEditingThis ? (
+                                          <>
+                                            <Button
+                                              variant="outline-primary"
+                                              size="sm"
+                                              onClick={async () => {
+                                                await atualizar(
+                                                  subtarefa.id,
+                                                  editingDescricao.trim(),
+                                                );
+                                                setEditingSubtarefaId(null);
+                                              }}
+                                            >
+                                              Guardar
+                                            </Button>
+                                            <Button
+                                              variant="outline-secondary"
+                                              size="sm"
+                                              onClick={() =>
+                                                setEditingSubtarefaId(null)
+                                              }
+                                            >
+                                              Cancelar
+                                            </Button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            {canEdit && (
+                                              <Button
+                                                variant="outline-secondary"
+                                                size="sm"
+                                                onClick={() => {
+                                                  setEditingSubtarefaId(
+                                                    subtarefa.id,
+                                                  );
+                                                  setEditingDescricao(
+                                                    subtarefa.descricao || '',
+                                                  );
+                                                }}
+                                              >
+                                                Editar
+                                              </Button>
+                                            )}
+                                            {subtarefa.concluida ? (
+                                              <>
+                                                <Badge bg="success">
+                                                  Concluída
+                                                </Badge>
+                                                {user?.id ===
+                                                  subtarefa.user.id && (
+                                                  <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                      reabrir(subtarefa.id)
+                                                    }
+                                                  >
+                                                    Reabrir
+                                                  </Button>
+                                                )}
+                                              </>
+                                            ) : user?.id ===
+                                              subtarefa.user.id ? (
+                                              <Button
+                                                variant="outline-success"
+                                                size="sm"
+                                                onClick={() =>
+                                                  concluir(subtarefa.id)
+                                                }
+                                              >
+                                                Marcar como concluída
+                                              </Button>
+                                            ) : (
+                                              <Badge bg="secondary">
+                                                Pendente
+                                              </Badge>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </>
+                        ) : null}
+                      </div>
+                    </Tab>
                 </Tabs>
               </Col>
             </Row>

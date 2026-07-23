@@ -25,6 +25,8 @@ const getNotificationColor = (type: string) => {
     PROJETO_ATUALIZADO: '#FEF3C7',
     PROJETO_CONCLUIDO: '#BBF7D0',
     PROJETO_REMOVIDO: '#FECACA',
+    SUBTAREFA_ATRIBUIDA: '#BFDBFE',
+    SUBTAREFA_CONCLUIDA: '#BBF7D0',
   };
   return colors[type] || '#E2E8F0';
 };
@@ -44,6 +46,8 @@ const getNotificationTitle = (type: string) => {
     PROJETO_ATUALIZADO: 'Projeto Atualizado',
     PROJETO_CONCLUIDO: 'Projeto Concluído',
     PROJETO_REMOVIDO: 'Removido do Projeto',
+    SUBTAREFA_ATRIBUIDA: 'Nova Subtarefa Atribuída',
+    SUBTAREFA_CONCLUIDA: 'Subtarefa Concluída',
   };
   return titles[type] || type;
 };

@@ -329,8 +329,17 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       }
     }
 
-    const sourceColumn = columns[source.droppableId as TarefaStatus];
-    const destColumn = columns[destination.droppableId as TarefaStatus];
+    const previousColumns = columns;
+
+    // Copy the affected arrays so the previousColumns snapshot above stays
+    // untouched — mutating columns[...] in place would make the revert on
+    // error below a no-op, since previousColumns would already reflect the
+    // post-move state.
+    const sourceColumn = [...columns[source.droppableId as TarefaStatus]];
+    const destColumn =
+      destination.droppableId === source.droppableId
+        ? sourceColumn
+        : [...columns[destination.droppableId as TarefaStatus]];
 
     // Remove from source column
     const [removed] = sourceColumn.splice(source.index, 1);
@@ -406,9 +415,16 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       );
     } catch (error) {
       console.error('Failed to update tarefa status:', error);
-      toast.error('Falha ao atualizar o status da tarefa');
+      // updateTarefaStatus rethrows a plain Error with the backend message
+      // for the 409 "subtarefas incompletas" case; any other (Axios) error
+      // keeps the generic message instead of surfacing a raw HTTP error.
+      const message =
+        !axios.isAxiosError(error) && error instanceof Error && error.message
+          ? error.message
+          : 'Falha ao atualizar o status da tarefa';
+      toast.error(message);
       // Revert changes on error
-      setColumns(columns);
+      setColumns(previousColumns);
     }
   };
 

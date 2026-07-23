@@ -1,0 +1,113 @@
+import axios from './apiConfig';
+import { Subtarefa, SubtarefaDivisaoItem } from '../types/subtarefa';
+
+export const getSubtarefasAPI = async (
+  tarefaId: number,
+): Promise<Subtarefa[]> => {
+  const response = await axios.get<Subtarefa[]>(
+    `/tarefas/${tarefaId}/subtarefas`,
+  );
+  return response.data;
+};
+
+export const dividirSubtarefasAPI = async (
+  tarefaId: number,
+  itens?: SubtarefaDivisaoItem[],
+): Promise<Subtarefa[]> => {
+  try {
+    const response = await axios.post<Subtarefa[]>(
+      `/tarefas/${tarefaId}/subtarefas/dividir`,
+      itens,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error('Erro ao dividir a tarefa em subtarefas.');
+  }
+};
+
+export const reabrirSubtarefaAPI = async (
+  tarefaId: number,
+  subtarefaId: number,
+): Promise<Subtarefa> => {
+  try {
+    const response = await axios.put<Subtarefa>(
+      `/tarefas/${tarefaId}/subtarefas/${subtarefaId}/reabrir`,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Só pode reabrir a sua própria subtarefa.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao reabrir a subtarefa.');
+  }
+};
+
+export const atualizarSubtarefaAPI = async (
+  tarefaId: number,
+  subtarefaId: number,
+  descricao: string,
+): Promise<Subtarefa> => {
+  try {
+    const response = await axios.put<Subtarefa>(
+      `/tarefas/${tarefaId}/subtarefas/${subtarefaId}`,
+      { descricao },
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Não tem permissão para editar esta subtarefa.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao atualizar a subtarefa.');
+  }
+};
+
+export const desfazerDivisaoAPI = async (tarefaId: number): Promise<void> => {
+  try {
+    await axios.delete(`/tarefas/${tarefaId}/subtarefas`);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Não tem permissão para desfazer esta divisão.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao desfazer a divisão em subtarefas.');
+  }
+};
+
+export const concluirSubtarefaAPI = async (
+  tarefaId: number,
+  subtarefaId: number,
+): Promise<Subtarefa> => {
+  try {
+    const response = await axios.put<Subtarefa>(
+      `/tarefas/${tarefaId}/subtarefas/${subtarefaId}/concluir`,
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Só pode concluir a sua própria subtarefa.');
+      }
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw new Error('Erro ao concluir a subtarefa.');
+  }
+};

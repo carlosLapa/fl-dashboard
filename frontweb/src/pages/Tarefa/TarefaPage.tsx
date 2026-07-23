@@ -282,7 +282,7 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-      await addTarefa(formData, sendNotification);
+      const created = await addTarefa(formData, sendNotification);
       if (isAdvancedFiltered) {
         await fetchAdvancedFilteredTarefas();
       } else if (isFiltered) {
@@ -292,6 +292,7 @@ const TarefaPage: React.FC = () => {
       }
       setShowModal(false);
       toast.success('Tarefa adicionada com sucesso!');
+      return created;
     } catch (error) {
       console.error('Error ao adicionar tarefa:', error);
       // Check for deadline validation error
@@ -342,7 +343,7 @@ const TarefaPage: React.FC = () => {
     if ('id' in formData) {
       await handleUpdateTarefa(formData as TarefaUpdateFormData);
     } else {
-      await handleAddTarefa(formData as TarefaInsertFormData);
+      return handleAddTarefa(formData as TarefaInsertFormData);
     }
   };
 

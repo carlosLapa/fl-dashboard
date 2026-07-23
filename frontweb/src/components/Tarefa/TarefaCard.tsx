@@ -14,6 +14,7 @@ import {
   faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons';
 import { getDeadlineStatus } from '../../utils/dateUtils';
+import { useSubtarefas } from '../../hooks/useSubtarefas';
 import './styles.scss';
 
 interface TarefaCardProps {
@@ -75,6 +76,7 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
     tarefaWithPrazo.projeto?.prazo
   );
   const cardStyleClass = getCardStyle(tarefa);
+  const { isDividida, totalPercentual } = useSubtarefas(tarefa.id);
 
   return (
     <Draggable draggableId={tarefa.uniqueId} index={index}>
@@ -168,7 +170,22 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
             )}
 
             <div style={{ marginTop: '8px' }} className="tarefa-footer">
-              <div className="tarefa-projeto">{tarefa.projeto.designacao}</div>
+              <div className="tarefa-projeto d-flex align-items-center justify-content-between">
+                <span>{tarefa.projeto.designacao}</span>
+                {isDividida && (
+                  <span
+                    className={`badge ${
+                      totalPercentual >= 100
+                        ? 'bg-success'
+                        : totalPercentual >= 50
+                        ? 'bg-warning'
+                        : 'bg-danger'
+                    }`}
+                  >
+                    {totalPercentual}%
+                  </span>
+                )}
+              </div>
               <div
                 style={{
                   fontSize: '13px',
