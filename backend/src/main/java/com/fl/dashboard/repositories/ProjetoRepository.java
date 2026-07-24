@@ -24,7 +24,11 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     @Query("SELECT p.id FROM Projeto p WHERE p.deletedAt IS NULL")
     Page<Long> findAllActiveIds(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    // ProjetoWithUsersDTO (the only consumer of this method) only reads users/externos — tarefas,
+    // tarefas.users and colunas were being fetched here for nothing. Combining that many collections
+    // in one join multiplies rows (tarefas grows unbounded as a project matures), which caused a
+    // prod OOM when a page happened to include an older/larger project (e.g. page 2).
+    @EntityGraph(attributePaths = {"users", "externos"})
     @Query("SELECT p FROM Projeto p WHERE p.id IN :ids")
     List<Projeto> findAllByIdInWithDetails(@Param("ids") List<Long> ids);
 
