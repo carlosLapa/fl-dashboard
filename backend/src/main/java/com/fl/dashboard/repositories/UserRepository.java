@@ -20,8 +20,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = {"roles"})
     User findByEmail(String email);
 
+    // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
+    // pagination (HHH90003004), which loaded the whole User table (with roles joined) into heap
+    // before slicing it — same root cause as the earlier Projeto/Tarefa prod OOM. Plain findAll(Pageable)
+    // is inherited from JpaRepository (no EntityGraph override) and stays safe for pageable callers
+    // that don't need roles eagerly.
+    @Query("SELECT u.id FROM User u")
+    Page<Long> findAllIds(Pageable pageable);
+
     @EntityGraph(attributePaths = {"roles"})
-    Page<User> findAll(Pageable pageable);
+    @Query("SELECT u FROM User u WHERE u.id IN :ids")
+    List<User> findAllByIdInWithRoles(@Param("ids") List<Long> ids);
 
     @Query(nativeQuery = true, value = """
             SELECT tb_user.email AS username, tb_user.password, tb_role.id AS roleId, tb_role.authority

@@ -15,11 +15,13 @@ import com.fl.dashboard.utils.ProjetoDTOMapper;
 import com.fl.dashboard.utils.PropostaProjetoMapperUtil;
 import com.fl.dashboard.utils.PropostaToProjetoMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PropostaService {
@@ -51,8 +53,18 @@ public class PropostaService {
 
     @Transactional(readOnly = true)
     public Page<PropostaWithClientesDTO> findAllPaged(Pageable pageable) {
-        Page<Proposta> list = propostaRepository.findAll(pageable);
-        return list.map(PropostaWithClientesDTO::new);
+        Page<Long> idsPage = propostaRepository.findAllActiveIds(pageable);
+        if (idsPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Map<Long, Proposta> propostaById = propostaRepository.findAllByIdInWithClientes(idsPage.getContent()).stream()
+                .collect(Collectors.toMap(Proposta::getId, p -> p));
+        List<PropostaWithClientesDTO> dtos = idsPage.getContent().stream()
+                .map(propostaById::get)
+                .filter(Objects::nonNull)
+                .map(PropostaWithClientesDTO::new)
+                .toList();
+        return new PageImpl<>(dtos, pageable, idsPage.getTotalElements());
     }
 
     @Transactional(readOnly = true)

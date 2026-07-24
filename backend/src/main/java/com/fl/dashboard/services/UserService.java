@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -38,7 +39,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -156,8 +160,18 @@ public class UserService implements UserDetailsService {
 
     @Transactional(readOnly = true)
     public Page<UserWithRolesDTO> findAllPagedWithRoles(Pageable pageable) {
-        Page<User> page = userRepository.findAll(pageable);
-        return page.map(UserWithRolesDTO::new);
+        Page<Long> idsPage = userRepository.findAllIds(pageable);
+        if (idsPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        Map<Long, User> userById = userRepository.findAllByIdInWithRoles(idsPage.getContent()).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+        List<UserWithRolesDTO> dtos = idsPage.getContent().stream()
+                .map(userById::get)
+                .filter(Objects::nonNull)
+                .map(UserWithRolesDTO::new)
+                .toList();
+        return new PageImpl<>(dtos, pageable, idsPage.getTotalElements());
     }
 
     /**

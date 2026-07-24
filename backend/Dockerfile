@@ -10,4 +10,4 @@ WORKDIR /app
 RUN apk add --no-cache wget
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-XX:MaxRAMPercentage=70", "-XX:+ExitOnOutOfMemoryError", "-jar", "app.jar"]

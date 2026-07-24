@@ -16,9 +16,15 @@ import java.util.Optional;
 @Repository
 public interface PropostaRepository extends JpaRepository<Proposta, Long> {
 
+    // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
+    // pagination (HHH90003004), which loaded the whole active Proposta table (with clientes
+    // joined) into heap before slicing it — same root cause as the earlier Projeto/Tarefa prod OOM.
+    @Query("SELECT p.id FROM Proposta p WHERE p.deletedAt IS NULL")
+    Page<Long> findAllActiveIds(Pageable pageable);
+
     @EntityGraph(attributePaths = {"clientes"})
-    @Query("SELECT p FROM Proposta p WHERE p.deletedAt IS NULL")
-    Page<Proposta> findAll(Pageable pageable);
+    @Query("SELECT p FROM Proposta p WHERE p.id IN :ids")
+    List<Proposta> findAllByIdInWithClientes(@Param("ids") List<Long> ids);
 
     @EntityGraph(attributePaths = {"clientes"})
     @Query("SELECT p FROM Proposta p WHERE p.id = :id AND p.deletedAt IS NULL")
