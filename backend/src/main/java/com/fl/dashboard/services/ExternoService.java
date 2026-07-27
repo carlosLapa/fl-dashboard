@@ -59,7 +59,7 @@ public class ExternoService {
 
     @Transactional(readOnly = true)
     public ExternoWithProjetosDTO findByIdWithProjetos(Long id) {
-        Externo entity = externoRepository.findByIdWithRelationships(id)
+        Externo entity = externoRepository.findByIdWithProjetos(id)
                 .orElseThrow(() -> new ResourceNotFoundException(EXTERNO_NOT_FOUND_MSG + id + NOT_FOUND_MSG));
         return new ExternoWithProjetosDTO(entity);
     }
@@ -72,7 +72,7 @@ public class ExternoService {
 
     @Transactional(readOnly = true)
     public ExternoWithTarefasDTO findByIdWithTarefas(Long id) {
-        Externo entity = externoRepository.findByIdWithRelationships(id)
+        Externo entity = externoRepository.findByIdWithTarefas(id)
                 .orElseThrow(() -> new ResourceNotFoundException(EXTERNO_NOT_FOUND_MSG + id + NOT_FOUND_MSG));
         return new ExternoWithTarefasDTO(entity);
     }

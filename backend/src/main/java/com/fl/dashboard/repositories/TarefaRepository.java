@@ -19,7 +19,10 @@ import java.util.Optional;
 @Repository
 public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
-    @EntityGraph(attributePaths = {"users", "projeto", "projeto.colunas", "coluna"})
+    // TarefaWithUserAndProjetoDTO (the only consumer) reads users, projeto and externos — never
+    // projeto.colunas or coluna; TarefaService never touches either, so this only ever paid for an
+    // unused join.
+    @EntityGraph(attributePaths = {"users", "projeto"})
     @Query("SELECT DISTINCT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
     Optional<Tarefa> findByIdWithUsersAndProjeto(@Param("id") Long id);
 
@@ -66,7 +69,9 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "AND t.deletedAt IS NULL")
     List<Tarefa> findAllByUserId(@Param("userId") Long userId);
 
-    @EntityGraph(attributePaths = {"users", "projeto", "projeto.colunas"})
+    // Shared by TarefaDTO/TarefaWithUsersDTO/TarefaWithProjetoDTO callers and several mutation-only
+    // usages in TarefaService/SubtarefaService — none of them ever touch projeto.colunas.
+    @EntityGraph(attributePaths = {"users", "projeto"})
     @Query("SELECT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
     Optional<Tarefa> findByIdActive(@Param("id") Long id);
 

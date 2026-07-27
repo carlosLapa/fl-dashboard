@@ -33,9 +33,16 @@ public interface ExternoRepository extends JpaRepository<Externo, Long> {
     @Query("SELECT e FROM Externo e WHERE e.deletedAt IS NULL")
     List<Externo> findAllWithProjetos();
 
-    @EntityGraph(attributePaths = {"projetos", "tarefas", "especialidades"})
+    // Split from a single findByIdWithRelationships: ExternoWithProjetosDTO only reads projetos
+    // (+ especialidades via the EAGER base ExternoDTO), never tarefas.
+    @EntityGraph(attributePaths = {"projetos"})
     @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
-    Optional<Externo> findByIdWithRelationships(@Param("id") Long id);
+    Optional<Externo> findByIdWithProjetos(@Param("id") Long id);
+
+    // ExternoWithTarefasDTO only reads tarefas, never projetos.
+    @EntityGraph(attributePaths = {"tarefas"})
+    @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
+    Optional<Externo> findByIdWithTarefas(@Param("id") Long id);
 
     @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
     Optional<Externo> findByIdAndActiveStatus(@Param("id") Long id);

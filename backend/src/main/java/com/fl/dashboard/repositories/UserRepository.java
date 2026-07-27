@@ -41,15 +41,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     List<UserDetailsProjection> searchUserAndRolesByEmail(String email);
 
-    @EntityGraph(attributePaths = {"projetos", "roles"})
+    // UserWithProjetosDTO (the consumer of all three methods below) only reads projetos — roles was
+    // unused dead weight on every one of these.
+    @EntityGraph(attributePaths = {"projetos"})
     @Query("SELECT u FROM User u")
     List<User> findAllWithProjetos();
 
-    @EntityGraph(attributePaths = {"projetos", "roles"})
+    @EntityGraph(attributePaths = {"projetos"})
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findByIdWithProjetos(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"projetos", "roles"})
+    @EntityGraph(attributePaths = {"projetos"})
     @Query("SELECT u FROM User u WHERE LOWER(u.name) LIKE :nameQuery OR LOWER(u.email) LIKE :emailQuery")
     List<User> findByNameLikeIgnoreCaseOrEmailLikeIgnoreCase(
             @Param("nameQuery") String nameQuery,
