@@ -54,6 +54,12 @@ public class ExternoDTO {
         this.telemovel = entity.getTelemovel();
         this.preco = entity.getPreco();
         this.faseProjeto = entity.getFaseProjeto();
-        this.especialidades = entity.getEspecialidades();
+        // Copy into a plain HashSet instead of holding the Hibernate-managed collection: when this
+        // Externo is loaded via a JOIN FETCH on a parent graph (e.g. Projeto.externos), especialidades
+        // (an EAGER @ElementCollection) isn't reliably resolved before the session closes, causing a
+        // LazyInitializationException during JSON serialization instead of at construction time.
+        this.especialidades = entity.getEspecialidades() != null
+                ? new HashSet<>(entity.getEspecialidades())
+                : new HashSet<>();
     }
 }
