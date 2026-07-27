@@ -10,7 +10,10 @@ import java.util.List;
 @Repository
 public interface ColunaRepository extends JpaRepository<Coluna, Long> {
 
-    @EntityGraph(attributePaths = {"projeto", "tarefas", "tarefas.users"})
+    // ColunaService.convertToDTO only reads id/status/titulo/ordem/projeto.getId() — tarefas and
+    // tarefas.users were fetched for nothing. Combining those two collections here recreated the
+    // same Cartesian-explosion pattern that caused the Projeto prod OOM, on every Kanban board load.
+    @EntityGraph(attributePaths = {"projeto"})
     List<Coluna> findByProjetoIdOrderByOrdemAsc(Long projetoId);
 }
 

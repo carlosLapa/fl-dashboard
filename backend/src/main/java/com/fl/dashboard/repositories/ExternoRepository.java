@@ -40,7 +40,9 @@ public interface ExternoRepository extends JpaRepository<Externo, Long> {
     @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
     Optional<Externo> findByIdAndActiveStatus(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"projetos", "tarefas", "especialidades"})
+    // Maps to plain ExternoDTO (ExternoService.searchByNameOrEmail), which never reads projetos or
+    // tarefas — especialidades is EAGER by default and resolves fine on a direct root-entity query
+    // like this one (no @EntityGraph needed for it here).
     @Query("SELECT e FROM Externo e WHERE e.deletedAt IS NULL AND " +
             "(LOWER(e.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(e.email) LIKE LOWER(CONCAT('%', :query, '%')))")

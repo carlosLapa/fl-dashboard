@@ -38,20 +38,12 @@ public class TarefaWithUserAndProjetoDTO extends TarefaDTO {
             this.projeto = new ProjetoDTO(entity.getProjeto());
         }
 
-        // Map externos
+        // Map externos (via ExternoDTO's own constructor, which copies especialidades into a plain
+        // HashSet instead of holding the live Hibernate-managed collection reference — building the
+        // DTO field-by-field here used to bypass that and pass the raw proxy through)
         if (entity.getExternos() != null) {
             this.externos = entity.getExternos().stream()
-                    .map(externo -> {
-                        ExternoDTO externoDTO = new ExternoDTO();
-                        externoDTO.setId(externo.getId());
-                        externoDTO.setName(externo.getName());
-                        externoDTO.setEmail(externo.getEmail());
-                        externoDTO.setTelemovel(externo.getTelemovel());
-                        externoDTO.setPreco(externo.getPreco());
-                        externoDTO.setFaseProjeto(externo.getFaseProjeto());
-                        externoDTO.setEspecialidades(externo.getEspecialidades());
-                        return externoDTO;
-                    })
+                    .map(ExternoDTO::new)
                     .collect(Collectors.toSet());
         }
 
