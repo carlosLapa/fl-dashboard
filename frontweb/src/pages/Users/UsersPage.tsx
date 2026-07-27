@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import UserTable from 'components/User/UserTable';
 import { getUsers } from 'services/userService';
 import { deleteUserAPI, getUserByIdAPI } from 'api/requestsApi';
+import { getUnreadCountsAPI } from 'api/notificationsApi';
 import { User } from 'types/user';
 import Button from 'react-bootstrap/Button';
 import AddUserModal from 'components/User/AddUserModal';
@@ -10,11 +11,13 @@ import EditUserModal from 'components/User/EditUserModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faKey } from '@fortawesome/free-solid-svg-icons';
 import { usePermissions } from 'hooks/usePermissions';
+import { useAuth } from 'AuthContext';
 import { Permission } from 'permissions/rolePermissions';
 import './userStyles.scss';
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<number, number>>({});
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
@@ -23,7 +26,8 @@ const UsersPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { isEmployee, hasPermission } = usePermissions();
+  const { isEmployee, isAdmin, isManager, hasPermission } = usePermissions();
+  const { user: currentUser } = useAuth();
 
   // Check if user is an employee (not admin or manager)
   const shouldDisableActions = isEmployee();
@@ -43,6 +47,21 @@ const UsersPage: React.FC = () => {
       console.log('Users response:', response);
       setUsers(response.content);
       setTotalPages(response.totalPages);
+
+      // Fetch unread notification counts for the whole page in a single batched request,
+      // instead of each row's NotificationBadge fetching its own count independently.
+      const visibleUserIds =
+        isAdmin() || isManager()
+          ? response.content.map((u: User) => u.id)
+          : currentUser
+            ? [currentUser.id]
+            : [];
+      if (visibleUserIds.length > 0) {
+        const counts = await getUnreadCountsAPI(visibleUserIds);
+        setUnreadCounts(counts);
+      } else {
+        setUnreadCounts({});
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -150,6 +169,7 @@ const UsersPage: React.FC = () => {
         <div style={{ width: '100%', marginTop: '3rem' }}>
           <UserTable
             users={users}
+            unreadCounts={unreadCounts}
             onEditUser={handleEditUser}
             onDeleteUser={handleDeleteUser}
             onViewTasks={handleViewTasks}

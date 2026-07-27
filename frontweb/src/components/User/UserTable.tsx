@@ -25,6 +25,7 @@ import './styles.scss';
 
 interface UserTableProps {
   users: User[];
+  unreadCounts: Record<number, number>;
   onEditUser: (userId: number) => void;
   onDeleteUser: (userId: number) => void;
   onViewTasks: (userId: number) => void;
@@ -37,6 +38,7 @@ interface UserTableProps {
 
 const UserTable: React.FC<UserTableProps> = ({
   users,
+  unreadCounts,
   onEditUser,
   onDeleteUser,
   onViewTasks,
@@ -234,7 +236,9 @@ const UserTable: React.FC<UserTableProps> = ({
                                 }
                                 className="action-icon view-notifications-icon"
                               />
-                              <NotificationBadge userId={rowUser.id} />
+                              <NotificationBadge
+                                unreadCount={unreadCounts[rowUser.id] ?? 0}
+                              />
                             </div>
                           </OverlayTrigger>
                         ) : (
@@ -248,7 +252,9 @@ const UserTable: React.FC<UserTableProps> = ({
                               icon={faBell}
                               style={disabledStyle}
                             />
-                            <NotificationBadge userId={rowUser.id} />
+                            <NotificationBadge
+                              unreadCount={unreadCounts[rowUser.id] ?? 0}
+                            />
                           </div>
                         )}
                         <OverlayTrigger

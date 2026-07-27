@@ -20,6 +20,15 @@ export const getNotificationDetailsAPI = async (
   return response.data;
 };
 
+export const getUnreadCountsAPI = async (
+  userIds: number[]
+): Promise<Record<number, number>> => {
+  if (userIds.length === 0) return {};
+  const query = userIds.map((id) => `userIds=${id}`).join('&');
+  const response = await axios.get(`/notifications/unread-counts?${query}`);
+  return response.data;
+};
+
 export const markNotificationAsReadAPI = async (
   notificationId: number
 ): Promise<void> => {

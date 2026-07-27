@@ -25,6 +25,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/notifications")
@@ -131,6 +132,12 @@ public class NotificationResource {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         notificationService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get unread notification counts for multiple users", description = "Batch endpoint returning unread notification counts keyed by user id, for pages that render a per-user notification badge (e.g. the collaborators table) without firing one request per row")
+    @GetMapping("/unread-counts")
+    public ResponseEntity<Map<Long, Long>> getUnreadCounts(@RequestParam List<Long> userIds) {
+        return ResponseEntity.ok(notificationService.countUnreadByUserIds(userIds));
     }
 
     @Operation(summary = "Get unread notifications", description = "Retrieve all unread notifications for a specific user")

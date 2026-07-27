@@ -7,6 +7,7 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.projections.UnreadNotificationCountProjection;
 import com.fl.dashboard.repositories.NotificationRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
@@ -27,6 +28,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -285,6 +287,19 @@ public class NotificationService {
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
         Page<Notification> page = notificationRepository.findByUserAndIsReadFalse(user, pageable);
         return page.map(this::convertToDTO);
+    }
+
+    // Single aggregate query for a whole page of users (e.g. the Colaboradores table), instead of
+    // one findUnreadByUser-style request per row.
+    @Transactional(readOnly = true)
+    public Map<Long, Long> countUnreadByUserIds(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+        return notificationRepository.countUnreadByUserIds(userIds).stream()
+                .collect(Collectors.toMap(
+                        UnreadNotificationCountProjection::getUserId,
+                        UnreadNotificationCountProjection::getUnreadCount));
     }
 
     @Transactional
