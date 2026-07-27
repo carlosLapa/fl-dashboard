@@ -128,7 +128,10 @@ public class UserService implements UserDetailsService {
 
     @Transactional(readOnly = true)
     public List<UserWithProjetosDTO> findAllWithProjetos() {
-        List<User> list = userRepository.findAll();
+        // Was calling plain findAll() — projetos was never eagerly fetched, so every user paid for
+        // its own lazy-load query (unbatched, since only Projeto.externos/Tarefa.externos carry
+        // @BatchSize). findAllWithProjetos() actually uses the {"projetos"} EntityGraph.
+        List<User> list = userRepository.findAllWithProjetos();
         return list.stream().map(UserWithProjetosDTO::new).toList();
     }
 
