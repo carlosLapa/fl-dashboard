@@ -19,6 +19,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from 'AuthContext';
 import Modal from 'react-bootstrap/Modal';
 import UserExtraHoursCalendar from 'components/UserExtraHours/UserExtraHoursCalendar';
+import UserAvatar from './UserAvatar';
 import { Permission } from '../../permissions/rolePermissions';
 
 import './styles.scss';
@@ -133,22 +134,7 @@ const UserTable: React.FC<UserTableProps> = ({
                     <td className="d-none d-md-table-cell">{rowUser.cargo}</td>
                     <td className="d-none d-lg-table-cell">{rowUser.email}</td>
                     <td className="d-none d-lg-table-cell">
-                      {rowUser.profileImage ? (
-                        <div className="profile-image-cell">
-                          <img
-                            src={`data:image/jpeg;base64,${rowUser.profileImage}`}
-                            alt={`${rowUser.name}`}
-                            className="profile-image"
-                            style={{
-                              maxWidth: '90px',
-                              maxHeight: '90px',
-                              marginLeft: '25%',
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <span>Sem imagem</span>
-                      )}
+                      <UserAvatar userId={rowUser.id} name={rowUser.name} />
                     </td>
                     <td>
                       <div className="action-icons">

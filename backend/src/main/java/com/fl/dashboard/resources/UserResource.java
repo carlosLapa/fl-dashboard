@@ -8,6 +8,7 @@ import com.fl.dashboard.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping(value = "/users")
@@ -63,6 +65,20 @@ public class UserResource {
     public ResponseEntity<UserDTO> findById(@PathVariable Long id, Authentication authentication) {
         UserDTO userDTO = userService.findById(id);
         return ResponseEntity.ok().body(userDTO);
+    }
+
+    // Served on demand and cached by the browser instead of being embedded as base64 in every row
+    // of the paginated list — that turned a 10-row page into several MB of JSON.
+    @GetMapping(value = "/{id}/profile-image")
+    public ResponseEntity<byte[]> getProfileImage(@PathVariable Long id) {
+        byte[] image = userService.getProfileImage(id);
+        if (image == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
+                .body(image);
     }
 
     // Users with projects - requires VIEW_ALL_USERS permission

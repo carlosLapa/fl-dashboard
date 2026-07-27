@@ -173,6 +173,11 @@ public class UserService implements UserDetailsService {
                 .map(userById::get)
                 .filter(Objects::nonNull)
                 .map(UserWithRolesDTO::new)
+                // profileImage can be a couple hundred KB per user; embedding it in every row of a
+                // paginated list (rather than lazily via GET /users/{id}/profile-image) turned a
+                // 10-row page into several MB of JSON. Single-user fetches (findById, used by the
+                // edit modal) still include it.
+                .peek(dto -> dto.setProfileImage(null))
                 .toList();
         return new PageImpl<>(dtos, pageable, idsPage.getTotalElements());
     }
@@ -190,9 +195,18 @@ public class UserService implements UserDetailsService {
             UserDTO dto = new UserDTO(user);
             // Remove sensitive information for non-admin users
             dto.setPassword(null);
-            // You could also limit other fields if needed
+            // See findAllPagedWithRoles: profileImage belongs behind GET /users/{id}/profile-image,
+            // not embedded in every row of a paginated list.
+            dto.setProfileImage(null);
             return dto;
         });
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] getProfileImage(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Utilizador com o id: " + id + " não encontrado"));
+        return user.getProfileImage();
     }
 
     @Transactional
