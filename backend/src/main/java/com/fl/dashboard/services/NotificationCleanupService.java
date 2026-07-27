@@ -18,11 +18,15 @@ public class NotificationCleanupService {
         this.notificationRepository = notificationRepository;
     }
 
+    // fixedRate counts from application startup, not wall-clock time — with this app restarting
+    // multiple times a day (deploys, OOM auto-restarts), a 5-day fixedRate effectively never
+    // reached its threshold in production. cron runs against the clock regardless of restarts.
     @Transactional
-    @Scheduled(fixedRate = 120 * 60 * 60 * 1000) // Runs every 5 days
-    public void cleanupReadNotifications() {
-        LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24);
-        notificationRepository.deleteByIsReadTrueAndCreatedAtBefore(cutoffTime);
+    @Scheduled(cron = "0 0 3 * * *") // Runs daily at 3am
+    public void cleanupOldNotifications() {
+        notificationRepository.deleteByIsReadTrueAndCreatedAtBefore(LocalDateTime.now().minusHours(24));
+        // Unread notifications previously had no expiry at all and accumulated indefinitely.
+        notificationRepository.deleteByIsReadFalseAndCreatedAtBefore(LocalDateTime.now().minusDays(30));
     }
 
 }

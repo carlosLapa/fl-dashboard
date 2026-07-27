@@ -49,6 +49,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     void deleteByIsReadTrueAndCreatedAtBefore(LocalDateTime cutoffTime);
 
+    // Unread notifications had no expiry at all before this — they accumulated indefinitely.
+    void deleteByIsReadFalseAndCreatedAtBefore(LocalDateTime cutoffTime);
+
     boolean existsByProjetoIdAndUserIdAndType(Long projetoId, Long userId, String type);
 
     boolean existsByTarefaIdAndUserIdAndType(Long tarefaId, Long userId, String type);
