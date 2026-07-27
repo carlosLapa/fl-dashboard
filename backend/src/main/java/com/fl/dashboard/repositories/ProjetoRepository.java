@@ -32,22 +32,33 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     @Query("SELECT p FROM Projeto p WHERE p.id IN :ids")
     List<Projeto> findAllByIdInWithDetails(@Param("ids") List<Long> ids);
 
-    @EntityGraph(attributePaths = {"tarefas", "tarefas.users", "colunas"})
+    // ProjetoWithTarefasDTO only reads tarefas (via TarefaDTO, which never touches tarefa.users) —
+    // tarefas.users and colunas were dead weight, and tarefas grows unboundedly per project (same
+    // Cartesian-explosion pattern as findAllByIdInWithDetails above).
+    @EntityGraph(attributePaths = {"tarefas"})
     @Query("SELECT p FROM Projeto p LEFT JOIN p.tarefas t " +
             "WHERE p.id = :id AND p.deletedAt IS NULL " +
             "AND (t IS NULL OR t.deletedAt IS NULL)")
     Optional<Projeto> findByIdWithTarefas(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    // ProjetoWithUsersAndTarefasDTO reads users, tarefas and externos — never tarefas.users or colunas.
+    @EntityGraph(attributePaths = {"users", "tarefas", "externos"})
     @Query("SELECT p FROM Projeto p " +
             "WHERE p.id = :id AND p.deletedAt IS NULL")
     Optional<Projeto> findByIdWithUsersAndTarefas(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    // Backs plain GET /projetos/{id} (ProjetoDTO — no collections needed at all) and the
+    // addExternosToProjeto/removeExternoFromProjeto mutations (only touch externos). The old
+    // {"users","tarefas","tarefas.users","colunas"} graph turned every single-project fetch into
+    // the same Cartesian-explosion risk as the paginated listing bug, for collections nothing here reads.
+    @EntityGraph(attributePaths = {"externos"})
     @Query("SELECT p FROM Projeto p WHERE p.id = :id AND p.deletedAt IS NULL")
     Optional<Projeto> findByIdActive(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {"users", "tarefas", "tarefas.users", "colunas"})
+    // Backs searchProjetos -> ProjetoWithUsersAndTarefasDTO (users, tarefas, externos — never
+    // tarefas.users/colunas). Also unbounded (no pagination), so an over-fetching graph here is
+    // worse than the paginated cases: every matching project's full Cartesian join is computed.
+    @EntityGraph(attributePaths = {"users", "tarefas", "externos"})
     @Query("SELECT p FROM Projeto p LEFT JOIN p.cliente c WHERE p.deletedAt IS NULL AND " +
             "(LOWER(p.designacao) LIKE :searchQuery OR " +
             "LOWER(c.name) LIKE :searchQuery)")
