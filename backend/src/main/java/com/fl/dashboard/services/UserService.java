@@ -36,8 +36,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,6 +61,11 @@ public class UserService implements UserDetailsService {
 
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png");
     private static final long MAX_FILE_SIZE = 2097152; // 2MB
+    // Profile photos are only ever displayed as small thumbnails (e.g. 90x90 in the collaborators
+    // table); storing/serving them at upload resolution meant a single avatar fetch could transfer
+    // a couple of MB.
+    private static final int MAX_PROFILE_IMAGE_DIMENSION = 300;
+    private static final float PROFILE_IMAGE_JPEG_QUALITY = 0.8f;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
@@ -390,7 +407,7 @@ public class UserService implements UserDetailsService {
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
                 validateImage(imageFile);
-                entity.setProfileImage(imageFile.getBytes());
+                entity.setProfileImage(resizeProfileImage(imageFile.getBytes()));
             } catch (IOException e) {
                 throw new RuntimeException("Error processing image file", e);
             }
@@ -404,6 +421,84 @@ public class UserService implements UserDetailsService {
         if (imageFile.getSize() > MAX_FILE_SIZE) {
             throw new IllegalArgumentException("Tamanho do ficheiro excede o limite de 2MB.");
         }
+    }
+
+    // Downscales to a small thumbnail and re-encodes as JPEG, regardless of the source format/size,
+    // so every stored profile image is cheap to serve.
+    private byte[] resizeProfileImage(byte[] originalBytes) throws IOException {
+        BufferedImage original = ImageIO.read(new ByteArrayInputStream(originalBytes));
+        if (original == null) {
+            throw new IllegalArgumentException("Ficheiro de imagem inválido");
+        }
+
+        int width = original.getWidth();
+        int height = original.getHeight();
+        double scale = Math.min(
+                1.0,
+                Math.min((double) MAX_PROFILE_IMAGE_DIMENSION / width, (double) MAX_PROFILE_IMAGE_DIMENSION / height));
+        int targetWidth = Math.max(1, (int) Math.round(width * scale));
+        int targetHeight = Math.max(1, (int) Math.round(height * scale));
+
+        // JPEG has no alpha channel, so flatten onto white (covers transparent PNG uploads) while
+        // scaling down in the same pass.
+        BufferedImage resized = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resized.createGraphics();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, targetWidth, targetHeight);
+            g.drawImage(original, 0, 0, targetWidth, targetHeight, null);
+        } finally {
+            g.dispose();
+        }
+
+        return encodeAsJpeg(resized);
+    }
+
+    private byte[] encodeAsJpeg(BufferedImage image) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+        if (!writers.hasNext()) {
+            throw new IllegalStateException("No JPEG image writer available");
+        }
+        ImageWriter writer = writers.next();
+        try {
+            ImageWriteParam params = writer.getDefaultWriteParam();
+            params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            params.setCompressionQuality(PROFILE_IMAGE_JPEG_QUALITY);
+            try (ImageOutputStream ios = ImageIO.createImageOutputStream(output)) {
+                writer.setOutput(ios);
+                writer.write(null, new IIOImage(image, null, null), params);
+            }
+        } finally {
+            writer.dispose();
+        }
+        return output.toByteArray();
+    }
+
+    // One-off maintenance pass to shrink profile images that were uploaded before resizing was
+    // added — resizeProfileImage only applies to new uploads. Safe to call repeatedly: already-small
+    // images are re-encoded but not meaningfully changed.
+    @Transactional
+    public int reprocessAllProfileImages() {
+        List<User> users = userRepository.findAll();
+        int processed = 0;
+        for (User user : users) {
+            byte[] image = user.getProfileImage();
+            if (image == null || image.length == 0) {
+                continue;
+            }
+            try {
+                user.setProfileImage(resizeProfileImage(image));
+                userRepository.save(user);
+                processed++;
+            } catch (IOException | IllegalArgumentException e) {
+                logger.warn("Could not reprocess profile image for user {}: {}", user.getId(), e.getMessage());
+            }
+        }
+        return processed;
     }
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

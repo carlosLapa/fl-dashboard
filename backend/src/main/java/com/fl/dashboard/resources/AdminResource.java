@@ -50,4 +50,19 @@ public class AdminResource {
 
         return ResponseEntity.ok(response);
     }
+
+    // One-off maintenance operation: shrinks any profile image stored before resizing was added to
+    // uploads. Safe to run more than once.
+    @PostMapping("/resize-profile-images")
+    @PreAuthorize("hasAuthority('SYSTEM_SETTINGS')")
+    public ResponseEntity<Map<String, Object>> resizeProfileImages() {
+        int count = userService.reprocessAllProfileImages();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", count + " imagens de perfil redimensionadas");
+        response.put("timestamp", new Date());
+
+        return ResponseEntity.ok(response);
+    }
 }
