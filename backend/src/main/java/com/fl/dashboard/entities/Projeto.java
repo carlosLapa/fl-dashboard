@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fl.dashboard.enums.TipoProjeto;
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,7 +35,12 @@ public class Projeto {
     @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
     private Set<Tarefa> tarefas = new HashSet<>();
 
+    // BatchSize turns "1 lazy-load query per Projeto in the result" (e.g. UserWithProjetosDTO/
+    // ClienteWithProjetosDTO mapping each project's externos individually) into one batched
+    // "WHERE projeto_id IN (...)" query per page, without joining externos into the main query
+    // (which is what caused the earlier Cartesian-explosion OOM).
     @JsonBackReference
+    @BatchSize(size = 25)
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "tb_projeto_externo",

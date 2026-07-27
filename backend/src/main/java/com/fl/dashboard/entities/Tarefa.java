@@ -5,6 +5,7 @@ import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -47,7 +48,11 @@ public class Tarefa {
     @JsonBackReference("user-tarefa")  // Changed to match the reference name
     Set<User> users = new HashSet<>();
 
+    // BatchSize turns "1 lazy-load query per Tarefa in the result" (e.g. TarefaWithUserAndProjetoDTO
+    // list endpoints mapping each task's externos individually) into one batched
+    // "WHERE tarefa_id IN (...)" query per page/list, without joining externos into the main query.
     @JsonBackReference
+    @BatchSize(size = 25)
     @ManyToMany
     @JoinTable(
             name = "tb_tarefa_externo",
