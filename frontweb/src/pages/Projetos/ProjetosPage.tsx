@@ -66,8 +66,8 @@ const ProjetosPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Sorting states
-  const [sortField, setSortField] = useState<string>('designacao');
-  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
+  const [sortField, setSortField] = useState<string>('id');
+  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('DESC');
 
   // Data fetching function for all projetos
   const fetchProjetos = useCallback(async () => {
