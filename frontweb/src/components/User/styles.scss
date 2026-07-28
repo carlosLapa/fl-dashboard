@@ -70,6 +70,19 @@
   border-radius: 4px;
 }
 
+// Initials placeholder shown while the real photo loads (or permanently if there isn't one)
+.profile-image-placeholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 18px;
+  user-select: none;
+}
+
 // Pagination container
 .pagination-container {
   margin-top: 1rem;

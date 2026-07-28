@@ -63,8 +63,9 @@ public class UserService implements UserDetailsService {
     private static final long MAX_FILE_SIZE = 2097152; // 2MB
     // Profile photos are only ever displayed as small thumbnails (e.g. 90x90 in the collaborators
     // table); storing/serving them at upload resolution meant a single avatar fetch could transfer
-    // a couple of MB.
-    private static final int MAX_PROFILE_IMAGE_DIMENSION = 300;
+    // a couple of MB. 180px is ~2x the largest current display size (90px), enough headroom for
+    // retina/high-DPI screens without shipping far more pixels than will ever be shown.
+    private static final int MAX_PROFILE_IMAGE_DIMENSION = 180;
     private static final float PROFILE_IMAGE_JPEG_QUALITY = 0.8f;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
