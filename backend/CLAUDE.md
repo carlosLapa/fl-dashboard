@@ -27,6 +27,18 @@ mvn flyway:info -Dflyway.url=jdbc:mysql://localhost:3306/fldashboard -Dflyway.us
 mvn flyway:migrate -Dflyway.url=jdbc:mysql://localhost:3306/fldashboard -Dflyway.user=root -Dflyway.password=123456
 ```
 
+## Verifying changes before pushing
+
+`Dockerfile` (and CI) build with `maven:3.9-eclipse-temurin-17-alpine` (JDK 17). If your local `JAVA_HOME` points to a different major version (e.g. a newer JDK installed alongside 17), Lombok can silently fail to generate getters/setters under the mismatched JDK — no clear error, just "cannot find symbol" for methods that should exist. Don't trust a local `./mvnw compile` in that situation.
+
+Verify by compiling inside the same image the build uses:
+
+```bash
+docker run --rm -v "<repo-path>/backend:/app" -w /app maven:3.9-eclipse-temurin-17-alpine mvn clean package -DskipTests
+```
+
+Use the **exact** command CI runs (`mvn clean package -DskipTests`), not just `mvn compile`: `-DskipTests` only skips *running* tests, it still runs `test-compile`, so a change to a class used by tests (e.g. a DTO field type) can compile fine with plain `mvn compile` and still break CI at `test-compile`.
+
 ## Architecture
 
 Standard Spring Boot layered architecture under `com.fl.dashboard`:
@@ -85,7 +97,10 @@ Duplicate suppression is in-memory with a 10-second window for simple messages a
 ## DTO Conventions
 
 Each domain entity typically has several DTO variants:
+
 - `*DTO` — full representation
 - `*MinDTO` — minimal (id + key display fields)
 - `*InsertDTO` / `*UpdateDTO` — write operations
 - `*With{Relation}DTO` — includes related entities (e.g. `ProjetoWithUsersDTO`)
+
+**Never nest the full `UserDTO` inside another DTO** (`ProjetoDTO.coordenador`, `TarefaWithUserAndProjetoDTO.users`, `ProjetoWithUsersDTO.users`, etc.) — it carries the password hash and the base64 `profileImage`, repeated once per reference with no dedup. A paginated list of 10-20 rows each embedding several full `UserDTO`s can balloon to multiple MB and leaks password hashes to the browser. Use `UserSummaryDTO` (id, name, email, funcao, cargo) for any nested/embedded user reference instead; keep the full `UserDTO` only for the direct `/users` endpoints where the profile image is actually needed.
