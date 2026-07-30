@@ -7,7 +7,11 @@ export type TipoProposta =
   | 'LEVANTAMENTO'
   | 'PROJETO'
   | 'REVISAO'
-  | 'VISTORIA';
+  | 'VISTORIA'
+  | 'ADMINISTRACAO'
+  | 'MARKETING'
+  | 'INOVACAO'
+  | 'CONCURSOS';
 
 export type Proposta = {
   id: number;

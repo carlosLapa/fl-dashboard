@@ -7,5 +7,9 @@ public enum TipoProjeto {
     LEVANTAMENTO,
     PROJETO,
     REVISAO,
-    VISTORIA
+    VISTORIA,
+    ADMINISTRACAO,
+    MARKETING,
+    INOVACAO,
+    CONCURSOS
 }

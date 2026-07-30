@@ -472,6 +472,10 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   <option value="PROJETO">Projeto</option>
                   <option value="REVISAO">Revisão</option>
                   <option value="VISTORIA">Vistoria</option>
+                  <option value="ADMINISTRACAO">Administração</option>
+                  <option value="MARKETING">Marketing</option>
+                  <option value="INOVACAO">Inovação</option>
+                  <option value="CONCURSOS">Concursos</option>
                 </Form.Select>
                 <Form.Control.Feedback type="invalid">
                   Por favor, selecione o tipo.
