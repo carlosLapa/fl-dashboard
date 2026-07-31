@@ -8,6 +8,7 @@ import {
   PaginatedClientes,
 } from '../types/cliente';
 import { Projeto } from '../types/projeto';
+import { ClienteFilterState } from '../types/filters';
 
 // Get all clientes without pagination
 export const getAllClientesAPI = async (): Promise<ClienteDTO[]> => {
@@ -32,6 +33,30 @@ export const getClientesPagedAPI = async (
   }
 
   const response = await axios.get('/clientes/paged', { params });
+  return response.data;
+};
+
+// Get clientes filtered by name, nif and/or morada, with pagination and sorting
+export const getClientesWithFiltersAPI = async (
+  filters: ClienteFilterState,
+  page: number = 0,
+  size: number = 10,
+  sortField?: string,
+  sortDirection?: 'asc' | 'desc'
+): Promise<PaginatedClientes> => {
+  const params: any = {
+    page,
+    size,
+    name: filters.name || undefined,
+    nif: filters.nif || undefined,
+    morada: filters.morada || undefined,
+  };
+
+  if (sortField) {
+    params.sort = `${sortField},${sortDirection || 'asc'}`;
+  }
+
+  const response = await axios.get('/clientes/filter', { params });
   return response.data;
 };
 

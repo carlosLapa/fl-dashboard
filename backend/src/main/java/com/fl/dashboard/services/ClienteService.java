@@ -147,6 +147,12 @@ public class ClienteService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<ClienteDTO> filterClientes(String name, String nif, String morada, Pageable pageable) {
+        Page<Cliente> result = clienteRepository.findByFilters(name, nif, morada, pageable);
+        return result.map(ClienteDTO::new);
+    }
+
     @Transactional
     public ClienteWithProjetosDTO insertWithProjetos(ClienteWithProjetosDTO dto) {
         Cliente entity = new Cliente();

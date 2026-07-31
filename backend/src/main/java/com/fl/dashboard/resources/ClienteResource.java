@@ -104,6 +104,16 @@ public class ClienteResource {
         return ResponseEntity.ok().body(results);
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<Page<ClienteDTO>> filterClientes(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String nif,
+            @RequestParam(required = false) String morada,
+            Pageable pageable) {
+        Page<ClienteDTO> result = clienteService.filterClientes(name, nif, morada, pageable);
+        return ResponseEntity.ok().body(result);
+    }
+
     @PostMapping("/with-projetos")
     public ResponseEntity<ClienteWithProjetosDTO> insertWithProjetos(@Valid @RequestBody ClienteWithProjetosDTO dto) {
         ClienteWithProjetosDTO newDto = clienteService.insertWithProjetos(dto);

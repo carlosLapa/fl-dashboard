@@ -41,10 +41,11 @@ export interface UserFilterState extends BaseFilterState {
   role: string;
 }
 
-// Cliente filter state (apenas sorting)
+// Cliente filter state
 export interface ClienteFilterState extends BaseFilterState {
-  sortField?: 'numero' | 'name' | 'morada' | 'responsavel';
-  sortDirection?: 'asc' | 'desc';
+  name?: string;
+  nif?: string;
+  morada?: string;
 }
 
 // Proposta filter state (sorting - clientes é client-side)
