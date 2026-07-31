@@ -3,11 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
 import { User } from '../../types/user';
+import { ClienteDTO } from '../../types/cliente';
 import {
   searchTarefas,
   searchProjetos,
   searchUsers,
 } from '../../services/searchService';
+import { searchClientes } from '../../services/clienteService';
 import { Button, Row, Col } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import './styles.scss';
@@ -20,7 +22,8 @@ const SearchResults: React.FC = () => {
     tarefas: TarefaWithUserAndProjetoDTO[];
     projetos: ProjetoWithUsersAndTarefasDTO[];
     users: User[];
-  }>({ tarefas: [], projetos: [], users: [] });
+    clientes: ClienteDTO[];
+  }>({ tarefas: [], projetos: [], users: [], clientes: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,11 +36,13 @@ const SearchResults: React.FC = () => {
           searchTarefas(query),
           searchProjetos(query),
           searchUsers(query),
+          searchClientes(query),
         ]);
         setResults({
           tarefas: results[0],
           projetos: results[1],
           users: results[2],
+          clientes: results[3],
         });
       } catch (err) {
         setError('Failed to fetch search results. Please try again.');
@@ -92,14 +97,15 @@ const SearchResults: React.FC = () => {
           <>
             {results.users.length === 0 &&
             results.projetos.length === 0 &&
-            results.tarefas.length === 0 ? (
+            results.tarefas.length === 0 &&
+            results.clientes.length === 0 ? (
               <div className="alert alert-info mt-4">
                 Não foram encontrados resultados
               </div>
             ) : (
               <div className="search-results-scrollable">
                 <Row>
-                  <Col xs={12} lg={4} className="mb-4">
+                  <Col xs={12} md={6} lg={3} className="mb-4">
                     <h3 className="text-primary mb-3 section-title">
                       Colaboradores
                     </h3>
@@ -127,7 +133,7 @@ const SearchResults: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col xs={12} lg={4} className="mb-4">
+                  <Col xs={12} md={6} lg={3} className="mb-4">
                     <h3 className="text-primary mb-3 section-title">
                       Projetos
                     </h3>
@@ -155,7 +161,7 @@ const SearchResults: React.FC = () => {
                     </div>
                   </Col>
 
-                  <Col xs={12} lg={4} className="mb-4">
+                  <Col xs={12} md={6} lg={3} className="mb-4">
                     <h3 className="text-primary mb-3 section-title">Tarefas</h3>
                     <div className="results-column">
                       {results.tarefas.length > 0 ? (
@@ -178,6 +184,34 @@ const SearchResults: React.FC = () => {
                       ) : (
                         <p className="text-muted">
                           Não foram encontradas tarefas
+                        </p>
+                      )}
+                    </div>
+                  </Col>
+
+                  <Col xs={12} md={6} lg={3} className="mb-4">
+                    <h3 className="text-primary mb-3 section-title">
+                      Clientes
+                    </h3>
+                    <div className="results-column">
+                      {results.clientes.length > 0 ? (
+                        results.clientes.map((cliente) => (
+                          <div
+                            key={cliente.id}
+                            className="card mb-2 hover-shadow cursor-pointer search-card"
+                            onClick={() =>
+                              navigate(`/clientes/${cliente.id}/projetos`)
+                            }
+                          >
+                            <div className="card-body">
+                              <h5 className="mb-2">{cliente.name}</h5>
+                              <p className="text-muted mb-0">{cliente.nif}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-muted">
+                          Cliente(s) não encontrados
                         </p>
                       )}
                     </div>
