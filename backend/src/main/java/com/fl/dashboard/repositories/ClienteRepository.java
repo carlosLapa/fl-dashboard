@@ -52,4 +52,16 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     @Query("SELECT c FROM Cliente c LEFT JOIN FETCH c.projetos p LEFT JOIN FETCH p.users WHERE c.id = :clienteId")
     Optional<Cliente> findByIdWithProjetosAndUsers(@Param("clienteId") Long clienteId);
+
+    // No @EntityGraph here: combining a Pageable query with a collection-fetch EntityGraph
+    // forces Hibernate to paginate in memory (see ProjetoRepository.findAllActiveIds for the pattern).
+    @Query("SELECT c FROM Cliente c WHERE c.deletedAt IS NULL " +
+            "AND (:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
+            "AND (:nif IS NULL OR LOWER(c.nif) LIKE LOWER(CONCAT('%', :nif, '%'))) " +
+            "AND (:morada IS NULL OR LOWER(c.morada) LIKE LOWER(CONCAT('%', :morada, '%')))")
+    Page<Cliente> findByFilters(
+            @Param("name") String name,
+            @Param("nif") String nif,
+            @Param("morada") String morada,
+            Pageable pageable);
 }

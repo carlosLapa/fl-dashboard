@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   Button,
@@ -22,7 +22,9 @@ import {
   faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 import { ClienteDTO } from '../../types/cliente';
+import { ClienteFilterState } from '../../types/filters';
 import ClienteTableHeader from './ClienteTableHeader';
+import ClienteFilterPanel from './ClienteFilterPanel';
 
 interface ClienteTableProps {
   clientes: ClienteDTO[];
@@ -32,6 +34,10 @@ interface ClienteTableProps {
   page: number;
   onPageChange: (page: number) => void;
   totalPages: number;
+  filters: ClienteFilterState;
+  updateFilter: (name: keyof ClienteFilterState, value: any) => void;
+  onApplyFilters: () => void;
+  onClearFilters: () => void;
   isLoading?: boolean;
   shouldDisableActions?: boolean;
   sortField?: string;
@@ -47,6 +53,10 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
   page,
   onPageChange,
   totalPages,
+  filters,
+  updateFilter,
+  onApplyFilters,
+  onClearFilters,
   isLoading = false,
   shouldDisableActions = false,
   sortField,
@@ -57,6 +67,22 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
     null
   );
   const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Global keyboard shortcut: Alt+F to toggle filters
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'f') {
+        e.preventDefault();
+        setShowFilters((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, []);
 
   const disabledStyle: React.CSSProperties = {
     color: '#ccc',
@@ -163,16 +189,21 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
     );
   }
 
-  if (clientes.length === 0) {
-    return (
-      <div className="text-center p-4">
-        <p>Nenhum cliente encontrado</p>
-      </div>
-    );
-  }
-
   return (
     <div className="cliente-table-container">
+      <ClienteFilterPanel
+        filters={filters}
+        updateFilter={updateFilter}
+        onApplyFilters={onApplyFilters}
+        onClearFilters={onClearFilters}
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+      />
+      {clientes.length === 0 ? (
+        <div className="text-center p-4">
+          <p>Nenhum cliente encontrado</p>
+        </div>
+      ) : (
       <div className="table-responsive">
         <Table striped bordered hover className="cliente-table">
           <thead>
@@ -397,6 +428,7 @@ const ClienteTable: React.FC<ClienteTableProps> = ({
           </tbody>
         </Table>
       </div>
+      )}
       <div className="pagination-container">
         {renderPagination()}
         <div className="page-info d-block d-sm-none">

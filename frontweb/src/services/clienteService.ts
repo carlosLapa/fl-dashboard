@@ -8,6 +8,7 @@ import {
 import {
   getAllClientesAPI,
   getClientesPagedAPI,
+  getClientesWithFiltersAPI,
   getAllClientesWithProjetosAPI,
   getClienteByIdAPI,
   getClienteWithProjetosByIdAPI,
@@ -28,6 +29,73 @@ import {
   removeEmailAPI,
 } from '../api/clienteApi';
 import { Projeto } from '../types/projeto';
+import { ClienteFilterState } from '../types/filters';
+
+const emptyPaginatedClientes = (page: number, size: number): PaginatedClientes => ({
+  content: [],
+  totalPages: 0,
+  totalElements: 0,
+  size: size,
+  number: page,
+  pageable: {
+    pageNumber: page,
+    pageSize: size,
+    sort: {
+      empty: true,
+      sorted: false,
+      unsorted: true,
+    },
+    offset: page * size,
+    paged: true,
+    unpaged: false,
+  },
+  last: true,
+  first: true,
+  empty: true,
+  numberOfElements: 0,
+  sort: {
+    empty: true,
+    sorted: false,
+    unsorted: true,
+  },
+});
+
+// Build an API-friendly filter object, dropping empty strings
+export const buildApiFilters = (
+  filters: ClienteFilterState
+): ClienteFilterState => {
+  const valueOrUndefined = (value?: string): string | undefined =>
+    value && value.trim() !== '' ? value : undefined;
+
+  return {
+    name: valueOrUndefined(filters.name),
+    nif: valueOrUndefined(filters.nif),
+    morada: valueOrUndefined(filters.morada),
+  };
+};
+
+// Get clientes filtered by name, nif and/or morada
+export const fetchClientesWithFilters = async (
+  filters: ClienteFilterState,
+  page: number = 0,
+  size: number = 10,
+  sortField?: string,
+  sortDirection?: 'asc' | 'desc'
+): Promise<PaginatedClientes> => {
+  try {
+    const apiFilters = buildApiFilters(filters);
+    return await getClientesWithFiltersAPI(
+      apiFilters,
+      page,
+      size,
+      sortField,
+      sortDirection
+    );
+  } catch (error) {
+    console.error('Error fetching filtered clientes:', error);
+    return emptyPaginatedClientes(page, size);
+  }
+};
 
 // Get all clientes without pagination
 export const getAllClientes = async (): Promise<ClienteDTO[]> => {
@@ -50,34 +118,7 @@ export const getClientesPaged = async (
     return await getClientesPagedAPI(page, size, sortField, sortDirection);
   } catch (error) {
     console.error('Error in cliente service:', error);
-    return {
-      content: [],
-      totalPages: 0,
-      totalElements: 0,
-      size: size,
-      number: page,
-      pageable: {
-        pageNumber: page,
-        pageSize: size,
-        sort: {
-          empty: true,
-          sorted: false,
-          unsorted: true,
-        },
-        offset: page * size,
-        paged: true,
-        unpaged: false,
-      },
-      last: true,
-      first: true,
-      empty: true,
-      numberOfElements: 0,
-      sort: {
-        empty: true,
-        sorted: false,
-        unsorted: true,
-      },
-    };
+    return emptyPaginatedClientes(page, size);
   }
 };
 

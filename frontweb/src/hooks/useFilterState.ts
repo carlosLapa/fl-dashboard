@@ -1,5 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { BaseFilterState, ProjetoFilterState } from '../types/filters';
+import {
+  BaseFilterState,
+  ProjetoFilterState,
+  ClienteFilterState,
+} from '../types/filters';
 import secureStorage from '../auth/secureStorage';
 
 const defaultProjetoFilterState: ProjetoFilterState = {
@@ -11,6 +15,12 @@ const defaultProjetoFilterState: ProjetoFilterState = {
   startDate: '',
   endDate: '',
   tipo: undefined,
+};
+
+const defaultClienteFilterState: ClienteFilterState = {
+  name: '',
+  nif: '',
+  morada: '',
 };
 
 export function useFilterState<T extends BaseFilterState>(
@@ -124,5 +134,13 @@ export function useProjetoFilters() {
   return useFilterState<ProjetoFilterState>(
     defaultProjetoFilterState,
     'projeto-filters' // Storage key for projeto filters
+  );
+}
+
+// Convenience hook for cliente filters
+export function useClienteFilters() {
+  return useFilterState<ClienteFilterState>(
+    defaultClienteFilterState,
+    'cliente-filters' // Storage key for cliente filters
   );
 }
