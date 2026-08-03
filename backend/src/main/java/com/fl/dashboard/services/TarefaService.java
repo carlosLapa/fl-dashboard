@@ -755,9 +755,16 @@ public class TarefaService {
                 (tarefa.getPrioridade() == null || !tarefa.getPrioridade().equalsIgnoreCase(filterDTO.getPrioridade()))) {
             return false;
         }
-        if (filterDTO.getDateField() != null && filterDTO.getStartDate() != null && adjustedEndDate != null) {
+        if (filterDTO.getDateField() != null &&
+                (filterDTO.getStartDate() != null || adjustedEndDate != null)) {
             Date date = "prazoEstimado".equals(filterDTO.getDateField()) ? tarefa.getPrazoEstimado() : tarefa.getPrazoReal();
-            if (date == null || date.before(filterDTO.getStartDate()) || date.after(adjustedEndDate)) {
+            if (date == null) {
+                return false;
+            }
+            if (filterDTO.getStartDate() != null && date.before(filterDTO.getStartDate())) {
+                return false;
+            }
+            if (adjustedEndDate != null && date.after(adjustedEndDate)) {
                 return false;
             }
         }

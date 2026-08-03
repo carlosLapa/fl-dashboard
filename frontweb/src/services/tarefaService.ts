@@ -18,7 +18,6 @@ import {
   getTarefaWithUsersAPI,
   updateTarefaAPI,
   updateTarefaStatusAPI,
-  getTarefasByDateRangeAPI,
 } from 'api/requestsApi';
 import { ColunaWithProjetoDTO } from 'types/coluna';
 
@@ -426,73 +425,6 @@ export const updateTarefaStatus = async (
     }
 
     throw error;
-  }
-};
-
-export const getTarefasByDateRange = async (
-  dateField: string,
-  startDate: string,
-  endDate: string,
-  page: number = 0,
-  size: number = 10
-) => {
-  try {
-    const response = await getTarefasByDateRangeAPI(
-      dateField,
-      startDate,
-      endDate,
-      page,
-      size
-    );
-    if (Array.isArray(response)) {
-      const tarefasWithWorkingDays = response.map((tarefa: any) => {
-        if (tarefa.prazoEstimado && tarefa.prazoReal) {
-          return {
-            ...tarefa,
-            workingDays: calculateWorkingDays(
-              tarefa.prazoEstimado,
-              tarefa.prazoReal
-            ),
-          };
-        }
-        return tarefa;
-      });
-      return {
-        content: tarefasWithWorkingDays,
-        totalPages: Math.ceil(tarefasWithWorkingDays.length / size),
-        totalElements: tarefasWithWorkingDays.length,
-        size: size,
-        number: page,
-      };
-    }
-    if (response.content) {
-      const tarefasWithWorkingDays = response.content.map((tarefa: any) => {
-        if (tarefa.prazoEstimado && tarefa.prazoReal) {
-          return {
-            ...tarefa,
-            workingDays: calculateWorkingDays(
-              tarefa.prazoEstimado,
-              tarefa.prazoReal
-            ),
-          };
-        }
-        return tarefa;
-      });
-      return {
-        ...response,
-        content: tarefasWithWorkingDays,
-      };
-    }
-    return response;
-  } catch (error) {
-    console.error('Error fetching tarefas by date range:', error);
-    return {
-      content: [],
-      totalPages: 0,
-      totalElements: 0,
-      size: size,
-      number: page,
-    };
   }
 };
 

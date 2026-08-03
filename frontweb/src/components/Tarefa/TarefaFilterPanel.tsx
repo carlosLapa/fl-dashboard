@@ -1,5 +1,7 @@
 import React from 'react';
-import { Form, Col } from 'react-bootstrap';
+import { Form, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { TarefaFilterState } from '../../types/filters';
 import BaseFilterPanel from '../common/BaseFilterPanel';
 import ProjetoSelect from '../../components/ProjetoSelect';
@@ -30,11 +32,18 @@ const PRIORIDADE_OPTIONS = [
   { value: 'Baixa', label: 'Baixa' },
 ];
 
-const DATE_FIELD_OPTIONS = [
-  { value: 'prazoEstimado', label: 'Prazo Estimado' },
-  { value: 'dataCriacao', label: 'Data de Criação' },
-  { value: 'dataAtualizacao', label: 'Data de Atualização' },
-];
+const FieldHelpIcon: React.FC<{ id: string; text: string }> = ({
+  id,
+  text,
+}) => (
+  <OverlayTrigger placement="top" overlay={<Tooltip id={id}>{text}</Tooltip>}>
+    <FontAwesomeIcon
+      icon={faInfoCircle}
+      className="ms-1 text-muted"
+      style={{ cursor: 'help' }}
+    />
+  </OverlayTrigger>
+);
 
 const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
   filters,
@@ -57,8 +66,8 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
     }
   };
 
-  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
-    return value && value !== '' && key !== 'dateFilterField';
+  const activeFiltersCount = Object.entries(filters).filter(([, value]) => {
+    return value && value !== '';
   }).length;
 
   return (
@@ -130,24 +139,13 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
 
       <Col md={6} lg={4}>
         <Form.Group>
-          <Form.Label>Campo de Data</Form.Label>
-          <Form.Select
-            value={filters.dateFilterField}
-            onChange={(e) => updateFilter('dateFilterField', e.target.value)}
-            onKeyDown={handleSelectKeyDown}
-          >
-            {DATE_FIELD_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
-      </Col>
-
-      <Col md={6} lg={4}>
-        <Form.Group>
-          <Form.Label>Data Inicial</Form.Label>
+          <Form.Label>
+            Prazo - Data Inicial
+            <FieldHelpIcon
+              id="tooltip-prazo-data-inicial"
+              text="Mostra todas as tarefas cujo Prazo Real seja igual ou posterior a essa data (sem limite superior)"
+            />
+          </Form.Label>
           <Form.Control
             type="date"
             value={filters.startDate}
@@ -157,7 +155,13 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
       </Col>
       <Col md={6} lg={4}>
         <Form.Group>
-          <Form.Label>Data Final</Form.Label>
+          <Form.Label>
+            Prazo - Data Final
+            <FieldHelpIcon
+              id="tooltip-prazo-data-final"
+              text="Mostra todas as tarefas cujo Prazo Real seja igual ou anterior a essa data (sem limite inferior; o próprio dia da data final fica incluído)"
+            />
+          </Form.Label>
           <Form.Control
             type="date"
             value={filters.endDate}

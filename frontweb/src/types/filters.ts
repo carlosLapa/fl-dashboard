@@ -29,9 +29,8 @@ export interface TarefaFilterState extends BaseFilterState {
   status: string;
   prioridade: string;
   projetoId: string;
-  startDate: string;
-  endDate: string;
-  dateFilterField: string; // 'prazoEstimado' | 'dataCriacao' | 'dataAtualizacao'
+  startDate: string; // Prazo Real - data inicial
+  endDate: string; // Prazo Real - data final
 }
 
 // User filter state (for possible future use)

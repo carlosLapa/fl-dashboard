@@ -8,7 +8,6 @@ const initialFilters: TarefaFilterState = {
   projetoId: '',
   startDate: '',
   endDate: '',
-  dateFilterField: 'prazoEstimado', // Default to filter by deadline
 };
 
 export const useTarefaFilters = () => {
@@ -25,8 +24,8 @@ export const useTarefaFilters = () => {
 
   const applyFilters = useCallback(() => {
     // Check if any filter is active
-    const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-      return value && value !== '' && key !== 'dateFilterField';
+    const hasActiveFilters = Object.entries(filters).some(([, value]) => {
+      return value && value !== '';
     });
 
     setIsFiltered(hasActiveFilters);
