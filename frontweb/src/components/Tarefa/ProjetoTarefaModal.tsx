@@ -320,13 +320,17 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
               <Col xs={12} md={6}>
                 <Form.Group controlId="formPrioridade" className="mb-3">
                   <Form.Label>Prioridade</Form.Label>
-                  <Form.Control
-                    type="text"
+                  <Form.Select
                     name="prioridade"
                     value={formData.prioridade}
                     onChange={handleInputChange}
-                    placeholder="Urgente, Alta, Média, Baixa"
-                  />
+                  >
+                    <option value="">Selecionar...</option>
+                    <option value="Urgente">Urgente</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Média">Média</option>
+                    <option value="Baixa">Baixa</option>
+                  </Form.Select>
                 </Form.Group>
               </Col>
               <Col xs={12} md={6}>
