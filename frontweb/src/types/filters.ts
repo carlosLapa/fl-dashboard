@@ -47,6 +47,14 @@ export interface ClienteFilterState extends BaseFilterState {
   morada?: string;
 }
 
+// UserTarefaTable filter state (client-side only - table already has all rows loaded)
+export interface UserTarefaFilterState extends BaseFilterState {
+  descricao?: string;
+  status?: string;
+  prioridade?: string;
+  projeto?: string;
+}
+
 // Proposta filter state (sorting - clientes é client-side)
 export interface PropostaFilterState extends BaseFilterState {
   sortField?:

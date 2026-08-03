@@ -3,6 +3,7 @@ import {
   BaseFilterState,
   ProjetoFilterState,
   ClienteFilterState,
+  UserTarefaFilterState,
 } from '../types/filters';
 import secureStorage from '../auth/secureStorage';
 
@@ -21,6 +22,13 @@ const defaultClienteFilterState: ClienteFilterState = {
   name: '',
   nif: '',
   morada: '',
+};
+
+const defaultUserTarefaFilterState: UserTarefaFilterState = {
+  descricao: '',
+  status: '',
+  prioridade: '',
+  projeto: '',
 };
 
 export function useFilterState<T extends BaseFilterState>(
@@ -143,4 +151,9 @@ export function useClienteFilters() {
     defaultClienteFilterState,
     'cliente-filters' // Storage key for cliente filters
   );
+}
+
+// Convenience hook for UserTarefaTable filters (client-side, no storage persistence)
+export function useUserTarefaFilters() {
+  return useFilterState<UserTarefaFilterState>(defaultUserTarefaFilterState);
 }

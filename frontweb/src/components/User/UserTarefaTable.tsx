@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import Table from 'react-bootstrap/Table';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
+import UserTarefaFilterPanel from './UserTarefaFilterPanel';
+import { useUserTarefaFilters } from '../../hooks/useFilterState';
 import './userTarefaTable.scss';
 
 interface UserTarefaTableProps {
@@ -18,8 +20,49 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
   onEditTarefa,
   onDeleteTarefa,
 }) => {
+  const [showFilters, setShowFilters] = useState(false);
+  const { filters, appliedFilters, isFiltered, updateFilter, applyFilters, clearFilters } =
+    useUserTarefaFilters();
+
+  const filteredTarefas = useMemo(() => {
+    if (!isFiltered) return tarefas;
+
+    const descricao = appliedFilters.descricao?.toLowerCase().trim();
+    const projeto = appliedFilters.projeto?.toLowerCase().trim();
+
+    return tarefas.filter((tarefa) => {
+      if (descricao && !tarefa.descricao?.toLowerCase().includes(descricao)) {
+        return false;
+      }
+      if (appliedFilters.status && tarefa.status !== appliedFilters.status) {
+        return false;
+      }
+      if (
+        appliedFilters.prioridade &&
+        tarefa.prioridade !== appliedFilters.prioridade
+      ) {
+        return false;
+      }
+      if (
+        projeto &&
+        !tarefa.projeto?.designacao?.toLowerCase().includes(projeto)
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [tarefas, appliedFilters, isFiltered]);
+
   return (
     <div className="tarefa-table-container">
+      <UserTarefaFilterPanel
+        filters={filters}
+        updateFilter={updateFilter}
+        onApplyFilters={applyFilters}
+        onClearFilters={clearFilters}
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+      />
       <div className="table-responsive">
         <Table striped bordered hover className="tarefa-table">
           <thead>
@@ -35,8 +78,8 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {tarefas.length > 0 ? (
-              tarefas.map((tarefa) => (
+            {filteredTarefas.length > 0 ? (
+              filteredTarefas.map((tarefa) => (
                 <tr key={tarefa.id}>
                   <td>{tarefa.descricao}</td>
                   <td className="d-none d-md-table-cell">{tarefa.status}</td>
@@ -96,7 +139,9 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
             ) : (
               <tr>
                 <td colSpan={8} className="text-center">
-                  Não existem tarefas para este utilizador
+                  {isFiltered
+                    ? 'Nenhuma tarefa corresponde aos filtros aplicados'
+                    : 'Não existem tarefas para este utilizador'}
                 </td>
               </tr>
             )}
