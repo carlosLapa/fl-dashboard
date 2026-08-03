@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
   Row,
@@ -25,11 +25,12 @@ import { useNotification } from 'NotificationContext';
 import BackButton from 'components/Shared/BackButton/BackButton';
 import ProjetoExternosManager from 'components/Projeto/ProjetoExternosManager';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faColumns } from '@fortawesome/free-solid-svg-icons';
 import './projetoDetailsPage.scss';
 
 const ProjetoDetailsPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
+  const navigate = useNavigate();
   const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
     null
   );
@@ -146,9 +147,20 @@ const ProjetoDetailsPage: React.FC = () => {
           <div className="me-2">
             <BackButton to="/projetos" />
           </div>
-          <Button variant="primary" onClick={() => setShowTarefaModal(true)}>
+          <Button
+            variant="primary"
+            className="me-2"
+            onClick={() => setShowTarefaModal(true)}
+          >
             <FontAwesomeIcon icon={faPlus} className="me-2" />
             Nova Tarefa
+          </Button>
+          <Button
+            variant="outline-primary"
+            onClick={() => navigate(`/projetos/${projetoId}/full`)}
+          >
+            <FontAwesomeIcon icon={faColumns} className="me-2" />
+            Kanban
           </Button>
         </div>
       </div>
