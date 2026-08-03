@@ -192,6 +192,7 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
                   value={formData.designacao}
                   onChange={handleInputChange}
                   required
+                  maxLength={255}
                 />
                 <Form.Control.Feedback type="invalid">
                   Por favor, insira a designação da proposta.
@@ -248,6 +249,7 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
               name="observacao"
               value={formData.observacao}
               onChange={handleInputChange}
+              maxLength={5000}
             />
           </Form.Group>
           <Row className="mb-3">
