@@ -10,6 +10,10 @@ interface AddUserModalProps {
   onUserSaved: (savedUser: User) => void;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type FormErrors = Partial<Record<'name' | 'email' | 'password', string>>;
+
 const AddUserModal: React.FC<AddUserModalProps> = ({
   show,
   onHide,
@@ -25,6 +29,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
     profileImage: '',
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     // Reset formData and profileImage when the modal is opened
@@ -39,6 +44,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
         profileImage: '',
       });
       setProfileImage(null);
+      setErrors({});
     }
   }, [show]);
 
@@ -57,7 +63,34 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
     setProfileImage(file || null);
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Nome é obrigatório';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+    } else if (!EMAIL_REGEX.test(formData.email.trim())) {
+      newErrors.email = 'Email inválido';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password é obrigatória';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password deve ter pelo menos 6 caracteres';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     const formDataObj = new FormData();
 
     // Append all form data except profileImage
@@ -95,7 +128,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               name="name"
               value={formData.name}
               onChange={handleInputChange}
+              maxLength={255}
+              isInvalid={!!errors.name}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.name}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formFuncao">
@@ -105,6 +143,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               name="funcao"
               value={formData.funcao}
               onChange={handleInputChange}
+              maxLength={255}
             />
           </Form.Group>
 
@@ -115,6 +154,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               name="cargo"
               value={formData.cargo}
               onChange={handleInputChange}
+              maxLength={255}
             />
           </Form.Group>
 
@@ -125,7 +165,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               name="email"
               value={formData.email}
               onChange={handleInputChange}
+              maxLength={255}
+              isInvalid={!!errors.email}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.email}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formPassword">
@@ -135,7 +180,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
               name="password"
               value={formData.password}
               onChange={handleInputChange}
+              maxLength={100}
+              isInvalid={!!errors.password}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.password}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formProfileImage">

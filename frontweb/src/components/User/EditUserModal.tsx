@@ -11,6 +11,10 @@ interface EditUserModalProps {
   onUserSaved: (savedUser: User) => void;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type FormErrors = Partial<Record<'name' | 'email', string>>;
+
 const EditUserModal: React.FC<EditUserModalProps> = ({
   show,
   onHide,
@@ -27,6 +31,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     profileImage: '',
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (user) {
@@ -44,6 +49,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         profileImage: formattedProfileImage || user.profileImage,
       });
       setProfileImage(null);
+      setErrors({});
     }
   }, [user]);
 
@@ -59,7 +65,28 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     setProfileImage(file || null);
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Nome é obrigatório';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+    } else if (!EMAIL_REGEX.test(formData.email.trim())) {
+      newErrors.email = 'Email inválido';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     const formDataObj = new FormData();
 
     // Append all form data except profileImage
@@ -109,7 +136,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               name="name"
               value={formData.name}
               onChange={handleInputChange}
+              maxLength={255}
+              isInvalid={!!errors.name}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.name}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formFuncao">
@@ -119,6 +151,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               name="funcao"
               value={formData.funcao}
               onChange={handleInputChange}
+              maxLength={255}
             />
           </Form.Group>
 
@@ -129,6 +162,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               name="cargo"
               value={formData.cargo}
               onChange={handleInputChange}
+              maxLength={255}
             />
           </Form.Group>
 
@@ -139,7 +173,12 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
               name="email"
               value={formData.email}
               onChange={handleInputChange}
+              maxLength={255}
+              isInvalid={!!errors.email}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.email}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formProfileImage">
