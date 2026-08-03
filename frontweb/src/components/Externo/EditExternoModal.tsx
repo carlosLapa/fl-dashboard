@@ -23,6 +23,11 @@ interface EspecialidadeOption {
   label: string;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TELEMOVEL_REGEX = /^[\d\s+()-]{9,20}$/;
+
+type FormErrors = Partial<Record<'name' | 'email' | 'telemovel' | 'preco', string>>;
+
 const EditExternoModal: React.FC<EditExternoModalProps> = ({
   show,
   onHide,
@@ -38,6 +43,7 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
     faseProjeto: 'LICENCIAMENTO',
     especialidades: [],
   });
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (externo) {
@@ -50,6 +56,7 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
         faseProjeto: externo.faseProjeto,
         especialidades: externo.especialidades,
       });
+      setErrors({});
     }
   }, [externo]);
 
@@ -89,8 +96,34 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
     }));
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Nome é obrigatório';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email é obrigatório';
+    } else if (!EMAIL_REGEX.test(formData.email.trim())) {
+      newErrors.email = 'Email inválido';
+    }
+
+    if (formData.telemovel && !TELEMOVEL_REGEX.test(formData.telemovel.trim())) {
+      newErrors.telemovel = 'Telemóvel inválido';
+    }
+
+    if (formData.preco < 0) {
+      newErrors.preco = 'Preço não pode ser negativo';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
     if (!externo) return;
+    if (!validateForm()) return;
 
     try {
       const updateData: ExternoUpdateDTO = {
@@ -149,7 +182,12 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
               value={formData.name}
               onChange={handleInputChange}
               required
+              maxLength={255}
+              isInvalid={!!errors.name}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.name}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formEmail" className="mb-3">
@@ -160,7 +198,12 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
               value={formData.email}
               onChange={handleInputChange}
               required
+              maxLength={255}
+              isInvalid={!!errors.email}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.email}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formTelemovel" className="mb-3">
@@ -170,7 +213,12 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
               name="telemovel"
               value={formData.telemovel}
               onChange={handleInputChange}
+              maxLength={20}
+              isInvalid={!!errors.telemovel}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.telemovel}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formPreco" className="mb-3">
@@ -182,7 +230,11 @@ const EditExternoModal: React.FC<EditExternoModalProps> = ({
               onChange={handleInputChange}
               min="0"
               step="0.01"
+              isInvalid={!!errors.preco}
             />
+            <Form.Control.Feedback type="invalid">
+              {errors.preco}
+            </Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group controlId="formFaseProjeto" className="mb-3">
