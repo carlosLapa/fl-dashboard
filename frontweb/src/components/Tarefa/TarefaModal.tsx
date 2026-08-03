@@ -486,6 +486,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     value={formData.descricao}
                     onChange={handleInputChange}
                     required
+                    maxLength={255}
                   />
                 </Form.Group>
               </Col>
@@ -746,6 +747,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                                           as="textarea"
                                           rows={2}
                                           placeholder="Descrição da subtarefa (opcional)"
+                                          maxLength={255}
                                           value={
                                             subtarefaDescricoes[u.id] || ''
                                           }
@@ -793,6 +795,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                                         as="textarea"
                                         rows={2}
                                         placeholder="Descrição da subtarefa (opcional)"
+                                        maxLength={255}
                                         value={
                                           subtarefaDescricoes[
                                             tarefaUser.id
@@ -906,6 +909,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                                             as="textarea"
                                             rows={2}
                                             className="mt-1"
+                                            maxLength={255}
                                             value={editingDescricao}
                                             onChange={(e) =>
                                               setEditingDescricao(

@@ -312,6 +312,7 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
                     value={formData.descricao}
                     onChange={handleInputChange}
                     required
+                    maxLength={255}
                   />
                 </Form.Group>
               </Col>
