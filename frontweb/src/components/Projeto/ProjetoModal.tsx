@@ -332,6 +332,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   value={formData.designacao}
                   onChange={handleInputChange}
                   required
+                  maxLength={255}
                 />
                 <Form.Control.Feedback type="invalid">
                   Por favor, insira a designação do projeto.
@@ -370,6 +371,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               name="observacao"
               value={formData.observacao}
               onChange={handleInputChange}
+              maxLength={5000}
             />
           </Form.Group>
           <Row className="mb-3">
