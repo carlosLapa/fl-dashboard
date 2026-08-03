@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
+import {
+  TarefaWithUserAndProjetoDTO,
+  TarefaUpdateFormData,
+  TarefaStatus,
+} from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
 import { User } from '../../types/user';
 import { ClienteDTO } from '../../types/cliente';
@@ -10,6 +14,13 @@ import {
   searchUsers,
 } from '../../services/searchService';
 import { searchClientes } from '../../services/clienteService';
+import {
+  updateTarefa,
+  updateTarefaStatus,
+  calculateWorkingDays,
+} from '../../services/tarefaService';
+import { useNotification } from '../../hooks/useNotification';
+import TarefaModal from '../../components/Tarefa/TarefaModal';
 import { Button, Row, Col } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import './styles.scss';
@@ -26,37 +37,91 @@ const SearchResults: React.FC = () => {
   }>({ tarefas: [], projetos: [], users: [], clientes: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTarefaModal, setShowTarefaModal] = useState(false);
+  const [tarefaToEdit, setTarefaToEdit] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
+  const { sendNotification } = useNotification();
+
+  const fetchSearchResults = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const results = await Promise.all([
+        searchTarefas(query),
+        searchProjetos(query),
+        searchUsers(query),
+        searchClientes(query),
+      ]);
+      setResults({
+        tarefas: results[0],
+        projetos: results[1],
+        users: results[2],
+        clientes: results[3],
+      });
+    } catch (err) {
+      setError('Failed to fetch search results. Please try again.');
+      toast.error('Search operation failed. Please try again later.');
+      console.error('Search error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSearchResults = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const results = await Promise.all([
-          searchTarefas(query),
-          searchProjetos(query),
-          searchUsers(query),
-          searchClientes(query),
-        ]);
-        setResults({
-          tarefas: results[0],
-          projetos: results[1],
-          users: results[2],
-          clientes: results[3],
-        });
-      } catch (err) {
-        setError('Failed to fetch search results. Please try again.');
-        toast.error('Search operation failed. Please try again later.');
-        console.error('Search error:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (query) {
       fetchSearchResults();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  const handleEditTarefa = (tarefa: TarefaWithUserAndProjetoDTO) => {
+    setTarefaToEdit(tarefa);
+    setShowTarefaModal(true);
+  };
+
+  const handleUpdateTarefa = async (
+    formData: TarefaUpdateFormData
+  ) => {
+    try {
+      if (formData.prazoEstimado && formData.prazoReal) {
+        formData = {
+          ...formData,
+          workingDays: calculateWorkingDays(
+            formData.prazoEstimado,
+            formData.prazoReal
+          ),
+        };
+      }
+      await updateTarefa(formData.id, formData, sendNotification);
+      setShowTarefaModal(false);
+      setTarefaToEdit(null);
+      toast.success('Tarefa atualizada com sucesso!');
+      await fetchSearchResults();
+    } catch (err) {
+      console.error('Erro ao atualizar tarefa:', err);
+      if (err instanceof Error && err.message.includes('prazo')) {
+        toast.error(err.message);
+      } else {
+        toast.error('Erro ao atualizar tarefa');
+        setShowTarefaModal(false);
+      }
+    }
+  };
+
+  const handleTarefaStatusChange = async (
+    tarefaId: number,
+    newStatus: TarefaStatus
+  ) => {
+    try {
+      const tarefa = results.tarefas.find((t) => t.id === tarefaId);
+      await updateTarefaStatus(tarefaId, newStatus, sendNotification, tarefa);
+      toast.success('Status da tarefa atualizado com sucesso!');
+      await fetchSearchResults();
+    } catch (err) {
+      console.error('Erro ao atualizar status da tarefa:', err);
+      toast.error('Erro ao atualizar status da tarefa');
+    }
+  };
 
   if (error) {
     return (
@@ -169,9 +234,7 @@ const SearchResults: React.FC = () => {
                           <div
                             key={tarefa.id}
                             className="card mb-2 hover-shadow cursor-pointer search-card"
-                            onClick={() =>
-                              navigate(`/projetos/${tarefa.projeto?.id}/full`)
-                            }
+                            onClick={() => handleEditTarefa(tarefa)}
                           >
                             <div className="card-body">
                               <h5 className="mb-2">{tarefa.descricao}</h5>
@@ -222,6 +285,19 @@ const SearchResults: React.FC = () => {
           </>
         )}
       </div>
+      <TarefaModal
+        show={showTarefaModal}
+        onHide={() => {
+          setShowTarefaModal(false);
+          setTarefaToEdit(null);
+        }}
+        onSave={(formData) =>
+          handleUpdateTarefa(formData as TarefaUpdateFormData)
+        }
+        onStatusChange={handleTarefaStatusChange}
+        isEditing={true}
+        tarefa={tarefaToEdit}
+      />
     </div>
   );
 };
