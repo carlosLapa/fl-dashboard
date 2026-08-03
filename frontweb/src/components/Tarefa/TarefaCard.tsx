@@ -20,6 +20,7 @@ import './styles.scss';
 interface TarefaCardProps {
   tarefa: KanbanTarefa;
   index: number;
+  onClick?: (tarefa: KanbanTarefa) => void;
 }
 
 const getStatusColor = (status: TarefaStatus) => {
@@ -68,7 +69,7 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-PT');
 };
 
-const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
+const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index, onClick }) => {
   // Cast to our extended interface that includes project deadline
   const tarefaWithPrazo = tarefa as KanbanTarefaWithProjectDeadline;
   const deadlineStatus = getDeadlineStatus(
@@ -85,6 +86,7 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index }) => {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
+          onClick={() => onClick?.(tarefa)}
           style={{
             userSelect: 'none',
             padding: '12px',

@@ -1,14 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
-import { KanbanTarefa, TarefaStatus } from '../../types/tarefa';
+import TarefaModal from './TarefaModal';
+import {
+  KanbanTarefa,
+  TarefaStatus,
+  TarefaUpdateFormData,
+  TarefaWithUserAndProjetoDTO,
+} from '../../types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
 import axios from 'axios';
 import {
   getTarefaWithUsers,
   getColumnsForProject,
+  updateTarefa,
   updateTarefaStatus,
   getTarefaWithUsersAndProjeto,
+  calculateWorkingDays as calculateWorkingDaysStr,
 } from 'services/tarefaService';
 import { ColunaWithProjetoDTO } from '../../types/coluna';
 import { Spinner, Alert } from 'react-bootstrap';
@@ -99,9 +107,11 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [projectDeleted, setProjectDeleted] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [tarefaToEdit, setTarefaToEdit] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
 
-  useEffect(() => {
-    const fetchColumnsAndTarefas = async () => {
+  const fetchColumnsAndTarefas = useCallback(async () => {
       setIsLoading(true);
 
       // Diagnóstico: Verificar como o objeto projeto está chegando
@@ -289,10 +299,73 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchColumnsAndTarefas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projeto]);
+
+  useEffect(() => {
+    fetchColumnsAndTarefas();
+  }, [fetchColumnsAndTarefas]);
+
+  const handleCardClick = async (tarefa: KanbanTarefa) => {
+    try {
+      const fullTarefa = await getTarefaWithUsersAndProjeto(tarefa.id);
+      setTarefaToEdit(fullTarefa);
+      setShowEditModal(true);
+    } catch (error) {
+      console.error('Erro ao carregar dados da tarefa:', error);
+      toast.error('Erro ao carregar dados da tarefa');
+    }
+  };
+
+  const handleTarefaModalStatusChange = async (
+    tarefaId: number,
+    newStatus: TarefaStatus
+  ) => {
+    try {
+      await updateTarefaStatus(
+        tarefaId,
+        newStatus,
+        async (notification) => {
+          sendNotification(notification);
+          return Promise.resolve();
+        },
+        tarefaToEdit ?? undefined
+      );
+    } catch (error) {
+      console.error('Erro ao atualizar status da tarefa:', error);
+      toast.error('Erro ao atualizar status da tarefa');
+    }
+  };
+
+  const handleSaveTarefaEdit = async (formData: TarefaUpdateFormData) => {
+    try {
+      if (formData.prazoEstimado && formData.prazoReal) {
+        formData = {
+          ...formData,
+          workingDays: calculateWorkingDaysStr(
+            formData.prazoEstimado,
+            formData.prazoReal
+          ),
+        };
+      }
+      await updateTarefa(formData.id, formData, async (notification) => {
+        sendNotification(notification);
+        return Promise.resolve();
+      });
+      setShowEditModal(false);
+      setTarefaToEdit(null);
+      toast.success('Tarefa atualizada com sucesso!');
+      await fetchColumnsAndTarefas();
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
+      if (error instanceof Error && error.message.includes('prazo')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Erro ao atualizar tarefa');
+        setShowEditModal(false);
+      }
+    }
+  };
 
   const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
@@ -501,11 +574,26 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
                   (columnId === 'DONE' &&
                     hasPermission(Permission.MOVE_CARD_TO_DONE))
                 }
+                onCardClick={handleCardClick}
               />
             );
           })}
         </div>
       </DragDropContext>
+
+      <TarefaModal
+        show={showEditModal}
+        onHide={() => {
+          setShowEditModal(false);
+          setTarefaToEdit(null);
+        }}
+        onSave={(formData) =>
+          handleSaveTarefaEdit(formData as TarefaUpdateFormData)
+        }
+        onStatusChange={handleTarefaModalStatusChange}
+        isEditing={true}
+        tarefa={tarefaToEdit}
+      />
     </div>
   );
 };

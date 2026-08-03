@@ -10,6 +10,7 @@ interface TarefaColumnProps {
   tarefas: KanbanTarefa[];
   columnTitle: string;
   canDrop?: boolean;
+  onCardClick?: (tarefa: KanbanTarefa) => void;
 }
 
 const TarefaColumn: React.FC<TarefaColumnProps> = ({
@@ -17,6 +18,7 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({
   tarefas = [], // Valor padrão para quando tarefas for undefined
   columnTitle,
   canDrop = true,
+  onCardClick,
 }) => {
   // Get column background color based on status
   const getColumnHeaderColor = (status: TarefaStatus) => {
@@ -72,6 +74,7 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({
                   key={tarefa.uniqueId}
                   tarefa={tarefa}
                   index={index}
+                  onClick={onCardClick}
                 />
               ))
             ) : (
