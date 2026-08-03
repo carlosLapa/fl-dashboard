@@ -5,6 +5,7 @@ import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ClienteDTO, ClienteInsertDTO } from 'types/cliente';
 import { createClienteAPI } from 'api/clienteApi';
 import { toast } from 'react-toastify';
+import { EMAIL_REGEX, isValidNIF } from 'utils/validation';
 
 interface AddClienteModalProps {
   show: boolean;
@@ -31,8 +32,10 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
   const [newContacto, setNewContacto] = useState('');
   const [newResponsavel, setNewResponsavel] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newEmailError, setNewEmailError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [nifError, setNifError] = useState<string | null>(null);
 
   useEffect(() => {
     if (show) {
@@ -50,7 +53,9 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
       setNewContacto('');
       setNewResponsavel('');
       setNewEmail('');
+      setNewEmailError(null);
       setError(null);
+      setNifError(null);
     }
   }, [show]);
 
@@ -127,17 +132,25 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
   };
 
   const handleAddEmail = () => {
-    if (newEmail.trim()) {
-      if (formData.emails.includes(newEmail.trim())) {
-        setNewEmail('');
-        return;
-      }
-      setFormData((prev) => ({
-        ...prev,
-        emails: [...prev.emails, newEmail.trim()],
-      }));
-      setNewEmail('');
+    const trimmedEmail = newEmail.trim();
+    if (!trimmedEmail) {
+      return;
     }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setNewEmailError('Email inválido');
+      return;
+    }
+    if (formData.emails.includes(trimmedEmail)) {
+      setNewEmail('');
+      setNewEmailError(null);
+      return;
+    }
+    setFormData((prev) => ({
+      ...prev,
+      emails: [...prev.emails, trimmedEmail],
+    }));
+    setNewEmail('');
+    setNewEmailError(null);
   };
 
   const handleRemoveEmail = (index: number) => {
@@ -148,6 +161,8 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
   };
 
   const handleSave = async () => {
+    setNifError(null);
+
     // Validate required fields
     if (!formData.name || !formData.morada || !formData.nif) {
       setError('Por favor, preencha os campos obrigatórios.');
@@ -157,6 +172,11 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
     // Validate numero
     if (!formData.numero || formData.numero <= 0) {
       setError('Número deve ser um valor inteiro positivo.');
+      return;
+    }
+
+    if (!isValidNIF(formData.nif.trim())) {
+      setNifError('NIF inválido. Deve ter 9 dígitos e um dígito de controlo válido.');
       return;
     }
 
@@ -269,6 +289,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
               value={formData.name}
               onChange={handleInputChange}
               required
+              maxLength={255}
             />
           </Form.Group>
 
@@ -282,6 +303,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
               value={formData.morada}
               onChange={handleInputChange}
               required
+              maxLength={255}
             />
           </Form.Group>
           <Form.Group controlId="formNIF" className="mb-3">
@@ -294,7 +316,13 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
               value={formData.nif}
               onChange={handleInputChange}
               required
+              maxLength={9}
+              isInvalid={!!nifError}
+              placeholder="9 dígitos"
             />
+            <Form.Control.Feedback type="invalid">
+              {nifError}
+            </Form.Control.Feedback>
           </Form.Group>
           <Form.Group controlId="formContacto" className="mb-3">
             <Form.Label className="primary-field">
@@ -306,6 +334,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
               value={formData.contacto}
               onChange={handleInputChange}
               placeholder="Contacto principal (opcional)"
+              maxLength={255}
             />
             <Form.Text className="text-muted">
               Este contacto será adicionado à lista de contactos.
@@ -319,6 +348,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
                 value={newContacto}
                 onChange={(e) => setNewContacto(e.target.value)}
                 placeholder="Adicionar contacto"
+                maxLength={255}
                 onKeyPress={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), handleAddContacto())
                 }
@@ -360,6 +390,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
               value={formData.responsavel}
               onChange={handleInputChange}
               placeholder="Responsável principal (opcional)"
+              maxLength={255}
             />
             <Form.Text className="text-muted">
               Este responsável será adicionado à lista de responsáveis.
@@ -373,6 +404,7 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
                 value={newResponsavel}
                 onChange={(e) => setNewResponsavel(e.target.value)}
                 placeholder="Adicionar responsável"
+                maxLength={255}
                 onKeyPress={(e) =>
                   e.key === 'Enter' &&
                   (e.preventDefault(), handleAddResponsavel())
@@ -414,8 +446,13 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
               <Form.Control
                 type="email"
                 value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
+                onChange={(e) => {
+                  setNewEmail(e.target.value);
+                  setNewEmailError(null);
+                }}
                 placeholder="Adicionar email"
+                maxLength={255}
+                isInvalid={!!newEmailError}
                 onKeyPress={(e) =>
                   e.key === 'Enter' && (e.preventDefault(), handleAddEmail())
                 }
@@ -424,6 +461,9 @@ const AddClienteModal: React.FC<AddClienteModalProps> = ({
                 <FontAwesomeIcon icon={faPlus} />
               </Button>
             </InputGroup>
+            {newEmailError && (
+              <div className="text-danger small mb-2">{newEmailError}</div>
+            )}
             <ListGroup className="mb-3">
               {formData.emails.map((email, index) => (
                 <ListGroup.Item
