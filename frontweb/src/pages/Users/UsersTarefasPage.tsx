@@ -19,7 +19,7 @@ import { useUserTarefaFilters } from 'hooks/useFilterState';
 import { toast } from 'react-toastify';
 import './userStyles.scss';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();
