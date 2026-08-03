@@ -222,7 +222,7 @@ export const searchClientesAPI = async (
   query: string
 ): Promise<ClienteDTO[]> => {
   try {
-    const response = await axios.get(`/clientes/search?query=${query}`);
+    const response = await axios.get('/clientes/search', { params: { query } });
     return response.data;
   } catch (error) {
     console.error('Error searching clientes:', error);

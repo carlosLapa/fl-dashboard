@@ -211,7 +211,7 @@ export const searchExternosAPI = async (
   query: string
 ): Promise<ExternoDTO[]> => {
   try {
-    const response = await axios.get(`/externos/search?query=${query}`);
+    const response = await axios.get('/externos/search', { params: { query } });
     return response.data;
   } catch (error) {
     console.error('Error searching externos:', error);

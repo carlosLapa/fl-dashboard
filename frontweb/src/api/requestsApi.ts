@@ -213,20 +213,15 @@ export const searchProjetosAPI = async (
   direction?: 'ASC' | 'DESC'
 ) => {
   try {
-    let endpoint =
-      status && status !== 'ALL'
-        ? `/projetos/search?query=${query}&status=${status}&page=${page}&size=${size}`
-        : `/projetos/search?query=${query}&page=${page}&size=${size}`;
-
-    // Add sort parameters
+    const params: Record<string, string | number> = { query, page, size };
+    if (status && status !== 'ALL') {
+      params.status = status;
+    }
     if (sort) {
-      endpoint += `&sort=${sort},${direction || 'ASC'}`;
+      params.sort = `${sort},${direction || 'ASC'}`;
     }
 
-    console.log('Searching projects with endpoint:', endpoint);
-
-    const response = await axios.get(endpoint);
-    console.log('Raw search response:', response.data);
+    const response = await axios.get('/projetos/search', { params });
 
     // Handle both array response and paginated response
     if (Array.isArray(response.data)) {
