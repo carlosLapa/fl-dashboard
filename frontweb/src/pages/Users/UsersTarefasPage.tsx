@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getUserById } from 'services/userService';
 import {
@@ -15,7 +15,11 @@ import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import Button from 'react-bootstrap/Button';
 import { useAuth } from '../../AuthContext'; // Add this import
+import { useUserTarefaFilters } from 'hooks/useFilterState';
+import { toast } from 'react-toastify';
 import './userStyles.scss';
+
+const PAGE_SIZE = 10;
 
 const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,13 +28,48 @@ const UsersTarefasPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [tarefas, setTarefas] = useState<TarefaWithUserAndProjetoDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [tasksLoading, setTasksLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showTarefaModal, setShowTarefaModal] = useState(false);
   const [selectedTarefa, setSelectedTarefa] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
+  const {
+    filters,
+    appliedFilters,
+    isFiltered,
+    updateFilter,
+    applyFilters,
+    clearFilters,
+  } = useUserTarefaFilters();
+
+  const fetchTarefas = useCallback(
+    async (parsedUserId: number) => {
+      setTasksLoading(true);
+      try {
+        const userTarefas = await getTarefasWithUsersAndProjetoByUser(
+          parsedUserId,
+          page,
+          PAGE_SIZE,
+          isFiltered ? appliedFilters : undefined
+        );
+        setTarefas(userTarefas.content);
+        setTotalPages(userTarefas.totalPages);
+      } catch (err) {
+        console.error('Error fetching tarefas:', err);
+        toast.error('Erro ao carregar tarefas');
+      } finally {
+        setTasksLoading(false);
+      }
+    },
+    [page, isFiltered, appliedFilters]
+  );
+
+  // Fetch user profile once per userId
   useEffect(() => {
-    const fetchUserAndTarefas = async () => {
+    const fetchUser = async () => {
       try {
         if (!userId || !currentUser) return;
 
@@ -57,12 +96,6 @@ const UsersTarefasPage: React.FC = () => {
           userData = await getUserById(parsedUserId);
         }
 
-        // Fetch tarefas as before
-        const parsedUserId = parseInt(userId, 10);
-        const userTarefas = await getTarefasWithUsersAndProjetoByUser(
-          parsedUserId
-        );
-
         setUser({
           ...userData,
           profileImage:
@@ -70,7 +103,6 @@ const UsersTarefasPage: React.FC = () => {
               ? userData.profileImage
               : '',
         });
-        setTarefas(userTarefas.content);
       } catch (err) {
         setError('Failed to fetch user data or tarefas');
         console.error('Error fetching data:', err);
@@ -78,8 +110,28 @@ const UsersTarefasPage: React.FC = () => {
         setLoading(false);
       }
     };
-    fetchUserAndTarefas();
+    fetchUser();
   }, [userId, currentUser]);
+
+  // Fetch tarefas whenever the user, page or applied filters change
+  useEffect(() => {
+    if (!userId) return;
+    fetchTarefas(parseInt(userId, 10));
+  }, [userId, fetchTarefas]);
+
+  const handleApplyFilters = useCallback(() => {
+    const success = applyFilters();
+    if (!success) {
+      toast.warning('Por favor, preencha pelo menos um filtro para aplicar');
+      return;
+    }
+    setPage(0);
+  }, [applyFilters]);
+
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+    setPage(0);
+  }, [clearFilters]);
 
   const handleNavigateToCalendar = () => {
     navigate(`/user-calendar/${userId}`);
@@ -107,12 +159,10 @@ const UsersTarefasPage: React.FC = () => {
   ) => {
     try {
       if ('id' in formData) {
-        const updatedTarefa = await updateTarefaAPI(formData.id, formData);
-        setTarefas((prevTarefas) =>
-          prevTarefas.map((t) =>
-            t.id === updatedTarefa.id ? updatedTarefa : t
-          )
-        );
+        await updateTarefaAPI(formData.id, formData);
+        if (userId) {
+          await fetchTarefas(parseInt(userId, 10));
+        }
       } else {
         // Handle insert case if needed
         console.log('Insert case not handled in this context');
@@ -224,6 +274,15 @@ const UsersTarefasPage: React.FC = () => {
               tarefas={tarefas}
               onEditTarefa={handleEditTarefa}
               onDeleteTarefa={handleDeleteTarefa}
+              isLoading={tasksLoading}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              filters={filters}
+              updateFilter={updateFilter}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              isFiltered={isFiltered}
             />
           </div>
         </div>

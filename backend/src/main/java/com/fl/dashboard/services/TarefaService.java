@@ -624,6 +624,33 @@ public class TarefaService {
     }
 
     @Transactional(readOnly = true)
+    public Page<TarefaWithUserAndProjetoDTO> findByUserIdWithFilters(
+            Long userId,
+            String descricao,
+            TarefaStatus status,
+            String prioridade,
+            String projetoDesignacao,
+            int page,
+            int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Tarefa> tarefaPage = tarefaRepository.findByUserIdWithFilters(
+                userId, descricao, status, prioridade, projetoDesignacao, pageRequest);
+        if (tarefaPage.isEmpty()) {
+            return Page.empty(pageRequest);
+        }
+        List<TarefaWithUserAndProjetoDTO> dtos = tarefaPage.getContent().stream()
+                .map(tarefa -> {
+                    Hibernate.initialize(tarefa.getUsers());
+                    if (tarefa.getProjeto() != null) {
+                        Hibernate.initialize(tarefa.getProjeto());
+                    }
+                    return new TarefaWithUserAndProjetoDTO(tarefa);
+                })
+                .collect(Collectors.toList());
+        return new PageImpl<>(dtos, pageRequest, tarefaPage.getTotalElements());
+    }
+
+    @Transactional(readOnly = true)
     public Page<TarefaWithUserAndProjetoDTO> findByDateRange(
             String dateField, Date startDate, Date endDate, int page, int size, String userEmail, boolean canViewAll) {
         PageRequest pageRequest = PageRequest.of(page, size);

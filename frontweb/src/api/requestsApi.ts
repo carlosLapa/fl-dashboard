@@ -574,9 +574,17 @@ export const deleteTarefaAPI = async (id: number): Promise<void> => {
 export const getTarefasWithUsersAndProjetoByUser = async (
   userId: number,
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  filters?: {
+    descricao?: string;
+    status?: string;
+    prioridade?: string;
+    projeto?: string;
+  }
 ): Promise<PaginatedTarefas> => {
-  const requestKey = `user_${userId}_page_${page}_size_${size}`;
+  const requestKey = `user_${userId}_page_${page}_size_${size}_${JSON.stringify(
+    filters || {}
+  )}`;
 
   // Check if this exact request is already in progress
   if (requestKey in pendingRequests) {
@@ -592,7 +600,14 @@ export const getTarefasWithUsersAndProjetoByUser = async (
   // of one of them seeing a rejected promise.
   const requestPromise = axios
     .get(`/tarefas/user/${userId}/full`, {
-      params: { page, size },
+      params: {
+        page,
+        size,
+        descricao: filters?.descricao || undefined,
+        status: filters?.status || undefined,
+        prioridade: filters?.prioridade || undefined,
+        projeto: filters?.projeto || undefined,
+      },
     })
     .then((response) => response.data)
     .catch((error) => {

@@ -190,10 +190,16 @@ public class TarefaResource {
     @GetMapping("/user/{userId}/full")
     public ResponseEntity<Page<TarefaWithUserAndProjetoDTO>> getAllUserTasksPaginated(
             @PathVariable Long userId,
+            @RequestParam(required = false) String descricao,
+            @RequestParam(required = false) TarefaStatus status,
+            @RequestParam(required = false) String prioridade,
+            @RequestParam(required = false) String projeto,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        //System.out.println("getAllUserTasksPaginated called for userId: " + userId + ", page: " + page + ", size: " + size);
-        Page<TarefaWithUserAndProjetoDTO> taskPage = tarefaService.findAllActiveByUserIdPaginated(userId, page, size);
+        boolean hasFilters = descricao != null || status != null || prioridade != null || projeto != null;
+        Page<TarefaWithUserAndProjetoDTO> taskPage = hasFilters
+                ? tarefaService.findByUserIdWithFilters(userId, descricao, status, prioridade, projeto, page, size)
+                : tarefaService.findAllActiveByUserIdPaginated(userId, page, size);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
                 .body(taskPage);

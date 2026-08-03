@@ -92,6 +92,19 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
     Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u) " +
+            "AND (:descricao IS NULL OR LOWER(t.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
+            "AND (:status IS NULL OR t.status = :status) " +
+            "AND (:prioridade IS NULL OR LOWER(t.prioridade) = LOWER(:prioridade)) " +
+            "AND (:projetoDesignacao IS NULL OR LOWER(t.projeto.designacao) LIKE LOWER(CONCAT('%', :projetoDesignacao, '%')))")
+    Page<Tarefa> findByUserIdWithFilters(
+            @Param("userId") Long userId,
+            @Param("descricao") String descricao,
+            @Param("status") TarefaStatus status,
+            @Param("prioridade") String prioridade,
+            @Param("projetoDesignacao") String projetoDesignacao,
+            Pageable pageable);
+
     // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
     // pagination (HHH90003004), which loads the whole result set into heap before slicing it.
     @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL " +
