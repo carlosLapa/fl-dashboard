@@ -22,11 +22,7 @@ import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
 import { Projeto, ProjetoMinDTO } from 'types/projeto';
 import { ExternoDTO } from 'types/externo';
-import {
-  getUsersAPI,
-  searchProjetosAPI,
-  getProjetoDetailsAPI,
-} from '../../api/requestsApi';
+import { searchProjetosAPI, getProjetoDetailsAPI } from '../../api/requestsApi';
 import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
@@ -35,6 +31,7 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
 import { dividirSubtarefas } from '../../services/subtarefaService';
+import { getAllUsers } from '../../services/userService';
 
 interface TarefaModalProps {
   show: boolean;
@@ -144,9 +141,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   useEffect(() => {
     if (!show) return;
     setIsLoading(true);
-    Promise.all([getUsersAPI(), getAllExternosAPI()])
+    Promise.all([getAllUsers(), getAllExternosAPI()])
       .then(([usersData, externosData]) => {
-        setUsers(usersData.content || []);
+        setUsers(usersData);
         setExternos(externosData);
       })
       .catch(() => toast.error('Erro ao carregar dados'))

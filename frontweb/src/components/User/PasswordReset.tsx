@@ -11,7 +11,7 @@ import {
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { User } from '../../types/user';
-import { getUsersAPI } from '../../api/requestsApi';
+import { getAllUsers } from '../../services/userService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
@@ -43,12 +43,8 @@ const PasswordReset: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await getUsersAPI(0, 1000);
-        if (response && 'content' in response) {
-          setUsers(response.content);
-        } else if (Array.isArray(response)) {
-          setUsers(response);
-        }
+        const usersData = await getAllUsers();
+        setUsers(usersData);
       } catch (err) {
         console.error('Erro ao carregar colaboradores:', err);
         setError('Não foi possível carregar a lista de colaboradores');

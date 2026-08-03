@@ -37,6 +37,25 @@ export const getUsers = async (
   }
 };
 
+// Spring's `/users` endpoint is paginated; fetches every page so callers
+// that need the full collaborator list (e.g. Tarefa/Projeto assignment
+// dropdowns) never silently truncate at the default page size.
+export const getAllUsers = async (): Promise<User[]> => {
+  const pageSize = 100;
+  let page = 0;
+  let totalPages = 1;
+  let allUsers: User[] = [];
+
+  do {
+    const response = await getUsersAPI(page, pageSize);
+    allUsers = allUsers.concat(response.content || []);
+    totalPages = response.totalPages || 1;
+    page += 1;
+  } while (page < totalPages);
+
+  return allUsers;
+};
+
 export const getCurrentUserWithRoles = async (): Promise<User> => {
   try {
     const userData = await getCurrentUserWithRolesAPI();

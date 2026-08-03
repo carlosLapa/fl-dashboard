@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { PaginatedUsers } from 'types/user';
-import { getUsersAPI } from '../../api/requestsApi';
+import { User } from 'types/user';
+import { getAllUsers } from '../../services/userService';
 import { useNotification } from '../../NotificationContext';
 import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
@@ -53,13 +53,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     dataProposta: '',
     dataAdjudicacao: '',
   });
-  const [users, setUsers] = useState<PaginatedUsers>({
-    content: [],
-    totalPages: 0,
-    totalElements: 0,
-    size: 10,
-    number: 0,
-  });
+  const [users, setUsers] = useState<User[]>([]);
   const [externos, setExternos] = useState<Externo[]>([]);
   const [isLoadingExternos, setIsLoadingExternos] = useState(false);
   const [validated, setValidated] = useState(false);
@@ -69,7 +63,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   useEffect(() => {
     const fetchUsersAndExternos = async () => {
       try {
-        const usersData = await getUsersAPI();
+        const usersData = await getAllUsers();
         setUsers(usersData);
 
         setIsLoadingExternos(true);
@@ -269,13 +263,10 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     onHide();
   };
 
-  const userOptions =
-    users.content && Array.isArray(users.content)
-      ? users.content.map((user) => ({
-          value: user.id,
-          label: user.name,
-        }))
-      : [];
+  const userOptions = users.map((user) => ({
+    value: user.id,
+    label: user.name,
+  }));
 
   const selectedUserOptions = formData.users
     ? formData.users.map((user) => ({
@@ -421,13 +412,11 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   onChange={handleInputChange}
                 >
                   <option value="">Selecione o coordenador</option>
-                  {users.content &&
-                    Array.isArray(users.content) &&
-                    users.content.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
                 </Form.Select>
               </Form.Group>
             </Col>

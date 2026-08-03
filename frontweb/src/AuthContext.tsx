@@ -10,8 +10,7 @@ import React, {
 } from 'react';
 import axios from 'api/apiConfig';
 import { User } from './types/user';
-import { getUsersAPI } from './api/requestsApi';
-import { getCurrentUserWithRoles } from './services/userService';
+import { getCurrentUserWithRoles, getAllUsers } from './services/userService';
 import { useNavigate } from 'react-router-dom';
 import secureStorage from './auth/secureStorage';
 import { isTokenExpired, clearTokenData } from './auth/tokenHelpers';
@@ -126,9 +125,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           );
 
           // Fallback to original method
-          const response = await getUsersAPI();
+          const users = await getAllUsers();
           const email = secureStorage.getItem('user_email');
-          const users = Array.isArray(response) ? response : response.content;
           const currentUser = users?.find((u: User) => u.email === email);
 
           if (currentUser) {
@@ -194,8 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         );
 
         // Fallback: Get basic user data from users list
-        const response = await getUsersAPI();
-        const users = Array.isArray(response) ? response : response.content;
+        const users = await getAllUsers();
         const currentUser = users?.find((u: User) => u.email === email);
 
         if (currentUser) {

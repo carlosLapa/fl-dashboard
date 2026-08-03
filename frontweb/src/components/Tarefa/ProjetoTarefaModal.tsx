@@ -6,10 +6,11 @@ import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
 import { Projeto } from 'types/projeto';
 import { ExternoDTO } from 'types/externo';
-import { getUsersAPI, getProjetoDetailsAPI } from '../../api/requestsApi';
+import { getProjetoDetailsAPI } from '../../api/requestsApi';
 import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
+import { getAllUsers } from '../../services/userService';
 
 interface ProjetoTarefaModalProps {
   show: boolean;
@@ -92,12 +93,12 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
 
     // Carrega usuários, externos e detalhes do projeto
     Promise.all([
-      getUsersAPI(),
+      getAllUsers(),
       getAllExternosAPI(),
       getProjetoDetailsAPI(projetoId),
     ])
       .then(([usersData, externosData, projetoData]) => {
-        setUsers(usersData.content || []);
+        setUsers(usersData);
         setExternos(externosData);
         setProjeto(projetoData);
 
