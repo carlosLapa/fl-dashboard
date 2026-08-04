@@ -343,6 +343,10 @@ public class TarefaService {
         tarefa.setPrazoEstimado(dto.getPrazoEstimado());
         tarefa.setPrazoReal(dto.getPrazoReal());
 
+        if (dto.getStatus() != null) {
+            tarefa.setStatus(dto.getStatus());
+        }
+
         // Set working days if provided in the DTO
         if (dto.getWorkingDays() != null) {
             tarefa.setWorkingDays(dto.getWorkingDays());
@@ -424,7 +428,7 @@ public class TarefaService {
         Tarefa tarefa = tarefaRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
 
-        subtarefaService.assertCanTransitionStatus(id);
+        subtarefaService.assertCanTransitionStatus(id, newStatus);
 
         TarefaStatus previousStatus = tarefa.getStatus();
         String descricao = tarefa.getDescricao();

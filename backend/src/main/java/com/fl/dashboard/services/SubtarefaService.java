@@ -7,6 +7,7 @@ import com.fl.dashboard.entities.Subtarefa;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.SubtarefaRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -204,7 +205,10 @@ public class SubtarefaService {
     }
 
     @Transactional(readOnly = true)
-    public void assertCanTransitionStatus(Long tarefaId) {
+    public void assertCanTransitionStatus(Long tarefaId, TarefaStatus newStatus) {
+        if (newStatus != TarefaStatus.IN_REVIEW && newStatus != TarefaStatus.DONE) {
+            return;
+        }
         if (!subtarefaRepository.existsByTarefaId(tarefaId)) {
             return;
         }

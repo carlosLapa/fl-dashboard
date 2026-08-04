@@ -5,6 +5,7 @@ import com.fl.dashboard.dto.SubtarefaDivisaoItemDTO;
 import com.fl.dashboard.entities.Subtarefa;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.SubtarefaRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -377,18 +379,27 @@ class SubtarefaServiceTest {
     void assertCanTransitionStatusShouldAllowWhenTarefaWasNeverSplit() {
         when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(false);
 
-        assertDoesNotThrow(() -> subtarefaService.assertCanTransitionStatus(1L));
+        assertDoesNotThrow(() -> subtarefaService.assertCanTransitionStatus(1L, TarefaStatus.DONE));
         verify(subtarefaRepository, never()).sumPercentualConcluidoByTarefaId(anyLong());
     }
 
     @Test
-    void assertCanTransitionStatusShouldBlockWhenBelow100Percent() {
+    void assertCanTransitionStatusShouldBlockWhenBelow100PercentAndTargetIsDone() {
         when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(true);
         when(subtarefaRepository.sumPercentualConcluidoByTarefaId(1L)).thenReturn(new BigDecimal("66.66"));
 
         SubtarefasIncompletasException ex = assertThrows(SubtarefasIncompletasException.class,
-                () -> subtarefaService.assertCanTransitionStatus(1L));
+                () -> subtarefaService.assertCanTransitionStatus(1L, TarefaStatus.DONE));
         assertTrue(ex.getMessage().contains("66.66"));
+    }
+
+    @Test
+    void assertCanTransitionStatusShouldBlockWhenBelow100PercentAndTargetIsInReview() {
+        when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(true);
+        when(subtarefaRepository.sumPercentualConcluidoByTarefaId(1L)).thenReturn(new BigDecimal("50.00"));
+
+        assertThrows(SubtarefasIncompletasException.class,
+                () -> subtarefaService.assertCanTransitionStatus(1L, TarefaStatus.IN_REVIEW));
     }
 
     @Test
@@ -396,8 +407,16 @@ class SubtarefaServiceTest {
         when(subtarefaRepository.existsByTarefaId(1L)).thenReturn(true);
         when(subtarefaRepository.sumPercentualConcluidoByTarefaId(1L)).thenReturn(new BigDecimal("100.00"));
 
-        assertDoesNotThrow(() -> subtarefaService.assertCanTransitionStatus(1L));
+        assertDoesNotThrow(() -> subtarefaService.assertCanTransitionStatus(1L, TarefaStatus.DONE));
     }
+
+    @ParameterizedTest
+    @EnumSource(value = TarefaStatus.class, names = {"BACKLOG", "TODO", "IN_PROGRESS"})
+    void assertCanTransitionStatusShouldAllowNonFinalStatusesRegardlessOfSubtaskCompletion(TarefaStatus newStatus) {
+        assertDoesNotThrow(() -> subtarefaService.assertCanTransitionStatus(1L, newStatus));
+        verify(subtarefaRepository, never()).existsByTarefaId(anyLong());
+    }
+
 
     // --- findByTarefaId ---
 

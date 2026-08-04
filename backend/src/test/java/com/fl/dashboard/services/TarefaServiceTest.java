@@ -2,6 +2,8 @@ package com.fl.dashboard.services;
 
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.dto.TarefaInsertDTO;
+import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -97,6 +100,35 @@ class TarefaServiceTest {
         tarefaService.updateTarefaUsers(1L, Set.of(2L));
 
         assertTrue(tarefa.getUsers().contains(newUser));
+    }
+
+    // --- insertWithAssociations ---
+
+    @Test
+    void insertWithAssociationsShouldPersistStatusProvidedInDto() {
+        TarefaInsertDTO dto = new TarefaInsertDTO();
+        dto.setDescricao("New Task");
+        dto.setStatus(TarefaStatus.IN_PROGRESS);
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tarefaService.insertWithAssociations(dto);
+
+        ArgumentCaptor<Tarefa> captor = ArgumentCaptor.forClass(Tarefa.class);
+        verify(tarefaRepository).save(captor.capture());
+        assertEquals(TarefaStatus.IN_PROGRESS, captor.getValue().getStatus());
+    }
+
+    @Test
+    void insertWithAssociationsShouldDefaultToBacklogWhenStatusNotProvided() {
+        TarefaInsertDTO dto = new TarefaInsertDTO();
+        dto.setDescricao("New Task");
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tarefaService.insertWithAssociations(dto);
+
+        ArgumentCaptor<Tarefa> captor = ArgumentCaptor.forClass(Tarefa.class);
+        verify(tarefaRepository).save(captor.capture());
+        assertEquals(TarefaStatus.BACKLOG, captor.getValue().getStatus());
     }
 
 }
