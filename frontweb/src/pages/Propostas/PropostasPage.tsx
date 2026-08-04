@@ -30,7 +30,7 @@ const PropostasPage: React.FC = () => {
   const [propostas, setPropostas] = useState<Proposta[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [showModal, setShowModal] = useState(false);
@@ -341,7 +341,7 @@ const PropostasPage: React.FC = () => {
           {!isLoading && totalElements > 0 && (
             <div className="d-flex justify-content-center mt-3 text-muted">
               <small>
-                Exibindo {Math.min(pageSize, propostas.length)} de{' '}
+                A exibir {Math.min(pageSize, propostas.length)} de{' '}
                 {totalElements} propostas
               </small>
             </div>
