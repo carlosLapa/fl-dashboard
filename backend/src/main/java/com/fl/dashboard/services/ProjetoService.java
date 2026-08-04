@@ -10,6 +10,7 @@ import com.fl.dashboard.enums.TipoProjeto;
 import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
+import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.utils.ProjetoDTOMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -290,6 +292,32 @@ public class ProjetoService {
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
+    }
+
+    @Transactional
+    public ProjetoDTO extendPrazo(Long id, Date novoPrazo, String requestingUserEmail) {
+        Projeto entity = projetoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+
+        Date prazoAtual = entity.getPrazo();
+        if (prazoAtual != null && !novoPrazo.after(prazoAtual)) {
+            throw new DeadlineValidationException(
+                    "O novo prazo (" + new SimpleDateFormat("dd/MM/yyyy").format(novoPrazo) +
+                            ") tem de ser posterior ao prazo atual do projeto (" +
+                            new SimpleDateFormat("dd/MM/yyyy").format(prazoAtual) + ")"
+            );
+        }
+
+        entity.setPrazo(novoPrazo);
+        Projeto savedEntity = projetoRepository.save(entity);
+
+        if (savedEntity.getCoordenador() != null) {
+            User requestingUser = requestingUserEmail != null ? userRepository.findByEmail(requestingUserEmail) : null;
+            notificationService.createProjectDeadlineExtendedNotification(
+                    savedEntity.getCoordenador(), savedEntity, prazoAtual, novoPrazo, requestingUser);
+        }
+
+        return new ProjetoDTO(savedEntity);
     }
 
     @Transactional

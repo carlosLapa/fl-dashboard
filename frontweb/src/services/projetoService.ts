@@ -6,6 +6,7 @@ import {
 } from '../types/projeto';
 import {
   addProjetoAPI,
+  extendProjetoPrazoAPI,
   getProjetosAPI,
   getProjetosByDateRangeAPI,
   getProjetosWithFiltersAPI,
@@ -309,6 +310,20 @@ export const fetchProjetosForCliente = async (
     return response.data;
   } catch (error) {
     console.error(`Error fetching projetos for cliente ${clienteId}:`, error);
+    throw error;
+  }
+};
+
+export const extendProjetoPrazo = async (
+  projetoId: number,
+  novoPrazo: string
+): Promise<Projeto> => {
+  try {
+    return await extendProjetoPrazoAPI(projetoId, novoPrazo);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      throw new Error('Não tem permissão para alterar o prazo do projeto');
+    }
     throw error;
   }
 };

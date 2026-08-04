@@ -75,6 +75,7 @@ public class PermissionMapper {
 
                 // Limited project access
                 Permission.VIEW_ASSIGNED_PROJECTS,
+                Permission.EXTEND_PROJECT_DEADLINE,
 
                 // Proposta permissions
                 Permission.VIEW_ASSIGNED_PROPOSTAS,

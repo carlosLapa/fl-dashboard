@@ -14,6 +14,7 @@ public enum Permission {
     DELETE_PROJECT,
     VIEW_ALL_PROJECTS,
     VIEW_ASSIGNED_PROJECTS,
+    EXTEND_PROJECT_DEADLINE,
 
     // Proposta permissions
     CREATE_PROPOSTA,

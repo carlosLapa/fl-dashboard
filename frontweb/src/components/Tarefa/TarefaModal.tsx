@@ -24,6 +24,7 @@ import { Projeto, ProjetoMinDTO } from 'types/projeto';
 import { ExternoDTO } from 'types/externo';
 import { searchProjetosAPI, getProjetoDetailsAPI } from '../../api/requestsApi';
 import { getAllExternosAPI } from '../../api/externoApi';
+import { extendProjetoPrazo } from '../../services/projetoService';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { useAuth } from '../../AuthContext';
@@ -87,7 +88,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
 }) => {
   const { sendNotification } = useNotification();
   const { user } = useAuth();
-  const { hasPermission, isAdmin, isManager } = usePermissions();
+  const { hasPermission, hasAnyPermission, isAdmin, isManager } =
+    usePermissions();
   const {
     subtarefas,
     isDividida,
@@ -132,6 +134,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   // Add state for deadline validation
   const [isDeadlineValid, setIsDeadlineValid] = useState(true);
   const [deadlineErrorMessage, setDeadlineErrorMessage] = useState('');
+  const [extendPrazoValue, setExtendPrazoValue] = useState('');
+  const [isExtendingDeadline, setIsExtendingDeadline] = useState(false);
   const [subtarefaDescricoes, setSubtarefaDescricoes] = useState<
     Record<number, string>
   >({});
@@ -272,11 +276,39 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
           'dd/MM/yyyy'
         )})`
       );
+      setExtendPrazoValue(taskDeadlineStr);
     } else {
       setDeadlineErrorMessage('');
     }
 
     return isValid;
+  };
+
+  // Extend the project's deadline directly from the task modal so the task's
+  // deadline can be accepted without having to leave and reopen this form.
+  const handleExtendProjectDeadline = async () => {
+    if (!selectedProject || !extendPrazoValue) return;
+
+    setIsExtendingDeadline(true);
+    try {
+      const updatedProject = await extendProjetoPrazo(
+        selectedProject.id,
+        extendPrazoValue
+      );
+      setSelectedProject(updatedProject);
+      validateDeadline(formData.prazoReal, updatedProject);
+      toast.success(
+        `Prazo do projeto atualizado para ${format(
+          new Date(extendPrazoValue),
+          'dd/MM/yyyy'
+        )}`
+      );
+    } catch (error) {
+      console.error('Error extending projeto prazo:', error);
+      toast.error('Não foi possível estender o prazo do projeto');
+    } finally {
+      setIsExtendingDeadline(false);
+    }
   };
 
   const handleInputChange = (
@@ -554,6 +586,37 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       Prazo do projeto:{' '}
                       {format(new Date(selectedProject.prazo), 'dd/MM/yyyy')}
                     </Form.Text>
+                  )}
+                  {!isDeadlineValid && selectedProject && (
+                    <div className="mt-2">
+                      {hasAnyPermission([
+                        Permission.EDIT_PROJECT,
+                        Permission.EXTEND_PROJECT_DEADLINE,
+                      ]) ? (
+                        <InputGroup size="sm">
+                          <Form.Control
+                            type="date"
+                            value={extendPrazoValue}
+                            onChange={(e) =>
+                              setExtendPrazoValue(e.target.value)
+                            }
+                          />
+                          <Button
+                            variant="outline-primary"
+                            disabled={isExtendingDeadline || !extendPrazoValue}
+                            onClick={handleExtendProjectDeadline}
+                          >
+                            {isExtendingDeadline
+                              ? 'A estender...'
+                              : 'Estender prazo do projeto'}
+                          </Button>
+                        </InputGroup>
+                      ) : (
+                        <Form.Text className="text-muted">
+                          Peça a um gestor do projeto para alargar o prazo.
+                        </Form.Text>
+                      )}
+                    </div>
                   )}
                 </Form.Group>
               </Col>

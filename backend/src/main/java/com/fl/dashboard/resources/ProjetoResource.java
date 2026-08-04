@@ -179,6 +179,26 @@ public class ProjetoResource {
         }
     }
 
+    @PatchMapping(value = "/{id}/prazo")
+    @PreAuthorize("hasAuthority('EDIT_PROJECT') or hasAuthority('EXTEND_PROJECT_DEADLINE')")
+    public ResponseEntity<ProjetoDTO> extendPrazo(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date novoPrazo,
+            Authentication authentication) {
+        try {
+            String userEmail;
+            if (authentication.getPrincipal() instanceof Jwt jwt) {
+                userEmail = jwt.getClaim("email");
+            } else {
+                userEmail = authentication.getName();
+            }
+            ProjetoDTO newDto = projetoService.extendPrazo(id, novoPrazo, userEmail);
+            return ResponseEntity.ok().body(newDto);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @DeleteMapping(value = "/{id}")
     @PreAuthorize("hasAuthority('DELETE_PROJECT')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
