@@ -19,7 +19,7 @@ const ExternosPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [externoToEdit, setExternoToEdit] = useState<ExternoDTO | null>(null);
   const [page, setPage] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
