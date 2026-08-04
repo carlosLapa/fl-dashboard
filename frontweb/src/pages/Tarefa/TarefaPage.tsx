@@ -37,7 +37,7 @@ const TarefaPage: React.FC = () => {
   const [tarefaToEdit, setTarefaToEdit] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
   const [page, setPage] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
