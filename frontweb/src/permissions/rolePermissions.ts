@@ -20,6 +20,7 @@ export enum Permission {
   DELETE_PROJECT = 'DELETE_PROJECT',
   VIEW_ALL_PROJECTS = 'VIEW_ALL_PROJECTS',
   VIEW_ASSIGNED_PROJECTS = 'VIEW_ASSIGNED_PROJECTS',
+  EXTEND_PROJECT_DEADLINE = 'EXTEND_PROJECT_DEADLINE',
 
   // User permissions
   CREATE_USER = 'CREATE_USER',
@@ -115,7 +116,8 @@ const rolePermissions: Record<string, Permission[]> = {
     
     // Limited project access
     Permission.VIEW_ASSIGNED_PROJECTS,
-    
+    Permission.EXTEND_PROJECT_DEADLINE,
+
     // Task permissions (limited)
     Permission.CREATE_TASK,
     Permission.EDIT_OWN_TASK,

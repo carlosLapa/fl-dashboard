@@ -486,6 +486,23 @@ public class NotificationService {
         return insert(notification);
     }
 
+    @Transactional
+    public NotificationResponseDTO createProjectDeadlineExtendedNotification(
+            User recipient, Projeto projeto, Date prazoAntigo, Date novoPrazo, User extendedBy) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String autor = extendedBy != null ? extendedBy.getName() : "um colaborador";
+        NotificationInsertDTO notification = new NotificationInsertDTO();
+        notification.setType(NotificationType.PROJETO_PRAZO_ALTERADO.name());
+        notification.setContent("O prazo do projeto '" + projeto.getDesignacao() + "' foi alterado de "
+                + (prazoAntigo != null ? sdf.format(prazoAntigo) : "-") + " para " + sdf.format(novoPrazo)
+                + " por " + autor);
+        notification.setIsRead(false);
+        notification.setCreatedAt(new Date());
+        notification.setUserId(recipient.getId());
+        notification.setProjetoId(projeto.getId());
+        return insert(notification);
+    }
+
     // Método necessário? Após testes, reverificar.
     @Transactional
     public NotificationResponseDTO createGeneralNotification(User user, String content) {

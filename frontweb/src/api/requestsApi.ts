@@ -181,6 +181,21 @@ export const updateProjetoStatusAPI = async (
   }
 };
 
+export const extendProjetoPrazoAPI = async (
+  projetoId: number,
+  novoPrazo: string
+): Promise<Projeto> => {
+  try {
+    const response = await axios.patch(
+      `/projetos/${projetoId}/prazo?novoPrazo=${novoPrazo}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error extending projeto prazo:', error);
+    throw error;
+  }
+};
+
 export const deleteProjetoAPI = async (id: number): Promise<void> => {
   try {
     await axios.delete(`/projetos/${id}`);
