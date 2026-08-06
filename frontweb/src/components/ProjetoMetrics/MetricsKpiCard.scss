@@ -76,7 +76,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .metrics-kpi-card {
     &-value {
       font-size: 2rem;
@@ -84,7 +84,7 @@
   }
 }
 
-@media (max-width: 576px) {
+@include respond-to('sm') {
   .metrics-kpi-card {
     &-value {
       font-size: 1.75rem;

@@ -1,3 +1,5 @@
+@import '../../assets/styles/breakpoints.scss';
+
 .search-results-container {
   padding: 20px;
   transition: all 0.3s ease;
@@ -6,11 +8,11 @@
   flex-direction: column;
   overflow: hidden;
 
-  @media (min-width: 992px) {
+  @include respond-from('lg') {
     margin-left: 220px; /* Matches the content margin from sidebar on larger screens */
   }
 
-  @media (max-width: 991px) {
+  @include respond-to('lg') {
     margin-left: 0; /* No margin on smaller screens */
   }
 }
@@ -79,7 +81,7 @@
 
 .search-title {
   font-size: 1.8rem;
-  @media (max-width: 576px) {
+  @include respond-to('sm') {
     font-size: 1.5rem;
   }
 }
@@ -103,7 +105,7 @@
     background-color: var(--bs-primary);
   }
 
-  @media (max-width: 576px) {
+  @include respond-to('sm') {
     font-size: 1.3rem;
   }
 }
@@ -174,7 +176,7 @@
   margin-right: 0; /* Remove right margin to prevent overflow */
 }
 
-@media (min-width: 992px) {
+@include respond-from('lg') {
   .col-lg-4 {
     padding-left: 10px;
     padding-right: 20px;
@@ -182,7 +184,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 992px) {
+@include respond-to('lg') {
   .search-results-scrollable {
     max-height: calc(100vh - 200px);
   }

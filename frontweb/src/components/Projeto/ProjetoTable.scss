@@ -9,7 +9,7 @@
   height: calc(100vh - 230px); // Adjust based on your header/footer size
 
   // Add responsive adjustments for sidebar
-  @media (min-width: 992px) {
+  @include respond-from('lg') {
     // Ensure content doesn't get hidden behind sidebar
     width: 100%;
   }
@@ -100,7 +100,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .action-icons {
     flex-wrap: wrap;
     gap: 5px; // Reduced from 10px to 5px

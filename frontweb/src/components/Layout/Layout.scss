@@ -56,7 +56,7 @@ $navbar-height-xl: 80px;
   margin: 0 auto !important; /* Center the content */
 
   // When sidebar is visible, adjust the width accordingly
-  @media (min-width: 992px) {
+  @include respond-from('lg') {
     margin-left: 180px !important; /* This keeps the sidebar space */
     width: calc(100% - 180px) !important; /* Account for sidebar */
   }

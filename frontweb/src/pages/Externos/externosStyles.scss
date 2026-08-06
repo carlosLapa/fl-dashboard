@@ -51,7 +51,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .page-container {
     padding: 1rem;
   }

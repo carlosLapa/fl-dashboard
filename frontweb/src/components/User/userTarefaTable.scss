@@ -60,7 +60,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .tarefa-table-container {
     height: calc(100vh - 300px); // Slightly adjusted for mobile
 

@@ -308,7 +308,7 @@
   gap: 1rem;
   margin-left: 0;
   align-self: flex-start;
-  @media (max-width: 768px) {
+  @include respond-to('md') {
     margin-top: 1rem;
     width: 100%;
     button {
@@ -356,7 +356,7 @@
 }
 
 // Responsive adjustments for the new layout
-@media (max-width: 768px) {
+@include respond-to('md') {
   .page-title-container {
     flex-direction: column;
     align-items: flex-start;

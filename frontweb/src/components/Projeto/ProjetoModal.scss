@@ -1,3 +1,5 @@
+@import '../../assets/styles/breakpoints.scss';
+
 .modal-content {
   border-radius: 0.5rem;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
@@ -49,7 +51,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .modal-body {
     padding: 1rem;
   }

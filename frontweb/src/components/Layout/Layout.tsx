@@ -11,6 +11,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
 
@@ -21,7 +22,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Check if we're on a mobile device
   useEffect(() => {
     const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 992);
+      const mobile = window.innerWidth < 992;
+      setIsMobile(mobile);
+      // Auto-close the off-canvas sidebar once the viewport is desktop-sized
+      if (!mobile) {
+        setSidebarOpen(false);
+      }
     };
     // Initial check
     checkIfMobile();
@@ -30,6 +36,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     // Cleanup
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
+
+  // Close the mobile sidebar whenever the route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   // Apply welcome-page-active class to both body and html when on welcome page
   useEffect(() => {
@@ -67,9 +78,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className={appContainerClasses}>
-      {!isWelcomePage && <NavbarFL isMobile={isMobile} />}
+      {!isWelcomePage && (
+        <NavbarFL
+          isMobile={isMobile}
+          onMenuClick={() => setSidebarOpen((open) => !open)}
+        />
+      )}
       <div className="content-wrapper">
-        {!isWelcomePage && user && <SidebarFL />}
+        {!isWelcomePage && user && (
+          <SidebarFL
+            isMobile={isMobile}
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+          />
+        )}
         <div className={mainContentClasses}>{children}</div>
       </div>
       {isWelcomePage && <NavbarFL isMobile={isMobile} />}

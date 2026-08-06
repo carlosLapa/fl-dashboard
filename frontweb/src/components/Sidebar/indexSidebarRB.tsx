@@ -5,100 +5,141 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
 import './styles.scss';
 
-const SidebarFL: React.FC = () => {
+interface SidebarProps {
+  isMobile?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const SidebarFL: React.FC<SidebarProps> = ({
+  isMobile = false,
+  isOpen = false,
+  onClose,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { hasAnyPermission } = usePermissions();
-  
+
   // Verifica se o usuário tem permissão para visualizar propostas
   const canViewPropostas = hasAnyPermission([
     Permission.VIEW_ALL_PROPOSTAS,
-    Permission.VIEW_ASSIGNED_PROPOSTAS
+    Permission.VIEW_ASSIGNED_PROPOSTAS,
   ]);
 
   const handleNavigation = (path: string) => {
     navigate(path);
+    if (isMobile) {
+      onClose?.();
+    }
   };
 
+  const sidebarClasses = [
+    'sidebar',
+    'bg-dark',
+    isMobile ? 'sidebar-mobile' : '',
+    isOpen ? 'sidebar-open' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div className="sidebar bg-dark">
-      <Nav className="flex-column mt-4">
-        <Nav.Item>
-          <div
-            className={`sidebar-link text-light mb-4 ${
-              location.pathname.startsWith('/users') ? 'active' : ''
-            }`}
-            onClick={() => handleNavigation('/users')}
-            role="button"
-            tabIndex={0}
+    <>
+      {isMobile && isOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={onClose}
+          role="presentation"
+        />
+      )}
+      <div className={sidebarClasses}>
+        {isMobile && (
+          <button
+            type="button"
+            className="sidebar-close-btn"
+            onClick={onClose}
+            aria-label="Fechar menu"
           >
-            Colaboradores
-          </div>
-        </Nav.Item>
-        <Nav.Item>
-          <div
-            className={`sidebar-link text-light mb-4 ${
-              location.pathname.startsWith('/externos') ? 'active' : ''
-            }`}
-            onClick={() => handleNavigation('/externos')}
-            role="button"
-            tabIndex={0}
-          >
-            Colaboradores Externos
-          </div>
-        </Nav.Item>
-        <Nav.Item>
-          <div
-            className={`sidebar-link text-light mb-4 ${
-              location.pathname.startsWith('/projetos') ? 'active' : ''
-            }`}
-            onClick={() => handleNavigation('/projetos')}
-            role="button"
-            tabIndex={0}
-          >
-            Projetos
-          </div>
-        </Nav.Item>
-        {canViewPropostas && (
+            &times;
+          </button>
+        )}
+        <Nav className="flex-column mt-4">
           <Nav.Item>
             <div
               className={`sidebar-link text-light mb-4 ${
-                location.pathname.startsWith('/propostas') ? 'active' : ''
+                location.pathname.startsWith('/users') ? 'active' : ''
               }`}
-              onClick={() => handleNavigation('/propostas')}
+              onClick={() => handleNavigation('/users')}
               role="button"
               tabIndex={0}
             >
-              Propostas
+              Colaboradores
             </div>
           </Nav.Item>
-        )}
-        <Nav.Item>
-          <div
-            className={`sidebar-link text-light mb-4 ${
-              location.pathname.startsWith('/tarefas') ? 'active' : ''
-            }`}
-            onClick={() => handleNavigation('/tarefas')}
-            role="button"
-            tabIndex={0}
-          >
-            Tarefas
-          </div>
-        </Nav.Item>
-        <Nav.Item>
-          <div
-            className={`sidebar-link text-light mb-4 ${
-              location.pathname.startsWith('/clientes') ? 'active' : ''
-            }`}
-            onClick={() => handleNavigation('/clientes')}
-            role="button"
-            tabIndex={0}
-          >
-            Clientes
-          </div>
-        </Nav.Item>
-      </Nav>
-    </div>
+          <Nav.Item>
+            <div
+              className={`sidebar-link text-light mb-4 ${
+                location.pathname.startsWith('/externos') ? 'active' : ''
+              }`}
+              onClick={() => handleNavigation('/externos')}
+              role="button"
+              tabIndex={0}
+            >
+              Colaboradores Externos
+            </div>
+          </Nav.Item>
+          <Nav.Item>
+            <div
+              className={`sidebar-link text-light mb-4 ${
+                location.pathname.startsWith('/projetos') ? 'active' : ''
+              }`}
+              onClick={() => handleNavigation('/projetos')}
+              role="button"
+              tabIndex={0}
+            >
+              Projetos
+            </div>
+          </Nav.Item>
+          {canViewPropostas && (
+            <Nav.Item>
+              <div
+                className={`sidebar-link text-light mb-4 ${
+                  location.pathname.startsWith('/propostas') ? 'active' : ''
+                }`}
+                onClick={() => handleNavigation('/propostas')}
+                role="button"
+                tabIndex={0}
+              >
+                Propostas
+              </div>
+            </Nav.Item>
+          )}
+          <Nav.Item>
+            <div
+              className={`sidebar-link text-light mb-4 ${
+                location.pathname.startsWith('/tarefas') ? 'active' : ''
+              }`}
+              onClick={() => handleNavigation('/tarefas')}
+              role="button"
+              tabIndex={0}
+            >
+              Tarefas
+            </div>
+          </Nav.Item>
+          <Nav.Item>
+            <div
+              className={`sidebar-link text-light mb-4 ${
+                location.pathname.startsWith('/clientes') ? 'active' : ''
+              }`}
+              onClick={() => handleNavigation('/clientes')}
+              role="button"
+              tabIndex={0}
+            >
+              Clientes
+            </div>
+          </Nav.Item>
+        </Nav>
+      </div>
+    </>
   );
 };
 
