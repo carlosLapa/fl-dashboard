@@ -61,7 +61,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .projeto-details-container {
     .details-table {
       font-size: 0.9rem;
@@ -185,7 +185,7 @@
 }
 
 // Adjust the container to match ProjetoTable
-@media (max-width: 768px) {
+@include respond-to('md') {
   .projeto-details-table-container {
     padding: 0;
 

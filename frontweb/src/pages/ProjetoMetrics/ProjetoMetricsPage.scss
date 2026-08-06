@@ -68,7 +68,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .metrics-content {
     width: 95%;
     margin-left: 2.5%;
@@ -92,7 +92,7 @@
   }
 }
 
-@media (max-width: 576px) {
+@include respond-to('sm') {
   .metrics-card {
     &-value {
       font-size: 1.75rem;

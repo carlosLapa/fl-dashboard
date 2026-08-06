@@ -25,6 +25,50 @@
   @include respond-from('xl') {
     top: 80px; // Adjust based on navbar height at this breakpoint
   }
+
+  // Off-canvas drawer behaviour, driven by JS (isMobile prop), not a media
+  // query, so it stays in sync with the same < 992px threshold used by
+  // Layout/Navbar instead of duplicating a second breakpoint here.
+  &.sidebar-mobile {
+    width: 260px;
+    max-width: 80vw;
+    transform: translateX(-100%);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+    padding-top: 45px; // room for the close button
+
+    &.sidebar-open {
+      transform: translateX(0);
+    }
+  }
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999; // below .sidebar (1000), below navbar (1030)
+}
+
+.sidebar-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+  }
 }
 
 .sidebar-link {

@@ -6,7 +6,7 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import UserInfo from '../User/UserInfo';
 import { useAuth } from '../../AuthContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './styles.scss';
 
 interface NavbarProps {
@@ -14,9 +14,11 @@ interface NavbarProps {
   isMobile?: boolean;
 }
 
-const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
+const NavbarFL: React.FC<NavbarProps> = ({
+  isMobile: propIsMobile,
+  onMenuClick,
+}) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [expanded, setExpanded] = useState<boolean>(false);
@@ -59,11 +61,6 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
     }
   };
 
-  // Check if a path is active
-  const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
-  };
-
   return (
     <Navbar
       expand="lg"
@@ -72,6 +69,18 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
       onToggle={setExpanded}
     >
       <Container fluid className="navbar-container">
+        {isMobile && user && onMenuClick && (
+          <button
+            type="button"
+            className="sidebar-toggle-btn"
+            onClick={onMenuClick}
+            aria-label="Abrir menu de navegação"
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        )}
         <Navbar.Brand href="#" className="text-light brand-container">
           <h3 className="fl-brand">Ferreira Lapa</h3>
         </Navbar.Brand>
@@ -123,52 +132,6 @@ const NavbarFL: React.FC<NavbarProps> = ({ isMobile: propIsMobile }) => {
               >
                 Portfolio
               </a>
-              {/* Sidebar links - only shown on mobile */}
-              {isMobile && user && (
-                <>
-                  <div className="sidebar-links-divider"></div>
-                  <div
-                    className={`custom-navbar-link text-light ${
-                      isActive('/users') ? 'active' : ''
-                    }`}
-                    onClick={() => handleNavLinkClick('/users')}
-                  >
-                    Colaboradores
-                  </div>
-                  <div
-                    className={`custom-navbar-link text-light ${
-                      isActive('/externos') ? 'active' : ''
-                    }`}
-                    onClick={() => handleNavLinkClick('/externos')}
-                  >
-                    Colaboradores Externos
-                  </div>
-                  <div
-                    className={`custom-navbar-link text-light ${
-                      isActive('/projetos') ? 'active' : ''
-                    }`}
-                    onClick={() => handleNavLinkClick('/projetos')}
-                  >
-                    Projetos
-                  </div>
-                  <div
-                    className={`custom-navbar-link text-light ${
-                      isActive('/tarefas') ? 'active' : ''
-                    }`}
-                    onClick={() => handleNavLinkClick('/tarefas')}
-                  >
-                    Tarefas
-                  </div>
-                  <div
-                    className={`custom-navbar-link text-light ${
-                      isActive('/placeholder') ? 'active' : ''
-                    }`}
-                    onClick={() => handleNavLinkClick('/placeholder')}
-                  >
-                    Placeholder
-                  </div>
-                </>
-              )}
               {user && (
                 <div onClick={() => handleNavLinkClick()}>
                   <UserInfo />

@@ -108,7 +108,7 @@
 }
 
 /* Responsive styles */
-@media (max-width: 768px) {
+@include respond-to('md') {
   .calendar-wrapper {
     height: 500px;
   }
@@ -118,7 +118,7 @@
   }
 }
 
-@media (max-width: 576px) {
+@include respond-to('sm') {
   .extra-hours-form {
     padding: 8px;
     font-size: 0.95rem;

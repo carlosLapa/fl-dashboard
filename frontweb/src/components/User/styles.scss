@@ -94,7 +94,7 @@
 }
 
 // Responsive adjustments
-@media (max-width: 768px) {
+@include respond-to('md') {
   .user-table-container {
     height: calc(100vh - 180px); // Slightly smaller on mobile
 
