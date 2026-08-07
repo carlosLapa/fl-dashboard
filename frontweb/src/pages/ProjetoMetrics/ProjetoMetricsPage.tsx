@@ -9,15 +9,23 @@ import {
   faSpinner,
   faClock,
   faPrint,
+  faCamera,
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
+import { ProjetoMetricsSnapshotDTO } from '../../types/projetoMetricsSnapshot';
 import { getProjetoMetrics } from '../../services/projetoMetricsService';
+import {
+  createProjetoMetricsSnapshot,
+  getProjetoMetricsSnapshots,
+} from '../../services/projetoMetricsSnapshotService';
 import MetricsKpiCard from '../../components/ProjetoMetrics/MetricsKpiCard';
 import StatusDistributionChart from '../../components/ProjetoMetrics/StatusDistributionChart';
 import CollaboratorMetricsTable from '../../components/ProjetoMetrics/CollaboratorMetricsTable';
 import LongestTasksTable from '../../components/ProjetoMetrics/LongestTasksTable';
 import CollaboratorPerformanceChart from '../../components/ProjetoMetrics/CollaboratorPerformanceChart';
+import MetricsHistoryChart from '../../components/ProjetoMetrics/MetricsHistoryChart';
+import MetricsComparisonPanel from '../../components/ProjetoMetrics/MetricsComparisonPanel';
 import './ProjetoMetricsPage.scss';
 
 const ProjetoMetricsPage: React.FC = () => {
@@ -28,6 +36,8 @@ const ProjetoMetricsPage: React.FC = () => {
   const [metrics, setMetrics] = useState<ProjetoMetricsDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [snapshots, setSnapshots] = useState<ProjetoMetricsSnapshotDTO[]>([]);
+  const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
 
   // Fetch metrics data
   const fetchMetrics = useCallback(async () => {
@@ -53,10 +63,44 @@ const ProjetoMetricsPage: React.FC = () => {
     }
   }, [id]);
 
+  // Fetch snapshot history (supplementary - failures don't block the page)
+  const fetchSnapshots = useCallback(async () => {
+    if (!id) {
+      return;
+    }
+
+    try {
+      const data = await getProjetoMetricsSnapshots(Number(id));
+      setSnapshots(data);
+    } catch (err) {
+      console.error('Erro ao carregar histórico de snapshots:', err);
+    }
+  }, [id]);
+
   // Initial data fetch
   useEffect(() => {
     fetchMetrics();
-  }, [fetchMetrics]);
+    fetchSnapshots();
+  }, [fetchMetrics, fetchSnapshots]);
+
+  const handleCreateSnapshot = useCallback(async () => {
+    if (!id) {
+      return;
+    }
+
+    setIsCreatingSnapshot(true);
+    try {
+      await createProjetoMetricsSnapshot(Number(id));
+      toast.success('Snapshot criado com sucesso');
+      await fetchSnapshots();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao criar snapshot';
+      toast.error(errorMessage);
+    } finally {
+      setIsCreatingSnapshot(false);
+    }
+  }, [id, fetchSnapshots]);
 
   // Navigation handlers
   const handleGoBack = useCallback(() => {
@@ -133,15 +177,21 @@ const ProjetoMetricsPage: React.FC = () => {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={handlePrint}
-            className="no-print"
-          >
-            <FontAwesomeIcon icon={faPrint} className="me-2" />
-            Exportar / Imprimir
-          </Button>
+          <div className="d-flex gap-2 no-print">
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={handleCreateSnapshot}
+              disabled={isCreatingSnapshot}
+            >
+              <FontAwesomeIcon icon={faCamera} className="me-2" />
+              {isCreatingSnapshot ? 'A criar...' : 'Criar Snapshot'}
+            </Button>
+            <Button variant="outline-primary" size="sm" onClick={handlePrint}>
+              <FontAwesomeIcon icon={faPrint} className="me-2" />
+              Exportar / Imprimir
+            </Button>
+          </div>
         </div>
 
         {/* KPI Cards */}
@@ -207,6 +257,16 @@ const ProjetoMetricsPage: React.FC = () => {
         <Row className="g-3 mt-3">
           <Col xs={12}>
             <LongestTasksTable metrics={metrics} />
+          </Col>
+        </Row>
+
+        {/* Metrics History */}
+        <Row className="g-3 mt-3">
+          <Col xs={12} lg={6}>
+            <MetricsHistoryChart snapshots={snapshots} />
+          </Col>
+          <Col xs={12} lg={6}>
+            <MetricsComparisonPanel snapshots={snapshots} />
           </Col>
         </Row>
       </div>
