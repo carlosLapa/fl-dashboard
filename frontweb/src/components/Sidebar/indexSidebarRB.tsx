@@ -26,6 +26,9 @@ const SidebarFL: React.FC<SidebarProps> = ({
     Permission.VIEW_ASSIGNED_PROPOSTAS,
   ]);
 
+  // Verifica se o usuário tem permissão para visualizar relatórios
+  const canViewRelatorios = hasAnyPermission([Permission.VIEW_REPORTS]);
+
   const handleNavigation = (path: string) => {
     navigate(path);
     if (isMobile) {
@@ -137,6 +140,20 @@ const SidebarFL: React.FC<SidebarProps> = ({
               Clientes
             </div>
           </Nav.Item>
+          {canViewRelatorios && (
+            <Nav.Item>
+              <div
+                className={`sidebar-link text-light mb-4 ${
+                  location.pathname.startsWith('/relatorios') ? 'active' : ''
+                }`}
+                onClick={() => handleNavigation('/relatorios/colaboradores')}
+                role="button"
+                tabIndex={0}
+              >
+                Relatórios
+              </div>
+            </Nav.Item>
+          )}
         </Nav>
       </div>
     </>

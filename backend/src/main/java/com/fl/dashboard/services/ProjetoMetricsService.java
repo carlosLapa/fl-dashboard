@@ -125,10 +125,7 @@ public class ProjetoMetricsService {
      * @return Count of matching tasks
      */
     private int countByStatus(List<Tarefa> tarefas, TarefaStatus... statuses) {
-        Set<TarefaStatus> statusSet = Set.of(statuses);
-        return (int) tarefas.stream()
-                .filter(t -> statusSet.contains(t.getStatus()))
-                .count();
+        return TarefaMetricsCalculator.countByStatus(tarefas, statuses);
     }
 
     /**
@@ -139,12 +136,7 @@ public class ProjetoMetricsService {
      * @return Average working days, or 0.0 if no completed tasks
      */
     private double calculateAverageWorkingDays(List<Tarefa> tarefas) {
-        OptionalDouble average = tarefas.stream()
-                .filter(t -> TarefaStatus.DONE.equals(t.getStatus()) && t.getWorkingDays() != null)
-                .mapToInt(Tarefa::getWorkingDays)
-                .average();
-
-        return average.isPresent() ? average.getAsDouble() : 0.0;
+        return TarefaMetricsCalculator.calculateAverageWorkingDays(tarefas);
     }
 
     /**
