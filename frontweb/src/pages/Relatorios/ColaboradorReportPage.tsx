@@ -3,7 +3,6 @@ import { Alert, Spinner, Button } from 'react-bootstrap';
 import { CollaboratorGlobalMetricsDTO } from '../../types/colaboradorReport';
 import { getColaboradorGlobalMetrics } from '../../services/colaboradorReportService';
 import ColaboradorGlobalMetricsTable from '../../components/Relatorios/ColaboradorGlobalMetricsTable';
-import './ColaboradorReportPage.scss';
 
 const ColaboradorReportPage: React.FC = () => {
   const [colaboradores, setColaboradores] = useState<
@@ -35,7 +34,14 @@ const ColaboradorReportPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div className="colaborador-report-content">
+        <div
+          style={{
+            width: '94%',
+            marginLeft: '2%',
+            marginRight: '4%',
+            marginTop: '2rem',
+          }}
+        >
           <div className="text-center" style={{ padding: '3rem' }}>
             <Spinner animation="border" role="status" variant="primary">
               <span className="visually-hidden">A carregar relatório...</span>
@@ -52,7 +58,14 @@ const ColaboradorReportPage: React.FC = () => {
   if (error) {
     return (
       <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div className="colaborador-report-content">
+        <div
+          style={{
+            width: '94%',
+            marginLeft: '2%',
+            marginRight: '4%',
+            marginTop: '2rem',
+          }}
+        >
           <Alert variant="danger">
             <Alert.Heading>Erro ao Carregar Relatório</Alert.Heading>
             <p>{error}</p>
@@ -70,10 +83,25 @@ const ColaboradorReportPage: React.FC = () => {
 
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
-      <div className="colaborador-report-content">
-        <div className="page-title-container mb-4">
+      <div
+        style={{
+          width: '94%',
+          marginLeft: '2%',
+          marginRight: '4%',
+          marginTop: '2rem',
+        }}
+      >
+        <div
+          className="page-title-container"
+          style={{ width: '100%', margin: 0 }}
+        >
           <div>
-            <h2 className="page-title mb-1">Relatório de Colaboradores</h2>
+            <h2
+              className="page-title mb-1"
+              style={{ textAlign: 'left' }}
+            >
+              Relatório de Colaboradores
+            </h2>
             <p className="text-muted mb-0">
               Totais de tarefas por colaborador, agregados em todos os
               projetos
@@ -81,7 +109,9 @@ const ColaboradorReportPage: React.FC = () => {
           </div>
         </div>
 
-        <ColaboradorGlobalMetricsTable colaboradores={colaboradores} />
+        <div style={{ width: '100%', marginTop: '3rem' }}>
+          <ColaboradorGlobalMetricsTable colaboradores={colaboradores} />
+        </div>
       </div>
     </div>
   );
