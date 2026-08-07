@@ -99,3 +99,86 @@
     }
   }
 }
+
+// Print / export as PDF
+@media print {
+  .navbar,
+  .sidebar,
+  .sidebar-backdrop,
+  .no-print {
+    display: none !important;
+  }
+
+  // The app shell pins html/body/#root/.app-container to a fixed
+  // 100%/100vh height (for on-screen scrolling). Print pagination needs
+  // the real content height instead, or everything gets clipped/scaled
+  // to fit a single virtual page.
+  html,
+  body,
+  #root,
+  .app-container,
+  .content-wrapper,
+  .main-content,
+  .metrics-content {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .app-container {
+    padding-top: 0 !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .metrics-content {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .metrics-kpi-card,
+  .card {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  // Bootstrap's grid (.row/.col-*) is display:flex, and flex containers
+  // don't fragment across print pages reliably — Firefox in particular
+  // clips content instead of pushing it whole to the next page. Falling
+  // back to normal block flow inside the metrics content lets each card
+  // paginate correctly in both Chrome and Firefox.
+  .metrics-content {
+    .row {
+      display: block !important;
+    }
+
+    [class*='col-'] {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: none !important;
+    }
+
+    // .table-responsive has overflow-x:auto for on-screen horizontal
+    // scrolling. There's no scrollbar when printing, so the print engine
+    // only rasterizes the visible slice of the box and the rightmost
+    // columns get clipped instead of scaled/wrapped onto the page.
+    .table-responsive {
+      overflow: visible !important;
+    }
+
+    .table {
+      width: 100% !important;
+    }
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

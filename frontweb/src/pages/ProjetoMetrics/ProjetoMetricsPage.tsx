@@ -8,6 +8,7 @@ import {
   faCheckCircle,
   faSpinner,
   faClock,
+  faPrint,
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
@@ -62,6 +63,10 @@ const ProjetoMetricsPage: React.FC = () => {
     navigate('/projetos');
   }, [navigate]);
 
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
   // Loading state
   if (isLoading) {
     return (
@@ -109,13 +114,13 @@ const ProjetoMetricsPage: React.FC = () => {
     <div className="page-container" style={{ marginTop: '2rem' }}>
       <div className="metrics-content">
         {/* Page Header */}
-        <div className="page-title-container mb-4">
+        <div className="page-title-container mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div className="d-flex align-items-center">
             <Button
               variant="outline-secondary"
               size="sm"
               onClick={handleGoBack}
-              className="me-3"
+              className="me-3 no-print"
             >
               <FontAwesomeIcon icon={faArrowLeft} />
             </Button>
@@ -128,6 +133,15 @@ const ProjetoMetricsPage: React.FC = () => {
               </p>
             </div>
           </div>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={handlePrint}
+            className="no-print"
+          >
+            <FontAwesomeIcon icon={faPrint} className="me-2" />
+            Exportar / Imprimir
+          </Button>
         </div>
 
         {/* KPI Cards */}
