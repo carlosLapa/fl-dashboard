@@ -20,6 +20,7 @@ import ClienteProjetosPage from 'pages/Clientes/ClienteProjetosPage';
 import PasswordReset from '../components/User/PasswordReset';
 import { Permission } from 'permissions/rolePermissions';
 import ProjetoMetricsPage from 'pages/ProjetoMetrics/ProjetoMetricsPage';
+import ColaboradorReportPage from 'pages/Relatorios/ColaboradorReportPage';
 
 const AppRoutes = () => {
   return (
@@ -109,6 +110,15 @@ const AppRoutes = () => {
       <Route
         path="/projetos/:id/metrics"
         element={<ProtectedRoute element={<ProjetoMetricsPage />} />}
+      />
+      <Route
+        path="/relatorios/colaboradores"
+        element={
+          <ProtectedRoute
+            element={<ColaboradorReportPage />}
+            permissions={Permission.VIEW_REPORTS}
+          />
+        }
       />
       <Route
         path="/admin/password-reset"
