@@ -13,10 +13,12 @@
   width: 100%;
 }
 
-.page-title {
+// Modifier for the .page-title used as this section's user-facing heading
+// (Colaboradores list title, collaborator name card, "O Meu Calendário").
+// Differs from the shared layout.scss .page-title: centered, larger bottom margin,
+// and font-size grows on md+ instead of shrinking.
+.page-title--user-header {
   text-align: center;
-  color: #343a40;
-  font-weight: 600;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
   @include respond-from('md') {
@@ -291,18 +293,6 @@
   margin-top: 2rem;
 }
 
-.page-title-container {
-  width: 100%;
-  margin: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  @include respond-from('md') {
-    flex-wrap: nowrap;
-  }
-}
-
 .page-actions {
   display: flex;
   gap: 1rem;
@@ -357,11 +347,6 @@
 
 // Responsive adjustments for the new layout
 @include respond-to('md') {
-  .page-title-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .user-info-container {
     flex-direction: column;
     align-items: center;

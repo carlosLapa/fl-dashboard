@@ -100,17 +100,9 @@ const ColaboradorReportPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
+        <div className="page-title-container">
           <div>
-            <h2
-              className="page-title mb-1"
-              style={{ textAlign: 'left' }}
-            >
-              Relatório de Colaboradores
-            </h2>
+            <h2 className="page-title mb-1">Relatório de Colaboradores</h2>
             <p className="text-muted mb-0">
               Totais de tarefas por colaborador, agregadas em todos os
               projetos

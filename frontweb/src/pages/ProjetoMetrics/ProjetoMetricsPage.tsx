@@ -158,7 +158,7 @@ const ProjetoMetricsPage: React.FC = () => {
     <div className="page-container" style={{ marginTop: '2rem' }}>
       <div className="metrics-content">
         {/* Page Header */}
-        <div className="page-title-container mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div className="page-title-container page-title-container--metrics mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div className="d-flex align-items-center">
             <Button
               variant="outline-secondary"

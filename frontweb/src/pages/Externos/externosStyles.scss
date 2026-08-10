@@ -6,23 +6,17 @@
   width: 100%;
 }
 
-.page-title-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 1.5rem;
-
-  @include respond-from('md') {
-    flex-direction: row;
-    justify-content: space-between;
+// Modifiers for the shared layout.scss .page-title-container/.page-title:
+// on mobile, Externos pages center-align the stack (instead of the shared
+// flex-start) and give the title its own bottom margin.
+.page-title-container--externo {
+  @include respond-to('md') {
     align-items: center;
   }
 }
 
-.page-title {
+.page-title--externo {
   margin-bottom: 1rem;
-  color: #343a40;
-  font-weight: 600;
 
   @include respond-from('md') {
     margin-bottom: 0;

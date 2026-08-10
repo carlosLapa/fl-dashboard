@@ -105,10 +105,7 @@ const UserProjetoHistoryPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
+        <div className="page-title-container">
           <div className="d-flex align-items-center">
             <Button
               variant="outline-secondary"

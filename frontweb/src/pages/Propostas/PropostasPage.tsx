@@ -305,10 +305,7 @@ const PropostasPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
+        <div className="page-title-container">
           <h2 className="page-title">Gestão de Propostas</h2>
           <div className="page-actions">
             {hasPermission(Permission.CREATE_PROPOSTA) && (

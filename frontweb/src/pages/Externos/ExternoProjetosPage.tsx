@@ -158,8 +158,10 @@ const ExternoProjetosPage: React.FC = () => {
 
   return (
     <Container fluid className="page-container">
-      <div className="page-title-container">
-        <h2 className="page-title">Projetos de {externo.name}</h2>
+      <div className="page-title-container page-title-container--externo">
+        <h2 className="page-title page-title--externo">
+          Projetos de {externo.name}
+        </h2>
         <div className="page-actions">
           <Button variant="secondary" onClick={handleGoBack} className="me-2">
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />

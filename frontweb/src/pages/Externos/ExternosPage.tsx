@@ -124,11 +124,10 @@ const ExternosPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
-          <h2 className="page-title">Colaboradores Externos</h2>
+        <div className="page-title-container page-title-container--externo">
+          <h2 className="page-title page-title--externo">
+            Colaboradores Externos
+          </h2>
           <div className="page-actions">
             <Button
               variant="primary"
