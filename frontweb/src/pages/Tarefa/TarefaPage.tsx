@@ -367,10 +367,7 @@ const TarefaPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
+        <div className="page-title-container">
           <h2 className="page-title">Tarefas</h2>
           <div className="page-actions">
             <Button

@@ -201,10 +201,7 @@ const UsersTarefasPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
+        <div className="page-title-container">
           <div
             className="user-info-container"
             style={{ display: 'flex', alignItems: 'center' }}
@@ -242,7 +239,10 @@ const UsersTarefasPage: React.FC = () => {
               )}
             </div>
             <div className="user-details">
-              <h2 className="page-title" style={{ margin: 0 }}>
+              <h2
+                className="page-title page-title--user-header"
+                style={{ margin: 0 }}
+              >
                 {user.name}
               </h2>
               <p className="user-email" style={{ margin: 0 }}>

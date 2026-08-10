@@ -162,11 +162,10 @@ const ExternoTarefasPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
-          <h2 className="page-title">Tarefas de {externo.name}</h2>
+        <div className="page-title-container page-title-container--externo">
+          <h2 className="page-title page-title--externo">
+            Tarefas de {externo.name}
+          </h2>
           <div className="page-actions">
             <Button variant="secondary" onClick={handleGoBack} className="me-2">
               <FontAwesomeIcon icon={faArrowLeft} className="me-2" />

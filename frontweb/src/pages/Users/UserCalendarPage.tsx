@@ -57,11 +57,8 @@ const UserCalendarPage: React.FC = () => {
           marginTop: '2rem',
         }}
       >
-        <div
-          className="page-title-container"
-          style={{ width: '100%', margin: 0 }}
-        >
-          <h2 className="page-title">O Meu Calendário</h2>
+        <div className="page-title-container">
+          <h2 className="page-title page-title--user-header">O Meu Calendário</h2>
           <div className="page-actions">
             <Button
               variant="primary"
