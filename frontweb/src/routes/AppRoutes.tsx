@@ -21,6 +21,7 @@ import PasswordReset from '../components/User/PasswordReset';
 import { Permission } from 'permissions/rolePermissions';
 import ProjetoMetricsPage from 'pages/ProjetoMetrics/ProjetoMetricsPage';
 import ColaboradorReportPage from 'pages/Relatorios/ColaboradorReportPage';
+import UserProjetoHistoryPage from 'pages/Users/UserProjetoHistoryPage';
 
 const AppRoutes = () => {
   return (
@@ -61,6 +62,10 @@ const AppRoutes = () => {
       <Route
         path="/user-calendar/:userId"
         element={<ProtectedRoute element={<UserCalendarPage />} />}
+      />
+      <Route
+        path="/users/:userId/projeto-history"
+        element={<ProtectedRoute element={<UserProjetoHistoryPage />} />}
       />
       <Route
         path="/projetos/:projetoId/details"

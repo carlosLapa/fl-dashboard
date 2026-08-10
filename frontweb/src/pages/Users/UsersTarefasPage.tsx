@@ -137,6 +137,10 @@ const UsersTarefasPage: React.FC = () => {
     navigate(`/user-calendar/${userId}`);
   };
 
+  const handleNavigateToProjetoHistory = () => {
+    navigate(`/users/${userId}/projeto-history`);
+  };
+
   const handleEditTarefa = (tarefaId: number) => {
     const tarefa = tarefas.find((t) => t.id === tarefaId);
     if (tarefa) {
@@ -246,9 +250,18 @@ const UsersTarefasPage: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="page-actions" style={{ alignSelf: 'flex-start' }}>
+          <div
+            className="page-actions d-flex gap-2"
+            style={{ alignSelf: 'flex-start' }}
+          >
             <Button variant="primary" onClick={handleNavigateToCalendar}>
               Ver Calendário
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={handleNavigateToProjetoHistory}
+            >
+              Ver Histórico de Projetos
             </Button>
           </div>
         </div>
