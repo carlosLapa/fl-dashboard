@@ -39,5 +39,14 @@
       color: #d97706 !important;
       font-weight: 500;
     }
+
+    .action-icon {
+      cursor: pointer;
+      color: $primary;
+
+      &:hover {
+        color: darken($primary, 15%);
+      }
+    }
   }
 }

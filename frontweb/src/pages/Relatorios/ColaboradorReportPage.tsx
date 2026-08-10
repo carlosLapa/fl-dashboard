@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button } from 'react-bootstrap';
 import { CollaboratorGlobalMetricsDTO } from '../../types/colaboradorReport';
 import { getColaboradorGlobalMetrics } from '../../services/colaboradorReportService';
 import ColaboradorGlobalMetricsTable from '../../components/Relatorios/ColaboradorGlobalMetricsTable';
 
 const ColaboradorReportPage: React.FC = () => {
+  const navigate = useNavigate();
   const [colaboradores, setColaboradores] = useState<
     CollaboratorGlobalMetricsDTO[]
   >([]);
@@ -30,6 +32,13 @@ const ColaboradorReportPage: React.FC = () => {
   useEffect(() => {
     fetchMetrics();
   }, [fetchMetrics]);
+
+  const handleViewHistory = useCallback(
+    (colaboradorId: number) => {
+      navigate(`/users/${colaboradorId}/projeto-history`);
+    },
+    [navigate],
+  );
 
   if (isLoading) {
     return (
@@ -103,14 +112,17 @@ const ColaboradorReportPage: React.FC = () => {
               Relatório de Colaboradores
             </h2>
             <p className="text-muted mb-0">
-              Totais de tarefas por colaborador, agregados em todos os
+              Totais de tarefas por colaborador, agregadas em todos os
               projetos
             </p>
           </div>
         </div>
 
         <div style={{ width: '100%', marginTop: '3rem' }}>
-          <ColaboradorGlobalMetricsTable colaboradores={colaboradores} />
+          <ColaboradorGlobalMetricsTable
+            colaboradores={colaboradores}
+            onViewHistory={handleViewHistory}
+          />
         </div>
       </div>
     </div>
