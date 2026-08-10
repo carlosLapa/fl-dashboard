@@ -17,6 +17,7 @@ import { searchClientes } from '../../services/clienteService';
 import {
   updateTarefa,
   updateTarefaStatus,
+  arquivarTarefa,
   calculateWorkingDays,
 } from '../../services/tarefaService';
 import { useNotification } from '../../hooks/useNotification';
@@ -105,6 +106,21 @@ const SearchResults: React.FC = () => {
         toast.error('Erro ao atualizar tarefa');
         setShowTarefaModal(false);
       }
+    }
+  };
+
+  const handleArchiveTarefa = async (tarefaId: number) => {
+    try {
+      await arquivarTarefa(tarefaId);
+      setShowTarefaModal(false);
+      setTarefaToEdit(null);
+      toast.success('Tarefa arquivada com sucesso!');
+      await fetchSearchResults();
+    } catch (err) {
+      console.error('Erro ao arquivar tarefa:', err);
+      toast.error(
+        err instanceof Error ? err.message : 'Erro ao arquivar tarefa'
+      );
     }
   };
 
@@ -295,6 +311,7 @@ const SearchResults: React.FC = () => {
           handleUpdateTarefa(formData as TarefaUpdateFormData)
         }
         onStatusChange={handleTarefaStatusChange}
+        onArchive={handleArchiveTarefa}
         isEditing={true}
         tarefa={tarefaToEdit}
       />

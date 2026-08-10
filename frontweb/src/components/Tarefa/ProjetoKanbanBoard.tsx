@@ -15,6 +15,7 @@ import {
   getColumnsForProject,
   updateTarefa,
   updateTarefaStatus,
+  arquivarTarefa,
   getTarefaWithUsersAndProjeto,
   calculateWorkingDays as calculateWorkingDaysStr,
 } from 'services/tarefaService';
@@ -354,6 +355,21 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     }
   };
 
+  const handleArchiveTarefa = async (tarefaId: number) => {
+    try {
+      await arquivarTarefa(tarefaId);
+      setShowEditModal(false);
+      setTarefaToEdit(null);
+      toast.success('Tarefa arquivada com sucesso!');
+      await fetchColumnsAndTarefas();
+    } catch (error) {
+      console.error('Erro ao arquivar tarefa:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao arquivar tarefa'
+      );
+    }
+  };
+
   const handleSaveTarefaEdit = async (formData: TarefaUpdateFormData) => {
     try {
       if (formData.prazoEstimado && formData.prazoReal) {
@@ -605,6 +621,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           handleSaveTarefaEdit(formData as TarefaUpdateFormData)
         }
         onStatusChange={handleTarefaModalStatusChange}
+        onArchive={handleArchiveTarefa}
         isEditing={true}
         tarefa={tarefaToEdit}
       />
