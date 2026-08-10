@@ -13,7 +13,7 @@ interface TarefaColumnProps {
   onCardClick?: (tarefa: KanbanTarefa) => void;
 }
 
-const TarefaColumn: React.FC<TarefaColumnProps> = ({
+const TarefaColumn: React.FC<TarefaColumnProps> = React.memo(({
   columnId,
   tarefas = [], // Valor padrão para quando tarefas for undefined
   columnTitle,
@@ -86,6 +86,8 @@ const TarefaColumn: React.FC<TarefaColumnProps> = ({
       </StrictModeDroppable>
     </div>
   );
-};
+});
+
+TarefaColumn.displayName = 'TarefaColumn';
 
 export default TarefaColumn;

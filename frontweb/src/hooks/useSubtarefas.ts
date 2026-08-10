@@ -11,7 +11,14 @@ import {
 } from 'services/subtarefaService';
 import { Subtarefa, SubtarefaDivisaoItem } from 'types/subtarefa';
 
-export const useSubtarefas = (tarefaId?: number) => {
+export const useSubtarefas = (
+  tarefaId?: number,
+  options?: { enabled?: boolean },
+) => {
+  // enabled permite adiar o fetch (ex.: só pedir subtarefas quando o card
+  // do Kanban entra em viewport) sem afetar quem já chama este hook sem
+  // opções e espera o fetch imediato (TarefaModal, TarefaTableRow, ...).
+  const enabled = options?.enabled ?? true;
   const [subtarefas, setSubtarefas] = useState<Subtarefa[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +41,9 @@ export const useSubtarefas = (tarefaId?: number) => {
   }, [tarefaId]);
 
   useEffect(() => {
+    if (!enabled) return;
     refetch();
-  }, [refetch]);
+  }, [refetch, enabled]);
 
   const dividir = useCallback(
     async (itens?: SubtarefaDivisaoItem[]) => {
