@@ -6,6 +6,7 @@ import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.enums.ProjetoUserHistoryAction;
 import com.fl.dashboard.enums.TipoProjeto;
 import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
@@ -32,18 +33,21 @@ public class ProjetoService {
     private final ExternoRepository externoRepository;
     private final ProjetoDTOMapper projetoDTOMapper;
     private final NotificationService notificationService;
+    private final ProjetoUserHistoryService projetoUserHistoryService;
 
     public ProjetoService(
             ProjetoRepository projetoRepository,
             UserRepository userRepository,
             ExternoRepository externoRepository,
             ProjetoDTOMapper projetoDTOMapper,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ProjetoUserHistoryService projetoUserHistoryService) {
         this.projetoRepository = projetoRepository;
         this.userRepository = userRepository;
         this.externoRepository = externoRepository;
         this.projetoDTOMapper = projetoDTOMapper;
         this.notificationService = notificationService;
+        this.projetoUserHistoryService = projetoUserHistoryService;
     }
 
     @Transactional(readOnly = true)
@@ -132,6 +136,7 @@ public class ProjetoService {
                         new UserSummaryDTO(user)
                 );
             }
+            projetoUserHistoryService.registarEventos(savedEntity, savedEntity.getUsers(), ProjetoUserHistoryAction.ADDED);
         }
 
         return savedDTO;
@@ -219,7 +224,9 @@ public class ProjetoService {
                         new UserSummaryDTO(newUser)
                 );
             }
+            projetoUserHistoryService.registarEventos(savedEntity, newUsers, ProjetoUserHistoryAction.ADDED);
 
+            Set<User> removedUsers = new HashSet<>();
             for (User oldUser : oldUsers) {
                 if (!savedEntity.getUsers().contains(oldUser)) {
                     NotificationInsertDTO notification = NotificationInsertDTO.builder()
@@ -232,8 +239,10 @@ public class ProjetoService {
                             .build();
 
                     notificationService.processNotification(notification);
+                    removedUsers.add(oldUser);
                 }
             }
+            projetoUserHistoryService.registarEventos(savedEntity, removedUsers, ProjetoUserHistoryAction.REMOVED);
 
             // Notify all current users about project update
             for (User user : savedEntity.getUsers()) {
@@ -331,6 +340,7 @@ public class ProjetoService {
             for (Tarefa tarefa : projeto.getTarefas()) {
                 tarefa.markAsDeleted();
             }
+            projetoUserHistoryService.registarEventos(projeto, projeto.getUsers(), ProjetoUserHistoryAction.REMOVED);
             projeto.markAsDeleted();
             projetoRepository.save(projeto);
         } catch (EntityNotFoundException e) {
