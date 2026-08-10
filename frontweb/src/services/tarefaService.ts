@@ -364,11 +364,21 @@ export const getAllTarefasWithUsersAndProjeto = async (
   return response;
 };
 
+// Only the fields actually read below (to build notifications) are
+// required, so callers that already have a lighter-weight task object in
+// memory (e.g. KanbanTarefa) don't need to fetch the full DTO just to call
+// this function.
+type TarefaNotificationInfo = {
+  descricao: string;
+  users: { id: number }[];
+  projeto: { id: number };
+};
+
 export const updateTarefaStatus = async (
   id: number,
   newStatus: TarefaStatus,
   onNotify?: (notification: NotificationInsertDTO) => Promise<void>,
-  tarefa?: TarefaWithUserAndProjetoDTO
+  tarefa?: TarefaNotificationInfo
 ): Promise<TarefaWithUsersDTO> => {
   try {
     console.log(
