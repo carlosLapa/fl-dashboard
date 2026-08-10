@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
@@ -69,7 +69,7 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-PT');
 };
 
-const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index, onClick }) => {
+const TarefaCard: React.FC<TarefaCardProps> = React.memo(({ tarefa, index, onClick }) => {
   // Cast to our extended interface that includes project deadline
   const tarefaWithPrazo = tarefa as KanbanTarefaWithProjectDeadline;
   const deadlineStatus = getDeadlineStatus(
@@ -77,13 +77,41 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index, onClick }) => {
     tarefaWithPrazo.projeto?.prazo
   );
   const cardStyleClass = getCardStyle(tarefa);
-  const { isDividida, totalPercentual } = useSubtarefas(tarefa.id);
+
+  // Só pede as subtarefas quando o card entra em viewport — evita disparar
+  // um GET por cada card montado quando o board tem muitas tarefas.
+  const [isVisible, setIsVisible] = useState(false);
+  const cardNodeRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (isVisible) return;
+    const node = cardNodeRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  const { isDividida, totalPercentual } = useSubtarefas(tarefa.id, {
+    enabled: isVisible,
+  });
 
   return (
     <Draggable draggableId={tarefa.uniqueId} index={index}>
       {(provided, snapshot) => (
         <div
-          ref={provided.innerRef}
+          ref={(node) => {
+            provided.innerRef(node);
+            cardNodeRef.current = node;
+          }}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onClick?.(tarefa)}
@@ -209,6 +237,8 @@ const TarefaCard: React.FC<TarefaCardProps> = ({ tarefa, index, onClick }) => {
       )}
     </Draggable>
   );
-};
+});
+
+TarefaCard.displayName = 'TarefaCard';
 
 export default TarefaCard;

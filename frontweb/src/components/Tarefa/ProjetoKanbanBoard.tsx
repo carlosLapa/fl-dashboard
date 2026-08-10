@@ -211,63 +211,77 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
           `Processando ${projeto.tarefas.length} tarefas para o projeto ${projeto.id}`
         );
 
-        // O restante do código permanece igual...
-        for (const tarefa of projeto.tarefas) {
-          try {
-            const tarefaWithUsers = await getTarefaWithUsers(tarefa.id);
+        // Buscar todas as tarefas em paralelo em vez de sequencialmente
+        // (era um N+1 sequencial: uma tarefa só começava a ser pedida depois
+        // da anterior terminar, o que multiplicava a latência de rede pelo
+        // número de tarefas do projeto).
+        const results = await Promise.allSettled(
+          projeto.tarefas.map((tarefa) => getTarefaWithUsers(tarefa.id))
+        );
 
-            // Calculate working days if prazoEstimado and prazoReal exist
-            let workingDays: number | undefined = undefined;
-            if (tarefaWithUsers.workingDays !== undefined) {
-              // Use existing workingDays if available
-              workingDays = tarefaWithUsers.workingDays;
-            } else if (
-              tarefaWithUsers.prazoEstimado &&
-              tarefaWithUsers.prazoReal &&
-              !isNaN(new Date(tarefaWithUsers.prazoEstimado).getTime()) &&
-              !isNaN(new Date(tarefaWithUsers.prazoReal).getTime())
-            ) {
-              // Calculate workingDays if not available
-              const startDate = new Date(tarefaWithUsers.prazoEstimado);
-              const endDate = new Date(tarefaWithUsers.prazoReal);
-              workingDays = calculateWorkingDays(startDate, endDate);
-            }
+        results.forEach((result, index) => {
+          const tarefa = projeto.tarefas[index];
 
-            const kanbanTarefa: KanbanTarefa = {
-              ...tarefaWithUsers,
-              column: tarefaWithUsers.status as TarefaStatus,
-              projeto: { id: projeto.id, designacao: projeto.designacao },
-              uniqueId: `${tarefa.id}-${Date.now()}`,
-              workingDays: workingDays,
-            };
-
-            if (
-              isTarefaStatus(kanbanTarefa.status) &&
-              kanbanTarefa.status in updatedColumns
-            ) {
-              updatedColumns[kanbanTarefa.status].push(kanbanTarefa);
-            } else {
-              updatedColumns.BACKLOG.push(kanbanTarefa);
-            }
-          } catch (error) {
+          if (result.status === 'rejected') {
+            const error = result.reason;
             if (axios.isAxiosError(error)) {
               if (error.response?.status === 404) {
                 console.warn(
                   `Task ${tarefa.id} not found, may have been deleted`
                 );
-                continue;
+                return;
               } else if (error.response?.status === 403) {
                 console.warn(`Permission denied for task ${tarefa.id}`);
-                continue;
+                return;
               } else if (error.response?.status === 400) {
                 console.warn(`Bad request for task ${tarefa.id}`);
-                continue;
+                return;
               }
             }
             console.error(`Error fetching task ${tarefa.id}:`, error);
-            continue;
+            return;
           }
-        }
+
+          const tarefaWithUsers = result.value;
+
+          // Calculate working days if prazoEstimado and prazoReal exist
+          let workingDays: number | undefined = undefined;
+          if (tarefaWithUsers.workingDays !== undefined) {
+            // Use existing workingDays if available
+            workingDays = tarefaWithUsers.workingDays;
+          } else if (
+            tarefaWithUsers.prazoEstimado &&
+            tarefaWithUsers.prazoReal &&
+            !isNaN(new Date(tarefaWithUsers.prazoEstimado).getTime()) &&
+            !isNaN(new Date(tarefaWithUsers.prazoReal).getTime())
+          ) {
+            // Calculate workingDays if not available
+            const startDate = new Date(tarefaWithUsers.prazoEstimado);
+            const endDate = new Date(tarefaWithUsers.prazoReal);
+            workingDays = calculateWorkingDays(startDate, endDate);
+          }
+
+          const kanbanTarefa: KanbanTarefa = {
+            ...tarefaWithUsers,
+            column: tarefaWithUsers.status as TarefaStatus,
+            projeto: { id: projeto.id, designacao: projeto.designacao },
+            // Estável entre re-fetches (usado como key/draggableId) — um
+            // uniqueId baseado em Date.now() mudava a cada fetchColumnsAndTarefas,
+            // forçando o desmonte/remonte de todos os cards (e a repetição de
+            // todos os pedidos de subtarefas) sempre que se editava uma tarefa.
+            uniqueId: String(tarefa.id),
+            workingDays: workingDays,
+          };
+
+          if (
+            isTarefaStatus(kanbanTarefa.status) &&
+            kanbanTarefa.status in updatedColumns
+          ) {
+            updatedColumns[kanbanTarefa.status].push(kanbanTarefa);
+          } else {
+            updatedColumns.BACKLOG.push(kanbanTarefa);
+          }
+        });
 
         setColumns(updatedColumns);
         setError(null);
@@ -306,7 +320,10 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     fetchColumnsAndTarefas();
   }, [fetchColumnsAndTarefas]);
 
-  const handleCardClick = async (tarefa: KanbanTarefa) => {
+  // useCallback: mantém uma referência estável entre renders, para que o
+  // React.memo em TarefaColumn/TarefaCard não seja invalidado só por causa
+  // deste handler ser recriado a cada render do board.
+  const handleCardClick = useCallback(async (tarefa: KanbanTarefa) => {
     try {
       const fullTarefa = await getTarefaWithUsersAndProjeto(tarefa.id);
       setTarefaToEdit(fullTarefa);
@@ -315,7 +332,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       console.error('Erro ao carregar dados da tarefa:', error);
       toast.error('Erro ao carregar dados da tarefa');
     }
-  };
+  }, []);
 
   const handleTarefaModalStatusChange = async (
     tarefaId: number,
@@ -438,12 +455,9 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         `Movendo tarefa ${removed.id} de ${source.droppableId} para ${destination.droppableId}`
       );
 
-      // Obter a tarefa completa com usuários e projeto
-      const tarefaCompleta = await getTarefaWithUsersAndProjeto(removed.id);
-      console.log(
-        `Tarefa completa obtida: ID=${removed.id}, usuários=${tarefaCompleta.users.length}`
-      );
-
+      // A tarefa já em memória (removed) tem tudo o que updateTarefaStatus
+      // precisa para montar as notificações (descricao, users, projeto.id),
+      // por isso não é preciso voltar a pedir a tarefa completa ao backend.
       await updateTarefaStatus(
         removed.id,
         destination.droppableId as TarefaStatus,
@@ -459,7 +473,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
             return Promise.resolve(); // Ainda retornamos uma promise resolvida para não interromper o fluxo
           }
         },
-        tarefaCompleta
+        removed
       );
 
       // Notify Coordenador if not the user moving the card
