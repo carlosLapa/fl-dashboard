@@ -8,6 +8,7 @@ import {
 } from 'types/tarefa';
 import {
   addTarefa,
+  arquivarTarefa,
   updateTarefa,
   deleteTarefa,
   updateTarefaStatus,
@@ -313,6 +314,25 @@ const TarefaPage: React.FC = () => {
     }
   };
 
+  const handleArchiveTarefa = async (tarefaId: number) => {
+    try {
+      await arquivarTarefa(tarefaId);
+      setShowModal(false);
+      setTarefaToEdit(null);
+      if (isFiltered) {
+        await fetchAdvancedFilteredTarefas();
+      } else {
+        await fetchTarefas();
+      }
+      toast.success('Tarefa arquivada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao arquivar tarefa:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao arquivar tarefa'
+      );
+    }
+  };
+
   const handleViewDetails = (tarefaId: number) => {
     const tarefa = tarefas.find((t) => t.id === tarefaId);
     if (tarefa) {
@@ -431,6 +451,7 @@ const TarefaPage: React.FC = () => {
         }}
         onSave={handleAddOrUpdateTarefa}
         onStatusChange={handleStatusUpdate}
+        onArchive={handleArchiveTarefa}
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />

@@ -14,6 +14,7 @@ import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
+import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
@@ -680,7 +681,7 @@ public class TarefaService {
             User user = userRepository.findByEmail(userEmail);
             if (user == null || startDate == null || endDate == null) return Page.empty(pageRequest);
             List<Tarefa> tarefas = user.getTarefas().stream()
-                    .filter(tarefa -> !tarefa.isDeleted())
+                    .filter(tarefa -> !tarefa.isDeleted() && !tarefa.isArquivada())
                     .filter(tarefa -> {
                         Date date = "prazoEstimado".equals(dateField) ? tarefa.getPrazoEstimado() : tarefa.getPrazoReal();
                         return date != null && !date.before(startDate) && !date.after(endDate);
@@ -715,7 +716,7 @@ public class TarefaService {
             User user = userRepository.findByEmail(userEmail);
             if (user == null) return Page.empty(pageRequest);
             List<Tarefa> tarefas = user.getTarefas().stream()
-                    .filter(tarefa -> !tarefa.isDeleted())
+                    .filter(tarefa -> !tarefa.isDeleted() && !tarefa.isArquivada())
                     .sorted((a, b) -> {
                         if ("id".equals(sortField)) {
                             return sortDirection.equalsIgnoreCase("ASC") ?
@@ -769,8 +770,44 @@ public class TarefaService {
         return new TarefaDTO(tarefa);
     }
 
+    @Transactional
+    public TarefaDTO arquivar(Long id) {
+        Tarefa tarefa = tarefaRepository.findByIdActive(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        if (tarefa.getStatus() != TarefaStatus.DONE) {
+            throw new TarefaArquivamentoInvalidoException("Só é possível arquivar tarefas com estado Concluído");
+        }
+        if (tarefa.isArquivada()) {
+            throw new TarefaArquivamentoInvalidoException("Esta tarefa já está arquivada");
+        }
+
+        tarefa.markAsArquivada();
+        tarefa = tarefaRepository.save(tarefa);
+
+        return new TarefaDTO(tarefa);
+    }
+
+    @Transactional
+    public TarefaDTO reativar(Long id) {
+        Tarefa tarefa = tarefaRepository.findByIdActive(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        tarefa.markAsDesarquivada();
+        tarefa = tarefaRepository.save(tarefa);
+
+        return new TarefaDTO(tarefa);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TarefaWithUsersDTO> findArquivadasByProjeto(Long projetoId) {
+        return tarefaRepository.findAllArquivadasByProjetoId(projetoId).stream()
+                .map(TarefaWithUsersDTO::new)
+                .toList();
+    }
+
     private boolean matchesFilter(Tarefa tarefa, TarefaFilterDTO filterDTO, Date adjustedEndDate) {
-        if (tarefa.isDeleted()) return false;
+        if (tarefa.isDeleted() || tarefa.isArquivada()) return false;
         if (filterDTO.getDescricao() != null &&
                 (tarefa.getDescricao() == null || !tarefa.getDescricao().toLowerCase().contains(filterDTO.getDescricao().toLowerCase()))) {
             return false;

@@ -581,6 +581,27 @@ export const deleteTarefaAPI = async (id: number): Promise<void> => {
   await axios.delete(`/tarefas/${id}`);
 };
 
+export const arquivarTarefaAPI = async (tarefaId: number) => {
+  const response = await axios.put<TarefaWithUsersDTO>(
+    `/tarefas/${tarefaId}/archive`
+  );
+  return response.data;
+};
+
+export const reativarTarefaAPI = async (tarefaId: number) => {
+  const response = await axios.put<TarefaWithUsersDTO>(
+    `/tarefas/${tarefaId}/unarchive`
+  );
+  return response.data;
+};
+
+export const getTarefasArquivadasByProjetoAPI = async (projetoId: number) => {
+  const response = await axios.get<TarefaWithUsersDTO[]>(
+    `/tarefas/projeto/${projetoId}/arquivadas`
+  );
+  return response.data;
+};
+
 export const getTarefasWithUsersAndProjetoByUser = async (
   userId: number,
   page: number = 0,

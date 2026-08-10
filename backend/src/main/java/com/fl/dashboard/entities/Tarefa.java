@@ -76,6 +76,21 @@ public class Tarefa {
         return deletedAt != null;
     }
 
+    @Column(name = "arquivada_em")
+    private LocalDateTime arquivadaEm;
+
+    public void markAsArquivada() {
+        this.arquivadaEm = LocalDateTime.now();
+    }
+
+    public void markAsDesarquivada() {
+        this.arquivadaEm = null;
+    }
+
+    public boolean isArquivada() {
+        return arquivadaEm != null;
+    }
+
     public Tarefa() {
     }
 

@@ -16,6 +16,7 @@ import {
 import ProjetoDetailsTable from 'components/Projeto/ProjetoDetailsTable';
 import { ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import ProjetoTarefasTable from 'components/Projeto/ProjetoTarefasTable';
+import ProjetoTarefasArquivadasTable from 'components/Projeto/ProjetoTarefasArquivadasTable';
 import ProjetoTarefaModal from 'components/Tarefa/ProjetoTarefaModal';
 import { TarefaInsertFormData } from 'types/tarefa';
 import { addTarefa } from 'services/tarefaService';
@@ -183,6 +184,22 @@ const ProjetoDetailsPage: React.FC = () => {
             <Card.Body className="p-0">
               <div className="details-table-wrapper">
                 <ProjetoTarefasTable tarefas={projeto.tarefas} />
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col>
+          <Card>
+            <Card.Header as="h5">Tarefas Arquivadas</Card.Header>
+            <Card.Body className="p-0">
+              <div className="details-table-wrapper">
+                <ProjetoTarefasArquivadasTable
+                  projetoId={projeto.id}
+                  onReactivated={fetchProjeto}
+                />
               </div>
             </Card.Body>
           </Card>

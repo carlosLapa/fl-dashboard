@@ -43,6 +43,7 @@ interface TarefaModalProps {
   ) => void | Promise<Tarefa | void>;
   isEditing: boolean;
   onStatusChange?: (tarefaId: number, newStatus: TarefaStatus) => void;
+  onArchive?: (tarefaId: number) => void | Promise<void>;
 }
 
 // Helper function to calculate working days between two dates
@@ -85,6 +86,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   onSave,
   isEditing,
   onStatusChange,
+  onArchive,
 }) => {
   const { sendNotification } = useNotification();
   const { user } = useAuth();
@@ -1083,6 +1085,18 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         )}
       </Modal.Body>
       <Modal.Footer>
+        {isEditing &&
+          tarefa &&
+          tarefa.status === 'DONE' &&
+          !tarefa.arquivadaEm &&
+          hasPermission(Permission.MOVE_CARD_TO_DONE) && (
+            <Button
+              variant="outline-secondary"
+              onClick={() => onArchive?.(tarefa.id)}
+            >
+              Arquivar
+            </Button>
+          )}
         <Button variant="secondary" onClick={onHide}>
           Cancelar
         </Button>
