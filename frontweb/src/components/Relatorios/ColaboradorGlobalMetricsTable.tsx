@@ -1,10 +1,13 @@
 import React from 'react';
-import { Table } from 'react-bootstrap';
+import { Table, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHistory } from '@fortawesome/free-solid-svg-icons';
 import { CollaboratorGlobalMetricsDTO } from '../../types/colaboradorReport';
 import './ColaboradorGlobalMetricsTable.scss';
 
 interface ColaboradorGlobalMetricsTableProps {
   colaboradores: CollaboratorGlobalMetricsDTO[];
+  onViewHistory: (colaboradorId: number) => void;
 }
 
 /**
@@ -18,10 +21,10 @@ interface ColaboradorGlobalMetricsTableProps {
  */
 const ColaboradorGlobalMetricsTable: React.FC<
   ColaboradorGlobalMetricsTableProps
-> = ({ colaboradores }) => {
+> = ({ colaboradores, onViewHistory }) => {
   return (
     <div className="colaborador-global-metrics-table">
-      <h5 className="mb-4">Totais Gerais por Colaborador</h5>
+      <h5 className="mb-4">Totais Gerais</h5>
 
       {colaboradores.length === 0 ? (
         <div className="text-center text-muted py-5">
@@ -40,6 +43,7 @@ const ColaboradorGlobalMetricsTable: React.FC<
                 <th className="text-center">Pendentes</th>
                 <th className="text-center">Taxa de Conclusão</th>
                 <th className="text-center">Tempo Médio (dias úteis)</th>
+                <th className="text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -78,6 +82,23 @@ const ColaboradorGlobalMetricsTable: React.FC<
                   </td>
                   <td className="text-center numeric-cell">
                     {col.tempoMedioDias.toFixed(1)}
+                  </td>
+                  <td className="text-center">
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={
+                        <Tooltip id={`history-tooltip-${col.colaboradorId}`}>
+                          Ver Histórico de Projetos
+                        </Tooltip>
+                      }
+                    >
+                      <FontAwesomeIcon
+                        icon={faHistory}
+                        role="button"
+                        onClick={() => onViewHistory(col.colaboradorId)}
+                        className="action-icon"
+                      />
+                    </OverlayTrigger>
                   </td>
                 </tr>
               ))}
