@@ -9,6 +9,7 @@ import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
+import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -129,6 +130,54 @@ class TarefaServiceTest {
         ArgumentCaptor<Tarefa> captor = ArgumentCaptor.forClass(Tarefa.class);
         verify(tarefaRepository).save(captor.capture());
         assertEquals(TarefaStatus.BACKLOG, captor.getValue().getStatus());
+    }
+
+    // --- arquivar / reativar ---
+
+    @Test
+    void arquivarShouldThrowWhenStatusIsNotDone() {
+        tarefa.setStatus(TarefaStatus.IN_PROGRESS);
+
+        assertThrows(TarefaArquivamentoInvalidoException.class,
+                () -> tarefaService.arquivar(1L));
+
+        verify(tarefaRepository, never()).save(any());
+    }
+
+    @Test
+    void arquivarShouldSetArquivadaEmWhenStatusIsDone() {
+        tarefa.setStatus(TarefaStatus.DONE);
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tarefaService.arquivar(1L);
+
+        ArgumentCaptor<Tarefa> captor = ArgumentCaptor.forClass(Tarefa.class);
+        verify(tarefaRepository).save(captor.capture());
+        assertNotNull(captor.getValue().getArquivadaEm());
+    }
+
+    @Test
+    void arquivarShouldThrowWhenAlreadyArquivada() {
+        tarefa.setStatus(TarefaStatus.DONE);
+        tarefa.markAsArquivada();
+
+        assertThrows(TarefaArquivamentoInvalidoException.class,
+                () -> tarefaService.arquivar(1L));
+
+        verify(tarefaRepository, never()).save(any());
+    }
+
+    @Test
+    void reativarShouldClearArquivadaEm() {
+        tarefa.setStatus(TarefaStatus.DONE);
+        tarefa.markAsArquivada();
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tarefaService.reativar(1L);
+
+        ArgumentCaptor<Tarefa> captor = ArgumentCaptor.forClass(Tarefa.class);
+        verify(tarefaRepository).save(captor.capture());
+        assertNull(captor.getValue().getArquivadaEm());
     }
 
 }

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -33,6 +34,8 @@ public class TarefaDTO {
     private TarefaStatus status;
 
     private Integer workingDays;
+
+    private LocalDateTime arquivadaEm;
 
     public TarefaDTO() {
     }
@@ -65,6 +68,7 @@ public class TarefaDTO {
         this.prazoReal = entity.getPrazoReal();
         this.status = entity.getStatus();
         this.workingDays = entity.getWorkingDays();
+        this.arquivadaEm = entity.getArquivadaEm();
     }
 
 }

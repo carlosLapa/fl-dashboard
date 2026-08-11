@@ -23,7 +23,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     // projeto.colunas or coluna; TarefaService never touches either, so this only ever paid for an
     // unused join.
     @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT DISTINCT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
+    @Query("SELECT DISTINCT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL AND t.arquivadaEm IS NULL")
     Optional<Tarefa> findByIdWithUsersAndProjeto(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"projeto", "projeto.colunas"})
@@ -35,7 +35,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     Optional<Tarefa> findByIdWithUsersActive(@Param("id") Long id);
 
     @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND (LOWER(t.descricao) LIKE :descricaoQuery OR LOWER(t.status) LIKE :statusQuery)")
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL AND (LOWER(t.descricao) LIKE :descricaoQuery OR LOWER(t.status) LIKE :statusQuery)")
     List<Tarefa> findByDescricaoLikeIgnoreCaseOrStatusLikeIgnoreCase(
             @Param("descricaoQuery") String descricaoQuery,
             @Param("statusQuery") String statusQuery
@@ -86,13 +86,13 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT DISTINCT t FROM Tarefa t " +
             "JOIN t.users u " +
             "WHERE u.id = :userId " +
-            "AND t.deletedAt IS NULL")
+            "AND t.deletedAt IS NULL AND t.arquivadaEm IS NULL")
     List<Tarefa> findAllActiveByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
     Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND :userId IN (SELECT u.id FROM t.users u) " +
+    @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL AND :userId IN (SELECT u.id FROM t.users u) " +
             "AND (:descricao IS NULL OR LOWER(t.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
             "AND (:status IS NULL OR t.status = :status) " +
             "AND (:prioridade IS NULL OR LOWER(t.prioridade) = LOWER(:prioridade)) " +
@@ -107,7 +107,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
     // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
     // pagination (HHH90003004), which loads the whole result set into heap before slicing it.
-    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL " +
+    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL " +
             "AND ((:dateField = 'prazoEstimado' AND t.prazoEstimado BETWEEN :startDate AND :endDate) OR " +
             "(:dateField = 'prazoReal' AND t.prazoReal BETWEEN :startDate AND :endDate))")
     Page<Long> findByDateRangeIds(
@@ -117,10 +117,10 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL")
+    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL")
     Page<Long> findAllActiveSortedIds(Pageable pageable);
 
-    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL " +
+    @Query("SELECT t.id FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL " +
             "AND (:descricao IS NULL OR LOWER(t.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
             "AND (:status IS NULL OR t.status = :status) " +
             "AND (:projetoId IS NULL OR t.projeto.id = :projetoId) " +
@@ -142,5 +142,10 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @EntityGraph(attributePaths = {"users", "projeto"})
     @Query("SELECT t FROM Tarefa t WHERE t.id IN :ids")
     List<Tarefa> findAllByIdInWithUsersAndProjeto(@Param("ids") List<Long> ids);
+
+    @EntityGraph(attributePaths = {"users"})
+    @Query("SELECT t FROM Tarefa t WHERE t.projeto.id = :projetoId AND t.deletedAt IS NULL " +
+            "AND t.arquivadaEm IS NOT NULL ORDER BY t.arquivadaEm DESC")
+    List<Tarefa> findAllArquivadasByProjetoId(@Param("projetoId") Long projetoId);
 
 }

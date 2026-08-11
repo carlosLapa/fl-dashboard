@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -260,6 +261,26 @@ public class TarefaResource {
             @RequestBody Integer workingDays) {
         TarefaDTO updatedTarefa = tarefaService.updateWorkingDays(id, workingDays);
         return ResponseEntity.ok().body(updatedTarefa);
+    }
+
+    @PutMapping("/{id}/archive")
+    @PreAuthorize("hasAuthority('MOVE_CARD_TO_DONE')")
+    public ResponseEntity<TarefaDTO> archive(@PathVariable Long id) {
+        TarefaDTO updatedTarefa = tarefaService.arquivar(id);
+        return ResponseEntity.ok().body(updatedTarefa);
+    }
+
+    @PutMapping("/{id}/unarchive")
+    @PreAuthorize("hasAuthority('MOVE_CARD_TO_DONE')")
+    public ResponseEntity<TarefaDTO> unarchive(@PathVariable Long id) {
+        TarefaDTO updatedTarefa = tarefaService.reativar(id);
+        return ResponseEntity.ok().body(updatedTarefa);
+    }
+
+    @GetMapping("/projeto/{projetoId}/arquivadas")
+    public ResponseEntity<List<TarefaWithUsersDTO>> findArquivadasByProjeto(@PathVariable Long projetoId) {
+        List<TarefaWithUsersDTO> arquivadas = tarefaService.findArquivadasByProjeto(projetoId);
+        return ResponseEntity.ok().body(arquivadas);
     }
 
     @GetMapping("/filter")

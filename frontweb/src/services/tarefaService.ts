@@ -10,12 +10,15 @@ import {
 import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import {
   addTarefaAPI,
+  arquivarTarefaAPI,
   deleteTarefaAPI,
   getAllTarefasWithUsersAndProjetoAPI,
+  getTarefasArquivadasByProjetoAPI,
   getTarefasFilteredAPI,
   getTarefasSortedAPI,
   getTarefaWithUsersAndProjetoAPI,
   getTarefaWithUsersAPI,
+  reativarTarefaAPI,
   updateTarefaAPI,
   updateTarefaStatusAPI,
 } from 'api/requestsApi';
@@ -264,6 +267,29 @@ export const deleteTarefa = async (id: number): Promise<void> => {
     console.error('Error deleting tarefa:', error);
     throw error;
   }
+};
+
+export const arquivarTarefa = async (id: number): Promise<TarefaWithUsersDTO> => {
+  try {
+    return await arquivarTarefaAPI(id);
+  } catch (error) {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 409 &&
+      error.response?.data?.message
+    ) {
+      throw new Error(error.response.data.message);
+    }
+    throw error;
+  }
+};
+
+export const reativarTarefa = async (id: number): Promise<TarefaWithUsersDTO> => {
+  return await reativarTarefaAPI(id);
+};
+
+export const getTarefasArquivadasByProjeto = async (projetoId: number) => {
+  return await getTarefasArquivadasByProjetoAPI(projetoId);
 };
 
 export const getTarefaWithUsersAndProjeto = async (

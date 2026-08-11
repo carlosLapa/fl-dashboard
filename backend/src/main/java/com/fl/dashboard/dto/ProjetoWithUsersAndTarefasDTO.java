@@ -43,7 +43,7 @@ public class ProjetoWithUsersAndTarefasDTO extends ProjetoDTO {
         // E filtrar tarefas apagadas
         if (entity.getTarefas() != null) {
             this.tarefas = entity.getTarefas().stream()
-                    .filter(tarefa -> tarefa.getDeletedAt() == null)
+                    .filter(tarefa -> tarefa.getDeletedAt() == null && tarefa.getArquivadaEm() == null)
                     .map(TarefaDTO::new)
                     .collect(Collectors.toSet());
         } else {

@@ -5,6 +5,7 @@ import {
   getTarefasWithUsersAndProjetoByUser,
   updateTarefaAPI,
 } from 'api/requestsApi';
+import { arquivarTarefa } from 'services/tarefaService';
 import { User } from 'types/user';
 import {
   TarefaWithUserAndProjetoDTO,
@@ -158,6 +159,22 @@ const UsersTarefasPage: React.FC = () => {
     setSelectedTarefa(null);
   };
 
+  const handleArchiveTarefa = async (tarefaId: number) => {
+    try {
+      await arquivarTarefa(tarefaId);
+      handleCloseTarefaModal();
+      toast.success('Tarefa arquivada com sucesso!');
+      if (userId) {
+        await fetchTarefas(parseInt(userId, 10));
+      }
+    } catch (error) {
+      console.error('Erro ao arquivar tarefa:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao arquivar tarefa'
+      );
+    }
+  };
+
   const handleSaveTarefa = async (
     formData: TarefaInsertFormData | TarefaUpdateFormData
   ) => {
@@ -307,6 +324,7 @@ const UsersTarefasPage: React.FC = () => {
           onHide={handleCloseTarefaModal}
           tarefa={selectedTarefa}
           onSave={handleSaveTarefa}
+          onArchive={handleArchiveTarefa}
           isEditing={true}
         />
       )}

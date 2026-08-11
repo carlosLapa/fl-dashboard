@@ -18,6 +18,7 @@ export interface Tarefa {
   status: TarefaStatus;
   // Calculated field: number of working days between prazoEstimado and prazoReal (excludes weekends)
   workingDays?: number;
+  arquivadaEm?: string | null;
   projeto: {
     id: number;
     designacao: string;
