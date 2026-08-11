@@ -30,6 +30,11 @@ interface NotificationContextType {
   unreadCount: number;
   hasMore: boolean;
   resetNotifications: () => void;
+  // Last notification received live via WebSocket (distinct from
+  // `notifications`, which also accumulates paginated history). Acts as a
+  // signal for other components (e.g. Kanban board) to invalidate their own
+  // data when another user changes something relevant.
+  lastLiveNotification: Notification | null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
@@ -43,6 +48,8 @@ export const NotificationProvider: React.FC<{
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [lastLiveNotification, setLastLiveNotification] =
+    useState<Notification | null>(null);
 
   // Reset notifications (for new user or reload)
   const resetNotifications = useCallback(() => {
@@ -109,6 +116,7 @@ export const NotificationProvider: React.FC<{
       if (!notification.isRead) {
         setUnreadCount((prev) => prev + 1);
       }
+      setLastLiveNotification(notification);
     }
   }, []);
 
@@ -159,6 +167,7 @@ export const NotificationProvider: React.FC<{
         loadStoredNotifications,
         hasMore,
         resetNotifications,
+        lastLiveNotification,
       }}
     >
       {children}

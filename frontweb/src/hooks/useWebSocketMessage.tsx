@@ -66,17 +66,17 @@ const useWebSocket = (userId: number) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateConnectionStats = useCallback(
-    (type: 'sent' | 'received') => {
-      setConnectionStats((prev) => ({
-        ...prev,
-        [`messages${type === 'sent' ? 'Sent' : 'Received'}`]:
-          prev[`messages${type === 'sent' ? 'Sent' : 'Received'}`] + 1,
-        queueSize: messages.length,
-      }));
-    },
-    [messages.length]
-  );
+  const updateConnectionStats = useCallback((type: 'sent' | 'received') => {
+    setConnectionStats((prev) => ({
+      ...prev,
+      [`messages${type === 'sent' ? 'Sent' : 'Received'}`]:
+        prev[`messages${type === 'sent' ? 'Sent' : 'Received'}`] + 1,
+      // Outgoing messages waiting to be flushed, not the received-messages
+      // count — read from the ref so this callback doesn't depend on
+      // `messages` state (see handleMessage below for why that matters).
+      queueSize: messageQueue.current.length,
+    }));
+  }, []);
 
   const handleMessage = useCallback(
     (message: Message) => {
@@ -97,12 +97,14 @@ const useWebSocket = (userId: number) => {
           Object.values(NotificationType).includes(notification.type)
         ) {
           setMessages((prevMessages) => {
-            // Check for duplicates using the correct property structure
+            // Dedupe by the notification's own database id — it's unique per
+            // event, so this only catches genuine re-deliveries of the same
+            // notification (e.g. after a reconnect), not a second distinct
+            // event of the same type/task/user (which type+relatedId+user
+            // used to conflate, silently swallowing every status change past
+            // the first one for a given task).
             const isDuplicate = prevMessages.some(
-              (msg) =>
-                msg.type === notification.type &&
-                msg.relatedId === notification.relatedId &&
-                msg.user?.id === notification.user?.id
+              (msg) => msg.id === notification.id
             );
 
             if (isDuplicate) {
@@ -214,6 +216,14 @@ const useWebSocket = (userId: number) => {
     }
   }, [isConnected, sendMessage]);
 
+  // Deps: this effect tears down and rebuilds the whole STOMP connection
+  // whenever any of these change identity, so handleMessage/handleConnect/
+  // handleError/handleClose must stay referentially stable across renders.
+  // handleMessage used to depend (transitively, via updateConnectionStats)
+  // on `messages.length`, so every incoming message changed its identity and
+  // forced a full disconnect/reconnect right after being received — flapping
+  // the connection on every notification and risking dropped messages sent
+  // during that window. See updateConnectionStats above for the fix.
   useEffect(() => {
     let isComponentMounted = true;
     const token = secureStorage.getItem('access_token');

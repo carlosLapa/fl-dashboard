@@ -442,6 +442,9 @@ public class TarefaService {
 
         List<User> notifiedUsers = new ArrayList<>();
 
+        Projeto projeto = tarefa.getProjeto();
+        Long projetoId = projeto != null ? projeto.getId() : null;
+
         // Notify all assigned users in the application
         //logger.debug("Enviando notificações para {} usuários atribuídos à tarefa", tarefa.getUsers().size());
 
@@ -453,15 +456,14 @@ public class TarefaService {
                     .userId(user.getId())
                     .isRead(false)
                     .createdAt(new Date())
+                    .relatedId(tarefaId)
                     .tarefaId(tarefaId)
+                    .projetoId(projetoId)
                     .build();
 
             //logger.debug("Processando notificação para usuário ID={} ({})", user.getId(), user.getName());
             notificationService.processNotification(notification);
         });
-
-        // Notify Coordenador if not assigned to the tarefa
-        Projeto projeto = tarefa.getProjeto();
 
         /*logger.info("Verificando projeto associado à tarefa: {}",
                 projeto != null ? "ID=" + projeto.getId() + ", designação='" + projeto.getDesignacao() + "'" : "nenhum");*/
@@ -482,7 +484,9 @@ public class TarefaService {
                         .userId(coordenador.getId())
                         .isRead(false)
                         .createdAt(new Date())
+                        .relatedId(tarefaId)
                         .tarefaId(tarefaId)
+                        .projetoId(projetoId)
                         .build();
                 notificationService.processNotification(notification);
             } else {
