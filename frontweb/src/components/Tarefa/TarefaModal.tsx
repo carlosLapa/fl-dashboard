@@ -194,6 +194,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         projetoId: tarefa.projeto.id,
         userIds: tarefa.users.map((user) => user.id),
         externoIds: tarefa.externos?.map((externo) => externo.id) || [],
+        version: tarefa.version,
       });
       setSelectedProjectName(tarefa.projeto.designacao);
       setWorkingDays(

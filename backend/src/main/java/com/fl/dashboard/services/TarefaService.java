@@ -12,6 +12,7 @@ import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
+import com.fl.dashboard.services.exceptions.OptimisticLockConflictException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
@@ -258,6 +259,11 @@ public class TarefaService {
     public TarefaWithUserAndProjetoDTO updateWithAssociations(TarefaUpdateDTO dto) {
         Tarefa tarefa = tarefaRepository.findByIdActive(dto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
+
+        if (dto.getVersion() != null && !dto.getVersion().equals(tarefa.getVersion())) {
+            throw new OptimisticLockConflictException(
+                    "Esta tarefa foi alterada por outra pessoa entretanto. Recarregue a tarefa antes de guardar as suas alterações.");
+        }
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
         Set<Externo> previousExternos = new HashSet<>(tarefa.getExternos()); // Add this line

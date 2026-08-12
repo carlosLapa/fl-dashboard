@@ -19,6 +19,9 @@ export interface Tarefa {
   // Calculated field: number of working days between prazoEstimado and prazoReal (excludes weekends)
   workingDays?: number;
   arquivadaEm?: string | null;
+  // Optimistic-locking counter, echoed back on update so the backend can detect
+  // a concurrent edit instead of silently overwriting it.
+  version?: number;
   projeto: {
     id: number;
     designacao: string;
@@ -69,6 +72,7 @@ export interface TarefaUpdateFormData {
   projetoId: number;
   userIds: number[];
   externoIds?: number[];
+  version?: number;
 }
 
 export type TarefaWithUserAndProjetoDTO = Tarefa & {

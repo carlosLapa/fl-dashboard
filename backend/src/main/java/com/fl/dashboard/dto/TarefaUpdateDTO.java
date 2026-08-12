@@ -20,4 +20,5 @@ public class TarefaUpdateDTO {
     private TarefaStatus status;
     private Integer workingDays;
     private Set<Long> externoIds;
+    private Long version;
 }
