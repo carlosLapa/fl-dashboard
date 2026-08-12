@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
 import TarefaModal from './TarefaModal';
@@ -63,11 +69,23 @@ const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
   return workingDays;
 };
 
+// Notification types that imply the board's underlying data may have
+// changed and is worth refetching (as opposed to types that are purely
+// informational, e.g. TAREFA_PRAZO_PROXIMO).
+const BOARD_RELEVANT_NOTIFICATION_TYPES = new Set<NotificationType>([
+  NotificationType.TAREFA_STATUS_ALTERADO,
+  NotificationType.TAREFA_EDITADA,
+  NotificationType.TAREFA_REMOVIDA,
+  NotificationType.TAREFA_ATRIBUIDA,
+  NotificationType.SUBTAREFA_ATRIBUIDA,
+  NotificationType.SUBTAREFA_CONCLUIDA,
+]);
+
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   // Get the permissions hook for checking user permissions
   const { hasPermission } = usePermissions();
   const { user } = useAuth();
-  const { sendNotification } = useNotification();
+  const { sendNotification, lastLiveNotification } = useNotification();
 
   // Direct admin check that doesn't rely on the permission system
   const isAdmin = useMemo(() => {
@@ -320,6 +338,31 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   useEffect(() => {
     fetchColumnsAndTarefas();
   }, [fetchColumnsAndTarefas]);
+
+  // Tracks the id of the last live notification already handled, so this
+  // effect doesn't refetch again on unrelated re-renders (lastLiveNotification
+  // only changes when a new WebSocket message actually arrives).
+  const lastHandledNotificationId = useRef<number | null>(null);
+
+  // Real-time invalidation: when another user changes a task in this same
+  // project, the notification arrives via WebSocket (see NotificationContext)
+  // and this refetches the board so both users converge on the same state
+  // without a manual page refresh.
+  useEffect(() => {
+    if (!lastLiveNotification) return;
+    if (lastLiveNotification.id === lastHandledNotificationId.current) return;
+
+    lastHandledNotificationId.current = lastLiveNotification.id;
+
+    const isForThisProject = lastLiveNotification.projeto?.id === projeto.id;
+    const isRelevantType = BOARD_RELEVANT_NOTIFICATION_TYPES.has(
+      lastLiveNotification.type
+    );
+
+    if (isForThisProject && isRelevantType) {
+      fetchColumnsAndTarefas();
+    }
+  }, [lastLiveNotification, projeto.id, fetchColumnsAndTarefas]);
 
   // useCallback: mantém uma referência estável entre renders, para que o
   // React.memo em TarefaColumn/TarefaCard não seja invalidado só por causa
