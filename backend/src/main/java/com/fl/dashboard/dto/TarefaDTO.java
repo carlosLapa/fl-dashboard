@@ -37,6 +37,8 @@ public class TarefaDTO {
 
     private LocalDateTime arquivadaEm;
 
+    private Long version;
+
     public TarefaDTO() {
     }
 
@@ -69,6 +71,7 @@ public class TarefaDTO {
         this.status = entity.getStatus();
         this.workingDays = entity.getWorkingDays();
         this.arquivadaEm = entity.getArquivadaEm();
+        this.version = entity.getVersion();
     }
 
 }

@@ -436,6 +436,17 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       console.error('Erro ao atualizar tarefa:', error);
       if (error instanceof Error && error.message.includes('prazo')) {
         toast.error(error.message);
+      } else if (axios.isAxiosError(error) && error.response?.status === 409) {
+        // Another user saved this same tarefa first (optimistic-locking
+        // conflict). The stale data in the modal can't just be resubmitted,
+        // so close it and refetch instead of leaving the user stuck on it.
+        toast.error(
+          error.response?.data?.message ??
+            'Esta tarefa foi alterada por outra pessoa entretanto. A recarregar dados atualizados.'
+        );
+        setShowEditModal(false);
+        setTarefaToEdit(null);
+        await fetchColumnsAndTarefas();
       } else {
         toast.error('Erro ao atualizar tarefa');
         setShowEditModal(false);

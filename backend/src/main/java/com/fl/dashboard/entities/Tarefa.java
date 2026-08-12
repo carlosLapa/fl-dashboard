@@ -31,6 +31,9 @@ public class Tarefa {
     @Enumerated(EnumType.STRING)
     private TarefaStatus status = TarefaStatus.BACKLOG;
 
+    @Version
+    private Long version;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "projeto_id")
