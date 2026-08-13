@@ -1,7 +1,6 @@
 package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.Tarefa;
-import com.fl.dashboard.enums.EstadoTarefa;
 import com.fl.dashboard.enums.TarefaStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -42,13 +40,6 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     );
 
     @EntityGraph(attributePaths = {"users", "projeto"})
-    @Query("SELECT t FROM Tarefa t WHERE t.prazoReal < :deadline AND t.status != :status AND t.deletedAt IS NULL")
-    List<Tarefa> findByPrazoRealBeforeAndStatusNot(
-            @Param("deadline") LocalDate deadline,
-            @Param("status") EstadoTarefa status
-    );
-
-    @EntityGraph(attributePaths = {"users", "projeto"})
     @Query("SELECT DISTINCT t FROM Tarefa t " +
             "LEFT JOIN t.users u " +
             "WHERE t.deletedAt IS NULL")
@@ -75,10 +66,13 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT t FROM Tarefa t WHERE t.id = :id AND t.deletedAt IS NULL")
     Optional<Tarefa> findByIdActive(@Param("id") Long id);
 
+    // deadline is a java.util.Date (matches Tarefa.prazoReal's type) — a LocalDate parameter here
+    // used to throw at runtime (Hibernate can't coerce LocalDate to the Timestamp column), silently
+    // swallowed by Spring's scheduled-task error handler since the only caller is @Scheduled.
     @EntityGraph(attributePaths = {"users", "projeto"})
     @Query("SELECT t FROM Tarefa t WHERE t.prazoReal < :deadline AND t.status != :status AND t.deletedAt IS NULL")
     List<Tarefa> findByPrazoRealBeforeAndStatusNot(
-            @Param("deadline") LocalDate deadline,
+            @Param("deadline") Date deadline,
             @Param("status") TarefaStatus status
     );
 

@@ -228,6 +228,7 @@ public class NotificationService {
                 case "TAREFA_CONCLUIDA" -> "Tarefa Concluída";
                 case "PROJETO_ATRIBUIDO" -> "Projeto Atribuído";
                 case "PROJETO_ATUALIZADO" -> "Projeto Atualizado";
+                case "PROJETO_PRAZO_PROXIMO" -> "Prazo de Projeto Próximo";
                 case "PROJETO_CONCLUIDO" -> "Projeto Concluído";
                 case "NOTIFICACAO_GERAL" -> "Notificação";
                 default -> {
@@ -598,6 +599,12 @@ public class NotificationService {
     public boolean existsDeadlineNotification(Long tarefaId, Long userId) {
         return notificationRepository.existsByTarefaIdAndUserIdAndType(
                 tarefaId, userId, NotificationType.TAREFA_PRAZO_PROXIMO.name()
+        );
+    }
+
+    public boolean existsProjetoDeadlineNotification(Long projetoId, Long userId) {
+        return notificationRepository.existsByProjetoIdAndUserIdAndType(
+                projetoId, userId, NotificationType.PROJETO_PRAZO_PROXIMO.name()
         );
     }
 

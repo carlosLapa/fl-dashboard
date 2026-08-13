@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -182,7 +183,8 @@ public class TarefaService {
     @Transactional(readOnly = true)
     public List<TarefaDTO> findUpcomingDeadlines(int daysAhead) {
         LocalDate deadline = LocalDate.now().plusDays(daysAhead);
-        return tarefaRepository.findByPrazoRealBeforeAndStatusNot(deadline, TarefaStatus.DONE)
+        Date deadlineAsDate = Date.from(deadline.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return tarefaRepository.findByPrazoRealBeforeAndStatusNot(deadlineAsDate, TarefaStatus.DONE)
                 .stream()
                 .map(TarefaDTO::new)
                 .toList();
