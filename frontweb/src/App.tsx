@@ -7,6 +7,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { NotificationProvider } from 'NotificationContext';
 import Layout from './components/Layout/Layout';
 import SessionExpirationModal from './components/SessionExpirationModal/SessionExpirationModal';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 // Tempo em segundos para o aviso de expiração da sessão
 const WARNING_REMAINING_SECONDS = 60;
@@ -36,11 +39,13 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 
