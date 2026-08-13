@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback,
-  useRef,
-} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import TarefaColumn from './TarefaColumn';
 import TarefaModal from './TarefaModal';
@@ -17,15 +11,9 @@ import {
 import { ProjetoWithUsersAndTarefasDTO } from '../../types/projeto';
 import axios from 'axios';
 import {
-  getTarefaWithUsers,
-  getColumnsForProject,
-  updateTarefa,
-  updateTarefaStatus,
-  arquivarTarefa,
   getTarefaWithUsersAndProjeto,
   calculateWorkingDays as calculateWorkingDaysStr,
 } from 'services/tarefaService';
-import { ColunaWithProjetoDTO } from '../../types/coluna';
 import { Spinner, Alert } from 'react-bootstrap';
 import './styles.scss';
 // Import permission related modules
@@ -33,59 +21,30 @@ import { Permission } from '../../permissions/rolePermissions';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useAuth } from '../../AuthContext';
 import { toast } from 'react-toastify';
-import { useNotification } from '../../NotificationContext'; // Adjust path if needed
-import { NotificationType } from 'types/notification';
+import {
+  KanbanColumns,
+  useProjetoKanban,
+} from '../../hooks/useProjetoKanban';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
 }
 
-function isTarefaStatus(status: any): status is TarefaStatus {
-  return ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'].includes(
-    status
-  );
-}
-
-// Helper function to calculate working days between two dates
-const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
-  let workingDays = 0;
-  let currentDate = new Date(startDate);
-
-  // Set both dates to midnight to ensure we're only comparing dates, not times
-  currentDate.setHours(0, 0, 0, 0);
-  const endDateMidnight = new Date(endDate);
-  endDateMidnight.setHours(0, 0, 0, 0);
-
-  // Count working days
-  while (currentDate <= endDateMidnight) {
-    const day = currentDate.getDay();
-    if (day !== 0 && day !== 6) {
-      // 0 is Sunday, 6 is Saturday
-      workingDays++;
-    }
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return workingDays;
-};
-
-// Notification types that imply the board's underlying data may have
-// changed and is worth refetching (as opposed to types that are purely
-// informational, e.g. TAREFA_PRAZO_PROXIMO).
-const BOARD_RELEVANT_NOTIFICATION_TYPES = new Set<NotificationType>([
-  NotificationType.TAREFA_STATUS_ALTERADO,
-  NotificationType.TAREFA_EDITADA,
-  NotificationType.TAREFA_REMOVIDA,
-  NotificationType.TAREFA_ATRIBUIDA,
-  NotificationType.SUBTAREFA_ATRIBUIDA,
-  NotificationType.SUBTAREFA_CONCLUIDA,
-]);
-
 const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
   // Get the permissions hook for checking user permissions
   const { hasPermission } = usePermissions();
   const { user } = useAuth();
-  const { sendNotification, lastLiveNotification } = useNotification();
+
+  const {
+    columns,
+    isLoading,
+    error,
+    isProjetoIndisponivel,
+    moveTarefa,
+    changeTarefaStatus,
+    saveTarefaEdit,
+    archiveTarefa,
+  } = useProjetoKanban(projeto);
 
   // Direct admin check that doesn't rely on the permission system
   const isAdmin = useMemo(() => {
@@ -105,16 +64,6 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     DONE: 'Concluído',
   };
 
-  const [columns, setColumns] = useState<{
-    [key in TarefaStatus]: KanbanTarefa[];
-  }>({
-    BACKLOG: [],
-    TODO: [],
-    IN_PROGRESS: [],
-    IN_REVIEW: [],
-    DONE: [],
-  });
-
   const [columnsOrder] = useState<TarefaStatus[]>([
     'BACKLOG',
     'TODO',
@@ -123,246 +72,9 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     'DONE',
   ]);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [projectDeleted, setProjectDeleted] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [tarefaToEdit, setTarefaToEdit] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
-
-  const fetchColumnsAndTarefas = useCallback(async () => {
-      setIsLoading(true);
-
-      // Diagnóstico: Verificar como o objeto projeto está chegando
-      console.log(
-        'Projeto recebido no componente Kanban:',
-        JSON.stringify(projeto, null, 2)
-      );
-
-      // Verificação mais resiliente
-      if (!projeto) {
-        setError('Projeto não encontrado.');
-        setIsLoading(false);
-        return;
-      }
-
-      // Verificar se tem ID mesmo se o objeto existe
-      if (!projeto.id) {
-        setError('Projeto sem identificador válido.');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Attempt to fetch columns for the project
-        let fetchedColumns;
-        try {
-          fetchedColumns = await getColumnsForProject(projeto.id);
-          if (!fetchedColumns || fetchedColumns.length === 0) {
-            console.warn(`No columns found for project ID: ${projeto.id}`);
-          }
-        } catch (error) {
-          if (axios.isAxiosError(error)) {
-            if (
-              error.response?.status === 400 ||
-              error.response?.status === 404 ||
-              error.response?.status === 403
-            ) {
-              console.error(
-                `Erro ao buscar colunas do projeto ${projeto.id}:`,
-                error
-              );
-              setProjectDeleted(true);
-              setError(
-                'Este projeto foi excluído ou não está mais disponível.'
-              );
-              setIsLoading(false);
-              return;
-            }
-          }
-          console.error(`Erro não tratado ao buscar colunas:`, error);
-          throw error;
-        }
-
-        // Sempre inicializar com todas as colunas vazias
-        const updatedColumns: { [key in TarefaStatus]: KanbanTarefa[] } = {
-          BACKLOG: [],
-          TODO: [],
-          IN_PROGRESS: [],
-          IN_REVIEW: [],
-          DONE: [],
-        };
-
-        // Se há colunas definidas no backend, use-as
-        if (fetchedColumns && fetchedColumns.length > 0) {
-          console.log(
-            `Usando ${fetchedColumns.length} colunas do backend para projeto ${projeto.id}`
-          );
-          fetchedColumns.forEach((column: ColunaWithProjetoDTO) => {
-            if (column.status in updatedColumns) {
-              updatedColumns[column.status as TarefaStatus] = [];
-            }
-          });
-        } else {
-          console.log(
-            `Usando colunas padrão para projeto ${projeto.id} (nenhuma encontrada no backend)`
-          );
-        }
-
-        // Verificar explicitamente se tarefas é um array válido
-        const hasValidTarefas =
-          projeto.tarefas &&
-          Array.isArray(projeto.tarefas) &&
-          projeto.tarefas.length > 0;
-
-        // Se não tiver tarefas, apenas inicialize o quadro vazio
-        if (!hasValidTarefas) {
-          console.log(
-            `Projeto ${projeto.id} sem tarefas, inicializando quadro Kanban vazio`
-          );
-          setColumns(updatedColumns);
-          setError(null);
-          setIsLoading(false);
-          return;
-        }
-
-        console.log(
-          `Processando ${projeto.tarefas.length} tarefas para o projeto ${projeto.id}`
-        );
-
-        // Buscar todas as tarefas em paralelo em vez de sequencialmente
-        // (era um N+1 sequencial: uma tarefa só começava a ser pedida depois
-        // da anterior terminar, o que multiplicava a latência de rede pelo
-        // número de tarefas do projeto).
-        const results = await Promise.allSettled(
-          projeto.tarefas.map((tarefa) => getTarefaWithUsers(tarefa.id))
-        );
-
-        results.forEach((result, index) => {
-          const tarefa = projeto.tarefas[index];
-
-          if (result.status === 'rejected') {
-            const error = result.reason;
-            if (axios.isAxiosError(error)) {
-              if (error.response?.status === 404) {
-                console.warn(
-                  `Task ${tarefa.id} not found, may have been deleted`
-                );
-                return;
-              } else if (error.response?.status === 403) {
-                console.warn(`Permission denied for task ${tarefa.id}`);
-                return;
-              } else if (error.response?.status === 400) {
-                console.warn(`Bad request for task ${tarefa.id}`);
-                return;
-              }
-            }
-            console.error(`Error fetching task ${tarefa.id}:`, error);
-            return;
-          }
-
-          const tarefaWithUsers = result.value;
-
-          // Calculate working days if prazoEstimado and prazoReal exist
-          let workingDays: number | undefined = undefined;
-          if (tarefaWithUsers.workingDays !== undefined) {
-            // Use existing workingDays if available
-            workingDays = tarefaWithUsers.workingDays;
-          } else if (
-            tarefaWithUsers.prazoEstimado &&
-            tarefaWithUsers.prazoReal &&
-            !isNaN(new Date(tarefaWithUsers.prazoEstimado).getTime()) &&
-            !isNaN(new Date(tarefaWithUsers.prazoReal).getTime())
-          ) {
-            // Calculate workingDays if not available
-            const startDate = new Date(tarefaWithUsers.prazoEstimado);
-            const endDate = new Date(tarefaWithUsers.prazoReal);
-            workingDays = calculateWorkingDays(startDate, endDate);
-          }
-
-          const kanbanTarefa: KanbanTarefa = {
-            ...tarefaWithUsers,
-            column: tarefaWithUsers.status as TarefaStatus,
-            projeto: { id: projeto.id, designacao: projeto.designacao },
-            // Estável entre re-fetches (usado como key/draggableId) — um
-            // uniqueId baseado em Date.now() mudava a cada fetchColumnsAndTarefas,
-            // forçando o desmonte/remonte de todos os cards (e a repetição de
-            // todos os pedidos de subtarefas) sempre que se editava uma tarefa.
-            uniqueId: String(tarefa.id),
-            workingDays: workingDays,
-          };
-
-          if (
-            isTarefaStatus(kanbanTarefa.status) &&
-            kanbanTarefa.status in updatedColumns
-          ) {
-            updatedColumns[kanbanTarefa.status].push(kanbanTarefa);
-          } else {
-            updatedColumns.BACKLOG.push(kanbanTarefa);
-          }
-        });
-
-        setColumns(updatedColumns);
-        setError(null);
-      } catch (error) {
-        console.error(
-          `Erro geral ao processar o quadro Kanban para o projeto ${projeto?.id}:`,
-          error
-        );
-
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status === 403) {
-            setError('Não tem permissão para aceder a este projeto.');
-          } else if (
-            error.response?.status === 404 ||
-            error.response?.status === 400
-          ) {
-            setProjectDeleted(true);
-            setError('Este projeto foi excluído ou não está mais disponível.');
-          } else {
-            setError(
-              'Erro ao carregar dados do quadro Kanban. Por favor, tente novamente.'
-            );
-          }
-        } else {
-          setError(
-            'Erro ao carregar dados do quadro Kanban. Por favor, tente novamente.'
-          );
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projeto]);
-
-  useEffect(() => {
-    fetchColumnsAndTarefas();
-  }, [fetchColumnsAndTarefas]);
-
-  // Tracks the id of the last live notification already handled, so this
-  // effect doesn't refetch again on unrelated re-renders (lastLiveNotification
-  // only changes when a new WebSocket message actually arrives).
-  const lastHandledNotificationId = useRef<number | null>(null);
-
-  // Real-time invalidation: when another user changes a task in this same
-  // project, the notification arrives via WebSocket (see NotificationContext)
-  // and this refetches the board so both users converge on the same state
-  // without a manual page refresh.
-  useEffect(() => {
-    if (!lastLiveNotification) return;
-    if (lastLiveNotification.id === lastHandledNotificationId.current) return;
-
-    lastHandledNotificationId.current = lastLiveNotification.id;
-
-    const isForThisProject = lastLiveNotification.projeto?.id === projeto.id;
-    const isRelevantType = BOARD_RELEVANT_NOTIFICATION_TYPES.has(
-      lastLiveNotification.type
-    );
-
-    if (isForThisProject && isRelevantType) {
-      fetchColumnsAndTarefas();
-    }
-  }, [lastLiveNotification, projeto.id, fetchColumnsAndTarefas]);
 
   // useCallback: mantém uma referência estável entre renders, para que o
   // React.memo em TarefaColumn/TarefaCard não seja invalidado só por causa
@@ -378,83 +90,51 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     }
   }, []);
 
-  const handleTarefaModalStatusChange = async (
+  const handleTarefaModalStatusChange = (
     tarefaId: number,
     newStatus: TarefaStatus
   ) => {
-    try {
-      await updateTarefaStatus(
-        tarefaId,
-        newStatus,
-        async (notification) => {
-          sendNotification(notification);
-          return Promise.resolve();
-        },
-        tarefaToEdit ?? undefined
-      );
-    } catch (error) {
-      console.error('Erro ao atualizar status da tarefa:', error);
-      toast.error('Erro ao atualizar status da tarefa');
-    }
+    changeTarefaStatus({ tarefaId, newStatus, tarefaInfo: tarefaToEdit });
   };
 
-  const handleArchiveTarefa = async (tarefaId: number) => {
-    try {
-      await arquivarTarefa(tarefaId);
-      setShowEditModal(false);
-      setTarefaToEdit(null);
-      toast.success('Tarefa arquivada com sucesso!');
-      await fetchColumnsAndTarefas();
-    } catch (error) {
-      console.error('Erro ao arquivar tarefa:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Erro ao arquivar tarefa'
-      );
-    }
-  };
-
-  const handleSaveTarefaEdit = async (formData: TarefaUpdateFormData) => {
-    try {
-      if (formData.prazoEstimado && formData.prazoReal) {
-        formData = {
-          ...formData,
-          workingDays: calculateWorkingDaysStr(
-            formData.prazoEstimado,
-            formData.prazoReal
-          ),
-        };
-      }
-      await updateTarefa(formData.id, formData, async (notification) => {
-        sendNotification(notification);
-        return Promise.resolve();
-      });
-      setShowEditModal(false);
-      setTarefaToEdit(null);
-      toast.success('Tarefa atualizada com sucesso!');
-      await fetchColumnsAndTarefas();
-    } catch (error) {
-      console.error('Erro ao atualizar tarefa:', error);
-      if (error instanceof Error && error.message.includes('prazo')) {
-        toast.error(error.message);
-      } else if (axios.isAxiosError(error) && error.response?.status === 409) {
-        // Another user saved this same tarefa first (optimistic-locking
-        // conflict). The stale data in the modal can't just be resubmitted,
-        // so close it and refetch instead of leaving the user stuck on it.
-        toast.error(
-          error.response?.data?.message ??
-            'Esta tarefa foi alterada por outra pessoa entretanto. A recarregar dados atualizados.'
-        );
+  const handleArchiveTarefa = (tarefaId: number) => {
+    archiveTarefa(tarefaId, {
+      onSuccess: () => {
         setShowEditModal(false);
         setTarefaToEdit(null);
-        await fetchColumnsAndTarefas();
-      } else {
-        toast.error('Erro ao atualizar tarefa');
-        setShowEditModal(false);
-      }
-    }
+      },
+    });
   };
 
-  const onDragEnd = async (result: DropResult) => {
+  const handleSaveTarefaEdit = (formData: TarefaUpdateFormData) => {
+    if (formData.prazoEstimado && formData.prazoReal) {
+      formData = {
+        ...formData,
+        workingDays: calculateWorkingDaysStr(
+          formData.prazoEstimado,
+          formData.prazoReal
+        ),
+      };
+    }
+    saveTarefaEdit(formData, {
+      onSuccess: () => {
+        setShowEditModal(false);
+        setTarefaToEdit(null);
+      },
+      onError: (error) => {
+        if (error instanceof Error && error.message.includes('prazo')) {
+          // Keep the modal open so the user can fix the invalid date.
+          return;
+        }
+        setShowEditModal(false);
+        if (axios.isAxiosError(error) && error.response?.status === 409) {
+          setTarefaToEdit(null);
+        }
+      },
+    });
+  };
+
+  const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
     // If dropped outside a droppable area
@@ -470,16 +150,6 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
 
     // Admin override - skip permission checks for admins
     if (!isAdmin) {
-      // Remoção da verificação para IN_REVIEW para permitir que Colaboradores possam mover
-      // if (
-      //   destination.droppableId === 'IN_REVIEW' &&
-      //   !hasPermission(Permission.MOVE_CARD_TO_REVIEW)
-      // ) {
-      //   toast.error('Não tem permissão para mover tarefas para Em Revisão');
-      //   return; // Block the movement
-      // }
-
-      // Manter apenas a verificação para DONE
       if (
         destination.droppableId === 'DONE' &&
         !hasPermission(Permission.MOVE_CARD_TO_DONE)
@@ -489,12 +159,9 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       }
     }
 
-    const previousColumns = columns;
-
-    // Copy the affected arrays so the previousColumns snapshot above stays
-    // untouched — mutating columns[...] in place would make the revert on
-    // error below a no-op, since previousColumns would already reflect the
-    // post-move state.
+    // Copy the affected arrays so mutating them doesn't also mutate the
+    // cached `columns` still referenced elsewhere (e.g. React Query's own
+    // snapshot for the optimistic-update rollback).
     const sourceColumn = [...columns[source.droppableId as TarefaStatus]];
     const destColumn =
       destination.droppableId === source.droppableId
@@ -510,79 +177,20 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       status: destination.droppableId as TarefaStatus,
     });
 
-    // Update state
-    const newColumns = {
+    const newColumns: KanbanColumns = {
       ...columns,
       [source.droppableId]: sourceColumn,
       [destination.droppableId]: destColumn,
     };
 
-    setColumns(newColumns);
-
-    // Update in backend
-    try {
-      console.log(
-        `Movendo tarefa ${removed.id} de ${source.droppableId} para ${destination.droppableId}`
-      );
-
-      // A tarefa já em memória (removed) tem tudo o que updateTarefaStatus
-      // precisa para montar as notificações (descricao, users, projeto.id),
-      // por isso não é preciso voltar a pedir a tarefa completa ao backend.
-      await updateTarefaStatus(
-        removed.id,
-        destination.droppableId as TarefaStatus,
-        async (notification) => {
-          try {
-            console.log(
-              `[Kanban] Enviando notificação para usuário ${notification.userId}`
-            );
-            sendNotification(notification);
-            return Promise.resolve();
-          } catch (error) {
-            console.error(`[Kanban] Erro ao enviar notificação:`, error);
-            return Promise.resolve(); // Ainda retornamos uma promise resolvida para não interromper o fluxo
-          }
-        },
-        removed
-      );
-
-      // Notify Coordenador if not the user moving the card
-      const coordenador = projeto.coordenador;
-      if (
-        coordenador &&
-        user &&
-        coordenador.id !== user.id // Only notify if mover is not the coordenador
-      ) {
-        sendNotification({
-          type: NotificationType.TAREFA_STATUS_ALTERADO, // Use the enum value, not a string
-          content: `A tarefa "${removed.descricao}" foi movida para "${destination.droppableId}" por ${user.name}.`,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          relatedId: removed.id,
-          userId: coordenador.id,
-          tarefaId: removed.id,
-          projetoId: projeto.id,
-        });
-      }
-
-      toast.success(
-        `Tarefa "${removed.descricao}" movida para "${
-          statusTranslations[destination.droppableId as TarefaStatus]
-        }"`
-      );
-    } catch (error) {
-      console.error('Failed to update tarefa status:', error);
-      // updateTarefaStatus rethrows a plain Error with the backend message
-      // for the 409 "subtarefas incompletas" case; any other (Axios) error
-      // keeps the generic message instead of surfacing a raw HTTP error.
-      const message =
-        !axios.isAxiosError(error) && error instanceof Error && error.message
-          ? error.message
-          : 'Falha ao atualizar o status da tarefa';
-      toast.error(message);
-      // Revert changes on error
-      setColumns(previousColumns);
-    }
+    // moveTarefa applies the optimistic update, calls the backend, sends
+    // notifications, and rolls back on error — all inside useProjetoKanban.
+    moveTarefa({
+      tarefa: removed,
+      newStatus: destination.droppableId as TarefaStatus,
+      statusLabel: statusTranslations[destination.droppableId as TarefaStatus],
+      newColumns,
+    });
   };
 
   if (isLoading) {
@@ -598,7 +206,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     );
   }
 
-  if (projectDeleted) {
+  if (isProjetoIndisponivel) {
     return (
       <Alert variant="warning" className="mb-3">
         <Alert.Heading>Projeto não disponível</Alert.Heading>
@@ -612,7 +220,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     return (
       <Alert variant="danger" className="mb-3">
         <Alert.Heading>Erro</Alert.Heading>
-        <p>{error}</p>
+        <p>Erro ao carregar dados do quadro Kanban. Por favor, tente novamente.</p>
       </Alert>
     );
   }
