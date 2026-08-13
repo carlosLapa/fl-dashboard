@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import useWebSocket from 'hooks/useWebSocketMessage';
 import { useNotification } from '../../NotificationContext';
 import NotificationDisplay from './NotificationDisplay';
-import { NotificationType } from 'types/notification';
-import { ResourceNotFoundException } from '../../types/exceptions';
-import { toast } from 'react-toastify';
 import './styles.scss';
 
 interface NotificationBoxProps {
@@ -17,27 +13,14 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
   const {
     notifications,
     loadStoredNotifications,
-    handleNewNotification,
-    handleMarkAsRead,
     hasMore,
     resetNotifications,
+    handleMarkAsRead,
   } = useNotification();
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { messages } = useWebSocket(userId);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [page, setPage] = useState(0);
-
-  // Add responsive detection
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     // Reset notifications and page when userId changes
@@ -60,35 +43,6 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     loadNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, page]);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      const latestMessage = messages[messages.length - 1];
-      if (
-        Object.values(NotificationType).includes(
-          latestMessage.type as NotificationType
-        )
-      ) {
-        try {
-          handleNewNotification(latestMessage);
-          // Only show toast if notification handling succeeds
-          toast.info(`Nova notificação: ${latestMessage.content}`, {
-            position: isMobile ? 'bottom-center' : 'top-right',
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-        } catch (error) {
-          // Silently handle expected race condition errors
-          if (!(error instanceof ResourceNotFoundException)) {
-            console.error('Unexpected error handling notification:', error);
-          }
-        }
-      }
-    }
-  }, [messages, handleNewNotification, isMobile]);
 
   const unreadNotifications = notifications.filter((n) => !n.isRead);
   const readNotifications = notifications.filter((n) => {

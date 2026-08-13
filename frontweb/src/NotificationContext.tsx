@@ -16,6 +16,7 @@ import {
   PaginatedNotifications,
 } from 'api/notificationsApi';
 import secureStorage from './auth/secureStorage';
+import { toast } from 'react-toastify';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -155,6 +156,24 @@ export const NotificationProvider: React.FC<{
       handleNewNotification(message);
     });
   }, [messages, handleNewNotification]);
+
+  // Global toast for live notifications — fires app-wide (not just while the
+  // /notifications page happens to be mounted), since NotificationProvider
+  // wraps the whole app in App.tsx and lastLiveNotification only ever
+  // changes in response to a genuinely new WebSocket message.
+  useEffect(() => {
+    if (lastLiveNotification) {
+      const isMobile = window.innerWidth <= 768;
+      toast.info(`Nova notificação: ${lastLiveNotification.content}`, {
+        position: isMobile ? 'bottom-center' : 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  }, [lastLiveNotification]);
 
   return (
     <NotificationContext.Provider

@@ -121,4 +121,12 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
 
     @Query("SELECT e FROM Externo e JOIN e.projetos p WHERE p.id = :projetoId AND e.deletedAt IS NULL")
     List<Externo> findExternosByProjetoId(@Param("projetoId") Long projetoId);
+
+    // deadline is a java.util.Date (matches Projeto.prazo's type), unlike Tarefa's equivalent
+    // query which takes a LocalDate against a Date-typed field.
+    @EntityGraph(attributePaths = {"users"})
+    @Query("SELECT p FROM Projeto p WHERE p.prazo < :deadline AND p.status <> :status AND p.deletedAt IS NULL")
+    List<Projeto> findByPrazoBeforeAndStatusNot(
+            @Param("deadline") Date deadline,
+            @Param("status") String status);
 }
