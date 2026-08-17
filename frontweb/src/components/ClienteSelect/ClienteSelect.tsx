@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
 import { ClienteDTO } from '../../types/cliente';
@@ -25,29 +25,44 @@ const ClienteSelect: React.FC<ClienteSelectProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Guards against a stale/duplicate fetch (e.g. StrictMode double-invoke) resolving
+  // after a newer one, which would rebuild `options` a second time mid-interaction
+  // and could trip react-select's internal focus/derived-state recursion.
+  const requestIdRef = useRef(0);
+
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
+
     const fetchClientes = async () => {
       try {
         setIsLoading(true);
         const data = await getAllClientes();
+        if (requestIdRef.current !== requestId) return;
         setClientes(data);
         setError(null);
       } catch (err) {
+        if (requestIdRef.current !== requestId) return;
         console.error('Error fetching clientes:', err);
         setError('Não foi possível carregar a lista de clientes.');
         toast.error('Falha ao carregar a lista de clientes.');
       } finally {
-        setIsLoading(false);
+        if (requestIdRef.current === requestId) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchClientes();
   }, []);
 
-  const options = clientes.map((cliente) => ({
-    value: cliente.id,
-    label: cliente.name,
-  }));
+  const options = useMemo(
+    () =>
+      clientes.map((cliente) => ({
+        value: cliente.id,
+        label: cliente.name,
+      })),
+    [clientes]
+  );
 
   const value = selectedClienteId
     ? options.find((option) => option.value === selectedClienteId)
