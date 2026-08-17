@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, Tabs, Tab } from 'react-bootstrap';
 import { TarefaInsertFormData } from '../../types/tarefa';
-import { useNotification } from '../../NotificationContext';
-import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
 import { Projeto } from 'types/projeto';
 import { ExternoDTO } from 'types/externo';
@@ -58,7 +56,6 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
   onSave,
   projetoId,
 }) => {
-  const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<TarefaInsertFormData>({
     descricao: '',
     prioridade: '',
@@ -268,22 +265,11 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
         formData.prazoEstimado && formData.prazoReal ? workingDays : undefined,
     };
 
+    // onSave creates the tarefa on the backend, which already notifies each
+    // assigned user (TAREFA_ATRIBUIDA) server-side — sending another one here
+    // duplicated it, and always pointed at tarefaId 0 since this fired before
+    // the created task's real id was known.
     onSave(updatedFormData);
-
-    // Enviar notificações para os usuários atribuídos
-    formData.userIds.forEach((userId) => {
-      const notification = {
-        type: NotificationType.TAREFA_ATRIBUIDA,
-        content: `Nova tarefa atribuída: "${formData.descricao}"`,
-        userId: userId,
-        tarefaId: 0, // Will be updated after task creation
-        projetoId: formData.projetoId,
-        relatedId: 0, // Will be updated after task creation
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      };
-      sendNotification(notification);
-    });
 
     onHide();
   };

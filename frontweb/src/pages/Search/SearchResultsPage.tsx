@@ -20,7 +20,6 @@ import {
   arquivarTarefa,
   calculateWorkingDays,
 } from '../../services/tarefaService';
-import { useNotification } from '../../hooks/useNotification';
 import TarefaModal from '../../components/Tarefa/TarefaModal';
 import { Button, Row, Col } from 'react-bootstrap';
 import { toast } from 'react-toastify';
@@ -41,7 +40,6 @@ const SearchResults: React.FC = () => {
   const [showTarefaModal, setShowTarefaModal] = useState(false);
   const [tarefaToEdit, setTarefaToEdit] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
-  const { sendNotification } = useNotification();
 
   const fetchSearchResults = async () => {
     setIsLoading(true);
@@ -93,7 +91,7 @@ const SearchResults: React.FC = () => {
           ),
         };
       }
-      await updateTarefa(formData.id, formData, sendNotification);
+      await updateTarefa(formData.id, formData);
       setShowTarefaModal(false);
       setTarefaToEdit(null);
       toast.success('Tarefa atualizada com sucesso!');
@@ -129,8 +127,7 @@ const SearchResults: React.FC = () => {
     newStatus: TarefaStatus
   ) => {
     try {
-      const tarefa = results.tarefas.find((t) => t.id === tarefaId);
-      await updateTarefaStatus(tarefaId, newStatus, sendNotification, tarefa);
+      await updateTarefaStatus(tarefaId, newStatus);
       toast.success('Status da tarefa atualizado com sucesso!');
       await fetchSearchResults();
     } catch (err) {

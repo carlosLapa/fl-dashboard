@@ -7,7 +7,6 @@ import {
   TarefaWithUserAndProjetoDTO,
   TarefaWithUsersDTO,
 } from '../types/tarefa';
-import { NotificationInsertDTO, NotificationType } from 'types/notification';
 import {
   addTarefaAPI,
   arquivarTarefaAPI,
@@ -179,10 +178,7 @@ export const getTarefasByProjeto = async (
   }
 };
 
-export const addTarefa = async (
-  formData: TarefaInsertFormData,
-  onNotify?: (notification: NotificationInsertDTO) => Promise<void>
-) => {
+export const addTarefa = async (formData: TarefaInsertFormData) => {
   try {
     let dataToSend = { ...formData };
     if (formData.prazoEstimado && formData.prazoReal) {
@@ -191,23 +187,9 @@ export const addTarefa = async (
         formData.prazoReal
       );
     }
-    const response = await addTarefaAPI(dataToSend);
-    if (onNotify && response) {
-      for (const userId of formData.userIds) {
-        const notification: NotificationInsertDTO = {
-          type: NotificationType.TAREFA_ATRIBUIDA,
-          content: `Nova tarefa "${formData.descricao}" foi-lhe atribuída`,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          relatedId: response.id,
-          userId: userId,
-          tarefaId: response.id,
-          projetoId: formData.projetoId,
-        };
-        await onNotify(notification);
-      }
-    }
-    return response;
+    // The backend already notifies each assigned user (TAREFA_ATRIBUIDA) as
+    // part of creating the tarefa — sending another one here duplicated it.
+    return await addTarefaAPI(dataToSend);
   } catch (error) {
     console.error('Error adding tarefa:', error);
 
@@ -224,28 +206,13 @@ export const addTarefa = async (
 
 export const updateTarefa = async (
   id: number,
-  data: TarefaUpdateFormData,
-  onNotify?: (notification: NotificationInsertDTO) => Promise<void>
+  data: TarefaUpdateFormData
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
-    const response = await updateTarefaAPI(id, data);
-
-    // Handle notifications if provided
-    if (onNotify) {
-      const notification: NotificationInsertDTO = {
-        type: NotificationType.TAREFA_EDITADA,
-        content: `A tarefa "${data.descricao}" foi atualizada`,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        userId: data.userIds[0], // Notify first user in the list
-        tarefaId: id,
-        projetoId: data.projetoId,
-        relatedId: id,
-      };
-      await onNotify(notification);
-    }
-
-    return response;
+    // The backend already notifies affected users (TAREFA_ATRIBUIDA/
+    // TAREFA_REMOVIDA/TAREFA_EDITADA) as part of the update — sending
+    // another one here duplicated it.
+    return await updateTarefaAPI(id, data);
   } catch (error) {
     console.error('Error updating tarefa:', error);
 
@@ -390,54 +357,15 @@ export const getAllTarefasWithUsersAndProjeto = async (
   return response;
 };
 
-// Only the fields actually read below (to build notifications) are
-// required, so callers that already have a lighter-weight task object in
-// memory (e.g. KanbanTarefa) don't need to fetch the full DTO just to call
-// this function.
-type TarefaNotificationInfo = {
-  descricao: string;
-  users: { id: number }[];
-  projeto: { id: number };
-};
-
 export const updateTarefaStatus = async (
   id: number,
-  newStatus: TarefaStatus,
-  onNotify?: (notification: NotificationInsertDTO) => Promise<void>,
-  tarefa?: TarefaNotificationInfo
+  newStatus: TarefaStatus
 ): Promise<TarefaWithUsersDTO> => {
   try {
-    console.log(
-      `[Service] Iniciando updateTarefaStatus para tarefa ${id} -> ${newStatus}`
-    );
-    console.log(`[Service] Informações da tarefa disponíveis: ${!!tarefa}`);
-
+    // The backend already notifies every assigned user, and the project
+    // coordinator if not already assigned, as part of the status update —
+    // sending another one here duplicated it.
     const updatedTarefa = await updateTarefaStatusAPI(id, newStatus);
-
-    // Se temos informações da tarefa e função de notificação, notificar usuários
-    if (onNotify && tarefa) {
-      console.log(
-        `[Service] Enviando notificações para ${tarefa.users.length} usuários`
-      );
-
-      for (const user of tarefa.users) {
-        const notification: NotificationInsertDTO = {
-          type: NotificationType.TAREFA_STATUS_ALTERADO,
-          content: `Status da tarefa "${tarefa.descricao}" alterado para ${newStatus}`,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          relatedId: id,
-          userId: user.id,
-          tarefaId: id,
-          projetoId: tarefa.projeto.id,
-        };
-        await onNotify(notification);
-      }
-    } else {
-      console.log(
-        `[Service] Sem notificações: onNotify=${!!onNotify}, tarefa=${!!tarefa}`
-      );
-    }
 
     if (updatedTarefa.prazoEstimado && updatedTarefa.prazoReal) {
       return {

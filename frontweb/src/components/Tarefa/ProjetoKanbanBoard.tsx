@@ -94,7 +94,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     tarefaId: number,
     newStatus: TarefaStatus
   ) => {
-    changeTarefaStatus({ tarefaId, newStatus, tarefaInfo: tarefaToEdit });
+    changeTarefaStatus({ tarefaId, newStatus });
   };
 
   const handleArchiveTarefa = (tarefaId: number) => {

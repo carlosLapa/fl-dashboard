@@ -9,15 +9,9 @@ import {
   updateTarefaStatus,
   arquivarTarefa,
 } from 'services/tarefaService';
-import {
-  KanbanTarefa,
-  TarefaStatus,
-  TarefaUpdateFormData,
-  TarefaWithUserAndProjetoDTO,
-} from 'types/tarefa';
+import { KanbanTarefa, TarefaStatus, TarefaUpdateFormData } from 'types/tarefa';
 import { ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import { NotificationType } from 'types/notification';
-import { useAuth } from 'AuthContext';
 import { useNotification } from 'NotificationContext';
 
 export type KanbanColumns = { [key in TarefaStatus]: KanbanTarefa[] };
@@ -181,13 +175,11 @@ interface MoveTarefaVariables {
 interface ChangeTarefaStatusVariables {
   tarefaId: number;
   newStatus: TarefaStatus;
-  tarefaInfo?: TarefaWithUserAndProjetoDTO | null;
 }
 
 export function useProjetoKanban(projeto: ProjetoWithUsersAndTarefasDTO) {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const { sendNotification, lastLiveNotification } = useNotification();
+  const { lastLiveNotification } = useNotification();
 
   const queryKey = useMemo(
     () => ['kanban', projeto.id] as const,
@@ -199,28 +191,12 @@ export function useProjetoKanban(projeto: ProjetoWithUsersAndTarefasDTO) {
     queryFn: () => fetchKanbanColumns(projeto),
   });
 
-  const notifyViaWs = async (notification: Parameters<typeof sendNotification>[0]) => {
-    sendNotification(notification);
-    return Promise.resolve();
-  };
-
   const moveTarefaMutation = useMutation({
+    // The backend already notifies every assigned user, and the project
+    // coordinator if not already assigned, as part of the status update —
+    // this used to also send its own coordinator notification, duplicating it.
     mutationFn: async ({ tarefa, newStatus }: MoveTarefaVariables) => {
-      await updateTarefaStatus(tarefa.id, newStatus, notifyViaWs, tarefa);
-
-      const coordenador = projeto.coordenador;
-      if (coordenador && user && coordenador.id !== user.id) {
-        sendNotification({
-          type: NotificationType.TAREFA_STATUS_ALTERADO,
-          content: `A tarefa "${tarefa.descricao}" foi movida para "${newStatus}" por ${user.name}.`,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          relatedId: tarefa.id,
-          userId: coordenador.id,
-          tarefaId: tarefa.id,
-          projetoId: projeto.id,
-        });
-      }
+      await updateTarefaStatus(tarefa.id, newStatus);
     },
     onMutate: async (variables: MoveTarefaVariables) => {
       await queryClient.cancelQueries({ queryKey });
@@ -253,8 +229,8 @@ export function useProjetoKanban(projeto: ProjetoWithUsersAndTarefasDTO) {
   });
 
   const changeTarefaStatusMutation = useMutation({
-    mutationFn: ({ tarefaId, newStatus, tarefaInfo }: ChangeTarefaStatusVariables) =>
-      updateTarefaStatus(tarefaId, newStatus, notifyViaWs, tarefaInfo ?? undefined),
+    mutationFn: ({ tarefaId, newStatus }: ChangeTarefaStatusVariables) =>
+      updateTarefaStatus(tarefaId, newStatus),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
@@ -266,7 +242,7 @@ export function useProjetoKanban(projeto: ProjetoWithUsersAndTarefasDTO) {
 
   const saveTarefaEditMutation = useMutation({
     mutationFn: (formData: TarefaUpdateFormData) =>
-      updateTarefa(formData.id, formData, notifyViaWs),
+      updateTarefa(formData.id, formData),
     onSuccess: () => {
       toast.success('Tarefa atualizada com sucesso!');
       queryClient.invalidateQueries({ queryKey });
