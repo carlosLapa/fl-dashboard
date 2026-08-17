@@ -11,9 +11,6 @@ import {
   searchProjetosAPI,
   getProjetosAPI,
 } from 'api/requestsApi';
-import { NotificationInsertDTO, NotificationType } from 'types/notification';
-import { useNotification } from 'NotificationContext';
-import { useAuth } from '../../AuthContext';
 import { usePermissions } from 'hooks/usePermissions'; // Add this import
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -24,8 +21,6 @@ import { hasActiveFilters } from '../../components/Projeto/utils/filterUtils';
 import './projetosStyles.scss';
 
 const ProjetosPage: React.FC = () => {
-  const { user } = useAuth();
-  const { sendNotification } = useNotification();
   const { isEmployee } = usePermissions(); // Add this hook
 
   // Check if user is an employee (not admin or manager)
@@ -255,36 +250,9 @@ const ProjetosPage: React.FC = () => {
       try {
         if (projetoToEdit) {
           await updateProjetoAPI(projetoToEdit.id, formData);
-          setTimeout(() => {
-            formData.users.forEach((user) => {
-              const notification: NotificationInsertDTO = {
-                type: NotificationType.PROJETO_ATUALIZADO,
-                content: `Projeto "${formData.designacao}" foi atualizado`,
-                userId: user.id,
-                projetoId: projetoToEdit.id,
-                tarefaId: 0,
-                isRead: false,
-                createdAt: new Date().toISOString(),
-                relatedId: projetoToEdit.id,
-              };
-              sendNotification(notification);
-            });
-          }, 500);
           toast.success('Projeto atualizado com sucesso');
         } else {
-          const newProjeto = await addProjetoAPI(formData);
-          if (newProjeto && newProjeto.id) {
-            sendNotification({
-              type: NotificationType.PROJETO_ATRIBUIDO,
-              content: `Novo projeto atribuído: ${newProjeto.designacao}`,
-              userId: user?.id || 0,
-              projetoId: newProjeto.id,
-              tarefaId: 0,
-              relatedId: 0,
-              isRead: false,
-              createdAt: new Date().toISOString(),
-            });
-          }
+          await addProjetoAPI(formData);
           toast.success('Projeto criado com sucesso');
         }
         if (isFiltered) {
@@ -298,14 +266,7 @@ const ProjetosPage: React.FC = () => {
         toast.error('Erro ao salvar projeto');
       }
     },
-    [
-      projetoToEdit,
-      sendNotification,
-      user,
-      isFiltered,
-      fetchFilteredProjetos,
-      fetchProjetos,
-    ]
+    [projetoToEdit, isFiltered, fetchFilteredProjetos, fetchProjetos]
   );
 
   // Sorting handler

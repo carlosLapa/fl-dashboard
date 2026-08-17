@@ -3,8 +3,6 @@ import { Modal, Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
 import { User } from 'types/user';
 import { getAllUsers } from '../../services/userService';
-import { useNotification } from '../../NotificationContext';
-import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
 import { getAllExternos } from '../../services/externoService';
@@ -38,7 +36,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
   clienteInfo,
   initialFormData,
 }) => {
-  const { sendNotification } = useNotification();
   const [formData, setFormData] = useState<ProjetoFormData>({
     projetoAno: new Date().getFullYear(),
     designacao: '',
@@ -235,28 +232,6 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     } else if (!formDataToSave.clienteId) {
       toast.error('É necessário selecionar um cliente');
       return;
-    }
-
-    if (formData.users.length > 0) {
-      formData.users.forEach((user) => {
-        const notificationType =
-          formData.status === 'CONCLUIDO'
-            ? NotificationType.PROJETO_CONCLUIDO
-            : isEditing
-            ? NotificationType.PROJETO_ATUALIZADO
-            : NotificationType.PROJETO_ATRIBUIDO;
-        const notification = {
-          type: notificationType,
-          content: `${notificationType}: "${formData.designacao}"`,
-          userId: user.id,
-          projetoId: projeto?.id || 0,
-          tarefaId: 0,
-          relatedId: projeto?.id || 0,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        };
-        sendNotification(notification);
-      });
     }
 
     onSave(formDataToSave);

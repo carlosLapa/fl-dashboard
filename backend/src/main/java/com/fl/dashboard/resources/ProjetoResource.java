@@ -2,9 +2,7 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
-import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.enums.TipoProjeto;
-import com.fl.dashboard.services.NotificationService;
 import com.fl.dashboard.services.ProjetoService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
@@ -28,11 +26,9 @@ import java.util.List;
 public class ProjetoResource {
 
     private final ProjetoService projetoService;
-    private final NotificationService notificationService;
 
-    public ProjetoResource(ProjetoService projetoService, NotificationService notificationService) {
+    public ProjetoResource(ProjetoService projetoService) {
         this.projetoService = projetoService;
-        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -135,14 +131,6 @@ public class ProjetoResource {
     public ResponseEntity<ProjetoWithUsersDTO> insert(@Valid @RequestBody ProjetoWithUsersDTO dto) {
         ProjetoWithUsersDTO savedDto = projetoService.insert(dto);
 
-        savedDto.getUsers().forEach(user ->
-                notificationService.createProjectNotification(
-                        projetoService.findByIdWithUsers(savedDto.getId()),
-                        NotificationType.PROJETO_ATRIBUIDO,
-                        user
-                )
-        );
-
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
                 .buildAndExpand(savedDto.getId()).toUri();
         return ResponseEntity.created(uri).body(savedDto);
@@ -153,14 +141,6 @@ public class ProjetoResource {
     public ResponseEntity<ProjetoWithUsersDTO> update(@PathVariable Long id, @Valid @RequestBody ProjetoWithUsersDTO dto) {
         try {
             ProjetoWithUsersDTO newDto = projetoService.update(id, dto);
-
-            newDto.getUsers().forEach(user ->
-                    notificationService.createProjectNotification(
-                            projetoService.findByIdWithUsers(newDto.getId()),
-                            NotificationType.PROJETO_ATUALIZADO,
-                            user
-                    )
-            );
 
             return ResponseEntity.ok().body(newDto);
         } catch (ResourceNotFoundException e) {

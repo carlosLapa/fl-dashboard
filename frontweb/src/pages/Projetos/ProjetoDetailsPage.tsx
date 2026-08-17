@@ -20,9 +20,7 @@ import ProjetoTarefasArquivadasTable from 'components/Projeto/ProjetoTarefasArqu
 import ProjetoTarefaModal from 'components/Tarefa/ProjetoTarefaModal';
 import { TarefaInsertFormData } from 'types/tarefa';
 import { addTarefa } from 'services/tarefaService';
-import { NotificationType } from 'types/notification';
 import { toast } from 'react-toastify';
-import { useNotification } from 'NotificationContext';
 import BackButton from 'components/Shared/BackButton/BackButton';
 import ProjetoExternosManager from 'components/Projeto/ProjetoExternosManager';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -37,7 +35,6 @@ const ProjetoDetailsPage: React.FC = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { sendNotification } = useNotification();
 
   // Estados para o modal de nova tarefa
   const [showTarefaModal, setShowTarefaModal] = useState(false);
@@ -89,19 +86,6 @@ const ProjetoDetailsPage: React.FC = () => {
     if (projetoId && projeto) {
       try {
         await updateProjetoStatusAPI(Number(projetoId), newStatus);
-        projeto.users.forEach((user) => {
-          const notification = {
-            type: NotificationType.PROJETO_ATUALIZADO,
-            content: `Status do projeto "${projeto.designacao}" foi atualizado para ${newStatus}`,
-            userId: user.id,
-            projetoId: Number(projetoId),
-            tarefaId: 0, // Required by NotificationInsertDTO
-            isRead: false,
-            createdAt: new Date().toISOString(),
-            relatedId: Number(projetoId),
-          };
-          sendNotification(notification);
-        });
         await fetchProjeto();
         toast.success('Status do projeto atualizado com sucesso!');
       } catch (error) {
