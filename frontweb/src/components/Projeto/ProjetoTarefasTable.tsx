@@ -1,5 +1,7 @@
 import React from 'react';
-import { Table, Card, Badge } from 'react-bootstrap';
+import { Table, Card, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import {
   Tarefa,
@@ -7,13 +9,16 @@ import {
   TarefaWithUserAndProjetoDTO,
 } from '../../types/tarefa';
 import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
+import '../Tarefa/styles.scss';
 
 interface ProjetoTarefasTableProps {
   tarefas: Tarefa[] | TarefaWithUserAndProjetoDTO[];
+  onEditTarefa?: (tarefaId: number) => void;
 }
 
 const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
   tarefas,
+  onEditTarefa,
 }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -71,6 +76,7 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
                 <th>Prazo Estimado</th>
                 <th className="d-none d-md-table-cell">Prazo Real</th>
                 <th className="d-none d-lg-table-cell">Atribuição</th>
+                {onEditTarefa && <th>Ações</th>}
               </tr>
             </thead>
             <tbody>
@@ -89,11 +95,31 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
                         ? tarefa.users.map((user) => user.name).join(', ')
                         : 'N/A'}
                     </td>
+                    {onEditTarefa && (
+                      <td>
+                        <div className="action-icons">
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`edit-tooltip-${tarefa.id}`}>
+                                Editar
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faPencilAlt}
+                              onClick={() => onEditTarefa(tarefa.id)}
+                              className="action-icon edit-icon"
+                            />
+                          </OverlayTrigger>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="text-center">
+                  <td colSpan={onEditTarefa ? 7 : 6} className="text-center">
                     Não existem tarefas associadas a este projeto.
                   </td>
                 </tr>

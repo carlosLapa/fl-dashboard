@@ -18,8 +18,13 @@ import { ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import ProjetoTarefasTable from 'components/Projeto/ProjetoTarefasTable';
 import ProjetoTarefasArquivadasTable from 'components/Projeto/ProjetoTarefasArquivadasTable';
 import ProjetoTarefaModal from 'components/Tarefa/ProjetoTarefaModal';
-import { TarefaInsertFormData } from 'types/tarefa';
-import { addTarefa } from 'services/tarefaService';
+import TarefaModal from 'components/Tarefa/TarefaModal';
+import {
+  Tarefa,
+  TarefaInsertFormData,
+  TarefaUpdateFormData,
+} from 'types/tarefa';
+import { addTarefa, updateTarefa } from 'services/tarefaService';
 import { toast } from 'react-toastify';
 import BackButton from 'components/Shared/BackButton/BackButton';
 import ProjetoExternosManager from 'components/Projeto/ProjetoExternosManager';
@@ -38,6 +43,10 @@ const ProjetoDetailsPage: React.FC = () => {
 
   // Estados para o modal de nova tarefa
   const [showTarefaModal, setShowTarefaModal] = useState(false);
+
+  // Estados para o modal de edição de tarefa
+  const [showEditTarefaModal, setShowEditTarefaModal] = useState(false);
+  const [tarefaToEdit, setTarefaToEdit] = useState<Tarefa | null>(null);
 
   const fetchProjeto = async () => {
     if (projetoId) {
@@ -78,6 +87,33 @@ const ProjetoDetailsPage: React.FC = () => {
         toast.error(error.message);
       } else {
         toast.error('Erro ao adicionar tarefa');
+      }
+    }
+  };
+
+  // Handler para abrir o modal de edição de uma tarefa existente
+  const handleEditTarefa = (tarefaId: number) => {
+    const tarefa = projeto?.tarefas.find((t) => t.id === tarefaId);
+    if (tarefa) {
+      setTarefaToEdit(tarefa);
+      setShowEditTarefaModal(true);
+    }
+  };
+
+  // Handler para gravar a edição de uma tarefa
+  const handleUpdateTarefa = async (formData: TarefaUpdateFormData) => {
+    try {
+      await updateTarefa(formData.id, formData);
+      toast.success('Tarefa atualizada com sucesso!');
+      setShowEditTarefaModal(false);
+      setTarefaToEdit(null);
+      await fetchProjeto();
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
+      if (error instanceof Error && error.message.includes('prazo')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Erro ao atualizar tarefa');
       }
     }
   };
@@ -164,7 +200,10 @@ const ProjetoDetailsPage: React.FC = () => {
             <Card.Header as="h5">Tarefas Associadas</Card.Header>
             <Card.Body className="p-0">
               <div className="details-table-wrapper">
-                <ProjetoTarefasTable tarefas={projeto.tarefas} />
+                <ProjetoTarefasTable
+                  tarefas={projeto.tarefas}
+                  onEditTarefa={handleEditTarefa}
+                />
               </div>
             </Card.Body>
           </Card>
@@ -205,6 +244,21 @@ const ProjetoDetailsPage: React.FC = () => {
           onHide={() => setShowTarefaModal(false)}
           onSave={handleAddTarefa}
           projetoId={projeto.id}
+        />
+      )}
+
+      {showEditTarefaModal && (
+        <TarefaModal
+          show={showEditTarefaModal}
+          onHide={() => {
+            setShowEditTarefaModal(false);
+            setTarefaToEdit(null);
+          }}
+          onSave={(formData) =>
+            handleUpdateTarefa(formData as TarefaUpdateFormData)
+          }
+          isEditing
+          tarefa={tarefaToEdit}
         />
       )}
     </Container>
