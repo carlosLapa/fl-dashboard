@@ -535,15 +535,10 @@ public class NotificationService {
         Projeto projetoEntity = projetoRepository.findById(projeto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found"));
 
-        // Check for existing notification
-        if (notificationRepository.existsByProjetoIdAndUserIdAndType(
-                projeto.getId(),
-                user.getId(),
-                type.toString())) {
-            logger.info("Notification already exists for project {} and user {}", projeto.getId(), user.getId());
-            return;
-        }
-
+        // Note: deliberately no existsByProjetoIdAndUserIdAndType dedup guard here.
+        // Each call represents a genuinely new event (assignment/update/status change),
+        // not a recurring reminder — a forever-scoped guard silently dropped every
+        // notification of a given type after the first one ever sent for a project+user.
         User userEntity = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
 
