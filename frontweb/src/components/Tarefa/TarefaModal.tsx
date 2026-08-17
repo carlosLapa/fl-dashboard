@@ -17,8 +17,6 @@ import {
   TarefaUpdateFormData,
   TarefaStatus,
 } from '../../types/tarefa';
-import { useNotification } from '../../NotificationContext';
-import { NotificationType } from 'types/notification';
 import { User } from 'types/user';
 import { Projeto, ProjetoMinDTO } from 'types/projeto';
 import { ExternoDTO } from 'types/externo';
@@ -88,7 +86,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   onStatusChange,
   onArchive,
 }) => {
-  const { sendNotification } = useNotification();
   const { user } = useAuth();
   const { hasPermission, hasAnyPermission, isAdmin, isManager } =
     usePermissions();
@@ -321,18 +318,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   ) => {
     const { name, value } = event.target;
     if (name === 'status' && isEditing && tarefa) {
+      // onStatusChange triggers the real backend status update, which already
+      // creates and broadcasts the TAREFA_STATUS_ALTERADO notification server-side —
+      // sending another one from here duplicated it.
       onStatusChange?.(tarefa.id, value as TarefaStatus);
-      const notification = {
-        type: NotificationType.TAREFA_STATUS_ALTERADO,
-        content: `Status da tarefa "${tarefa.descricao}" alterado para ${value}`,
-        userId: tarefa.users[0]?.id,
-        tarefaId: tarefa.id,
-        projetoId: tarefa.projeto.id,
-        relatedId: tarefa.id,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      };
-      sendNotification(notification);
     }
 
     // For deadline changes, validate immediately
@@ -442,18 +431,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     };
 
     if (isEditing && tarefa) {
+      // onSave persists the edit; the backend already notifies affected users
+      // (TAREFA_ATRIBUIDA/TAREFA_REMOVIDA/TAREFA_EDITADA) as part of that call.
       onSave({ ...updatedFormData, id: tarefa.id } as TarefaUpdateFormData);
-      const notification = {
-        type: NotificationType.TAREFA_STATUS_ALTERADO,
-        content: `Tarefa "${formData.descricao}" foi atualizada`,
-        userId: formData.userIds[0],
-        tarefaId: tarefa.id,
-        projetoId: formData.projetoId,
-        relatedId: tarefa.id,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-      };
-      sendNotification(notification);
     } else {
       const savePromise = onSave(updatedFormData as TarefaInsertFormData);
       if (divideOnCreate && formData.userIds.length >= 2) {
@@ -479,19 +459,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
             toast.error(message);
           });
       }
-      formData.userIds.forEach((userId) => {
-        const notification = {
-          type: NotificationType.TAREFA_ATRIBUIDA,
-          content: `Nova tarefa atribuída: "${formData.descricao}"`,
-          userId: userId,
-          tarefaId: 0, // Will be updated after task creation
-          projetoId: formData.projetoId,
-          relatedId: 0, // Will be updated after task creation
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        };
-        sendNotification(notification);
-      });
+      // onSave (above) already creates the tarefa on the backend, which notifies
+      // each assigned user (TAREFA_ATRIBUIDA) server-side — sending another one
+      // here duplicated it, and always pointed at tarefaId 0 since this fired
+      // before the created task's real id was known.
     }
     onHide();
   };
@@ -554,6 +525,12 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     <option value="IN_REVIEW">In Review</option>
                     <option value="DONE">Done</option>
                   </Form.Select>
+                  {isEditing && (
+                    <Form.Text className="text-muted">
+                      A alteração de estado é guardada de imediato — não é
+                      necessário clicar em "Atualizar".
+                    </Form.Text>
+                  )}
                 </Form.Group>
               </Col>
             </Row>

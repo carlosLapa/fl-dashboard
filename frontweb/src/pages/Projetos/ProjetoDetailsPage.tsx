@@ -69,10 +69,7 @@ const ProjetoDetailsPage: React.FC = () => {
   // Handler para adicionar nova tarefa
   const handleAddTarefa = async (formData: TarefaInsertFormData) => {
     try {
-      await addTarefa(formData, async (notification) => {
-        sendNotification(notification);
-        return Promise.resolve();
-      });
+      await addTarefa(formData);
       toast.success('Tarefa criada com sucesso!');
       // Recarregar os dados do projeto para mostrar a nova tarefa
       await fetchProjeto();

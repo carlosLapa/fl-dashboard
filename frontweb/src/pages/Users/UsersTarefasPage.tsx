@@ -5,12 +5,13 @@ import {
   getTarefasWithUsersAndProjetoByUser,
   updateTarefaAPI,
 } from 'api/requestsApi';
-import { arquivarTarefa } from 'services/tarefaService';
+import { arquivarTarefa, updateTarefaStatus } from 'services/tarefaService';
 import { User } from 'types/user';
 import {
   TarefaWithUserAndProjetoDTO,
   TarefaUpdateFormData,
   TarefaInsertFormData,
+  TarefaStatus,
 } from 'types/tarefa';
 import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
@@ -175,6 +176,22 @@ const UsersTarefasPage: React.FC = () => {
     }
   };
 
+  const handleStatusChange = async (
+    tarefaId: number,
+    newStatus: TarefaStatus
+  ) => {
+    try {
+      await updateTarefaStatus(tarefaId, newStatus);
+      if (userId) {
+        await fetchTarefas(parseInt(userId, 10));
+      }
+      toast.success('Status da tarefa atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar status da tarefa:', error);
+      toast.error('Erro ao atualizar status da tarefa');
+    }
+  };
+
   const handleSaveTarefa = async (
     formData: TarefaInsertFormData | TarefaUpdateFormData
   ) => {
@@ -324,6 +341,7 @@ const UsersTarefasPage: React.FC = () => {
           onHide={handleCloseTarefaModal}
           tarefa={selectedTarefa}
           onSave={handleSaveTarefa}
+          onStatusChange={handleStatusChange}
           onArchive={handleArchiveTarefa}
           isEditing={true}
         />

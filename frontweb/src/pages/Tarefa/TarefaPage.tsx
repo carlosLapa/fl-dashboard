@@ -16,7 +16,6 @@ import {
   calculateWorkingDays,
   getTarefasFiltered,
 } from 'services/tarefaService';
-import { useNotification } from '../../hooks/useNotification';
 import { Button, Spinner } from 'react-bootstrap';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefasCalendar from 'components/Tarefa/TarefasCalendar';
@@ -42,7 +41,6 @@ const TarefaPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
-  const { sendNotification } = useNotification();
 
   // Sorting states
   const [sortField, setSortField] = useState<string>('id');
@@ -230,7 +228,7 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-      const created = await addTarefa(formData, sendNotification);
+      const created = await addTarefa(formData);
       if (isFiltered) {
         await fetchAdvancedFilteredTarefas();
       } else {
@@ -259,7 +257,7 @@ const TarefaPage: React.FC = () => {
         );
         formData = { ...formData, workingDays };
       }
-      await updateTarefa(formData.id, formData, sendNotification);
+      await updateTarefa(formData.id, formData);
       if (isFiltered) {
         await fetchAdvancedFilteredTarefas();
       } else {
@@ -346,8 +344,7 @@ const TarefaPage: React.FC = () => {
     newStatus: TarefaStatus
   ) => {
     try {
-      const tarefa = tarefas.find((t) => t.id === tarefaId);
-      await updateTarefaStatus(tarefaId, newStatus, sendNotification, tarefa);
+      await updateTarefaStatus(tarefaId, newStatus);
       if (isFiltered) {
         await fetchAdvancedFilteredTarefas();
       } else {

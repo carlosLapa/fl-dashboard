@@ -340,6 +340,23 @@ public class TarefaService {
             }
         });
 
+        // Notify users who stayed assigned across the edit — newly-added users already got
+        // TAREFA_ATRIBUIDA above, and removed users got TAREFA_REMOVIDA, so this only covers
+        // users for whom "the task changed" is itself the news.
+        previousUsers.forEach(user -> {
+            if (tarefa.getUsers().contains(user)) {
+                NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                        .type("TAREFA_EDITADA")
+                        .content("A tarefa '" + tarefa.getDescricao() + "' foi atualizada")
+                        .userId(user.getId())
+                        .isRead(false)
+                        .createdAt(new Date())
+                        .tarefaId(tarefa.getId())
+                        .build();
+                notificationService.processNotification(notification);
+            }
+        });
+
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
