@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -55,5 +56,14 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     boolean existsByProjetoIdAndUserIdAndType(Long projetoId, Long userId, String type);
 
     boolean existsByTarefaIdAndUserIdAndType(Long tarefaId, Long userId, String type);
+
+    // Scoped to the specific deadline value that was active when the notification was created,
+    // so a postponed-then-re-approaching deadline is treated as a new warning instead of being
+    // suppressed forever by existsByTarefaIdAndUserIdAndType.
+    boolean existsByTarefaIdAndUserIdAndTypeAndNotifiedDeadline(
+            Long tarefaId, Long userId, String type, Date notifiedDeadline);
+
+    boolean existsByProjetoIdAndUserIdAndTypeAndNotifiedDeadline(
+            Long projetoId, Long userId, String type, Date notifiedDeadline);
 
 }

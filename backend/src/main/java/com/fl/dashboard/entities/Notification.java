@@ -21,6 +21,11 @@ public class Notification {
     private Boolean isRead;
     private Date createdAt;
     private Long relatedId;
+    // The Tarefa.prazoReal / Projeto.prazo value that was active when a deadline-warning
+    // notification (TAREFA_PRAZO_PROXIMO / PROJETO_PRAZO_PROXIMO) was created — lets the
+    // scheduler tell "already warned about this exact deadline" apart from "deadline was
+    // since postponed and is approaching again", instead of suppressing forever per type.
+    private Date notifiedDeadline;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

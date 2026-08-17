@@ -1,0 +1,1 @@
+ALTER TABLE tb_notification ADD COLUMN notified_deadline datetime(6) DEFAULT NULL;

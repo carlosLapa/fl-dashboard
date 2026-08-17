@@ -346,6 +346,7 @@ public class NotificationService {
         entity.setIsRead(dto.getIsRead());
         entity.setCreatedAt(dto.getCreatedAt());
         entity.setRelatedId(dto.getRelatedId());
+        entity.setNotifiedDeadline(dto.getNotifiedDeadline());
 
         if (dto.getUserId() != null) {
             logger.info("Setting user with ID: {}", dto.getUserId());
@@ -596,15 +597,18 @@ public class NotificationService {
         logger.info("Deleted all notifications for user with ID: {}", userId);
     }
 
-    public boolean existsDeadlineNotification(Long tarefaId, Long userId) {
-        return notificationRepository.existsByTarefaIdAndUserIdAndType(
-                tarefaId, userId, NotificationType.TAREFA_PRAZO_PROXIMO.name()
+    // Scoped to currentDeadline so a postponed-then-re-approaching deadline is treated as a new
+    // warning rather than suppressed forever just because *a* TAREFA_PRAZO_PROXIMO notification
+    // exists for this tarefa/user, regardless of which deadline it warned about.
+    public boolean existsDeadlineNotification(Long tarefaId, Long userId, Date currentDeadline) {
+        return notificationRepository.existsByTarefaIdAndUserIdAndTypeAndNotifiedDeadline(
+                tarefaId, userId, NotificationType.TAREFA_PRAZO_PROXIMO.name(), currentDeadline
         );
     }
 
-    public boolean existsProjetoDeadlineNotification(Long projetoId, Long userId) {
-        return notificationRepository.existsByProjetoIdAndUserIdAndType(
-                projetoId, userId, NotificationType.PROJETO_PRAZO_PROXIMO.name()
+    public boolean existsProjetoDeadlineNotification(Long projetoId, Long userId, Date currentDeadline) {
+        return notificationRepository.existsByProjetoIdAndUserIdAndTypeAndNotifiedDeadline(
+                projetoId, userId, NotificationType.PROJETO_PRAZO_PROXIMO.name(), currentDeadline
         );
     }
 
