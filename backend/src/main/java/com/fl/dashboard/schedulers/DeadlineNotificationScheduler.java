@@ -14,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -57,15 +59,15 @@ public class DeadlineNotificationScheduler {
 
         int[] sent = {0};
         nearDeadlineTarefas.forEach(tarefa -> tarefa.getUsers().forEach(user -> {
-            if (!notificationService.existsDeadlineNotification(tarefa.getId(), user.getId())) {
+            if (!notificationService.existsDeadlineNotification(tarefa.getId(), user.getId(), tarefa.getPrazoReal())) {
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
                         .type(NotificationType.TAREFA_PRAZO_PROXIMO.name())
-                        .content("A tarefa '" + tarefa.getDescricao() + "' tem prazo próximo: "
-                                + tarefa.getPrazoReal())
+                        .content(buildDeadlineMessage("A tarefa", tarefa.getDescricao(), tarefa.getPrazoReal()))
                         .userId(user.getId())
                         .tarefaId(tarefa.getId())
                         .isRead(false)
                         .createdAt(new Date())
+                        .notifiedDeadline(tarefa.getPrazoReal())
                         .build();
 
                 notificationService.processNotification(notification);
@@ -83,15 +85,15 @@ public class DeadlineNotificationScheduler {
 
         int[] sent = {0};
         nearDeadlineProjetos.forEach(projeto -> projeto.getUsers().forEach(user -> {
-            if (!notificationService.existsProjetoDeadlineNotification(projeto.getId(), user.getId())) {
+            if (!notificationService.existsProjetoDeadlineNotification(projeto.getId(), user.getId(), projeto.getPrazo())) {
                 NotificationInsertDTO notification = NotificationInsertDTO.builder()
                         .type(NotificationType.PROJETO_PRAZO_PROXIMO.name())
-                        .content("O projeto '" + projeto.getDesignacao() + "' tem prazo próximo: "
-                                + projeto.getPrazo())
+                        .content(buildDeadlineMessage("O projeto", projeto.getDesignacao(), projeto.getPrazo()))
                         .userId(user.getId())
                         .projetoId(projeto.getId())
                         .isRead(false)
                         .createdAt(new Date())
+                        .notifiedDeadline(projeto.getPrazo())
                         .build();
 
                 notificationService.processNotification(notification);
@@ -99,5 +101,27 @@ public class DeadlineNotificationScheduler {
             }
         }));
         return sent[0];
+    }
+
+    // "A tarefa"/"O projeto" + nome, phrased differently depending on whether the deadline is
+    // still ahead or already passed — the old fixed "tem prazo próximo" wording was misleading
+    // for items overdue by weeks, since the query intentionally also catches those (see
+    // findByPrazoRealBeforeAndStatusNot/findByPrazoBeforeAndStatusNot: "< warningDate", not a
+    // lower-bounded window), so they keep getting surfaced instead of going silent once missed.
+    private String buildDeadlineMessage(String prefix, String nome, Date prazo) {
+        LocalDate prazoLocalDate = prazo.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        long daysUntil = ChronoUnit.DAYS.between(LocalDate.now(), prazoLocalDate);
+        String dataFormatada = new SimpleDateFormat("dd/MM/yyyy").format(prazo);
+
+        String situacao;
+        if (daysUntil > 0) {
+            situacao = "tem prazo dentro de " + daysUntil + " dia(s)";
+        } else if (daysUntil == 0) {
+            situacao = "tem prazo hoje";
+        } else {
+            situacao = "ultrapassou o prazo há " + Math.abs(daysUntil) + " dia(s)";
+        }
+
+        return prefix + " '" + nome + "' " + situacao + " (" + dataFormatada + ")";
     }
 }

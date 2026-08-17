@@ -19,5 +19,6 @@ public class NotificationInsertDTO {
     private Long userId;
     private Long tarefaId;
     private Long projetoId;
+    private Date notifiedDeadline;
 
 }
