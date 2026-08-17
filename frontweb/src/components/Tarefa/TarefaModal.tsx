@@ -31,6 +31,7 @@ import { Permission } from '../../permissions/rolePermissions';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
 import { dividirSubtarefas } from '../../services/subtarefaService';
 import { getAllUsers } from '../../services/userService';
+import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 
 interface TarefaModalProps {
   show: boolean;
@@ -519,11 +520,13 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     value={formData.status}
                     onChange={handleInputChange}
                   >
-                    <option value="BACKLOG">Backlog</option>
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="IN_REVIEW">In Review</option>
-                    <option value="DONE">Done</option>
+                    {Object.entries(TAREFA_STATUS_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
                   </Form.Select>
                   {isEditing && (
                     <Form.Text className="text-muted">

@@ -25,6 +25,7 @@ import {
   KanbanColumns,
   useProjetoKanban,
 } from '../../hooks/useProjetoKanban';
+import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 
 interface ProjetoKanbanBoardProps {
   projeto: ProjetoWithUsersAndTarefasDTO;
@@ -56,13 +57,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     return false;
   }, [user]);
 
-  const statusTranslations: { [key in TarefaStatus]: string } = {
-    BACKLOG: 'Backlog',
-    TODO: 'A Fazer',
-    IN_PROGRESS: 'Em Progresso',
-    IN_REVIEW: 'Em Revisão',
-    DONE: 'Concluído',
-  };
+  const statusTranslations = TAREFA_STATUS_LABELS;
 
   const [columnsOrder] = useState<TarefaStatus[]>([
     'BACKLOG',

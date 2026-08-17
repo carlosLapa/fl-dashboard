@@ -1,5 +1,6 @@
 import React from 'react';
 import { Badge } from 'react-bootstrap';
+import { getProjetoStatusLabel } from '../../constants/projetoStatus';
 
 interface ProjetoStatusBadgeProps {
   status: string;
@@ -7,30 +8,23 @@ interface ProjetoStatusBadgeProps {
 
 const ProjetoStatusBadge: React.FC<ProjetoStatusBadgeProps> = ({ status }) => {
   let variant = 'secondary';
-  let displayText = status;
 
   switch (status) {
     case 'ATIVO':
       variant = 'success';
-      displayText = 'Ativo';
       break;
     case 'EM_PROGRESSO':
       variant = 'primary';
-      displayText = 'Em Progresso';
       break;
     case 'CONCLUIDO':
       variant = 'info';
-      displayText = 'Concluído';
       break;
     case 'SUSPENSO':
       variant = 'warning';
-      displayText = 'Suspenso';
       break;
-    default:
-      displayText = status;
   }
 
-  return <Badge bg={variant}>{displayText}</Badge>;
+  return <Badge bg={variant}>{getProjetoStatusLabel(status)}</Badge>;
 };
 
 export default ProjetoStatusBadge;

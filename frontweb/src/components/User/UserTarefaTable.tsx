@@ -9,6 +9,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import UserTarefaFilterPanel from './UserTarefaFilterPanel';
 import TarefaPagination from '../Tarefa/TarefaTableComponents/TarefaPagination';
+import { getTarefaStatusLabel } from '../../constants/tarefaStatus';
 import './userTarefaTable.scss';
 
 interface UserTarefaTableProps {
@@ -65,7 +66,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
               <thead>
                 <tr>
                   <th>Descrição</th>
-                  <th className="d-none d-md-table-cell">Status</th>
+                  <th className="d-none d-md-table-cell">Estado</th>
                   <th className="d-none d-md-table-cell">Prioridade</th>
                   <th className="d-none d-md-table-cell">Ínicio</th>
                   <th className="d-none d-lg-table-cell">Prazo</th>
@@ -80,7 +81,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                     <tr key={tarefa.id}>
                       <td>{tarefa.descricao}</td>
                       <td className="d-none d-md-table-cell">
-                        {tarefa.status}
+                        {getTarefaStatusLabel(tarefa.status)}
                       </td>
                       <td className="d-none d-md-table-cell">
                         <TarefaPrioridadeBadge

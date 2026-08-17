@@ -2,6 +2,12 @@ import { User } from './user';
 import { Tarefa } from './tarefa';
 import { Externo } from './externo';
 
+export type ProjetoStatus =
+  | 'ATIVO'
+  | 'EM_PROGRESSO'
+  | 'CONCLUIDO'
+  | 'SUSPENSO';
+
 export type TipoProjeto =
   | 'ASSESSORIA'
   | 'CONSULTORIA'

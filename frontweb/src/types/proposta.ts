@@ -1,5 +1,11 @@
 import { Cliente } from './cliente';
 
+export type PropostaStatus =
+  | 'ATIVO'
+  | 'EM_ANALISE'
+  | 'ADJUDICADA'
+  | 'RECUSADA';
+
 export type TipoProposta =
   | 'ASSESSORIA'
   | 'CONSULTORIA'

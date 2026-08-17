@@ -1,7 +1,12 @@
 import React from 'react';
 import { Table, Card, Badge } from 'react-bootstrap';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
-import { Tarefa, TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
+import {
+  Tarefa,
+  TarefaStatus,
+  TarefaWithUserAndProjetoDTO,
+} from '../../types/tarefa';
+import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 
 interface ProjetoTarefasTableProps {
   tarefas: Tarefa[] | TarefaWithUserAndProjetoDTO[];
@@ -19,25 +24,28 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
     });
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: TarefaStatus) => {
     let variant = 'secondary';
 
     switch (status) {
-      case 'PENDENTE':
+      case 'BACKLOG':
+        variant = 'secondary';
+        break;
+      case 'TODO':
         variant = 'warning';
         break;
-      case 'EM_PROGRESSO':
+      case 'IN_PROGRESS':
         variant = 'primary';
         break;
-      case 'CONCLUIDO':
-        variant = 'success';
+      case 'IN_REVIEW':
+        variant = 'info';
         break;
-      case 'CANCELADO':
-        variant = 'danger';
+      case 'DONE':
+        variant = 'success';
         break;
     }
 
-    return <Badge bg={variant}>{status.replace('_', ' ')}</Badge>;
+    return <Badge bg={variant}>{TAREFA_STATUS_LABELS[status]}</Badge>;
   };
 
 

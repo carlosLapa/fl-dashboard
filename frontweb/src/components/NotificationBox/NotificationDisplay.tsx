@@ -4,6 +4,7 @@ import { Notification } from 'types/notification';
 import { markNotificationAsReadAPI } from 'api/notificationsApi';
 import { toast } from 'react-toastify';
 import { FaExternalLinkAlt } from 'react-icons/fa';
+import { formatNotificationContent } from '../../utils/notificationFormat';
 
 interface NotificationDisplayProps {
   notification: Notification;
@@ -54,24 +55,6 @@ const getNotificationTitle = (type: string) => {
     SUBTAREFA_CONCLUIDA: 'Subtarefa Concluída',
   };
   return titles[type] || type;
-};
-
-const translateStatus = (status: string) => {
-  const statusTranslations: { [key: string]: string } = {
-    BACKLOG: '"Backlog"',
-    TODO: '"A Fazer"',
-    IN_PROGRESS: '"Em Progresso"',
-    IN_REVIEW: '"Em Revisão"',
-    DONE: '"Concluído"',
-  };
-  return statusTranslations[status] || status;
-};
-
-const formatNotificationContent = (content: string) => {
-  return content.replace(
-    /(BACKLOG|TODO|IN_PROGRESS|IN_REVIEW|DONE)/g,
-    (match) => translateStatus(match)
-  );
 };
 
 const NotificationDisplay: React.FC<NotificationDisplayProps> = ({

@@ -223,7 +223,7 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
             </Col>
             <Col md={6}>
               <Form.Group controlId="formStatus">
-                <Form.Label>Status</Form.Label>
+                <Form.Label>Estado</Form.Label>
                 <Form.Select
                   name="status"
                   value={formData.status}

@@ -1,5 +1,6 @@
 import { ProjetoMetricsDTO } from '../types/projetoMetrics';
 import { getProjetoMetricsAPI } from '../api/projetoMetricsApi';
+import { getTarefaStatusLabel } from '../constants/tarefaStatus';
 
 /**
  * Fetch comprehensive metrics for a specific project
@@ -67,17 +68,7 @@ export const formatWorkingDays = (days: number): string => {
  * @param status Task status code
  * @returns string label for the status
  */
-export const getStatusLabel = (status: string): string => {
-  const statusLabels: Record<string, string> = {
-    BACKLOG: 'Backlog',
-    TODO: 'A Fazer',
-    IN_PROGRESS: 'Em Progresso',
-    IN_REVIEW: 'Em Revisão',
-    DONE: 'Concluído',
-  };
-
-  return statusLabels[status] || status;
-};
+export const getStatusLabel = getTarefaStatusLabel;
 
 /**
  * Sort collaborators by completion rate (descending)

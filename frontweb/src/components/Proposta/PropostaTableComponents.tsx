@@ -15,6 +15,7 @@ import {
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
+import { getPropostaStatusLabel } from '../../constants/propostaStatus';
 
 interface PropostaTableHeaderProps {
   sortField?: string;
@@ -62,7 +63,7 @@ export const PropostaTableHeader: React.FC<PropostaTableHeaderProps> = ({
         {renderSortableHeader('prazo', 'Prazo')}
         {renderSortableHeader('prioridade', 'Prioridade')}
         <th>Observação</th>
-        {renderSortableHeader('status', 'Status')}
+        {renderSortableHeader('status', 'Estado')}
         <th>Ações</th>
       </tr>
     </thead>
@@ -104,7 +105,7 @@ export const PropostaTableRow: React.FC<PropostaTableRowProps> = ({
       </td>
       <td>{proposta.prioridade}</td>
       <td>{proposta.observacao || '-'}</td>
-      <td>{proposta.status}</td>
+      <td>{getPropostaStatusLabel(proposta.status)}</td>
       <td>
         <div className="action-icons">
           <OverlayTrigger

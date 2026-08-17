@@ -17,6 +17,7 @@ import {
 } from 'api/notificationsApi';
 import secureStorage from './auth/secureStorage';
 import { toast } from 'react-toastify';
+import { formatNotificationContent } from './utils/notificationFormat';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -164,14 +165,19 @@ export const NotificationProvider: React.FC<{
   useEffect(() => {
     if (lastLiveNotification) {
       const isMobile = window.innerWidth <= 768;
-      toast.info(`Nova notificação: ${lastLiveNotification.content}`, {
-        position: isMobile ? 'bottom-center' : 'top-right',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.info(
+        `Nova notificação: ${formatNotificationContent(
+          lastLiveNotification.content
+        )}`,
+        {
+          position: isMobile ? 'bottom-center' : 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
     }
   }, [lastLiveNotification]);
 

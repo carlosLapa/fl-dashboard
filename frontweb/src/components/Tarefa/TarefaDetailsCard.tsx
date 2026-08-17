@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
+import { getTarefaStatusLabel } from '../../constants/tarefaStatus';
 
 interface TarefaDetailsCardProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -53,7 +54,7 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
                   : 'Não calculado'}
               </p>
               <p className="mb-2">
-                <strong>Status:</strong> {tarefa.status}
+                <strong>Estado:</strong> {getTarefaStatusLabel(tarefa.status)}
               </p>
               <p className="mb-2">
                 <strong>Prioridade:</strong>{' '}

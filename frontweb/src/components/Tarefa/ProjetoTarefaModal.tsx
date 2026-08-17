@@ -9,6 +9,7 @@ import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getAllUsers } from '../../services/userService';
+import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 
 interface ProjetoTarefaModalProps {
   show: boolean;
@@ -329,11 +330,13 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
                     value={formData.status}
                     onChange={handleInputChange}
                   >
-                    <option value="BACKLOG">Backlog</option>
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="IN_REVIEW">In Review</option>
-                    <option value="DONE">Done</option>
+                    {Object.entries(TAREFA_STATUS_LABELS).map(
+                      ([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      )
+                    )}
                   </Form.Select>
                 </Form.Group>
               </Col>

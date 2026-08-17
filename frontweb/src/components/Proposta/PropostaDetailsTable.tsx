@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Badge, Button } from 'react-bootstrap';
 import { Proposta } from '../../types/proposta';
 import { formatDate } from '../../utils/dateUtils';
+import { getPropostaStatusLabel } from '../../constants/propostaStatus';
 
 interface PropostaDetailsTableProps {
   proposta: Proposta;
@@ -14,17 +15,18 @@ const PropostaDetailsTable: React.FC<PropostaDetailsTableProps> = ({
     let variant = 'secondary';
 
     switch (status) {
-      case 'EM ANÁLISE':
+      case 'ATIVO':
+        variant = 'info';
+        break;
+      case 'EM_ANALISE':
         variant = 'warning';
         break;
       case 'ADJUDICADA':
         variant = 'success';
         break;
-      case 'REJEITADA':
+      case 'RECUSADA':
         variant = 'danger';
         break;
-      default:
-        variant = 'info';
     }
 
     return (
@@ -33,7 +35,7 @@ const PropostaDetailsTable: React.FC<PropostaDetailsTableProps> = ({
         bg={variant}
         style={{ fontSize: '0.9rem', padding: '0.5em 1em' }}
       >
-        {status}
+        {getPropostaStatusLabel(status)}
       </Badge>
     );
   };
@@ -100,7 +102,7 @@ const PropostaDetailsTable: React.FC<PropostaDetailsTableProps> = ({
             <td>{renderPrioridadeBadge(proposta.prioridade)}</td>
           </tr>
           <tr>
-            <th className="bg-light">Status</th>
+            <th className="bg-light">Estado</th>
             <td>{renderStatusBadge(proposta.status)}</td>
           </tr>
           <tr>
