@@ -29,6 +29,7 @@ public class UserDTO {
 
     private String password;
     private byte[] profileImage;
+    private boolean ativo = true;
 
     // private Set<ProjetoDTO> projetos = new HashSet<>();
 
@@ -53,6 +54,7 @@ public class UserDTO {
         email = entity.getEmail();
         password = entity.getPassword();
         profileImage = entity.getProfileImage();
+        ativo = entity.isAtivo();
     }
 
     /*

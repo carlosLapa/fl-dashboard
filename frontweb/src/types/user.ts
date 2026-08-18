@@ -13,6 +13,7 @@ export type User = {
   email: string;
   password: string;
   profileImage: string; // ou Blob, se aceitarmos ficheiros maiores
+  ativo: boolean;
   roles?: Role[];
 };
 
@@ -24,6 +25,7 @@ export type UserDTO = {
   email: string;
   password: string;
   profileImage: string;
+  ativo: boolean;
   projetos: any[]; // Replaced ProjetoDTO with any[] since ProjetoDTO is not defined
   roles?: Role[];
 };

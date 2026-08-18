@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import UserTable from 'components/User/UserTable';
-import { getUsers } from 'services/userService';
-import { deleteUserAPI, getUserByIdAPI } from 'api/requestsApi';
+import { getUsers, deactivateUser, reactivateUser } from 'services/userService';
+import { getUserByIdAPI } from 'api/requestsApi';
 import { getUnreadCountsAPI } from 'api/notificationsApi';
 import { User } from 'types/user';
 import Button from 'react-bootstrap/Button';
@@ -106,12 +108,31 @@ const UsersPage: React.FC = () => {
     await fetchUsers(); // Refresh the paginated data
   };
 
-  const handleDeleteUser = async (userId: number) => {
+  const handleDeactivateUser = async (userId: number) => {
     try {
-      await deleteUserAPI(userId);
-      await fetchUsers(); // Refresh the paginated data
+      await deactivateUser(userId);
+      toast.success('Colaborador desativado com sucesso!');
+      await fetchUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      const message =
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : 'Não foi possível desativar o colaborador.';
+      toast.error(message);
+    }
+  };
+
+  const handleReactivateUser = async (userId: number) => {
+    try {
+      await reactivateUser(userId);
+      toast.success('Colaborador reativado com sucesso!');
+      await fetchUsers();
+    } catch (error) {
+      const message =
+        axios.isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : 'Não foi possível reativar o colaborador.';
+      toast.error(message);
     }
   };
 
@@ -168,7 +189,8 @@ const UsersPage: React.FC = () => {
             users={users}
             unreadCounts={unreadCounts}
             onEditUser={handleEditUser}
-            onDeleteUser={handleDeleteUser}
+            onDeactivateUser={handleDeactivateUser}
+            onReactivateUser={handleReactivateUser}
             onViewTasks={handleViewTasks}
             onResetPassword={
               hasPermission(Permission.MANAGE_USER_PASSWORDS)

@@ -32,6 +32,8 @@ public class User implements UserDetails {
 
     private String password;
 
+    private boolean ativo = true;
+
     @Lob
     @Column(name = "profile_image", columnDefinition = "MEDIUMBLOB")
     private byte[] profileImage;
@@ -124,6 +126,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return ativo;
     }
 }

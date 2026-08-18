@@ -99,6 +99,10 @@ public class CustomPasswordAuthenticationProvider implements AuthenticationProvi
             throw new OAuth2AuthenticationException("Invalid credentials");
         }
 
+        if (!user.isEnabled()) {
+            throw new OAuth2AuthenticationException("Conta desativada. Contacte um administrador.");
+        }
+
         authorizedScopes = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(scope -> {
