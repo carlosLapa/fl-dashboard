@@ -238,10 +238,16 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     onHide();
   };
 
-  const userOptions = users.map((user) => ({
-    value: user.id,
-    label: user.name,
-  }));
+  const userOptions = users
+    .filter(
+      (user) =>
+        user.ativo !== false ||
+        (formData.users || []).some((selected) => selected.id === user.id)
+    )
+    .map((user) => ({
+      value: user.id,
+      label: user.ativo === false ? `${user.name} (Inativo)` : user.name,
+    }));
 
   const selectedUserOptions = formData.users
     ? formData.users.map((user) => ({
@@ -387,11 +393,19 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   onChange={handleInputChange}
                 >
                   <option value="">Selecione o coordenador</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
+                  {users
+                    .filter(
+                      (user) =>
+                        user.ativo !== false ||
+                        user.id === formData.coordenadorId
+                    )
+                    .map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.ativo === false
+                          ? `${user.name} (Inativo)`
+                          : user.name}
+                      </option>
+                    ))}
                 </Form.Select>
               </Form.Group>
             </Col>

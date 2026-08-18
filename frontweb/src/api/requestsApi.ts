@@ -14,7 +14,7 @@ import {
   TarefaWithUserAndProjetoDTO,
   TarefaWithUsersDTO,
 } from 'types/tarefa';
-import { PaginatedUsers } from 'types/user';
+import { PaginatedUsers, User } from 'types/user';
 
 let pendingRequests: Record<string, Promise<PaginatedTarefas>> = {};
 
@@ -107,13 +107,14 @@ export const updateUserAPI = async (id: number, formData: FormData) => {
   }
 };
 
-export const deleteUserAPI = async (id: number): Promise<void> => {
-  try {
-    await axios.delete(`/users/${id}`);
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    throw error;
-  }
+export const deactivateUserAPI = async (id: number): Promise<User> => {
+  const response = await axios.put<User>(`/users/${id}/deactivate`);
+  return response.data;
+};
+
+export const reactivateUserAPI = async (id: number): Promise<User> => {
+  const response = await axios.put<User>(`/users/${id}/reactivate`);
+  return response.data;
 };
 
 export const getProjetosAPI = async (

@@ -29,6 +29,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     email: '',
     password: '',
     profileImage: '',
+    ativo: true,
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -47,6 +48,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         email: user.email,
         password: user.password,
         profileImage: formattedProfileImage || user.profileImage,
+        ativo: user.ativo,
       });
       setProfileImage(null);
       setErrors({});

@@ -8,6 +8,7 @@ import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.SubtarefasIncompletasException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +34,17 @@ public class ResourceExceptionHandler {
     public ResponseEntity<CustomError> entityNotFound(DatabaseException e, HttpServletRequest httpServletRequest) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         CustomError err = new CustomError(Instant.now(), status.value(), e.getMessage(), httpServletRequest.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    // Safety net: catches FK violations that escape a service-layer try/catch (e.g. because
+    // Hibernate deferred the flush to transaction commit, after the method already returned).
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomError> dataIntegrityViolation(DataIntegrityViolationException e, HttpServletRequest httpServletRequest) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        CustomError err = new CustomError(Instant.now(), status.value(),
+                "Não é permitido: existem registos associados a este recurso.",
+                httpServletRequest.getRequestURI());
         return ResponseEntity.status(status).body(err);
     }
 

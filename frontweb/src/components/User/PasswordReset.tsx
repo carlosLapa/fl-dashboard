@@ -192,11 +192,18 @@ const PasswordReset: React.FC = () => {
                   isInvalid={validated && !selectedUserId}
                 >
                   <option value="">Selecione um colaborador</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name} ({user.email})
-                    </option>
-                  ))}
+                  {users
+                    .filter(
+                      (user) =>
+                        user.ativo !== false || user.id === selectedUserId
+                    )
+                    .map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.ativo === false
+                          ? `${user.name} (Inativo) (${user.email})`
+                          : `${user.name} (${user.email})`}
+                      </option>
+                    ))}
                 </Form.Select>
                 <Form.Control.Feedback type="invalid">
                   Por favor, selecione um colaborador

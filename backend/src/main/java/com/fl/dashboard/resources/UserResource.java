@@ -161,6 +161,22 @@ public class UserResource {
         return ResponseEntity.noContent().build();
     }
 
+    // Deactivate user (e.g. employee left the company) - requires EDIT_USER permission
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAuthority('EDIT_USER')")
+    public ResponseEntity<UserDTO> deactivate(@PathVariable Long id) {
+        UserDTO dto = userService.deactivate(id);
+        return ResponseEntity.ok().body(dto);
+    }
+
+    // Reactivate user - requires EDIT_USER permission
+    @PutMapping("/{id}/reactivate")
+    @PreAuthorize("hasAuthority('EDIT_USER')")
+    public ResponseEntity<UserDTO> reactivate(@PathVariable Long id) {
+        UserDTO dto = userService.reactivate(id);
+        return ResponseEntity.ok().body(dto);
+    }
+
     // Search users - requires VIEW_ALL_USERS permission
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")

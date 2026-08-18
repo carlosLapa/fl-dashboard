@@ -1,9 +1,11 @@
 import { PaginatedUsers, User } from '../types/user';
 import {
   createUserAPI,
+  deactivateUserAPI,
   getCurrentUserWithRolesAPI,
   getUserByIdAPI,
   getUsersAPI,
+  reactivateUserAPI,
 } from '../api/requestsApi';
 
 export const getUsers = async (
@@ -39,7 +41,10 @@ export const getUsers = async (
 
 // Spring's `/users` endpoint is paginated; fetches every page so callers
 // that need the full collaborator list (e.g. Tarefa/Projeto assignment
-// dropdowns) never silently truncate at the default page size.
+// dropdowns) never silently truncate at the default page size. Returns
+// everyone, active or not — callers that only want to offer *new*
+// assignments should filter out inactive users themselves, keeping anyone
+// already assigned/selected visible (see e.g. TarefaModal, ProjetoModal).
 export const getAllUsers = async (): Promise<User[]> => {
   const pageSize = 100;
   let page = 0;
@@ -54,6 +59,24 @@ export const getAllUsers = async (): Promise<User[]> => {
   } while (page < totalPages);
 
   return allUsers;
+};
+
+export const deactivateUser = async (userId: number): Promise<User> => {
+  try {
+    return await deactivateUserAPI(userId);
+  } catch (error) {
+    console.error('Erro ao desativar colaborador:', error);
+    throw error;
+  }
+};
+
+export const reactivateUser = async (userId: number): Promise<User> => {
+  try {
+    return await reactivateUserAPI(userId);
+  } catch (error) {
+    console.error('Erro ao reativar colaborador:', error);
+    throw error;
+  }
 };
 
 export const getCurrentUserWithRoles = async (): Promise<User> => {

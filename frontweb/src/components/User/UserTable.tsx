@@ -1,15 +1,16 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
-import { Pagination, Spinner } from 'react-bootstrap';
+import { Badge, Pagination, Spinner } from 'react-bootstrap';
 import { User } from '../../types/user';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
-  faTrashAlt,
   faTasks,
   faBell,
   faClock,
   faKey, // Adicione este ícone
+  faUserSlash,
+  faUserCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +29,8 @@ interface UserTableProps {
   users: User[];
   unreadCounts: Record<number, number>;
   onEditUser: (userId: number) => void;
-  onDeleteUser: (userId: number) => void;
+  onDeactivateUser: (userId: number) => void;
+  onReactivateUser: (userId: number) => void;
   onViewTasks: (userId: number) => void;
   onResetPassword?: (userId: number) => void;
   page: number;
@@ -41,7 +43,8 @@ const UserTable: React.FC<UserTableProps> = ({
   users,
   unreadCounts,
   onEditUser,
-  onDeleteUser,
+  onDeactivateUser,
+  onReactivateUser,
   onViewTasks,
   onResetPassword,
   page,
@@ -54,6 +57,7 @@ const UserTable: React.FC<UserTableProps> = ({
   const { user } = useAuth();
   const { isEmployee, hasPermission } = usePermissions();
   const canResetPassword = hasPermission(Permission.MANAGE_USER_PASSWORDS);
+  const canEditUser = hasPermission(Permission.EDIT_USER);
 
   const [showExtraHours, setShowExtraHours] = React.useState(false);
   const [selectedUserId, setSelectedUserId] = React.useState<number | null>(
@@ -128,8 +132,20 @@ const UserTable: React.FC<UserTableProps> = ({
                   (isCurrentUserManager && isRowUserAdmin);
 
                 return (
-                  <tr key={rowUser.id}>
-                    <td>{rowUser.name}</td>
+                  <tr
+                    key={rowUser.id}
+                    className={
+                      rowUser.ativo === false ? 'user-row-inactive' : ''
+                    }
+                  >
+                    <td>
+                      {rowUser.name}
+                      {rowUser.ativo === false && (
+                        <Badge bg="" className="badge-inactive ms-2">
+                          Inativo
+                        </Badge>
+                      )}
+                    </td>
                     <td className="d-none d-md-table-cell">{rowUser.funcao}</td>
                     <td className="d-none d-md-table-cell">{rowUser.cargo}</td>
                     <td className="d-none d-lg-table-cell">{rowUser.email}</td>
@@ -158,26 +174,48 @@ const UserTable: React.FC<UserTableProps> = ({
                             }}
                           />
                         </OverlayTrigger>
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={
-                            <Tooltip id={`delete-tooltip-${rowUser.id}`}>
-                              Eliminar
-                            </Tooltip>
-                          }
-                        >
-                          <FontAwesomeIcon
-                            icon={faTrashAlt}
-                            onClick={() =>
-                              !shouldDisable && onDeleteUser(rowUser.id)
-                            }
-                            className="action-icon delete-icon"
-                            style={{
-                              marginRight: '8px',
-                              ...(shouldDisable ? disabledStyle : {}),
-                            }}
-                          />
-                        </OverlayTrigger>
+                        {canEditUser && (() => {
+                          // Self-deactivation is blocked server-side too, but disabling it
+                          // here avoids an admin locking themselves out and hitting an error.
+                          const activationDisabled =
+                            shouldDisable ||
+                            (isOwnRow && rowUser.ativo !== false);
+                          return (
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={
+                                <Tooltip
+                                  id={`activation-tooltip-${rowUser.id}`}
+                                >
+                                  {isOwnRow && rowUser.ativo !== false
+                                    ? 'Não pode desativar a sua própria conta'
+                                    : rowUser.ativo === false
+                                      ? 'Reativar'
+                                      : 'Desativar'}
+                                </Tooltip>
+                              }
+                            >
+                              <FontAwesomeIcon
+                                icon={
+                                  rowUser.ativo === false
+                                    ? faUserCheck
+                                    : faUserSlash
+                                }
+                                onClick={() =>
+                                  !activationDisabled &&
+                                  (rowUser.ativo === false
+                                    ? onReactivateUser(rowUser.id)
+                                    : onDeactivateUser(rowUser.id))
+                                }
+                                className="action-icon"
+                                style={{
+                                  marginRight: '8px',
+                                  ...(activationDisabled ? disabledStyle : {}),
+                                }}
+                              />
+                            </OverlayTrigger>
+                          );
+                        })()}
                         <OverlayTrigger
                           placement="top"
                           overlay={

@@ -324,37 +324,80 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void delete(Long id) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = null;
-        if (auth instanceof JwtAuthenticationToken jwtToken) {
-            email = jwtToken.getToken().getClaimAsString("email");
-        } else {
-            email = auth.getName();
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Recurso não encontrado");
         }
-        User currentUser = userRepository.findByEmail(email);
+        guardManagerCannotTargetAdmin(id);
+        try {
+            // Delete all notifications for this user
+            notificationRepository.deleteAllByUserId(id);
+            // Delete all task-user associations for this user
+            userRepository.deleteTaskUserAssociationsByUserId(id);
+            // Delete all projeto-user associations for this user
+            userRepository.deleteProjetoUserAssociationsByUserId(id);
+            // Un-assign this user as coordenador wherever they hold that role
+            userRepository.clearCoordenadorByUserId(id);
+            // Finally delete the user
+            userRepository.deleteById(id);
+            // Force the DELETE to hit the DB now, inside this try block, instead of letting
+            // Hibernate defer the flush to transaction commit (which happens after this method
+            // returns and would let a FK violation escape uncaught as a raw 500).
+            userRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Não é possível apagar: existem registos associados a este utilizador " +
+                    "(tarefas, subtarefas ou histórico de projetos). Considere desativar em vez de apagar.");
+        }
+    }
+
+    @Transactional
+    public UserDTO deactivate(Long id) {
+        if (getCurrentAuthenticatedUser().getId().equals(id)) {
+            throw new DatabaseException("Não pode desativar a sua própria conta.");
+        }
+        User entity = getExistingUser(id);
+        guardManagerCannotTargetAdmin(id);
+        entity.setAtivo(false);
+        entity = userRepository.save(entity);
+        return new UserDTO(entity);
+    }
+
+    @Transactional
+    public UserDTO reactivate(Long id) {
+        User entity = getExistingUser(id);
+        guardManagerCannotTargetAdmin(id);
+        entity.setAtivo(true);
+        entity = userRepository.save(entity);
+        return new UserDTO(entity);
+    }
+
+    private User getExistingUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
+    }
+
+    private void guardManagerCannotTargetAdmin(Long targetId) {
+        User currentUser = getCurrentAuthenticatedUser();
         boolean isManager = currentUser.getRoles().stream()
                 .anyMatch(role -> "ROLE_MANAGER".equals(role.getAuthority()));
 
-        User entity = userRepository.getReferenceById(id);
+        User entity = userRepository.getReferenceById(targetId);
         boolean isTargetAdmin = entity.getRoles().stream()
                 .anyMatch(role -> "ROLE_ADMIN".equals(role.getAuthority()));
 
         if (isManager && isTargetAdmin) {
             throw new DatabaseException("Managers cannot edit Admin users.");
         }
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Recurso não encontrado");
+    }
+
+    private User getCurrentAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email;
+        if (auth instanceof JwtAuthenticationToken jwtToken) {
+            email = jwtToken.getToken().getClaimAsString("email");
+        } else {
+            email = auth.getName();
         }
-        try {
-            // Delete all notifications for this user
-            notificationRepository.deleteAllByUserId(id);
-            // Delete all task-user associations for this user
-            userRepository.deleteTaskUserAssociationsByUserId(id);
-            // Finally delete the user
-            userRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException("Não permitido! Integridade da BD em causa: " + e.getMessage());
-        }
+        return userRepository.findByEmail(email);
     }
 
     private void copyDTOtoEntity(UserDTO userDTO, User entity) {
@@ -511,6 +554,7 @@ public class UserService implements UserDetailsService {
         User user = new User();
         user.setEmail(result.get(0).getUsername());
         user.setPassword(result.get(0).getPassword());
+        boolean ativo = !Boolean.FALSE.equals(result.get(0).getAtivo());
 
         // Standard authorities (roles)
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
@@ -543,7 +587,7 @@ public class UserService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
-                true, true, true, true,
+                ativo, true, true, true,
                 authorities
         );
     }

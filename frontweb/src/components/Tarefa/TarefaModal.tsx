@@ -702,18 +702,30 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                       >
                         {Array.isArray(users) && users.length > 0 ? (
                           <Row>
-                            {users.map((user) => (
-                              <Col xs={12} md={6} key={user.id}>
-                                <Form.Check
-                                  type="checkbox"
-                                  label={user.name}
-                                  checked={formData.userIds.includes(user.id)}
-                                  disabled={isEditing && isDividida}
-                                  onChange={() => handleUserSelect(user.id)}
-                                  className="mb-2"
-                                />
-                              </Col>
-                            ))}
+                            {users
+                              .filter(
+                                (user) =>
+                                  user.ativo !== false ||
+                                  formData.userIds.includes(user.id)
+                              )
+                              .map((user) => (
+                                <Col xs={12} md={6} key={user.id}>
+                                  <Form.Check
+                                    type="checkbox"
+                                    label={
+                                      user.ativo === false
+                                        ? `${user.name} (Inativo)`
+                                        : user.name
+                                    }
+                                    checked={formData.userIds.includes(
+                                      user.id
+                                    )}
+                                    disabled={isEditing && isDividida}
+                                    onChange={() => handleUserSelect(user.id)}
+                                    className="mb-2"
+                                  />
+                                </Col>
+                              ))}
                           </Row>
                         ) : (
                           <p>Nenhum colaborador disponível</p>

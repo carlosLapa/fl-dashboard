@@ -33,7 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllByIdInWithRoles(@Param("ids") List<Long> ids);
 
     @Query(nativeQuery = true, value = """
-            SELECT tb_user.email AS username, tb_user.password, tb_role.id AS roleId, tb_role.authority
+            SELECT tb_user.email AS username, tb_user.password, tb_user.ativo, tb_role.id AS roleId, tb_role.authority
             FROM tb_user
             INNER JOIN tb_user_role ON tb_user.id = tb_user_role.user_id
             INNER JOIN tb_role ON tb_role.id = tb_user_role.role_id
@@ -61,5 +61,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query(value = "DELETE FROM tb_tarefa_user WHERE user_id = :userId", nativeQuery = true)
     void deleteTaskUserAssociationsByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query(value = "DELETE FROM tb_projeto_user WHERE user_id = :userId", nativeQuery = true)
+    void deleteProjetoUserAssociationsByUserId(@Param("userId") Long userId);
+
+    @Modifying
+    @Query("UPDATE Projeto p SET p.coordenador = NULL WHERE p.coordenador.id = :userId")
+    void clearCoordenadorByUserId(@Param("userId") Long userId);
 
 }

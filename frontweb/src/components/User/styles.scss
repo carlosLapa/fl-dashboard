@@ -1,5 +1,6 @@
 @import '../../assets/styles/breakpoints.scss';
 @import '../../assets/styles/tablePositioning.scss';
+@import '../../assets/styles/variables';
 
 // User table container styles - Make this more specific
 .user-table-container {
@@ -34,6 +35,21 @@
   td {
     vertical-align: middle;
   }
+
+  // Deactivated users fade out to stand out at a glance from active
+  // colaboradores, without hiding the row or disabling its action icons.
+  tr.user-row-inactive {
+    opacity: 0.4;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.badge-inactive {
+  background-color: rgba($danger, 0.45);
+  color: $danger;
 }
 
 // Action icons
