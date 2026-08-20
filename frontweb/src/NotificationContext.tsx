@@ -24,6 +24,7 @@ interface NotificationContextType {
   handleNewNotification: (notification: Notification) => void;
   handleMarkAsRead: (id: number) => void;
   handleMarkMultipleAsRead: (ids: number[]) => void;
+  handleDeleteAllRead: () => void;
   sendNotification: (notification: NotificationInsertDTO) => void;
   loadStoredNotifications: (
     userId: number,
@@ -150,6 +151,12 @@ export const NotificationProvider: React.FC<{
     });
   }, []);
 
+  const handleDeleteAllRead = useCallback(() => {
+    setNotifications((prevNotifications) =>
+      prevNotifications.filter((notification) => !notification.isRead)
+    );
+  }, []);
+
   const { messages, sendMessage } = useWebSocket(userId);
 
   const sendNotification = useCallback(
@@ -206,6 +213,7 @@ export const NotificationProvider: React.FC<{
         handleNewNotification,
         handleMarkAsRead,
         handleMarkMultipleAsRead,
+        handleDeleteAllRead,
         sendNotification,
         loadStoredNotifications,
         hasMore,

@@ -592,6 +592,17 @@ public class NotificationService {
         logger.info("Deleted all notifications for user with ID: {}", userId);
     }
 
+    @Transactional
+    public void deleteAllReadForUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with id: " + userId);
+        }
+
+        notificationRepository.deleteAllReadByUserId(userId);
+
+        logger.info("Deleted all read notifications for user with ID: {}", userId);
+    }
+
     // Scoped to currentDeadline so a postponed-then-re-approaching deadline is treated as a new
     // warning rather than suppressed forever just because *a* TAREFA_PRAZO_PROXIMO notification
     // exists for this tarefa/user, regardless of which deadline it warned about.

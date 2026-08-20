@@ -41,6 +41,12 @@ export const markMultipleNotificationsAsReadAPI = async (
   await axios.patch('/notifications/read', notificationIds);
 };
 
+export const deleteAllReadNotificationsAPI = async (
+  userId: number
+): Promise<void> => {
+  await axios.delete(`/notifications/user/${userId}/read`);
+};
+
 export const createNotificationAPI = async (
   notification: NotificationInsertDTO
 ): Promise<Notification> => {
