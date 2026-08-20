@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNotification } from '../../NotificationContext';
-import { markMultipleNotificationsAsReadAPI } from 'api/notificationsApi';
+import {
+  markMultipleNotificationsAsReadAPI,
+  deleteAllReadNotificationsAPI,
+} from 'api/notificationsApi';
 import { toast } from 'react-toastify';
 import NotificationDisplay from './NotificationDisplay';
 import './styles.scss';
@@ -19,12 +22,16 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     resetNotifications,
     handleMarkAsRead,
     handleMarkMultipleAsRead,
+    handleDeleteAllRead,
   } = useNotification();
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [isDeletingAllRead, setIsDeletingAllRead] = useState(false);
+  const [showDeleteAllReadConfirm, setShowDeleteAllReadConfirm] =
+    useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -87,6 +94,28 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       });
     } finally {
       setIsMarkingAll(false);
+    }
+  };
+
+  const handleDeleteAllReadConfirmed = async () => {
+    if (isDeletingAllRead) return;
+
+    setIsDeletingAllRead(true);
+    try {
+      await deleteAllReadNotificationsAPI(userId);
+      handleDeleteAllRead();
+      toast.success('Notificações anteriores apagadas', {
+        position: isMobile ? 'bottom-center' : 'top-right',
+        autoClose: 2000,
+      });
+    } catch (err) {
+      console.error('Error deleting read notifications:', err);
+      toast.error('Erro ao apagar notificações anteriores', {
+        position: isMobile ? 'bottom-center' : 'top-right',
+      });
+    } finally {
+      setIsDeletingAllRead(false);
+      setShowDeleteAllReadConfirm(false);
     }
   };
 
@@ -178,9 +207,48 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       </div>
       {/* Read Notifications Section */}
       <div className="notifications-section">
-        <h2 className="notifications-title">
-          Notificações Anteriores ({readNotifications.length})
-        </h2>
+        <div className="notifications-section-header">
+          <h2 className="notifications-title">
+            Notificações Anteriores ({readNotifications.length})
+          </h2>
+          {readNotifications.length > 0 &&
+            (showDeleteAllReadConfirm ? (
+              <div className="delete-all-read-confirm">
+                <span>
+                  Apaga todas as notificações lidas, incluindo as anteriores
+                  a 7 dias. Confirmar?
+                </span>
+                <button
+                  className="delete-all-read-button delete-all-read-button--confirm"
+                  onClick={handleDeleteAllReadConfirmed}
+                  disabled={isDeletingAllRead}
+                >
+                  {isDeletingAllRead ? 'A apagar...' : 'Confirmar'}
+                </button>
+                <button
+                  className="delete-all-read-button delete-all-read-button--cancel"
+                  onClick={() => setShowDeleteAllReadConfirm(false)}
+                  disabled={isDeletingAllRead}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                className="delete-all-read-button"
+                onClick={() => setShowDeleteAllReadConfirm(true)}
+                title="Apaga todas as notificações lidas, incluindo as anteriores a 7 dias"
+              >
+                Apagar todas
+              </button>
+            ))}
+        </div>
+        {readNotifications.length > 0 && (
+          <p className="notifications-auto-cleanup-hint">
+            As notificações lidas são apagadas automaticamente ao fim de 3
+            dias.
+          </p>
+        )}
         <div className="notifications-list">
           {readNotifications.length === 0 ? (
             <div className="notification-empty">

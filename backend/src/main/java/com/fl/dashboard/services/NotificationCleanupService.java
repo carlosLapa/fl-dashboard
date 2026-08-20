@@ -24,7 +24,7 @@ public class NotificationCleanupService {
     @Transactional
     @Scheduled(cron = "0 0 3 * * *") // Runs daily at 3am
     public void cleanupOldNotifications() {
-        notificationRepository.deleteByIsReadTrueAndCreatedAtBefore(LocalDateTime.now().minusHours(24));
+        notificationRepository.deleteByIsReadTrueAndCreatedAtBefore(LocalDateTime.now().minusDays(3));
         // Unread notifications previously had no expiry at all and accumulated indefinitely.
         notificationRepository.deleteByIsReadFalseAndCreatedAtBefore(LocalDateTime.now().minusDays(30));
     }

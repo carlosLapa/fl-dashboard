@@ -23,6 +23,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("DELETE FROM Notification n WHERE n.user.id = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
 
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.user.id = :userId AND n.isRead = true")
+    void deleteAllReadByUserId(@Param("userId") Long userId);
+
     // Efficient paginated fetch with only necessary relations
     @EntityGraph(attributePaths = {"user", "tarefa", "projeto"})
     @Query("SELECT n FROM Notification n WHERE n.user.id = :userId ORDER BY n.createdAt DESC")

@@ -192,5 +192,12 @@ public class NotificationResource {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Delete all read notifications for a user", description = "Delete all notifications already marked as read for a specific user")
+    @DeleteMapping("/user/{userId}/read")
+    public ResponseEntity<Void> deleteAllReadForUser(@PathVariable Long userId) {
+        notificationService.deleteAllReadForUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
 
