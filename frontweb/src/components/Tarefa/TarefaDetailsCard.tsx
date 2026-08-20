@@ -49,7 +49,7 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
               {/* Add working days information */}
               <p className="mb-2">
                 <strong>Dias Úteis:</strong>{' '}
-                {tarefa.workingDays !== undefined
+                {tarefa.workingDays != null
                   ? `${tarefa.workingDays} dia(s)`
                   : 'Não calculado'}
               </p>

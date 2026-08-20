@@ -106,7 +106,7 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
       </td>
       <td className="prazo-column">{renderDeadlineWithWarning()}</td>
       <td className="prazo-column">
-        {tarefa.workingDays !== undefined
+        {tarefa.workingDays != null
           ? `${tarefa.workingDays} dia(s)`
           : '-'}
       </td>
