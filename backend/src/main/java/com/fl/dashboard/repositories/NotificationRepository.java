@@ -25,20 +25,20 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     // Efficient paginated fetch with only necessary relations
     @EntityGraph(attributePaths = {"user", "tarefa", "projeto"})
-    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId")
+    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId ORDER BY n.createdAt DESC")
     Page<Notification> findByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "tarefa", "projeto"})
-    @Query("SELECT n FROM Notification n WHERE n.user = :user")
+    @Query("SELECT n FROM Notification n WHERE n.user = :user ORDER BY n.createdAt DESC")
     Page<Notification> findByUser(@Param("user") User user, Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "tarefa", "projeto"})
-    @Query("SELECT n FROM Notification n WHERE n.user = :user AND n.isRead = false")
+    @Query("SELECT n FROM Notification n WHERE n.user = :user AND n.isRead = false ORDER BY n.createdAt DESC")
     Page<Notification> findByUserAndIsReadFalse(@Param("user") User user, Pageable pageable);
 
     // Remove deep/nested fetches, use EntityGraph for basic relations
     @EntityGraph(attributePaths = {"user", "tarefa", "projeto"})
-    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId")
+    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId ORDER BY n.createdAt DESC")
     Page<Notification> findAllByUserIdWithDetails(@Param("userId") Long userId, Pageable pageable);
 
     // One aggregate query for a whole page of users, instead of the frontend firing one
