@@ -320,10 +320,18 @@ public class ProjetoService {
         entity.setPrazo(novoPrazo);
         Projeto savedEntity = projetoRepository.save(entity);
 
+        User requestingUser = requestingUserEmail != null ? userRepository.findByEmail(requestingUserEmail) : null;
+
+        // Notify the whole project team, not just the coordinator — anyone
+        // with the Kanban board open for this project needs the live
+        // WebSocket notification to refresh their view of the new deadline.
+        Set<User> recipients = new HashSet<>(savedEntity.getUsers());
         if (savedEntity.getCoordenador() != null) {
-            User requestingUser = requestingUserEmail != null ? userRepository.findByEmail(requestingUserEmail) : null;
+            recipients.add(savedEntity.getCoordenador());
+        }
+        for (User recipient : recipients) {
             notificationService.createProjectDeadlineExtendedNotification(
-                    savedEntity.getCoordenador(), savedEntity, prazoAtual, novoPrazo, requestingUser);
+                    recipient, savedEntity, prazoAtual, novoPrazo, requestingUser);
         }
 
         return new ProjetoDTO(savedEntity);

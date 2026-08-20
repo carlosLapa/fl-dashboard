@@ -45,6 +45,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
     changeTarefaStatus,
     saveTarefaEdit,
     archiveTarefa,
+    invalidate,
   } = useProjetoKanban(projeto);
 
   // Direct admin check that doesn't rely on the permission system
@@ -279,6 +280,7 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
         }
         onStatusChange={handleTarefaModalStatusChange}
         onArchive={handleArchiveTarefa}
+        onProjectDeadlineExtended={invalidate}
         isEditing={true}
         tarefa={tarefaToEdit}
       />

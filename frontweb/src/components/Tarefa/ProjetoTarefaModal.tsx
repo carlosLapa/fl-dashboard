@@ -388,7 +388,7 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
               <Row>
                 <Col xs={12}>
                   <Form.Group controlId="formWorkingDays" className="mb-3">
-                    <Form.Label>Dias Úteis</Form.Label>
+                    <Form.Label>Duração (dias úteis)</Form.Label>
                     <Form.Control
                       type="text"
                       value={`${workingDays} dia(s)`}

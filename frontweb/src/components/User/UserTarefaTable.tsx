@@ -70,7 +70,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                   <th className="d-none d-md-table-cell">Prioridade</th>
                   <th className="d-none d-md-table-cell">Ínicio</th>
                   <th className="d-none d-lg-table-cell">Prazo</th>
-                  <th className="d-none d-lg-table-cell">Dias Úteis</th>
+                  <th className="d-none d-lg-table-cell">Duração (dias úteis)</th>
                   <th className="d-none d-lg-table-cell">Projeto</th>
                   <th>Ações</th>
                 </tr>

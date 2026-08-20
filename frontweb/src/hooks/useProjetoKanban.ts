@@ -64,6 +64,7 @@ const BOARD_RELEVANT_NOTIFICATION_TYPES = new Set<NotificationType>([
   NotificationType.TAREFA_ATRIBUIDA,
   NotificationType.SUBTAREFA_ATRIBUIDA,
   NotificationType.SUBTAREFA_CONCLUIDA,
+  NotificationType.PROJETO_PRAZO_ALTERADO,
 ]);
 
 async function fetchKanbanColumns(
@@ -316,6 +317,10 @@ export function useProjetoKanban(projeto: ProjetoWithUsersAndTarefasDTO) {
     changeTarefaStatus: changeTarefaStatusMutation.mutate,
     saveTarefaEdit: saveTarefaEditMutation.mutate,
     archiveTarefa: archiveTarefaMutation.mutate,
+    // Extending a project's deadline from TarefaModal updates only that
+    // modal's own local state — other already-rendered cards for this
+    // project still embed the old projeto.prazo until this board refetches.
+    invalidate: () => queryClient.invalidateQueries({ queryKey }),
   };
 }
 

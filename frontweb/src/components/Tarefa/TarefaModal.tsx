@@ -44,6 +44,10 @@ interface TarefaModalProps {
   isEditing: boolean;
   onStatusChange?: (tarefaId: number, newStatus: TarefaStatus) => void;
   onArchive?: (tarefaId: number) => void | Promise<void>;
+  // Lets the parent screen refresh any already-loaded task list/board data
+  // that embeds this project's deadline (e.g. other Kanban cards, other
+  // table rows) — this modal only updates its own local `selectedProject`.
+  onProjectDeadlineExtended?: (projetoId: number) => void;
 }
 
 // Helper function to calculate working days between two dates
@@ -87,6 +91,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
   isEditing,
   onStatusChange,
   onArchive,
+  onProjectDeadlineExtended,
 }) => {
   const { user } = useAuth();
   const { hasPermission, hasAnyPermission, isAdmin, isManager } =
@@ -212,15 +217,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
           )
       );
 
-      // Fetch project details for deadline validation
-      getProjetoDetailsAPI(tarefa.projeto.id)
-        .then((project) => {
-          setSelectedProject(project);
-          validateDeadline(tarefa.prazoReal?.split('T')[0], project);
-        })
-        .catch((error) => {
-          console.error('Error fetching project details:', error);
-        });
+      // The setFormData call above changes formData.projetoId, which
+      // triggers the "Fetch project details when a project is selected"
+      // effect on its own — fetching it again here duplicated the request
+      // on every edit-open.
     } else {
       setFormData({
         descricao: '',
@@ -310,6 +310,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       );
       setSelectedProject(updatedProject);
       validateDeadline(formData.prazoReal, updatedProject);
+      onProjectDeadlineExtended?.(updatedProject.id);
       toast.success(
         `Prazo do projeto atualizado para ${format(
           new Date(extendPrazoValue),
@@ -625,7 +626,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
               <Row>
                 <Col xs={12}>
                   <Form.Group controlId="formWorkingDays" className="mb-3">
-                    <Form.Label>Dias Úteis</Form.Label>
+                    <Form.Label>Duração (dias úteis)</Form.Label>
                     <Form.Control
                       type="text"
                       value={`${workingDays} dia(s)`}
@@ -736,6 +737,12 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     <div className="mt-2">
                       <strong>Projeto selecionado:</strong>{' '}
                       {selectedProjectName}
+                      {selectedProject?.prazo && (
+                        <div className="text-muted">
+                          Prazo do projeto:{' '}
+                          {format(new Date(selectedProject.prazo), 'dd/MM/yyyy')}
+                        </div>
+                      )}
                     </div>
                   )}
                   {projectSearchResults.length > 0 && (

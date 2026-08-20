@@ -433,7 +433,8 @@
   animation: pulse 2s infinite;
 }
 
-.deadline-overdue {
+.deadline-overdue,
+.deadline-past-due {
   background-color: #ef4444;
   color: white;
   border: 1px solid #b91c1c;
@@ -448,7 +449,8 @@
   border-left: 3px solid #ef4444 !important;
 }
 
-.task-overdue {
+.task-overdue,
+.task-past-due {
   border-left: 3px solid #b91c1c !important;
   background-color: rgba(239, 68, 68, 0.05) !important;
 }

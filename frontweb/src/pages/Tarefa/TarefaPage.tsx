@@ -331,6 +331,17 @@ const TarefaPage: React.FC = () => {
     }
   };
 
+  // Other already-loaded rows for the same project still embed the old
+  // projeto.prazo (TarefaModal only updates its own local state), so a
+  // full refetch is needed to keep the deadline-warning column accurate.
+  const handleProjectDeadlineExtended = async () => {
+    if (isFiltered) {
+      await fetchAdvancedFilteredTarefas();
+    } else {
+      await fetchTarefas();
+    }
+  };
+
   const handleViewDetails = (tarefaId: number) => {
     const tarefa = tarefas.find((t) => t.id === tarefaId);
     if (tarefa) {
@@ -449,6 +460,7 @@ const TarefaPage: React.FC = () => {
         onSave={handleAddOrUpdateTarefa}
         onStatusChange={handleStatusUpdate}
         onArchive={handleArchiveTarefa}
+        onProjectDeadlineExtended={handleProjectDeadlineExtended}
         isEditing={!!tarefaToEdit}
         tarefa={tarefaToEdit}
       />

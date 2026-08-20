@@ -14,7 +14,7 @@ import {
   faExclamationTriangle,
   faSyncAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { getDeadlineStatus } from '../../utils/dateUtils';
+import { getDeadlineStatus, getTaskOverdueStatus } from '../../utils/dateUtils';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
 import { getFrequenciaRecorrenciaLabel } from '../../constants/frequenciaRecorrencia';
 import './styles.scss';
@@ -39,6 +39,13 @@ const getStatusColor = (status: TarefaStatus) => {
 
 // Function to get card style based on deadline status
 const getCardStyle = (tarefa: KanbanTarefa): string => {
+  // A task whose own deadline has already passed takes priority over the
+  // project-deadline-proximity styling below — it's the more urgent, more
+  // actionable signal, and applies even without a project deadline set.
+  if (getTaskOverdueStatus(tarefa.prazoReal, tarefa.status).isPastDue) {
+    return 'task-past-due';
+  }
+
   // Cast to our extended interface that includes project deadline
   const tarefaWithPrazo = tarefa as KanbanTarefaWithProjectDeadline;
 
@@ -78,6 +85,7 @@ const TarefaCard: React.FC<TarefaCardProps> = React.memo(({ tarefa, index, onCli
     tarefa.prazoReal,
     tarefaWithPrazo.projeto?.prazo
   );
+  const overdueStatus = getTaskOverdueStatus(tarefa.prazoReal, tarefa.status);
   const cardStyleClass = getCardStyle(tarefa);
 
   // Só pede as subtarefas quando o card entra em viewport — evita disparar
@@ -175,36 +183,55 @@ const TarefaCard: React.FC<TarefaCardProps> = React.memo(({ tarefa, index, onCli
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                 Prazo: {formatDate(tarefa.prazoReal)}
                 {/* Add deadline indicator */}
-                {deadlineStatus.isApproaching && (
+                {overdueStatus.isPastDue ? (
                   <OverlayTrigger
                     placement="top"
                     overlay={
                       <Tooltip id={`deadline-tooltip-${tarefa.id}`}>
-                        {deadlineStatus.isOverdue
-                          ? `Esta tarefa excede o prazo do projeto (${deadlineStatus.formattedProjectDate})`
-                          : `Esta tarefa tem apenas ${deadlineStatus.daysRemaining} dia(s) até o prazo do projeto`}
+                        {`O prazo desta tarefa (${overdueStatus.formattedTaskDate}) já passou há ${overdueStatus.daysOverdue} dia(s)`}
                       </Tooltip>
                     }
                   >
-                    <span
-                      className={`deadline-badge ${
-                        deadlineStatus.isOverdue
-                          ? 'deadline-overdue'
-                          : deadlineStatus.daysRemaining !== null &&
-                            deadlineStatus.daysRemaining <= 2
-                          ? 'deadline-critical'
-                          : 'deadline-approaching'
-                      }`}
-                    >
+                    <span className="deadline-badge deadline-past-due">
                       <FontAwesomeIcon
                         icon={faExclamationTriangle}
                         className="me-1"
                       />
-                      {deadlineStatus.daysRemaining !== null
-                        ? `${deadlineStatus.daysRemaining}d`
-                        : '!'}
+                      Atrasada
                     </span>
                   </OverlayTrigger>
+                ) : (
+                  deadlineStatus.isApproaching && (
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={
+                        <Tooltip id={`deadline-tooltip-${tarefa.id}`}>
+                          {deadlineStatus.isOverdue
+                            ? `Esta tarefa excede o prazo do projeto (${deadlineStatus.formattedProjectDate})`
+                            : `O prazo desta tarefa (${deadlineStatus.formattedTaskDate}) fica a apenas ${deadlineStatus.daysRemaining} dia(s) do prazo do projeto (${deadlineStatus.formattedProjectDate})`}
+                        </Tooltip>
+                      }
+                    >
+                      <span
+                        className={`deadline-badge ${
+                          deadlineStatus.isOverdue
+                            ? 'deadline-overdue'
+                            : deadlineStatus.daysRemaining !== null &&
+                              deadlineStatus.daysRemaining <= 2
+                            ? 'deadline-critical'
+                            : 'deadline-approaching'
+                        }`}
+                      >
+                        <FontAwesomeIcon
+                          icon={faExclamationTriangle}
+                          className="me-1"
+                        />
+                        {deadlineStatus.daysRemaining !== null
+                          ? `${deadlineStatus.daysRemaining}d`
+                          : '!'}
+                      </span>
+                    </OverlayTrigger>
+                  )
                 )}
               </span>
             </div>

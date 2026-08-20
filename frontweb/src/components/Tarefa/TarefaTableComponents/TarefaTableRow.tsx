@@ -11,7 +11,11 @@ import {
   TarefaWithUserAndProjetoDTO,
   TarefaStatus,
 } from '../../../types/tarefa';
-import { formatDate, getDeadlineStatus } from '../../../utils/dateUtils';
+import {
+  formatDate,
+  getDeadlineStatus,
+  getTaskOverdueStatus,
+} from '../../../utils/dateUtils';
 import TarefaPrioridadeBadge from '../TarefaPrioridadeBadge';
 import { useSubtarefas } from '../../../hooks/useSubtarefas';
 import { getTarefaStatusLabel } from '../../../constants/tarefaStatus';
@@ -43,47 +47,66 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
     console.log(`Task ${tarefa.id} - Project deadline:`, tarefa.projeto?.prazo);
 
     // Use getDeadlineStatus from dateUtils
-    const deadlineStatus = getDeadlineStatus(
-      tarefa.prazoReal,
-      tarefa.projeto?.prazo,
-      30 // Increase threshold temporarily for testing
-    );
+    const deadlineStatus = getDeadlineStatus(tarefa.prazoReal, tarefa.projeto?.prazo);
 
     console.log(`Task ${tarefa.id} - Deadline status:`, deadlineStatus);
+
+    // A task whose own deadline has already passed takes priority over the
+    // project-deadline-proximity badge above — it's the more urgent, more
+    // actionable signal, and applies even without a project deadline set.
+    const overdueStatus = getTaskOverdueStatus(tarefa.prazoReal, tarefa.status);
 
     return (
       <>
         {formatDate(tarefa.prazoReal)}
 
-        {deadlineStatus.isApproaching && (
+        {overdueStatus.isPastDue ? (
           <OverlayTrigger
             placement="top"
             overlay={
               <Tooltip id={`deadline-tooltip-${tarefa.id}`}>
-                {deadlineStatus.isOverdue
-                  ? `Esta tarefa excede o prazo do projeto (${deadlineStatus.formattedProjectDate})`
-                  : `Esta tarefa tem apenas ${deadlineStatus.daysRemaining} dia(s) até o prazo do projeto`}
+                {`O prazo desta tarefa (${overdueStatus.formattedTaskDate}) já passou há ${overdueStatus.daysOverdue} dia(s)`}
               </Tooltip>
             }
           >
-            <Badge
-              bg={
-                deadlineStatus.isOverdue
-                  ? 'danger'
-                  : deadlineStatus.daysRemaining !== null &&
-                    deadlineStatus.daysRemaining <= 2
-                  ? 'warning'
-                  : 'info'
-              }
-              className="ms-2"
-              style={{ cursor: 'pointer' }}
-            >
+            <Badge bg="danger" className="ms-2" style={{ cursor: 'pointer' }}>
               <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
-              {deadlineStatus.daysRemaining !== null
-                ? `${deadlineStatus.daysRemaining}d`
-                : '!'}
+              Atrasada
             </Badge>
           </OverlayTrigger>
+        ) : (
+          deadlineStatus.isApproaching && (
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip id={`deadline-tooltip-${tarefa.id}`}>
+                  {deadlineStatus.isOverdue
+                    ? `Esta tarefa excede o prazo do projeto (${deadlineStatus.formattedProjectDate})`
+                    : `O prazo desta tarefa (${deadlineStatus.formattedTaskDate}) fica a apenas ${deadlineStatus.daysRemaining} dia(s) do prazo do projeto (${deadlineStatus.formattedProjectDate})`}
+                </Tooltip>
+              }
+            >
+              <Badge
+                bg={
+                  deadlineStatus.isOverdue ||
+                  (deadlineStatus.daysRemaining !== null &&
+                    deadlineStatus.daysRemaining <= 2)
+                    ? 'danger'
+                    : 'warning'
+                }
+                className="ms-2"
+                style={{ cursor: 'pointer' }}
+              >
+                <FontAwesomeIcon
+                  icon={faExclamationTriangle}
+                  className="me-1"
+                />
+                {deadlineStatus.daysRemaining !== null
+                  ? `${deadlineStatus.daysRemaining}d`
+                  : '!'}
+              </Badge>
+            </OverlayTrigger>
+          )
         )}
       </>
     );

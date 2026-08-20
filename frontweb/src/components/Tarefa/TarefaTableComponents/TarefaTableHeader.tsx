@@ -55,7 +55,7 @@ const TarefaTableHeader: React.FC<TarefaTableHeaderProps> = ({
         {renderSortableHeader('prioridade', 'Prioridade')}
         {renderSortableHeader('prazoEstimado', 'Início', 'prazo-column')}
         {renderSortableHeader('prazoReal', 'Prazo', 'prazo-column')}
-        {renderSortableHeader('workingDays', 'Dias Úteis', 'prazo-column')}
+        {renderSortableHeader('workingDays', 'Duração (dias úteis)', 'prazo-column')}
         <th>Atribuição</th>
         <th>Externos</th>
         <th>Progresso</th>

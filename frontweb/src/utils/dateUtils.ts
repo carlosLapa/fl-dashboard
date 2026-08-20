@@ -8,6 +8,12 @@ export interface DeadlineStatus {
   formattedProjectDate?: string;
 }
 
+export interface TaskOverdueStatus {
+  isPastDue: boolean;
+  daysOverdue: number | null;
+  formattedTaskDate?: string;
+}
+
 /**
  * Formats a date string to a localized format
  * @param dateString The date string to format
@@ -64,13 +70,13 @@ export const formatDateTime = (
  * Check if a task deadline is approaching its project deadline
  * @param taskDeadline The task deadline (ISO date string)
  * @param projectDeadline The project deadline (ISO date string)
- * @param warningThreshold Number of days to consider as "approaching" (default: 7)
+ * @param warningThreshold Number of days to consider as "approaching" (default: 5)
  * @returns An object with status information
  */
 export const getDeadlineStatus = (
   taskDeadline: string | undefined,
   projectDeadline: string | undefined,
-  warningThreshold = 7
+  warningThreshold = 5
 ): DeadlineStatus => {
   console.log('getDeadlineStatus input:', {
     taskDeadline,
@@ -131,5 +137,44 @@ export const getDeadlineStatus = (
       daysRemaining: null,
       isOverdue: false,
     };
+  }
+};
+
+/**
+ * Check whether a task's own deadline has already passed, regardless of
+ * any project deadline — independent from getDeadlineStatus, which only
+ * flags a task relative to its project's deadline (and requires the
+ * project to have one set).
+ * @param taskDeadline The task deadline (ISO date string)
+ * @param taskStatus The task's current status — a DONE task is never "past due"
+ */
+export const getTaskOverdueStatus = (
+  taskDeadline: string | undefined,
+  taskStatus: string | undefined
+): TaskOverdueStatus => {
+  if (!taskDeadline || taskStatus === 'DONE') {
+    return { isPastDue: false, daysOverdue: null };
+  }
+
+  try {
+    const taskDate = new Date(taskDeadline);
+    if (isNaN(taskDate.getTime())) {
+      return { isPastDue: false, daysOverdue: null };
+    }
+    taskDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const daysOverdue = differenceInDays(today, taskDate);
+
+    return {
+      isPastDue: daysOverdue > 0,
+      daysOverdue: daysOverdue > 0 ? daysOverdue : null,
+      formattedTaskDate: format(taskDate, 'dd/MM/yyyy'),
+    };
+  } catch (e) {
+    console.error('Error calculating task overdue status:', e);
+    return { isPastDue: false, daysOverdue: null };
   }
 };
