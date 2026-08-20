@@ -12,9 +12,11 @@ import {
   faCalendarAlt,
   faBriefcase,
   faExclamationTriangle,
+  faSyncAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { getDeadlineStatus } from '../../utils/dateUtils';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
+import { getFrequenciaRecorrenciaLabel } from '../../constants/frequenciaRecorrencia';
 import './styles.scss';
 
 interface TarefaCardProps {
@@ -149,7 +151,26 @@ const TarefaCard: React.FC<TarefaCardProps> = React.memo(({ tarefa, index, onCli
               }}
               className="tarefa-meta"
             >
-              <TarefaPrioridadeBadge prioridade={tarefa.prioridade} />
+              <div className="d-flex align-items-center gap-1">
+                <TarefaPrioridadeBadge prioridade={tarefa.prioridade} />
+                {tarefa.recorrente && (
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`recorrente-tooltip-${tarefa.id}`}>
+                        Tarefa recorrente
+                        {tarefa.frequenciaRecorrencia
+                          ? ` (${getFrequenciaRecorrenciaLabel(tarefa.frequenciaRecorrencia)})`
+                          : ''}
+                      </Tooltip>
+                    }
+                  >
+                    <span className="badge bg-info text-dark">
+                      <FontAwesomeIcon icon={faSyncAlt} />
+                    </span>
+                  </OverlayTrigger>
+                )}
+              </div>
               <span className="tarefa-date">
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
                 Prazo: {formatDate(tarefa.prazoReal)}

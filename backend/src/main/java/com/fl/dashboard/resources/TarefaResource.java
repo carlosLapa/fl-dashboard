@@ -289,6 +289,7 @@ public class TarefaResource {
             @RequestParam(required = false) TarefaStatus status,
             @RequestParam(required = false) Long projetoId,
             @RequestParam(required = false) String prioridade,
+            @RequestParam(required = false) Boolean recorrente,
             @RequestParam(required = false) String dateField,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
@@ -303,6 +304,7 @@ public class TarefaResource {
         filterDTO.setStatus(status);
         filterDTO.setProjetoId(projetoId);
         filterDTO.setPrioridade(prioridade);
+        filterDTO.setRecorrente(recorrente);
         filterDTO.setDateField(dateField);
         filterDTO.setStartDate(startDate);
         filterDTO.setEndDate(endDate);

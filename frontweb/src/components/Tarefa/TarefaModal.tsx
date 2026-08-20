@@ -32,6 +32,7 @@ import { useSubtarefas } from '../../hooks/useSubtarefas';
 import { dividirSubtarefas } from '../../services/subtarefaService';
 import { getAllUsers } from '../../services/userService';
 import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
+import { FREQUENCIA_RECORRENCIA_LABELS } from '../../constants/frequenciaRecorrencia';
 
 interface TarefaModalProps {
   show: boolean;
@@ -115,6 +116,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     projetoId: 0,
     userIds: [],
     externoIds: [],
+    recorrente: false,
+    frequenciaRecorrencia: undefined,
+    dataFimRecorrencia: '',
   });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -193,6 +197,11 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         userIds: tarefa.users.map((user) => user.id),
         externoIds: tarefa.externos?.map((externo) => externo.id) || [],
         version: tarefa.version,
+        recorrente: tarefa.recorrente ?? false,
+        frequenciaRecorrencia: tarefa.frequenciaRecorrencia ?? undefined,
+        dataFimRecorrencia: tarefa.dataFimRecorrencia
+          ? tarefa.dataFimRecorrencia.split('T')[0]
+          : '',
       });
       setSelectedProjectName(tarefa.projeto.designacao);
       setWorkingDays(
@@ -222,6 +231,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         projetoId: 0,
         userIds: [],
         externoIds: [],
+        recorrente: false,
+        frequenciaRecorrencia: undefined,
+        dataFimRecorrencia: '',
       });
       setSelectedProjectName('');
       setWorkingDays(0);
@@ -412,6 +424,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     }
     if (!formData.descricao.trim()) {
       toast.warning('Por favor, forneça uma descrição para a tarefa');
+      return;
+    }
+    if (formData.recorrente && !formData.frequenciaRecorrencia) {
+      toast.warning('Por favor, selecione a frequência da Tarefa');
       return;
     }
 
@@ -624,6 +640,72 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                 </Col>
               </Row>
             )}
+            {/* Recurrence */}
+            <Row>
+              <Col xs={12}>
+                <Form.Group controlId="formRecorrente" className="mb-3">
+                  {isEditing && tarefa?.tarefaOrigemId ? (
+                    <Form.Text className="text-muted">
+                      Gerada automaticamente a partir da tarefa recorrente #
+                      {tarefa.tarefaOrigemId}
+                    </Form.Text>
+                  ) : (
+                    <>
+                      <Form.Check
+                        type="checkbox"
+                        label="Tarefa recorrente"
+                        checked={formData.recorrente ?? false}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setFormData((prevData) => ({
+                            ...prevData,
+                            recorrente: checked,
+                            frequenciaRecorrencia: checked
+                              ? prevData.frequenciaRecorrencia
+                              : undefined,
+                            dataFimRecorrencia: checked
+                              ? prevData.dataFimRecorrencia
+                              : '',
+                          }));
+                        }}
+                      />
+                      {formData.recorrente && (
+                        <Row className="mt-2">
+                          <Col xs={12} md={6}>
+                            <Form.Label>Frequência</Form.Label>
+                            <Form.Select
+                              name="frequenciaRecorrencia"
+                              value={formData.frequenciaRecorrencia || ''}
+                              onChange={handleInputChange}
+                            >
+                              <option value="">Selecionar...</option>
+                              {Object.entries(FREQUENCIA_RECORRENCIA_LABELS).map(
+                                ([value, label]) => (
+                                  <option key={value} value={value}>
+                                    {label}
+                                  </option>
+                                )
+                              )}
+                            </Form.Select>
+                          </Col>
+                          <Col xs={12} md={6}>
+                            <Form.Label>
+                              Terminar recorrência em (opcional)
+                            </Form.Label>
+                            <Form.Control
+                              type="date"
+                              name="dataFimRecorrencia"
+                              value={formData.dataFimRecorrencia || ''}
+                              onChange={handleInputChange}
+                            />
+                          </Col>
+                        </Row>
+                      )}
+                    </>
+                  )}
+                </Form.Group>
+              </Col>
+            </Row>
             {/* Project search field */}
             <Row>
               <Col xs={12}>
