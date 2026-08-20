@@ -95,7 +95,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                         {new Date(tarefa.prazoReal).toLocaleDateString()}
                       </td>
                       <td className="d-none d-lg-table-cell">
-                        {tarefa.workingDays !== undefined
+                        {tarefa.workingDays != null
                           ? `${tarefa.workingDays} dia(s)`
                           : '-'}
                       </td>

@@ -210,7 +210,7 @@ const TarefaCard: React.FC<TarefaCardProps> = React.memo(({ tarefa, index, onCli
             </div>
 
             {/* Add working days information */}
-            {tarefa.workingDays !== undefined && (
+            {tarefa.workingDays != null && (
               <div
                 className="tarefa-working-days"
                 style={{ marginTop: '4px', fontSize: '13px' }}
