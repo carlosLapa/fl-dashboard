@@ -5,6 +5,7 @@ import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.NotificationType;
 import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ExternoRepository;
@@ -13,6 +14,7 @@ import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.OptimisticLockConflictException;
+import com.fl.dashboard.services.exceptions.RecorrenciaInvalidaException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
@@ -92,6 +94,50 @@ public class TarefaService {
         }
 
         return workingDays;
+    }
+
+    // Advances a Date by one period of the given recurrence frequency, via LocalDate arithmetic
+    // (mirrors the Date<->LocalDate conversion idiom already used in DeadlineNotificationScheduler).
+    private Date shiftDate(Date date, FrequenciaRecorrencia frequencia) {
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate shifted = switch (frequencia) {
+            case SEMANAL -> localDate.plusWeeks(1);
+            case QUINZENAL -> localDate.plusWeeks(2);
+            case MENSAL -> localDate.plusMonths(1);
+            case TRIMESTRAL -> localDate.plusMonths(3);
+            case ANUAL -> localDate.plusYears(1);
+        };
+        return Date.from(shifted.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    // Applies the client-settable recurrence fields (recorrente/frequenciaRecorrencia/dataFimRecorrencia)
+    // to a Tarefa being created or updated via the with-associations flow. `tarefaOrigemId` is never
+    // client-settable, so a generated instance can never itself become recorring (no recurrence chains).
+    private void applyRecorrencia(Tarefa tarefa, Boolean recorrente, FrequenciaRecorrencia frequencia, Date dataFimRecorrencia) {
+        boolean wasRecorrente = Boolean.TRUE.equals(tarefa.getRecorrente());
+        boolean isRecorrente = Boolean.TRUE.equals(recorrente);
+
+        if (isRecorrente && tarefa.getTarefaOrigemId() != null) {
+            throw new RecorrenciaInvalidaException("Uma tarefa gerada automaticamente não pode ser marcada como recorrente");
+        }
+        if (isRecorrente && frequencia == null) {
+            throw new RecorrenciaInvalidaException("É necessário indicar a frequência da recorrência");
+        }
+
+        tarefa.setRecorrente(isRecorrente);
+        if (!isRecorrente) {
+            tarefa.setFrequenciaRecorrencia(null);
+            tarefa.setDataFimRecorrencia(null);
+            tarefa.setProximaOcorrencia(null);
+            return;
+        }
+
+        tarefa.setFrequenciaRecorrencia(frequencia);
+        tarefa.setDataFimRecorrencia(dataFimRecorrencia);
+        if (!wasRecorrente) {
+            Date anchor = tarefa.getPrazoEstimado() != null ? tarefa.getPrazoEstimado() : new Date();
+            tarefa.setProximaOcorrencia(shiftDate(anchor, frequencia));
+        }
     }
 
     @Transactional(readOnly = true)
@@ -280,6 +326,8 @@ public class TarefaService {
             tarefa.setWorkingDays(calculateWorkingDays(tarefa.getPrazoEstimado(), tarefa.getPrazoReal()));
         }
 
+        applyRecorrencia(tarefa, dto.getRecorrente(), dto.getFrequenciaRecorrencia(), dto.getDataFimRecorrencia());
+
         // Update projeto association
         if (dto.getProjetoId() != null) {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
@@ -382,6 +430,8 @@ public class TarefaService {
             tarefa.setWorkingDays(calculateWorkingDays(tarefa.getPrazoEstimado(), tarefa.getPrazoReal()));
         }
 
+        applyRecorrencia(tarefa, dto.getRecorrente(), dto.getFrequenciaRecorrencia(), dto.getDataFimRecorrencia());
+
         // Associate Projeto only if projetoId is provided
         if (dto.getProjetoId() != null) {
             Projeto projeto = projetoRepository.findById(dto.getProjetoId())
@@ -445,6 +495,106 @@ public class TarefaService {
         }
 
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
+    }
+
+    // Called by TarefaRecorrenciaScheduler for each due template. Clones the template into a brand-new,
+    // independent Tarefa (never itself recorring — tarefaOrigemId links it back to the template), notifies
+    // assigned users, then advances the template to its next due date (or turns recurrence off if that
+    // next date would exceed dataFimRecorrencia).
+    // Tightest of dataFimRecorrencia and the projeto's own prazo (either may be null/absent).
+    // Read live from the entities passed in — never cached — so a deadline extension made via
+    // "Estender prazo do projeto" is automatically honored by the very next scheduler run.
+    private Date seriesEndCap(Tarefa template) {
+        Date cap = template.getDataFimRecorrencia();
+        if (template.getProjeto() != null && template.getProjeto().getPrazo() != null) {
+            Date projetoPrazo = template.getProjeto().getPrazo();
+            if (cap == null || projetoPrazo.before(cap)) {
+                cap = projetoPrazo;
+            }
+        }
+        return cap;
+    }
+
+    @Transactional
+    public Optional<Tarefa> gerarOcorrenciaRecorrente(Tarefa template) {
+        Date seriesEndCap = seriesEndCap(template);
+
+        Date novaPrazoEstimado = template.getProximaOcorrencia();
+        Date novaPrazoReal = null;
+        if (template.getPrazoEstimado() != null && template.getPrazoReal() != null) {
+            long spanMillis = template.getPrazoReal().getTime() - template.getPrazoEstimado().getTime();
+            novaPrazoReal = new Date(novaPrazoEstimado.getTime() + spanMillis);
+
+            // The template's prazoEstimado/prazoReal span describes a single occurrence's own
+            // duration, not the whole series — naively re-applying it on every cycle can walk the
+            // deadline of later occurrences past both dataFimRecorrencia and the projeto's own prazo
+            // (e.g. a monthly-long span reused every week keeps drifting the deadline forward well
+            // beyond when the series was supposed to stop). Clamp to whichever limit is tighter.
+            if (seriesEndCap != null && novaPrazoReal.after(seriesEndCap)) {
+                novaPrazoReal = seriesEndCap;
+            }
+            // Guard against an already-overdue cap producing an inverted range (deadline before start).
+            if (novaPrazoReal.before(novaPrazoEstimado)) {
+                novaPrazoReal = novaPrazoEstimado;
+            }
+        }
+
+        Tarefa nova = new Tarefa();
+        nova.setDescricao(template.getDescricao());
+        nova.setPrioridade(template.getPrioridade());
+        nova.setPrazoEstimado(novaPrazoEstimado);
+        nova.setPrazoReal(novaPrazoReal);
+        nova.setStatus(TarefaStatus.BACKLOG);
+        nova.setProjeto(template.getProjeto());
+        nova.setColuna(template.getColuna());
+        nova.setUsers(new HashSet<>(template.getUsers()));
+        nova.setExternos(new HashSet<>(template.getExternos()));
+        nova.setTarefaOrigemId(template.getId());
+        nova.setRecorrente(false);
+        if (novaPrazoReal != null) {
+            nova.setWorkingDays(calculateWorkingDays(novaPrazoEstimado, novaPrazoReal));
+        }
+
+        Tarefa savedNova = tarefaRepository.save(nova);
+
+        List<User> notifiedUsers = new ArrayList<>(savedNova.getUsers());
+        notifiedUsers.forEach(user -> {
+            NotificationInsertDTO notification = NotificationInsertDTO.builder()
+                    .type(NotificationType.TAREFA_RECORRENTE_CRIADA.name())
+                    .content("Nova ocorrência da tarefa recorrente: " + savedNova.getDescricao())
+                    .userId(user.getId())
+                    .isRead(false)
+                    .createdAt(new Date())
+                    .tarefaId(savedNova.getId())
+                    .build();
+            notificationService.processNotification(notification);
+        });
+        if (!notifiedUsers.isEmpty()) {
+            try {
+                slackNotificationManagerService.addNotification(
+                        NotificationType.TAREFA_RECORRENTE_CRIADA.name(),
+                        "Nova Tarefa Recorrente",
+                        savedNova,
+                        notifiedUsers
+                );
+            } catch (Exception e) {
+                // Slack outage should never block the recurring-task generation itself.
+            }
+        }
+
+        // Re-evaluated (not reused from above) in case gerarOcorrenciaRecorrente is ever called
+        // outside the same request/transaction as the cap computed earlier; cheap either way.
+        Date proximaCandidata = shiftDate(template.getProximaOcorrencia(), template.getFrequenciaRecorrencia());
+        Date stopCap = seriesEndCap(template);
+        if (stopCap != null && proximaCandidata.after(stopCap)) {
+            template.setRecorrente(false);
+            template.setProximaOcorrencia(null);
+        } else {
+            template.setProximaOcorrencia(proximaCandidata);
+        }
+        tarefaRepository.save(template);
+
+        return Optional.of(savedNova);
     }
 
     @Transactional
@@ -852,6 +1002,9 @@ public class TarefaService {
                 (tarefa.getPrioridade() == null || !tarefa.getPrioridade().equalsIgnoreCase(filterDTO.getPrioridade()))) {
             return false;
         }
+        if (filterDTO.getRecorrente() != null && !filterDTO.getRecorrente().equals(tarefa.getRecorrente())) {
+            return false;
+        }
         if (filterDTO.getDateField() != null &&
                 (filterDTO.getStartDate() != null || adjustedEndDate != null)) {
             Date date = "prazoEstimado".equals(filterDTO.getDateField()) ? tarefa.getPrazoEstimado() : tarefa.getPrazoReal();
@@ -895,6 +1048,7 @@ public class TarefaService {
                     filterDTO.getStatus(),
                     filterDTO.getProjetoId(),
                     filterDTO.getPrioridade(),
+                    filterDTO.getRecorrente(),
                     filterDTO.getDateField(),
                     filterDTO.getStartDate(),
                     adjustedEndDate,

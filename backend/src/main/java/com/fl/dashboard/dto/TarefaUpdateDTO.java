@@ -1,5 +1,6 @@
 package com.fl.dashboard.dto;
 
+import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.TarefaStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,4 +22,7 @@ public class TarefaUpdateDTO {
     private Integer workingDays;
     private Set<Long> externoIds;
     private Long version;
+    private Boolean recorrente;
+    private FrequenciaRecorrencia frequenciaRecorrencia;
+    private Date dataFimRecorrencia;
 }

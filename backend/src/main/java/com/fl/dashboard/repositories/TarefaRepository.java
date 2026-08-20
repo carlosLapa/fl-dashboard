@@ -119,6 +119,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "AND (:status IS NULL OR t.status = :status) " +
             "AND (:projetoId IS NULL OR t.projeto.id = :projetoId) " +
             "AND (:prioridade IS NULL OR LOWER(t.prioridade) = LOWER(:prioridade)) " +
+            "AND (:recorrente IS NULL OR t.recorrente = :recorrente) " +
             "AND ((:dateField IS NULL) OR " +
             "     (:dateField = 'prazoEstimado' AND (:startDate IS NULL OR t.prazoEstimado >= :startDate) AND (:endDate IS NULL OR t.prazoEstimado <= :endDate)) OR " +
             "     (:dateField = 'prazoReal' AND (:startDate IS NULL OR t.prazoReal >= :startDate) AND (:endDate IS NULL OR t.prazoReal <= :endDate)))")
@@ -127,6 +128,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             @Param("status") TarefaStatus status,
             @Param("projetoId") Long projetoId,
             @Param("prioridade") String prioridade,
+            @Param("recorrente") Boolean recorrente,
             @Param("dateField") String dateField,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
@@ -141,5 +143,18 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT t FROM Tarefa t WHERE t.projeto.id = :projetoId AND t.deletedAt IS NULL " +
             "AND t.arquivadaEm IS NOT NULL ORDER BY t.arquivadaEm DESC")
     List<Tarefa> findAllArquivadasByProjetoId(@Param("projetoId") Long projetoId);
+
+    // Templates due to spawn their next occurrence. A template may have no projeto (insertWithAssociations
+    // only associates one if projetoId is provided) — LEFT JOIN (not "t.projeto.status" implicit path
+    // navigation) is required here, since Hibernate compiles an implicit single-valued-association path
+    // to an INNER JOIN, which would silently drop every projeto-less template before the "p IS NULL"
+    // check in the WHERE clause ever gets a chance to keep it.
+    @EntityGraph(attributePaths = {"users", "externos", "projeto", "coluna"})
+    @Query("SELECT t FROM Tarefa t LEFT JOIN t.projeto p " +
+            "WHERE t.recorrente = true AND t.proximaOcorrencia <= :today " +
+            "AND (t.dataFimRecorrencia IS NULL OR t.dataFimRecorrencia >= :today) " +
+            "AND t.deletedAt IS NULL AND t.arquivadaEm IS NULL " +
+            "AND (p IS NULL OR (p.status <> 'CONCLUIDO' AND p.deletedAt IS NULL))")
+    List<Tarefa> findRecorrentesDue(@Param("today") Date today);
 
 }

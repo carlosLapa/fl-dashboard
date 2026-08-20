@@ -13,6 +13,7 @@ public class TarefaFilterDTO {
     private Long projetoId;
     private String prioridade;
     private String dateField;
+    private Boolean recorrente;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date startDate;

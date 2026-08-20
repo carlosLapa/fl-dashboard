@@ -1,6 +1,7 @@
 package com.fl.dashboard.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -93,6 +94,20 @@ public class Tarefa {
     public boolean isArquivada() {
         return arquivadaEm != null;
     }
+
+    private Boolean recorrente = false;
+
+    @Enumerated(EnumType.STRING)
+    private FrequenciaRecorrencia frequenciaRecorrencia;
+
+    private Date dataFimRecorrencia;
+
+    private Date proximaOcorrencia;
+
+    // Plain FK id (no JPA relation) — only used to trace/display "gerada a partir da tarefa #X";
+    // a full self-referencing relation would force an extra join/lazy-load for every Tarefa fetch.
+    @Column(name = "tarefa_origem_id")
+    private Long tarefaOrigemId;
 
     public Tarefa() {
     }

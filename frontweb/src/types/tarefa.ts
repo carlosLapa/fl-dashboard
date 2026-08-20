@@ -9,6 +9,13 @@ export type TarefaStatus =
   | 'IN_REVIEW'
   | 'DONE';
 
+export type FrequenciaRecorrencia =
+  | 'SEMANAL'
+  | 'QUINZENAL'
+  | 'MENSAL'
+  | 'TRIMESTRAL'
+  | 'ANUAL';
+
 export interface Tarefa {
   id: number;
   descricao: string;
@@ -22,6 +29,13 @@ export interface Tarefa {
   // Optimistic-locking counter, echoed back on update so the backend can detect
   // a concurrent edit instead of silently overwriting it.
   version?: number;
+  recorrente?: boolean;
+  frequenciaRecorrencia?: FrequenciaRecorrencia | null;
+  dataFimRecorrencia?: string | null;
+  // Server-computed, read-only — next date the scheduler will spawn a new occurrence.
+  proximaOcorrencia?: string | null;
+  // Set only on tasks generated automatically by the recurrence scheduler; points back to the template.
+  tarefaOrigemId?: number | null;
   projeto: {
     id: number;
     designacao: string;
@@ -59,6 +73,9 @@ export interface TarefaInsertFormData {
   projetoId: number;
   userIds: number[];
   externoIds?: number[];
+  recorrente?: boolean;
+  frequenciaRecorrencia?: FrequenciaRecorrencia;
+  dataFimRecorrencia?: string;
 }
 
 export interface TarefaUpdateFormData {
@@ -73,6 +90,9 @@ export interface TarefaUpdateFormData {
   userIds: number[];
   externoIds?: number[];
   version?: number;
+  recorrente?: boolean;
+  frequenciaRecorrencia?: FrequenciaRecorrencia;
+  dataFimRecorrencia?: string;
 }
 
 export type TarefaWithUserAndProjetoDTO = Tarefa & {

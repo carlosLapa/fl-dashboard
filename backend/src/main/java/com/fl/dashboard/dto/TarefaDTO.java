@@ -1,6 +1,7 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Tarefa;
+import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -39,6 +40,16 @@ public class TarefaDTO {
 
     private Long version;
 
+    private Boolean recorrente;
+
+    private FrequenciaRecorrencia frequenciaRecorrencia;
+
+    private Date dataFimRecorrencia;
+
+    private Date proximaOcorrencia;
+
+    private Long tarefaOrigemId;
+
     public TarefaDTO() {
     }
 
@@ -72,6 +83,11 @@ public class TarefaDTO {
         this.workingDays = entity.getWorkingDays();
         this.arquivadaEm = entity.getArquivadaEm();
         this.version = entity.getVersion();
+        this.recorrente = entity.getRecorrente();
+        this.frequenciaRecorrencia = entity.getFrequenciaRecorrencia();
+        this.dataFimRecorrencia = entity.getDataFimRecorrencia();
+        this.proximaOcorrencia = entity.getProximaOcorrencia();
+        this.tarefaOrigemId = entity.getTarefaOrigemId();
     }
 
 }
