@@ -89,16 +89,67 @@
   padding-bottom: 0.5rem;
   font-size: 1.5rem;
   color: #1f2937;
-  
+
   @include respond-to('md') {
     font-size: 1.25rem;
     margin-bottom: 0.75rem;
   }
-  
+
   @include respond-to('sm') {
     font-size: 1.125rem;
     margin-bottom: 0.5rem;
     padding-bottom: 0.25rem;
+  }
+}
+
+.notifications-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  .notifications-title {
+    margin-bottom: 0;
+  }
+
+  @include respond-to('md') {
+    margin-bottom: 0.75rem;
+  }
+
+  @include respond-to('sm') {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.mark-all-read-button {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: transparent;
+  color: $primary;
+  border: 1px solid $primary;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: Roboto, system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  @include respond-to('sm') {
+    width: 100%;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: $primary;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 

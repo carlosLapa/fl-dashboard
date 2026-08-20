@@ -23,6 +23,7 @@ interface NotificationContextType {
   notifications: Notification[];
   handleNewNotification: (notification: Notification) => void;
   handleMarkAsRead: (id: number) => void;
+  handleMarkMultipleAsRead: (ids: number[]) => void;
   sendNotification: (notification: NotificationInsertDTO) => void;
   loadStoredNotifications: (
     userId: number,
@@ -133,6 +134,22 @@ export const NotificationProvider: React.FC<{
     setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
+  const handleMarkMultipleAsRead = useCallback((ids: number[]) => {
+    const idSet = new Set(ids);
+    setNotifications((prevNotifications) => {
+      let markedCount = 0;
+      const updated = prevNotifications.map((notification) => {
+        if (idSet.has(notification.id) && !notification.isRead) {
+          markedCount++;
+          return { ...notification, isRead: true };
+        }
+        return notification;
+      });
+      setUnreadCount((prev) => Math.max(0, prev - markedCount));
+      return updated;
+    });
+  }, []);
+
   const { messages, sendMessage } = useWebSocket(userId);
 
   const sendNotification = useCallback(
@@ -188,6 +205,7 @@ export const NotificationProvider: React.FC<{
         unreadCount,
         handleNewNotification,
         handleMarkAsRead,
+        handleMarkMultipleAsRead,
         sendNotification,
         loadStoredNotifications,
         hasMore,
