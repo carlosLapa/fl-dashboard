@@ -16,7 +16,7 @@ const getNotificationColor = (type: string) => {
     NOTIFICACAO_GERAL: '#CBD5E1',
     TAREFA_ATRIBUIDA: '#BFDBFE',
     TAREFA_STATUS_ALTERADO: '#DDD6FE',
-    TAREFA_PRAZO_PROXIMO: '#FF2C20',
+    TAREFA_PRAZO_PROXIMO: '#F87171',
     TAREFA_CONCLUIDA: '#BBF7D0',
     TAREFA_EDITADA: '#DDD6FE',
     TAREFA_REMOVIDA: '#FECACA',
@@ -24,8 +24,8 @@ const getNotificationColor = (type: string) => {
     PROJETO_STATUS_ALTERADO: '#E9D5FF',
     PROJETO_EDITADO: '#FEF3C7',
     PROJETO_ATUALIZADO: '#FEF3C7',
-    PROJETO_PRAZO_ALTERADO: '#FF2C20',
-    PROJETO_PRAZO_PROXIMO: '#FF2C20',
+    PROJETO_PRAZO_ALTERADO: '#F87171',
+    PROJETO_PRAZO_PROXIMO: '#F87171',
     PROJETO_CONCLUIDO: '#BBF7D0',
     PROJETO_REMOVIDO: '#FECACA',
     SUBTAREFA_ATRIBUIDA: '#BFDBFE',
@@ -33,6 +33,15 @@ const getNotificationColor = (type: string) => {
   };
   return colors[type] || '#E2E8F0';
 };
+
+const URGENT_DEADLINE_TYPES = new Set([
+  'TAREFA_PRAZO_PROXIMO',
+  'PROJETO_PRAZO_ALTERADO',
+  'PROJETO_PRAZO_PROXIMO',
+]);
+
+const getNotificationTextColor = (type: string) =>
+  URGENT_DEADLINE_TYPES.has(type) ? '#F8FAFC' : undefined;
 
 const getNotificationTitle = (type: string) => {
   const titles: { [key: string]: string } = {
@@ -109,11 +118,16 @@ const NotificationDisplay: React.FC<NotificationDisplayProps> = ({
   return (
     <div
       className="notification-card"
-      style={{
-        backgroundColor: getNotificationColor(notification.type),
-        opacity: notification.isRead ? 0.7 : 1,
-        cursor: isClickable ? 'pointer' : 'default',
-      }}
+      style={
+        {
+          backgroundColor: getNotificationColor(notification.type),
+          opacity: notification.isRead ? 0.7 : 1,
+          cursor: isClickable ? 'pointer' : 'default',
+          '--notification-text-color': getNotificationTextColor(
+            notification.type
+          ),
+        } as React.CSSProperties
+      }
       role="listitem"
       onClick={isClickable ? handleNotificationClick : undefined}
     >

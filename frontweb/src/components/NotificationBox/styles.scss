@@ -1,4 +1,5 @@
 @import '../../assets/styles/breakpoints.scss';
+@import '../../assets/styles/_variables.scss';
 
 /* Container Styles */
 .notification-container {
@@ -116,7 +117,7 @@
 
 .notification-type {
   font-size: 1.25rem;
-  color: #1f2937;
+  color: var(--notification-text-color, #1f2937);
   margin: 0;
   
   @include respond-to('md') {
@@ -130,7 +131,7 @@
 
 .notification-date {
   font-size: 1rem;
-  color: #6b7280;
+  color: var(--notification-text-color, #6b7280);
   
   @include respond-to('md') {
     font-size: 0.875rem;
@@ -143,7 +144,7 @@
 
 .notification-content {
   font-size: 1rem;
-  color: #4b5563;
+  color: var(--notification-text-color, #4b5563);
   margin: 1rem 0;
   
   @include respond-to('md') {
@@ -159,7 +160,7 @@
 
 .notification-details {
   font-size: 0.9375rem;
-  color: #6b7280;
+  color: var(--notification-text-color, #6b7280);
   margin-top: 1rem;
   
   @include respond-to('md') {
@@ -185,6 +186,46 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+  }
+}
+
+/* Load More Button */
+.load-more-container {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+
+  @include respond-to('sm') {
+    margin: 0 0 1rem 0;
+  }
+}
+
+.load-more-button {
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  background-color: $primary;
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: Roboto, system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+  @include respond-to('sm') {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  &:hover {
+    background-color: darken($primary, 10%);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  &:active {
+    background-color: darken($primary, 15%);
   }
 }
 

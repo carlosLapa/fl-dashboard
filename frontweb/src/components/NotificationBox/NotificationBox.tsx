@@ -105,6 +105,14 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
 
   return (
     <div className="notification-container">
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="load-more-container">
+          <button className="load-more-button" onClick={handleLoadMore}>
+            Carregar mais notificações
+          </button>
+        </div>
+      )}
       {/* Unread Notifications Section */}
       <div className="notifications-section">
         <h2 className="notifications-title">
@@ -145,14 +153,6 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
           )}
         </div>
       </div>
-      {/* Load More Button */}
-      {hasMore && (
-        <div style={{ textAlign: 'center', margin: '1rem 0' }}>
-          <button className="mark-read-button" onClick={handleLoadMore}>
-            Carregar mais notificações
-          </button>
-        </div>
-      )}
     </div>
   );
 };
