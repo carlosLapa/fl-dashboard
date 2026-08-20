@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNotification } from '../../NotificationContext';
+import { markMultipleNotificationsAsReadAPI } from 'api/notificationsApi';
+import { toast } from 'react-toastify';
 import NotificationDisplay from './NotificationDisplay';
 import './styles.scss';
 
@@ -16,11 +18,20 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
     hasMore,
     resetNotifications,
     handleMarkAsRead,
+    handleMarkMultipleAsRead,
   } = useNotification();
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Reset notifications and page when userId changes
@@ -55,6 +66,28 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
 
   const handleLoadMore = () => {
     setPage((prev) => prev + 1);
+  };
+
+  const handleMarkAllAsRead = async () => {
+    const ids = unreadNotifications.map((n) => n.id);
+    if (ids.length === 0 || isMarkingAll) return;
+
+    setIsMarkingAll(true);
+    try {
+      await markMultipleNotificationsAsReadAPI(ids);
+      handleMarkMultipleAsRead(ids);
+      toast.success('Notificações marcadas como lidas', {
+        position: isMobile ? 'bottom-center' : 'top-right',
+        autoClose: 2000,
+      });
+    } catch (err) {
+      console.error('Error marking notifications as read:', err);
+      toast.error('Erro ao marcar notificações como lidas', {
+        position: isMobile ? 'bottom-center' : 'top-right',
+      });
+    } finally {
+      setIsMarkingAll(false);
+    }
   };
 
   if (isLoading && page === 0) {
@@ -115,9 +148,20 @@ const NotificationBox: React.FC<NotificationBoxProps> = ({ userId }) => {
       )}
       {/* Unread Notifications Section */}
       <div className="notifications-section">
-        <h2 className="notifications-title">
-          Novas Notificações ({unreadNotifications.length})
-        </h2>
+        <div className="notifications-section-header">
+          <h2 className="notifications-title">
+            Novas Notificações ({unreadNotifications.length})
+          </h2>
+          {unreadNotifications.length > 0 && (
+            <button
+              className="mark-all-read-button"
+              onClick={handleMarkAllAsRead}
+              disabled={isMarkingAll}
+            >
+              {isMarkingAll ? 'A processar...' : 'Marcar todas como lidas'}
+            </button>
+          )}
+        </div>
         <div className="notifications-list">
           {unreadNotifications.length === 0 ? (
             <div className="notification-empty">Sem novas notificações</div>

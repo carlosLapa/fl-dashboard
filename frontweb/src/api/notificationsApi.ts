@@ -35,6 +35,12 @@ export const markNotificationAsReadAPI = async (
   await axios.patch(`/notifications/${notificationId}/read`);
 };
 
+export const markMultipleNotificationsAsReadAPI = async (
+  notificationIds: number[]
+): Promise<void> => {
+  await axios.patch('/notifications/read', notificationIds);
+};
+
 export const createNotificationAPI = async (
   notification: NotificationInsertDTO
 ): Promise<Notification> => {
