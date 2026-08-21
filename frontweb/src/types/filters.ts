@@ -29,6 +29,7 @@ export interface TarefaFilterState extends BaseFilterState {
   status: string;
   prioridade: string;
   projetoId: string;
+  recorrente: string; // '', 'true' ou 'false'
   startDate: string; // Prazo Real - data inicial
   endDate: string; // Prazo Real - data final
 }

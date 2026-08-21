@@ -32,6 +32,12 @@ const PRIORIDADE_OPTIONS = [
   { value: 'Baixa', label: 'Baixa' },
 ];
 
+const RECORRENTE_OPTIONS = [
+  { value: '', label: 'Todas' },
+  { value: 'true', label: 'Sim' },
+  { value: 'false', label: 'Não' },
+];
+
 const FieldHelpIcon: React.FC<{ id: string; text: string }> = ({
   id,
   text,
@@ -129,6 +135,23 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
             onKeyDown={handleSelectKeyDown}
           >
             {PRIORIDADE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Form.Select>
+        </Form.Group>
+      </Col>
+
+      <Col md={6} lg={4}>
+        <Form.Group>
+          <Form.Label>Recorrente</Form.Label>
+          <Form.Select
+            value={filters.recorrente}
+            onChange={(e) => updateFilter('recorrente', e.target.value)}
+            onKeyDown={handleSelectKeyDown}
+          >
+            {RECORRENTE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

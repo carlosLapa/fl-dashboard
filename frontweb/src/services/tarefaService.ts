@@ -33,6 +33,7 @@ export interface TarefaFilterParams {
   status?: string;
   prioridade?: string;
   projetoId?: string;
+  recorrente?: string;
   dateField?: string;
   startDate?: string;
   endDate?: string;

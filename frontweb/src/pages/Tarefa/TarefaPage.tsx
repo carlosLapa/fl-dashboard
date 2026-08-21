@@ -117,6 +117,7 @@ const TarefaPage: React.FC = () => {
         status: filters.status || undefined,
         prioridade: filters.prioridade || undefined,
         projetoId: filters.projetoId || undefined,
+        recorrente: filters.recorrente || undefined,
         dateField:
           filters.startDate || filters.endDate ? 'prazoReal' : undefined,
         startDate: filters.startDate || undefined,

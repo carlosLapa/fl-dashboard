@@ -725,6 +725,7 @@ export const getTarefasFilteredAPI = async (params: {
   status?: string;
   prioridade?: string;
   projetoId?: string; // Using projetoId to match service and component usage
+  recorrente?: string;
   dateField?: string;
   startDate?: string;
   endDate?: string;
@@ -763,6 +764,11 @@ export const getTarefasFilteredAPI = async (params: {
     if (params.projetoId) {
       queryParams.append('projetoId', params.projetoId);
       console.log('API - Adding projetoId filter:', params.projetoId);
+    }
+
+    if (params.recorrente) {
+      queryParams.append('recorrente', params.recorrente);
+      console.log('API - Adding recorrente filter:', params.recorrente);
     }
 
     // Add date filter params if they exist

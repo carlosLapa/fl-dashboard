@@ -6,6 +6,7 @@ import {
   faInfoCircle,
   faExclamationTriangle,
   faBoxArchive,
+  faSyncAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {
@@ -21,6 +22,7 @@ import {
 import TarefaPrioridadeBadge from '../TarefaPrioridadeBadge';
 import { useSubtarefas } from '../../../hooks/useSubtarefas';
 import { getTarefaStatusLabel } from '../../../constants/tarefaStatus';
+import { getFrequenciaRecorrenciaLabel } from '../../../constants/frequenciaRecorrencia';
 
 interface TarefaTableRowProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -143,6 +145,23 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
       </td>
       <td>
         {tarefa.descricao}
+        {tarefa.recorrente && (
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`recorrente-tooltip-${tarefa.id}`}>
+                Tarefa recorrente
+                {tarefa.frequenciaRecorrencia
+                  ? ` (${getFrequenciaRecorrenciaLabel(tarefa.frequenciaRecorrencia)})`
+                  : ''}
+              </Tooltip>
+            }
+          >
+            <Badge bg="info" text="dark" className="ms-2">
+              <FontAwesomeIcon icon={faSyncAlt} />
+            </Badge>
+          </OverlayTrigger>
+        )}
         {orphaned && (
           <OverlayTrigger
             placement="top"
