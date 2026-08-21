@@ -192,3 +192,63 @@ export const getTaskOverdueStatus = (
     return { isPastDue: false, daysOverdue: null };
   }
 };
+
+// Minimal shape needed to detect orphaned tasks — deliberately looser than
+// the full Tarefa type since callers may fetch tasks via a DTO that omits
+// fields like `projeto`/`users` (e.g. TarefaDTO nested inside a Projeto response).
+export interface TarefaDeadlineInfo {
+  id: number;
+  prazoEstimado?: string;
+  prazoReal?: string;
+}
+
+/**
+ * Finds tasks whose own dates (prazoEstimado and/or prazoReal) now fall
+ * after a project's (already-shortened) prazo — i.e. tasks left "orphaned"
+ * by a project deadline that no longer covers them. Callers are expected to
+ * only invoke this when the project's prazo was actually shortened; it does
+ * not compare against the previous prazo itself.
+ * @param tarefas Tasks belonging to the project
+ * @param newProjetoPrazo The project's new prazo (ISO date string)
+ */
+export const findOrphanedTarefas = <T extends TarefaDeadlineInfo>(
+  tarefas: T[],
+  newProjetoPrazo: string
+): T[] => {
+  try {
+    const newPrazoDate = new Date(newProjetoPrazo);
+    if (isNaN(newPrazoDate.getTime())) return [];
+    newPrazoDate.setHours(0, 0, 0, 0);
+
+    return tarefas.filter((tarefa) => {
+      return [tarefa.prazoEstimado, tarefa.prazoReal]
+        .filter((d): d is string => Boolean(d))
+        .some((dateStr) => {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) return false;
+          date.setHours(0, 0, 0, 0);
+          return date > newPrazoDate;
+        });
+    });
+  } catch (e) {
+    console.error('Error finding orphaned tarefas:', e);
+    return [];
+  }
+};
+
+/**
+ * Whether a single task's own dates fall after its project's current prazo
+ * — i.e. it's "orphaned", regardless of how the project got that prazo.
+ * Unlike `findOrphanedTarefas`, callers don't need to know the project's
+ * previous prazo — this just compares against whatever prazo it has now, so
+ * it's safe to call on every render (e.g. to highlight a table row).
+ * @param tarefa The task to check
+ * @param projetoPrazo The task's project's current prazo (ISO date string)
+ */
+export const isTarefaOrphaned = (
+  tarefa: TarefaDeadlineInfo,
+  projetoPrazo: string | undefined
+): boolean => {
+  if (!projetoPrazo) return false;
+  return findOrphanedTarefas([tarefa], projetoPrazo).length > 0;
+};

@@ -23,6 +23,7 @@ import { Projeto, ProjetoFormData } from '../../types/projeto';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { ProjetoFilterState } from '../../types/filters';
 import ProjetoModal from '../../components/Projeto/ProjetoModal';
+import { checkOrphanedTarefasAfterPrazoChange } from '../../services/projetoService';
 import { toast } from 'react-toastify';
 import './clienteStyles.scss';
 
@@ -241,6 +242,16 @@ const ClienteProjetosPage: React.FC = () => {
         await updateProjetoAPI(selectedProjeto.id, formDataWithClient);
         console.log('Project updated');
         toast.success('Projeto atualizado com sucesso!');
+        const orphaned = await checkOrphanedTarefasAfterPrazoChange(
+          selectedProjeto.id,
+          selectedProjeto.prazo,
+          formDataWithClient.prazo
+        );
+        if (orphaned.length > 0) {
+          toast.warning(
+            `${orphaned.length} tarefa(s) ficaram com datas após o novo prazo do projeto. Reveja as datas dessas tarefas.`
+          );
+        }
       } else {
         // Create new projeto with client ID already included
         const result = await addProjetoAPI(formDataWithClient);

@@ -5,6 +5,7 @@ import {
   faTrashAlt,
   faInfoCircle,
   faExclamationTriangle,
+  faBoxArchive,
 } from '@fortawesome/free-solid-svg-icons';
 import { Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import {
@@ -15,6 +16,7 @@ import {
   formatDate,
   getDeadlineStatus,
   getTaskOverdueStatus,
+  isTarefaOrphaned,
 } from '../../../utils/dateUtils';
 import TarefaPrioridadeBadge from '../TarefaPrioridadeBadge';
 import { useSubtarefas } from '../../../hooks/useSubtarefas';
@@ -36,6 +38,24 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
   onStatusChange,
 }) => {
   const { isDividida, totalPercentual } = useSubtarefas(tarefa.id);
+
+  // A shortened project prazo can leave a task's own dates stranded after
+  // it, with none of the deadline badges above catching it (they only ever
+  // compare against today, never against whether the project still covers
+  // the task's dates at all).
+  const orphaned = isTarefaOrphaned(tarefa, tarefa.projeto?.prazo);
+
+  // Mirrors the condition TarefaModal uses to show its "Arquivar" button —
+  // a DONE task the user just hasn't gotten around to archiving yet.
+  const pendingArchive = tarefa.status === 'DONE' && !tarefa.arquivadaEm;
+
+  // Orphaned dates are the more actionable/urgent signal, so they win if a
+  // task is somehow both orphaned and done-but-unarchived.
+  const rowClassName = orphaned
+    ? 'table-warning'
+    : pendingArchive
+    ? 'table-success'
+    : undefined;
 
   // Add this function to render deadline with warning indicators
   const renderDeadlineWithWarning = () => {
@@ -113,7 +133,7 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
   };
 
   return (
-    <tr>
+    <tr className={rowClassName}>
       <td>
         {tarefa.projeto ? (
           tarefa.projeto.designacao
@@ -121,8 +141,47 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
           <span className="text-muted">Sem projeto</span>
         )}
       </td>
-      <td>{tarefa.descricao}</td>
-      <td>{getTarefaStatusLabel(tarefa.status)}</td>
+      <td>
+        {tarefa.descricao}
+        {orphaned && (
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`orphaned-tooltip-${tarefa.id}`}>
+                As datas desta tarefa ficam além do prazo atual do projeto
+                {tarefa.projeto?.prazo &&
+                  ` (${formatDate(tarefa.projeto.prazo)})`}
+                . Reveja as datas.
+              </Tooltip>
+            }
+          >
+            <FontAwesomeIcon
+              icon={faExclamationTriangle}
+              className="ms-2 text-warning"
+              style={{ cursor: 'pointer' }}
+            />
+          </OverlayTrigger>
+        )}
+      </td>
+      <td>
+        {getTarefaStatusLabel(tarefa.status)}
+        {pendingArchive && (
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`pending-archive-tooltip-${tarefa.id}`}>
+                Tarefa concluída — considere arquivá-la
+              </Tooltip>
+            }
+          >
+            <FontAwesomeIcon
+              icon={faBoxArchive}
+              className="ms-2 text-success"
+              style={{ cursor: 'pointer' }}
+            />
+          </OverlayTrigger>
+        )}
+      </td>
       <td><TarefaPrioridadeBadge prioridade={tarefa.prioridade} /></td>
       <td className="prazo-column">
         {tarefa.prazoEstimado ? formatDate(tarefa.prazoEstimado) : '-'}
