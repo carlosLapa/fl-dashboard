@@ -112,9 +112,23 @@ export const getDeadlineStatus = (
     const daysRemaining = differenceInDays(projectDate, taskDate);
     console.log('Days remaining:', daysRemaining);
 
+    // A task's deadline can sit close to the project's deadline months in
+    // advance without that being urgent yet — e.g. a task due the same day
+    // as the project, started on day one of a 43-working-day run. Only
+    // treat it as "approaching" once the task's own deadline is itself
+    // imminent (within the threshold of today, and not already past —
+    // that's getTaskOverdueStatus's job).
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysUntilTaskDeadline = differenceInDays(taskDate, today);
+    const isTaskDeadlineImminent =
+      daysUntilTaskDeadline >= 0 && daysUntilTaskDeadline <= warningThreshold;
+
     // Check if task deadline is within the warning threshold of project deadline
     const isApproaching =
-      daysRemaining >= 0 && daysRemaining <= warningThreshold;
+      isTaskDeadlineImminent &&
+      daysRemaining >= 0 &&
+      daysRemaining <= warningThreshold;
     console.log(
       'Is approaching:',
       isApproaching,

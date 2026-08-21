@@ -737,12 +737,6 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     <div className="mt-2">
                       <strong>Projeto selecionado:</strong>{' '}
                       {selectedProjectName}
-                      {selectedProject?.prazo && (
-                        <div className="text-muted">
-                          Prazo do projeto:{' '}
-                          {format(new Date(selectedProject.prazo), 'dd/MM/yyyy')}
-                        </div>
-                      )}
                     </div>
                   )}
                   {projectSearchResults.length > 0 && (
