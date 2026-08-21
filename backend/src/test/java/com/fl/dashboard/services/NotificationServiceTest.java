@@ -16,7 +16,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
@@ -101,7 +100,6 @@ class NotificationServiceTest {
         userDto.setName(user.getName());
         notificationResponseDTO.setUser(userDto);
 
-        MockitoAnnotations.openMocks(this);
         TransactionSynchronizationManager.initSynchronization();
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
