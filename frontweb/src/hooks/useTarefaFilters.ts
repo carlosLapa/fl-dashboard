@@ -6,6 +6,7 @@ const initialFilters: TarefaFilterState = {
   status: '',
   prioridade: '',
   projetoId: '',
+  recorrente: '',
   startDate: '',
   endDate: '',
 };

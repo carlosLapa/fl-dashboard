@@ -19,6 +19,7 @@ export const hasTarefaActiveFilters = (filters: TarefaFilterState): boolean => {
     !!filters.descricao ||
     !!filters.projetoId ||
     !!filters.status ||
+    !!filters.recorrente ||
     !!filters.startDate ||
     !!filters.endDate
   );
