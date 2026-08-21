@@ -1,7 +1,25 @@
 import { addDays, format } from 'date-fns';
-import { getDeadlineStatus, getTaskOverdueStatus } from './dateUtils';
+import {
+  getDeadlineStatus,
+  getTaskOverdueStatus,
+  findOrphanedTarefas,
+} from './dateUtils';
+import { Tarefa } from '../types/tarefa';
 
 const iso = (offsetDays: number) => format(addDays(new Date(), offsetDays), 'yyyy-MM-dd');
+
+const buildTarefa = (
+  overrides: Partial<Pick<Tarefa, 'id' | 'prazoEstimado' | 'prazoReal'>>
+): Tarefa => ({
+  id: overrides.id ?? 1,
+  descricao: 'Tarefa de teste',
+  prioridade: 'MEDIA',
+  prazoEstimado: overrides.prazoEstimado ?? iso(0),
+  prazoReal: overrides.prazoReal ?? iso(1),
+  status: 'TODO',
+  projeto: { id: 1, designacao: 'Projeto de teste' },
+  users: [],
+});
 
 describe('getDeadlineStatus', () => {
   it('does not flag a task as approaching just because its deadline matches the project deadline, when that deadline is still far away', () => {
@@ -48,5 +66,52 @@ describe('getTaskOverdueStatus', () => {
   it('does not flag a task whose deadline is today or in the future', () => {
     expect(getTaskOverdueStatus(iso(0), 'TODO').isPastDue).toBe(false);
     expect(getTaskOverdueStatus(iso(1), 'TODO').isPastDue).toBe(false);
+  });
+});
+
+describe('findOrphanedTarefas', () => {
+  it('flags a task whose prazoReal now falls after the shortened project prazo', () => {
+    const tarefas = [
+      buildTarefa({ id: 1, prazoEstimado: iso(20), prazoReal: iso(25) }),
+    ];
+    const orphaned = findOrphanedTarefas(tarefas, iso(10));
+    expect(orphaned).toHaveLength(1);
+    expect(orphaned[0].id).toBe(1);
+  });
+
+  it('flags a task whose prazoEstimado (start date) alone falls after the new prazo', () => {
+    const tarefas = [
+      buildTarefa({ id: 1, prazoEstimado: iso(15), prazoReal: iso(5) }),
+    ];
+    const orphaned = findOrphanedTarefas(tarefas, iso(10));
+    expect(orphaned).toHaveLength(1);
+  });
+
+  it('does not flag a task whose dates still fall within the new prazo', () => {
+    const tarefas = [
+      buildTarefa({ id: 1, prazoEstimado: iso(1), prazoReal: iso(5) }),
+    ];
+    expect(findOrphanedTarefas(tarefas, iso(10))).toHaveLength(0);
+  });
+
+  it('does not flag a task whose prazoReal equals the new prazo exactly', () => {
+    const tarefas = [
+      buildTarefa({ id: 1, prazoEstimado: iso(1), prazoReal: iso(10) }),
+    ];
+    expect(findOrphanedTarefas(tarefas, iso(10))).toHaveLength(0);
+  });
+
+  it('returns an empty array when the new prazo is invalid', () => {
+    const tarefas = [buildTarefa({ id: 1 })];
+    expect(findOrphanedTarefas(tarefas, 'not-a-date')).toEqual([]);
+  });
+
+  it('only returns the tasks that are actually orphaned, out of several', () => {
+    const tarefas = [
+      buildTarefa({ id: 1, prazoEstimado: iso(1), prazoReal: iso(5) }),
+      buildTarefa({ id: 2, prazoEstimado: iso(15), prazoReal: iso(20) }),
+    ];
+    const orphaned = findOrphanedTarefas(tarefas, iso(10));
+    expect(orphaned.map((t) => t.id)).toEqual([2]);
   });
 });

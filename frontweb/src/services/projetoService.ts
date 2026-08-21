@@ -14,6 +14,8 @@ import {
 } from '../api/requestsApi';
 import { ProjetoFilterState } from '../types/filters';
 import { hasPermission } from '../utils/hasPermission';
+import { findOrphanedTarefas } from '../utils/dateUtils';
+import { Tarefa } from '../types/tarefa';
 import axios from 'axios';
 
 // Use the ProjetoFilterState type from our filters.ts
@@ -325,6 +327,40 @@ export const extendProjetoPrazo = async (
       throw new Error('Não tem permissão para alterar o prazo do projeto');
     }
     throw error;
+  }
+};
+
+/**
+ * Checks whether shortening a project's prazo left any of its existing
+ * tarefas "orphaned" — i.e. their own dates now fall after the new,
+ * shortened prazo. Only checks when the prazo was actually shortened
+ * (extending it can never orphan a task); returns an empty array otherwise.
+ * Does not fix or flag anything server-side — purely informational for the
+ * caller to warn the user.
+ * @param projetoId The project whose tarefas should be checked
+ * @param oldPrazo The project's prazo before the edit (ISO date string)
+ * @param newPrazo The project's prazo after the edit (ISO date string)
+ */
+export const checkOrphanedTarefasAfterPrazoChange = async (
+  projetoId: number,
+  oldPrazo: string | undefined,
+  newPrazo: string | undefined
+): Promise<Tarefa[]> => {
+  if (!oldPrazo || !newPrazo) return [];
+
+  const oldDate = new Date(oldPrazo);
+  const newDate = new Date(newPrazo);
+  if (isNaN(oldDate.getTime()) || isNaN(newDate.getTime())) return [];
+  if (newDate >= oldDate) return [];
+
+  try {
+    // Reuses the same "/full" endpoint the Kanban board fetches from —
+    // there is no plain "/projetos/{id}/tarefas" endpoint on the backend.
+    const { tarefas } = await getProjetoWithUsersAndTarefas(projetoId);
+    return findOrphanedTarefas(tarefas, newPrazo);
+  } catch (error) {
+    console.error('Error checking for orphaned tarefas:', error);
+    return [];
   }
 };
 

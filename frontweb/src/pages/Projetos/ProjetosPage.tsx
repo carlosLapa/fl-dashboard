@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Projeto, ProjetoFormData } from '../../types/projeto';
-import { fetchProjetosWithFilters } from '../../services/projetoService';
+import {
+  fetchProjetosWithFilters,
+  checkOrphanedTarefasAfterPrazoChange,
+} from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { Button } from 'react-bootstrap';
 import ProjetoModal from 'components/Projeto/ProjetoModal';
@@ -251,6 +254,16 @@ const ProjetosPage: React.FC = () => {
         if (projetoToEdit) {
           await updateProjetoAPI(projetoToEdit.id, formData);
           toast.success('Projeto atualizado com sucesso');
+          const orphaned = await checkOrphanedTarefasAfterPrazoChange(
+            projetoToEdit.id,
+            projetoToEdit.prazo,
+            formData.prazo
+          );
+          if (orphaned.length > 0) {
+            toast.warning(
+              `${orphaned.length} tarefa(s) ficaram com datas após o novo prazo do projeto. Reveja as datas dessas tarefas.`
+            );
+          }
         } else {
           await addProjetoAPI(formData);
           toast.success('Projeto criado com sucesso');
