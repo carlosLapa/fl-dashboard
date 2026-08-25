@@ -13,7 +13,6 @@
     overflow-x: auto;
     overflow-y: auto;
     min-height: 0;
-    -webkit-overflow-scrolling: touch;
   }
 
   .details-table {
@@ -94,7 +93,6 @@
 .table-responsive-wrapper {
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
 
   // Ensure minimum content width to trigger scrolling when needed
   min-width: 100%;

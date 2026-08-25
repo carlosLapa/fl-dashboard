@@ -26,7 +26,6 @@
 .table-responsive {
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Tarefa Details Modal */
@@ -340,7 +339,6 @@
   padding-bottom: 20px;
   /* gap controls the spacing between cards */
   gap: 3%;
-  -webkit-overflow-scrolling: touch;
   width: fit-content;
   margin: 0; /* Remove auto centering, align left */
   margin-top: 2%;

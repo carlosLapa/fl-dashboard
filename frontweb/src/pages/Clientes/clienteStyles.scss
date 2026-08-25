@@ -83,6 +83,7 @@
 
   .card-header {
     background-color: #f8f9fa;
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 2;
@@ -267,7 +268,6 @@
   .cliente-projetos-table {
     width: 100%;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 
     // Estilização da barra de rolagem para diferentes navegadores
     &::-webkit-scrollbar {

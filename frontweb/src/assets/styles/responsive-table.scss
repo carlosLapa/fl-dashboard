@@ -4,7 +4,6 @@
 .responsive-table-container {
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   
   table {
     width: 100%;
@@ -24,6 +23,7 @@
     thead th {
       vertical-align: bottom;
       border-bottom: 2px solid #dee2e6;
+      position: -webkit-sticky;
       position: sticky;
       top: 0;
       background-color: #fff;
