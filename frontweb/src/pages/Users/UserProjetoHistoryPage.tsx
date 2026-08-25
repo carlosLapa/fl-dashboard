@@ -10,6 +10,7 @@ import { ProjetoUserHistoryTimelineDTO } from '../../types/projetoUserHistory';
 import ProjectAssignmentTimelineChart from '../../components/User/ProjectAssignmentTimelineChart';
 import ProjetoAssignmentHistoryTable from '../../components/User/ProjetoAssignmentHistoryTable';
 import ProjetoTimeSpentTable from '../../components/User/ProjetoTimeSpentTable';
+import 'assets/styles/layout.scss';
 
 const UserProjetoHistoryPage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -59,8 +60,8 @@ const UserProjetoHistoryPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div style={{ width: '98%', marginLeft: '2%', marginTop: '2rem' }}>
+      <div className="page-container">
+        <div className="page-shell">
           <div className="text-center" style={{ padding: '3rem' }}>
             <Spinner animation="border" role="status" variant="primary">
               <span className="visually-hidden">A carregar histórico...</span>
@@ -74,8 +75,8 @@ const UserProjetoHistoryPage: React.FC = () => {
 
   if (error || !user || !history) {
     return (
-      <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div style={{ width: '98%', marginLeft: '2%', marginTop: '2rem' }}>
+      <div className="page-container">
+        <div className="page-shell">
           <Alert variant="danger">
             <Alert.Heading>Erro ao Carregar Histórico</Alert.Heading>
             <p>{error || 'Não foi possível carregar o histórico.'}</p>
@@ -96,15 +97,8 @@ const UserProjetoHistoryPage: React.FC = () => {
   }
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      <div
-        style={{
-          width: '94%',
-          marginLeft: '2%',
-          marginRight: '4%',
-          marginTop: '2rem',
-        }}
-      >
+    <div className="page-container">
+      <div className="page-shell">
         <div className="page-title-container">
           <div className="d-flex align-items-center">
             <Button

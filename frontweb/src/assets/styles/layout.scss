@@ -9,15 +9,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem !important;
-  width: 98% !important; // Match the table width
-  margin-left: 0 !important; // No left margin to match table
-  margin-right: 2% !important; // Right margin to match table
+  width: 100% !important; // Inherits the gutter from its .page-shell parent
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 
   @include respond-to('md') {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-    width: 100% !important; // Full width on mobile
   }
 }
 
@@ -75,10 +74,19 @@
   }
 }
 
-// Add a new class for table containers to add top margin
-.table-container {
-  margin-top: 1.5rem !important; // Add space above tables
-  width: 98% !important; // Match the table width
-  margin-left: 0 !important; // No left margin
-  margin-right: 2% !important; // Right margin
+// Shared page content gutter, used by every list/detail page instead of
+// duplicating width/margin inline styles. clamp() keeps the side gaps
+// proportional without letting them shrink to nothing on small screens or
+// balloon on ultra-wide monitors.
+.page-shell {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 2rem;
+  padding-left: clamp(1rem, 2vw, 2rem);
+  padding-right: clamp(1.5rem, 4vw, 4rem);
+
+  @include respond-to('md') {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

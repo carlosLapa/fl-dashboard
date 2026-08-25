@@ -298,16 +298,8 @@ const ProjetosPage: React.FC = () => {
   );
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the content in a div with consistent width and margins */}
-      <div
-        style={{
-          width: '98%',
-          marginLeft: '2%',
-          marginRight: '2%',
-          marginTop: '2rem',
-        }}
-      >
+    <div className="page-container">
+      <div className="page-shell">
         <div className="page-title-container">
           <h2 className="page-title">
             Gestão de Projetos

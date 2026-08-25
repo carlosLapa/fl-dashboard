@@ -363,25 +363,30 @@ const ClienteProjetosPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="container mt-4">
-        <Alert variant="danger">{error}</Alert>
-        <Button variant="secondary" onClick={handleBack}>
-          <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-          Voltar para Clientes
-        </Button>
+      <div className="page-container">
+        <div className="page-shell">
+          <Alert variant="danger">{error}</Alert>
+          <Button variant="secondary" onClick={handleBack}>
+            <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+            Voltar para Clientes
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Projetos do Cliente: {cliente?.name}</h2>
-        <Button variant="secondary" onClick={handleBack}>
-          <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-          Voltar para Clientes
-        </Button>
-      </div>
+    <div className="page-container">
+      <div className="page-shell">
+        <div className="page-title-container">
+          <h2 className="page-title">Projetos do Cliente: {cliente?.name}</h2>
+          <div className="page-actions">
+            <Button variant="secondary" onClick={handleBack}>
+              <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+              Voltar para Clientes
+            </Button>
+          </div>
+        </div>
 
       <div className="cliente-info mb-4 card">
         <div className="card-body">
@@ -535,6 +540,7 @@ const ClienteProjetosPage: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
 
       {/* Projeto Modal */}
       <ProjetoModal
