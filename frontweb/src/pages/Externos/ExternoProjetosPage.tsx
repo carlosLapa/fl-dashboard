@@ -157,49 +157,51 @@ const ExternoProjetosPage: React.FC = () => {
     : 1;
 
   return (
-    <Container fluid className="page-container">
-      <div className="page-title-container page-title-container--externo">
-        <h2 className="page-title page-title--externo">
-          Projetos de {externo.name}
-        </h2>
-        <div className="page-actions">
-          <Button variant="secondary" onClick={handleGoBack} className="me-2">
-            <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-            Voltar
-          </Button>
-          <Button variant="info" onClick={handleShowDetails}>
-            Ver Detalhes
-          </Button>
+    <div className="page-container">
+      <div className="page-shell">
+        <div className="page-title-container page-title-container--externo page-title-container--scroll-table">
+          <h2 className="page-title page-title--externo">
+            Projetos de {externo.name}
+          </h2>
+          <div className="page-actions">
+            <Button variant="secondary" onClick={handleGoBack}>
+              <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+              Voltar
+            </Button>
+            <Button variant="info" onClick={handleShowDetails}>
+              Ver Detalhes
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className="table-responsive mt-4">
-        {externo.projetos && externo.projetos.length > 0 ? (
-          <ProjetoTable
-            projetos={externo.projetos}
-            onEditProjeto={handleEditProjeto}
-            onDeleteProjeto={handleDeleteProjeto}
-            page={page}
-            onPageChange={handlePageChange}
-            totalPages={totalPages}
-            filters={filters}
-            updateFilter={updateFilter}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            isLoading={false}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            onSort={handleSort}
-          />
-        ) : (
-          <Alert variant="info">
-            Este colaborador externo não está associado a nenhum projeto.
-          </Alert>
+        <div className="table-responsive mt-4">
+          {externo.projetos && externo.projetos.length > 0 ? (
+            <ProjetoTable
+              projetos={externo.projetos}
+              onEditProjeto={handleEditProjeto}
+              onDeleteProjeto={handleDeleteProjeto}
+              page={page}
+              onPageChange={handlePageChange}
+              totalPages={totalPages}
+              filters={filters}
+              updateFilter={updateFilter}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              isLoading={false}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+          ) : (
+            <Alert variant="info">
+              Este colaborador externo não está associado a nenhum projeto.
+            </Alert>
+          )}
+        </div>
+        {showDetails && externo && (
+          <ExternoDetailsCard externo={externo} onClose={handleCloseDetails} />
         )}
       </div>
-      {showDetails && externo && (
-        <ExternoDetailsCard externo={externo} onClose={handleCloseDetails} />
-      )}
-    </Container>
+    </div>
   );
 };
 

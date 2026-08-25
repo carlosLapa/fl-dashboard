@@ -25,6 +25,7 @@ import { Cliente } from '../../types/cliente';
 import { getAllClientes } from '../../services/clienteService';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
+import 'assets/styles/layout.scss';
 
 const PropostasPage: React.FC = () => {
   const [propostas, setPropostas] = useState<Proposta[]>([]);
@@ -296,15 +297,8 @@ const PropostasPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      <div
-        style={{
-          width: '98%',
-          marginLeft: '2%',
-          marginRight: '2%',
-          marginTop: '2rem',
-        }}
-      >
+    <div className="page-container">
+      <div className="page-shell">
         <div className="page-title-container">
           <h2 className="page-title">Gestão de Propostas</h2>
           <div className="page-actions">

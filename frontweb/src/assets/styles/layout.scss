@@ -9,15 +9,14 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem !important;
-  width: 98% !important; // Match the table width
-  margin-left: 0 !important; // No left margin to match table
-  margin-right: 2% !important; // Right margin to match table
+  width: 100% !important; // Inherits the gutter from its .page-shell parent
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 
   @include respond-to('md') {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
-    width: 100% !important; // Full width on mobile
   }
 }
 
@@ -51,6 +50,19 @@
   margin-right: 0 !important;
 }
 
+// Some list pages render their primary table in a fixed-height,
+// vertically scrollable box (see e.g. ProjetoTable.scss's
+// .projeto-container), which permanently reserves the OS scrollbar's
+// width on the right. The header row above it doesn't scroll, so its
+// actions end up flush with the page edge while the table's visible
+// content sits one scrollbar-width short of it. Pages with that kind
+// of table opt into this modifier to pull the header actions in by a
+// matching amount. 17px approximates the default Windows scrollbar;
+// it won't be pixel-exact on every OS, but it's far closer than 0.
+.page-title-container--scroll-table .page-actions {
+  padding-right: 17px !important;
+}
+
 // Consistent create button styling
 .create-button {
   display: flex;
@@ -75,10 +87,19 @@
   }
 }
 
-// Add a new class for table containers to add top margin
-.table-container {
-  margin-top: 1.5rem !important; // Add space above tables
-  width: 98% !important; // Match the table width
-  margin-left: 0 !important; // No left margin
-  margin-right: 2% !important; // Right margin
+// Shared page content gutter, used by every list/detail page instead of
+// duplicating width/margin inline styles. clamp() keeps the side gaps
+// proportional without letting them shrink to nothing on small screens or
+// balloon on ultra-wide monitors.
+.page-shell {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 2rem;
+  padding-left: clamp(1rem, 2vw, 2rem);
+  padding-right: clamp(1.5rem, 4vw, 4rem);
+
+  @include respond-to('md') {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

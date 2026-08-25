@@ -227,15 +227,9 @@ const UsersTarefasPage: React.FC = () => {
   }
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the content in a div with consistent width and margins */}
-      <div
-        style={{
-          width: '98%',
-          marginTop: '2rem',
-        }}
-      >
-        <div className="page-title-container">
+    <div className="page-container">
+      <div className="page-shell">
+        <div className="page-title-container page-title-container--scroll-table">
           <div
             className="user-info-container"
             style={{ display: 'flex', alignItems: 'center' }}

@@ -90,16 +90,10 @@ const ExternoTarefasPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="page-container" style={{ marginTop: '2rem' }}>
+      <div className="page-container">
         <div
-          style={{
-            width: '98%',
-            marginLeft: '2%',
-            marginRight: '2%',
-            marginTop: '2rem',
-            textAlign: 'center',
-            padding: '2rem',
-          }}
+          className="page-shell"
+          style={{ textAlign: 'center', padding: '2rem' }}
         >
           <Spinner animation="border" role="status">
             <span className="visually-hidden">Loading...</span>
@@ -111,15 +105,8 @@ const ExternoTarefasPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div
-          style={{
-            width: '98%',
-            marginLeft: '2%',
-            marginRight: '2%',
-            marginTop: '2rem',
-          }}
-        >
+      <div className="page-container">
+        <div className="page-shell">
           <Alert variant="danger">{error}</Alert>
           <Button variant="secondary" onClick={handleGoBack}>
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
@@ -132,15 +119,8 @@ const ExternoTarefasPage: React.FC = () => {
 
   if (!externo) {
     return (
-      <div className="page-container" style={{ marginTop: '2rem' }}>
-        <div
-          style={{
-            width: '98%',
-            marginLeft: '2%',
-            marginRight: '2%',
-            marginTop: '2rem',
-          }}
-        >
+      <div className="page-container">
+        <div className="page-shell">
           <Alert variant="warning">Colaborador externo não encontrado.</Alert>
           <Button variant="secondary" onClick={handleGoBack}>
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
@@ -152,17 +132,9 @@ const ExternoTarefasPage: React.FC = () => {
   }
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the title container and table in a div with consistent width and margins */}
-      <div
-        style={{
-          width: '98%',
-          marginLeft: '2%',
-          marginRight: '2%',
-          marginTop: '2rem',
-        }}
-      >
-        <div className="page-title-container page-title-container--externo">
+    <div className="page-container">
+      <div className="page-shell">
+        <div className="page-title-container page-title-container--externo page-title-container--scroll-table">
           <h2 className="page-title page-title--externo">
             Tarefas de {externo.name}
           </h2>

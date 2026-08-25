@@ -114,17 +114,9 @@ const ExternosPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      {/* Wrap the title container and table in a div with consistent width and margins */}
-      <div
-        style={{
-          width: '98%',
-          marginLeft: '2%',
-          marginRight: '2%',
-          marginTop: '2rem',
-        }}
-      >
-        <div className="page-title-container page-title-container--externo">
+    <div className="page-container">
+      <div className="page-shell">
+        <div className="page-title-container page-title-container--externo page-title-container--scroll-table">
           <h2 className="page-title page-title--externo">
             Colaboradores Externos
           </h2>

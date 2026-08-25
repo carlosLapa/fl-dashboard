@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Row,
-  Col,
-  Spinner,
-  Alert,
-  Card,
-  Button,
-} from 'react-bootstrap';
+import { Container, Spinner, Alert, Card, Button } from 'react-bootstrap';
 import {
   getProjetoWithUsersAndTarefasAPI,
   updateProjetoStatusAPI,
@@ -158,44 +150,39 @@ const ProjetoDetailsPage: React.FC = () => {
   }
 
   return (
-    <Container className="mt-4 projeto-details-container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="page-title">Detalhes do Projeto</h2>
-        <div className="d-flex">
-          <div className="me-2">
+    <div className="page-container projeto-details-container">
+      <div className="page-shell">
+        <div className="page-title-container">
+          <h2 className="page-title">Detalhes do Projeto</h2>
+          <div className="page-actions">
             <BackButton to="/projetos" />
+            <Button
+              variant="primary"
+              onClick={() => setShowTarefaModal(true)}
+            >
+              <FontAwesomeIcon icon={faPlus} className="me-2" />
+              Nova Tarefa
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={() => navigate(`/projetos/${projetoId}/full`)}
+            >
+              <FontAwesomeIcon icon={faColumns} className="me-2" />
+              Kanban
+            </Button>
           </div>
-          <Button
-            variant="primary"
-            className="me-2"
-            onClick={() => setShowTarefaModal(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} className="me-2" />
-            Nova Tarefa
-          </Button>
-          <Button
-            variant="outline-primary"
-            onClick={() => navigate(`/projetos/${projetoId}/full`)}
-          >
-            <FontAwesomeIcon icon={faColumns} className="me-2" />
-            Kanban
-          </Button>
         </div>
-      </div>
 
-      <Row className="mb-4">
-        <Col>
+        <div className="mb-4">
           <div className="details-table-wrapper">
             <ProjetoDetailsTable
               projeto={projeto}
               onStatusChange={handleStatusChange}
             />
           </div>
-        </Col>
-      </Row>
+        </div>
 
-      <Row className="mb-4">
-        <Col>
+        <div className="mb-4">
           <Card>
             <Card.Header as="h5">Tarefas Associadas</Card.Header>
             <Card.Body className="p-0">
@@ -207,11 +194,9 @@ const ProjetoDetailsPage: React.FC = () => {
               </div>
             </Card.Body>
           </Card>
-        </Col>
-      </Row>
+        </div>
 
-      <Row className="mb-4">
-        <Col>
+        <div className="mb-4">
           <Card>
             <Card.Header as="h5">Tarefas Arquivadas</Card.Header>
             <Card.Body className="p-0">
@@ -223,20 +208,18 @@ const ProjetoDetailsPage: React.FC = () => {
               </div>
             </Card.Body>
           </Card>
-        </Col>
-      </Row>
+        </div>
 
-      {/* Substitua a seção anterior de Colaboradores Externos pelo ProjetoExternosManager */}
-      <Row className="mb-4">
-        <Col>
+        {/* Substitua a seção anterior de Colaboradores Externos pelo ProjetoExternosManager */}
+        <div className="mb-4">
           {projeto.id && (
             <ProjetoExternosManager
               projetoId={projeto.id}
               onUpdate={fetchProjeto}
             />
           )}
-        </Col>
-      </Row>
+        </div>
+      </div>
 
       {showTarefaModal && (
         <ProjetoTarefaModal
@@ -261,7 +244,7 @@ const ProjetoDetailsPage: React.FC = () => {
           tarefa={tarefaToEdit}
         />
       )}
-    </Container>
+    </div>
   );
 };
 

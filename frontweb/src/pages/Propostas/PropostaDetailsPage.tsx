@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Row, Col, Spinner, Alert, Button } from 'react-bootstrap';
+import { Container, Spinner, Alert, Button } from 'react-bootstrap';
 import { getPropostaWithClientes } from '../../services/propostaService';
 import { Proposta } from '../../types/proposta';
 import PropostaDetailsTable from '../../components/Proposta/PropostaDetailsTable';
@@ -104,38 +104,32 @@ const PropostaDetailsPage: React.FC = () => {
   }
 
   return (
-    <Container className="mt-4 proposta-details-container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="page-title">Detalhes da Proposta</h2>
-        <div className="d-flex">
-          <div className="me-2">
+    <div className="page-container proposta-details-container">
+      <div className="page-shell">
+        <div className="page-title-container">
+          <h2 className="page-title">Detalhes da Proposta</h2>
+          <div className="page-actions">
             <BackButton to="/propostas" />
+
+            {/* Botão para converter em projeto, apenas mostrado se a proposta estiver adjudicada e não tiver projeto associado */}
+            {proposta.status === 'ADJUDICADA' &&
+              !proposta.projetoId &&
+              hasPermission(Permission.ADJUDICAR_PROPOSTA) && (
+                <Button variant="primary" onClick={handleConverterParaProjeto}>
+                  <FontAwesomeIcon icon={faExchangeAlt} className="me-2" />
+                  Converter em Projeto
+                </Button>
+              )}
           </div>
-
-          {/* Botão para converter em projeto, apenas mostrado se a proposta estiver adjudicada e não tiver projeto associado */}
-          {proposta.status === 'ADJUDICADA' &&
-            !proposta.projetoId &&
-            hasPermission(Permission.ADJUDICAR_PROPOSTA) && (
-              <Button
-                variant="primary"
-                onClick={handleConverterParaProjeto}
-                className="ms-2"
-              >
-                <FontAwesomeIcon icon={faExchangeAlt} className="me-2" />
-                Converter em Projeto
-              </Button>
-            )}
         </div>
-      </div>
 
-      <Row className="mb-4">
-        <Col>
+        <div className="mb-4">
           <div className="details-table-wrapper">
             <PropostaDetailsTable proposta={proposta} />
           </div>
-        </Col>
-      </Row>
-    </Container>
+        </div>
+      </div>
+    </div>
   );
 };
 

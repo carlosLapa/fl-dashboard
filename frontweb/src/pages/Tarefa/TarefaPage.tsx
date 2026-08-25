@@ -387,16 +387,9 @@ const TarefaPage: React.FC = () => {
   }
 
   return (
-    <div className="page-container" style={{ marginTop: '2rem' }}>
-      <div
-        style={{
-          width: '98%',
-          marginLeft: '2%',
-          marginRight: '2%',
-          marginTop: '2rem',
-        }}
-      >
-        <div className="page-title-container">
+    <div className="page-container">
+      <div className="page-shell">
+        <div className="page-title-container page-title-container--scroll-table">
           <h2 className="page-title">Tarefas</h2>
           <div className="page-actions">
             <Button
