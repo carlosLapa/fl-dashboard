@@ -50,6 +50,19 @@
   margin-right: 0 !important;
 }
 
+// Some list pages render their primary table in a fixed-height,
+// vertically scrollable box (see e.g. ProjetoTable.scss's
+// .projeto-container), which permanently reserves the OS scrollbar's
+// width on the right. The header row above it doesn't scroll, so its
+// actions end up flush with the page edge while the table's visible
+// content sits one scrollbar-width short of it. Pages with that kind
+// of table opt into this modifier to pull the header actions in by a
+// matching amount. 17px approximates the default Windows scrollbar;
+// it won't be pixel-exact on every OS, but it's far closer than 0.
+.page-title-container--scroll-table .page-actions {
+  padding-right: 17px !important;
+}
+
 // Consistent create button styling
 .create-button {
   display: flex;

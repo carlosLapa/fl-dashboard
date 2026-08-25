@@ -229,7 +229,7 @@ const UsersTarefasPage: React.FC = () => {
   return (
     <div className="page-container">
       <div className="page-shell">
-        <div className="page-title-container">
+        <div className="page-title-container page-title-container--scroll-table">
           <div
             className="user-info-container"
             style={{ display: 'flex', alignItems: 'center' }}

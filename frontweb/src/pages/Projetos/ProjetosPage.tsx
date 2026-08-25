@@ -300,7 +300,7 @@ const ProjetosPage: React.FC = () => {
   return (
     <div className="page-container">
       <div className="page-shell">
-        <div className="page-title-container">
+        <div className="page-title-container page-title-container--scroll-table">
           <h2 className="page-title">
             Gestão de Projetos
             {isFiltered && hasActiveFilters(appliedFilters) && (

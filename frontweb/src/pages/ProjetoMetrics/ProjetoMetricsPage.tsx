@@ -157,42 +157,52 @@ const ProjetoMetricsPage: React.FC = () => {
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
       <div className="metrics-content">
-        {/* Page Header */}
-        <div className="page-title-container page-title-container--metrics mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div className="d-flex align-items-center">
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={handleGoBack}
-              className="me-3 no-print"
-            >
-              <FontAwesomeIcon icon={faArrowLeft} />
-            </Button>
-            <div>
-              <h2 className="page-title mb-1">
-                Métricas do Projeto: {metrics.designacao}
-              </h2>
-              <p className="text-muted mb-0">
-                Análise de desempenho e estatísticas detalhadas
-              </p>
+        {/* Page Header — wrapped in the same Row/Col grid as the KPI cards
+            below so it picks up the exact same gutter and lines up with
+            them, instead of relying on matching width/margin by hand. */}
+        <Row className="mb-4">
+          <Col>
+            <div className="page-title-container page-title-container--metrics d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div className="d-flex align-items-center">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={handleGoBack}
+                  className="me-3 no-print"
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} />
+                </Button>
+                <div>
+                  <h2 className="page-title mb-1">
+                    Métricas do Projeto: {metrics.designacao}
+                  </h2>
+                  <p className="text-muted mb-0">
+                    Análise de desempenho e estatísticas detalhadas
+                  </p>
+                </div>
+              </div>
+              <div className="d-flex gap-2 no-print">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={handleCreateSnapshot}
+                  disabled={isCreatingSnapshot}
+                >
+                  <FontAwesomeIcon icon={faCamera} className="me-2" />
+                  {isCreatingSnapshot ? 'A criar...' : 'Criar Snapshot'}
+                </Button>
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={handlePrint}
+                >
+                  <FontAwesomeIcon icon={faPrint} className="me-2" />
+                  Exportar / Imprimir
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="d-flex gap-2 no-print">
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={handleCreateSnapshot}
-              disabled={isCreatingSnapshot}
-            >
-              <FontAwesomeIcon icon={faCamera} className="me-2" />
-              {isCreatingSnapshot ? 'A criar...' : 'Criar Snapshot'}
-            </Button>
-            <Button variant="outline-primary" size="sm" onClick={handlePrint}>
-              <FontAwesomeIcon icon={faPrint} className="me-2" />
-              Exportar / Imprimir
-            </Button>
-          </div>
-        </div>
+          </Col>
+        </Row>
 
         {/* KPI Cards */}
         <Row className="g-3 mb-4">

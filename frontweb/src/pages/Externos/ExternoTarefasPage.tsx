@@ -134,7 +134,7 @@ const ExternoTarefasPage: React.FC = () => {
   return (
     <div className="page-container">
       <div className="page-shell">
-        <div className="page-title-container page-title-container--externo">
+        <div className="page-title-container page-title-container--externo page-title-container--scroll-table">
           <h2 className="page-title page-title--externo">
             Tarefas de {externo.name}
           </h2>
