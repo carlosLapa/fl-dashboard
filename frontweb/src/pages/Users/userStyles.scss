@@ -37,6 +37,7 @@
 /* Ensure the pagination stays at the bottom */
 .pagination-container {
   margin-top: 1rem;
+  position: -webkit-sticky;
   position: sticky;
   bottom: 0;
   background-color: #fff;

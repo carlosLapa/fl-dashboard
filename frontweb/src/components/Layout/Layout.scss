@@ -93,13 +93,6 @@ $navbar-height-xl: 80px;
   }
 }
 
-// Fix for iOS Safari to ensure content is scrollable
-@media (pointer: coarse) {
-  .main-content:not(.welcome-page) {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
 // Special styles for the app container when on welcome page
 .app-container.welcome-page-active {
   padding-top: 0 !important; // Remove padding for welcome page

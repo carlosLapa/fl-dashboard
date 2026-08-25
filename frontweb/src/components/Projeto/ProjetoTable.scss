@@ -21,7 +21,6 @@
     overflow-y: auto; // Add vertical scrolling
     flex: 1; // Take available space
     min-height: 0; // Important for flex child to scroll
-    -webkit-overflow-scrolling: touch;
   }
 
   // Ensure pagination is always visible
@@ -120,6 +119,7 @@
 .projeto-container table th {
   background-color: #f8f9fa;
   font-weight: 600;
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 1;
