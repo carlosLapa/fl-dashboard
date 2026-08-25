@@ -5,11 +5,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { getUserById } from 'services/userService';
 import { getProjetoUserHistory } from '../../services/projetoUserHistoryService';
+import { getTarefaUserDetalhe } from '../../services/tarefaUserDetalheService';
 import { User } from 'types/user';
 import { ProjetoUserHistoryTimelineDTO } from '../../types/projetoUserHistory';
+import { TarefaUserDetalheDTO } from '../../types/colaboradorReport';
 import ProjectAssignmentTimelineChart from '../../components/User/ProjectAssignmentTimelineChart';
 import ProjetoAssignmentHistoryTable from '../../components/User/ProjetoAssignmentHistoryTable';
 import ProjetoTimeSpentTable from '../../components/User/ProjetoTimeSpentTable';
+import TarefaUserDetalheTable from '../../components/User/TarefaUserDetalheTable';
 import 'assets/styles/layout.scss';
 
 const UserProjetoHistoryPage: React.FC = () => {
@@ -20,6 +23,9 @@ const UserProjetoHistoryPage: React.FC = () => {
   const [history, setHistory] = useState<ProjetoUserHistoryTimelineDTO | null>(
     null,
   );
+  const [tarefasDetalhe, setTarefasDetalhe] = useState<
+    TarefaUserDetalheDTO[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,12 +41,14 @@ const UserProjetoHistoryPage: React.FC = () => {
 
     try {
       const parsedUserId = parseInt(userId, 10);
-      const [userData, historyData] = await Promise.all([
+      const [userData, historyData, tarefasDetalheData] = await Promise.all([
         getUserById(parsedUserId),
         getProjetoUserHistory(parsedUserId),
+        getTarefaUserDetalhe(parsedUserId),
       ]);
       setUser(userData);
       setHistory(historyData);
+      setTarefasDetalhe(tarefasDetalheData);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Erro ao carregar histórico';
@@ -111,12 +119,12 @@ const UserProjetoHistoryPage: React.FC = () => {
             </Button>
             <div>
               <h2 className="page-title mb-1">
-                Histórico de Projetos: {user.name}
+                Histórico de Desempenho: {user.name}
               </h2>
               <p className="text-muted mb-0">
-                Atribuições e remoções de projetos ao longo do tempo.
-                Histórico disponível apenas a partir da data de introdução
-                desta funcionalidade.
+                Atribuições e remoções de projetos, e detalhe de tarefas, ao
+                longo do tempo. Histórico disponível apenas a partir da data
+                de introdução desta funcionalidade.
               </p>
             </div>
           </div>
@@ -130,6 +138,10 @@ const UserProjetoHistoryPage: React.FC = () => {
 
         <div style={{ width: '100%', marginTop: '2rem' }}>
           <ProjetoTimeSpentTable tempoPorProjeto={history.tempoPorProjeto} />
+        </div>
+
+        <div style={{ width: '100%', marginTop: '2rem' }}>
+          <TarefaUserDetalheTable tarefas={tarefasDetalhe} />
         </div>
 
         <div style={{ width: '100%', marginTop: '2rem' }}>

@@ -1,6 +1,7 @@
 package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.CollaboratorGlobalMetricsDTO;
+import com.fl.dashboard.dto.TarefaUserDetalheDTO;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
@@ -82,5 +83,17 @@ public class ColaboradorReportService {
         }
 
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TarefaUserDetalheDTO> getTarefaDetailsForUser(Long userId) {
+        List<Tarefa> tarefas = tarefaRepository.findAllActiveByUserId(userId);
+
+        return tarefas.stream()
+                .map(TarefaUserDetalheDTO::new)
+                .sorted(Comparator.comparing(
+                        TarefaUserDetalheDTO::getPrazoEstimado,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 }
