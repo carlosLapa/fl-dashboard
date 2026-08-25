@@ -289,7 +289,7 @@ const UsersTarefasPage: React.FC = () => {
               variant="outline-primary"
               onClick={handleNavigateToProjetoHistory}
             >
-              Ver Histórico de Projetos
+              Ver Histórico de Desempenho
             </Button>
           </div>
         </div>

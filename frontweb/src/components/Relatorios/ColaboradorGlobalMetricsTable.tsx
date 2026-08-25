@@ -88,7 +88,7 @@ const ColaboradorGlobalMetricsTable: React.FC<
                       placement="top"
                       overlay={
                         <Tooltip id={`history-tooltip-${col.colaboradorId}`}>
-                          Ver Histórico de Projetos
+                          Ver Histórico de Desempenho
                         </Tooltip>
                       }
                     >
