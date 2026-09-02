@@ -11,7 +11,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -49,6 +51,8 @@ public class TarefaDTO {
     private Date proximaOcorrencia;
 
     private Long tarefaOrigemId;
+
+    private List<TarefaLinkDTO> links = new ArrayList<>();
 
     public TarefaDTO() {
     }
@@ -88,6 +92,9 @@ public class TarefaDTO {
         this.dataFimRecorrencia = entity.getDataFimRecorrencia();
         this.proximaOcorrencia = entity.getProximaOcorrencia();
         this.tarefaOrigemId = entity.getTarefaOrigemId();
+        this.links = entity.getLinks() != null
+                ? entity.getLinks().stream().map(TarefaLinkDTO::new).toList()
+                : new ArrayList<>();
     }
 
 }

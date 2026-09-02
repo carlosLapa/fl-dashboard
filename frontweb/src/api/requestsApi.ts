@@ -639,6 +639,13 @@ export const getTarefasWithUsersAndProjetoByUser = async (
         status: filters?.status || undefined,
         prioridade: filters?.prioridade || undefined,
         projeto: filters?.projeto || undefined,
+        // This endpoint sets a 10s Cache-Control: max-age on the backend (to dedupe rapid
+        // incidental re-fetches) — but that also makes the browser serve a stale response
+        // when the caller deliberately re-fetches right after a mutation (e.g. TarefaModal
+        // save), showing pre-edit data until the 10s window lapses. A unique query param
+        // busts both the browser cache and the server's response cache for this exact URL,
+        // without adding a request header (which would need CORS's allowedHeaders updated).
+        _ts: Date.now(),
       },
     })
     .then((response) => response.data)
@@ -786,6 +793,12 @@ export const getTarefasFilteredAPI = async (params: {
         endDate: params.endDate,
       });
     }
+
+    // This endpoint also sets a 10s Cache-Control: max-age on the backend, so bust it here
+    // with a unique query param — otherwise a refetch right after a mutation (e.g. TarefaModal
+    // save) can show pre-edit data until that window lapses. A query param avoids adding a
+    // request header, which would need CORS's allowedHeaders updated to avoid a preflight failure.
+    queryParams.append('_ts', Date.now().toString());
 
     const finalUrl = `/tarefas/filter?${queryParams.toString()}`;
     console.log('API - Final URL:', finalUrl);

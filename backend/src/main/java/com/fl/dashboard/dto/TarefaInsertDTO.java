@@ -2,10 +2,12 @@ package com.fl.dashboard.dto;
 
 import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.TarefaStatus;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -23,4 +25,7 @@ public class TarefaInsertDTO {
     private Boolean recorrente;
     private FrequenciaRecorrencia frequenciaRecorrencia;
     private Date dataFimRecorrencia;
+
+    @Valid
+    private List<TarefaLinkDTO> links;
 }

@@ -16,6 +16,12 @@ export type FrequenciaRecorrencia =
   | 'TRIMESTRAL'
   | 'ANUAL';
 
+export interface TarefaLink {
+  id?: number;
+  url: string;
+  descricao?: string;
+}
+
 export interface Tarefa {
   id: number;
   descricao: string;
@@ -23,6 +29,7 @@ export interface Tarefa {
   prazoEstimado: string;
   prazoReal: string;
   status: TarefaStatus;
+  links?: TarefaLink[];
   // Calculated field: number of working days between prazoEstimado and prazoReal (excludes weekends)
   workingDays?: number;
   arquivadaEm?: string | null;
@@ -76,6 +83,7 @@ export interface TarefaInsertFormData {
   recorrente?: boolean;
   frequenciaRecorrencia?: FrequenciaRecorrencia;
   dataFimRecorrencia?: string;
+  links?: TarefaLink[];
 }
 
 export interface TarefaUpdateFormData {
@@ -93,6 +101,7 @@ export interface TarefaUpdateFormData {
   recorrente?: boolean;
   frequenciaRecorrencia?: FrequenciaRecorrencia;
   dataFimRecorrencia?: string;
+  links?: TarefaLink[];
 }
 
 export type TarefaWithUserAndProjetoDTO = Tarefa & {

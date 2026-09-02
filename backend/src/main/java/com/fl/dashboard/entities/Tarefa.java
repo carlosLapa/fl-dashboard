@@ -69,6 +69,10 @@ public class Tarefa {
     @OneToMany(mappedBy = "tarefa")
     private List<Notification> notifications = new ArrayList<>();
 
+    @JsonBackReference
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TarefaLink> links = new ArrayList<>();
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
