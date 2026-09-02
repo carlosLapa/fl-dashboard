@@ -15,6 +15,7 @@ import {
 } from 'types/tarefa';
 import UserTarefaTable from 'components/User/UserTarefaTable';
 import TarefaModal from 'components/Tarefa/TarefaModal';
+import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
 import Button from 'react-bootstrap/Button';
 import { useAuth } from '../../AuthContext'; // Add this import
 import { useUserTarefaFilters } from 'hooks/useFilterState';
@@ -34,6 +35,9 @@ const UsersTarefasPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showTarefaModal, setShowTarefaModal] = useState(false);
   const [selectedTarefa, setSelectedTarefa] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
+  const [showDetailsCard, setShowDetailsCard] = useState(false);
+  const [tarefaForDetails, setTarefaForDetails] =
     useState<TarefaWithUserAndProjetoDTO | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -153,6 +157,14 @@ const UsersTarefasPage: React.FC = () => {
 
   const handleDeleteTarefa = (tarefaId: number) => {
     console.log(`Delete tarefa with id: ${tarefaId}`);
+  };
+
+  const handleViewDetails = (tarefaId: number) => {
+    const tarefa = tarefas.find((t) => t.id === tarefaId);
+    if (tarefa) {
+      setTarefaForDetails(tarefa);
+      setShowDetailsCard(true);
+    }
   };
 
   const handleCloseTarefaModal = () => {
@@ -315,6 +327,7 @@ const UsersTarefasPage: React.FC = () => {
               tarefas={tarefas}
               onEditTarefa={handleEditTarefa}
               onDeleteTarefa={handleDeleteTarefa}
+              onViewDetails={handleViewDetails}
               isLoading={tasksLoading}
               page={page}
               totalPages={totalPages}
@@ -338,6 +351,12 @@ const UsersTarefasPage: React.FC = () => {
           onStatusChange={handleStatusChange}
           onArchive={handleArchiveTarefa}
           isEditing={true}
+        />
+      )}
+      {showDetailsCard && tarefaForDetails && (
+        <TarefaDetailsCard
+          tarefa={tarefaForDetails}
+          onClose={() => setShowDetailsCard(false)}
         />
       )}
     </div>

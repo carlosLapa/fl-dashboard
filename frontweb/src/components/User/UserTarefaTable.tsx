@@ -4,7 +4,11 @@ import { Spinner } from 'react-bootstrap';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
 import { UserTarefaFilterState } from '../../types/filters';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPencilAlt,
+  faTrashAlt,
+  faInfoCircle,
+} from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import UserTarefaFilterPanel from './UserTarefaFilterPanel';
@@ -16,6 +20,7 @@ interface UserTarefaTableProps {
   tarefas: TarefaWithUserAndProjetoDTO[];
   onEditTarefa: (tarefaId: number) => void;
   onDeleteTarefa: (tarefaId: number) => void;
+  onViewDetails: (tarefaId: number) => void;
   isLoading?: boolean;
   page: number;
   totalPages: number;
@@ -31,6 +36,7 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
   tarefas,
   onEditTarefa,
   onDeleteTarefa,
+  onViewDetails,
   isLoading = false,
   page,
   totalPages,
@@ -131,6 +137,21 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                               icon={faTrashAlt}
                               onClick={() => onDeleteTarefa(tarefa.id)}
                               className="action-icon delete-icon"
+                              style={{ marginLeft: '10px' }}
+                            />
+                          </OverlayTrigger>
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`details-tooltip-${tarefa.id}`}>
+                                Ver Detalhes
+                              </Tooltip>
+                            }
+                          >
+                            <FontAwesomeIcon
+                              icon={faInfoCircle}
+                              onClick={() => onViewDetails(tarefa.id)}
+                              className="action-icon view-details-icon"
                               style={{ marginLeft: '10px' }}
                             />
                           </OverlayTrigger>
