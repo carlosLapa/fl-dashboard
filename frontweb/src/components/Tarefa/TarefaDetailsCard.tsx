@@ -93,6 +93,20 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
                   ? tarefa.externos.map((externo) => externo.name).join(', ')
                   : 'Nenhum externo associado'}
               </p>
+              {tarefa.links && tarefa.links.length > 0 && (
+                <div className="mb-2">
+                  <strong>Links partilhados:</strong>
+                  <ul className="mb-0 ps-3">
+                    {tarefa.links.map((link) => (
+                      <li key={link.id}>
+                        <a href={link.url} target="_blank" rel="noreferrer">
+                          {link.descricao || link.url}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </Card.Body>
           <Card.Footer className="text-end">

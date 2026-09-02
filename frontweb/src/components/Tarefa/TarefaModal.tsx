@@ -16,6 +16,7 @@ import {
   TarefaInsertFormData,
   TarefaUpdateFormData,
   TarefaStatus,
+  TarefaLink,
 } from '../../types/tarefa';
 import { User } from 'types/user';
 import { Projeto, ProjetoMinDTO } from 'types/projeto';
@@ -124,6 +125,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     recorrente: false,
     frequenciaRecorrencia: undefined,
     dataFimRecorrencia: '',
+    links: [],
   });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -207,6 +209,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         dataFimRecorrencia: tarefa.dataFimRecorrencia
           ? tarefa.dataFimRecorrencia.split('T')[0]
           : '',
+        links: tarefa.links ?? [],
       });
       setSelectedProjectName(tarefa.projeto.designacao);
       setWorkingDays(
@@ -234,6 +237,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         recorrente: false,
         frequenciaRecorrencia: undefined,
         dataFimRecorrencia: '',
+        links: [],
       });
       setSelectedProjectName('');
       setWorkingDays(0);
@@ -408,6 +412,34 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     }));
   };
 
+  // Handle shared links (e.g. OneDrive) attached to the tarefa
+  const handleAddLink = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      links: [...(prevData.links || []), { url: '', descricao: '' }],
+    }));
+  };
+
+  const handleLinkChange = (
+    index: number,
+    field: keyof TarefaLink,
+    value: string
+  ) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      links: (prevData.links || []).map((link, i) =>
+        i === index ? { ...link, [field]: value } : link
+      ),
+    }));
+  };
+
+  const handleRemoveLink = (index: number) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      links: (prevData.links || []).filter((_, i) => i !== index),
+    }));
+  };
+
   // Handle externo selection
   const handleExternoSelect = (externoId: number) => {
     setFormData((prevData) => ({
@@ -441,11 +473,28 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       }
     }
 
+    // Drop any link row the user left without a URL rather than rejecting the save,
+    // but reject a filled-in one with an unsafe scheme (e.g. javascript:) — it's
+    // rendered as a clickable link elsewhere, so only http(s) is allowed.
+    const linksToSave = (formData.links || []).filter(
+      (link) => link.url.trim() !== ''
+    );
+    const invalidLink = linksToSave.find(
+      (link) => !/^https?:\/\//i.test(link.url.trim())
+    );
+    if (invalidLink) {
+      toast.warning(
+        `O link "${invalidLink.url}" deve começar por http:// ou https://`
+      );
+      return;
+    }
+
     // Include workingDays in the form data if both dates are available
     const updatedFormData = {
       ...formData,
       workingDays:
         formData.prazoEstimado && formData.prazoReal ? workingDays : undefined,
+      links: linksToSave,
     };
 
     if (isEditing && tarefa) {
@@ -848,6 +897,62 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                           <p>Nenhum externo disponível</p>
                         )}
                       </div>
+                    </Form.Group>
+                  </Tab>
+                  <Tab eventKey="links" title="Links">
+                    <Form.Group controlId="formLinks" className="mb-3">
+                      <Form.Label>Links partilhados</Form.Label>
+                      <Form.Text className="d-block text-muted mb-2">
+                        Ex.: pastas do OneDrive, Google Drive, etc. Adicione
+                        uma breve descrição para esclarecer o que trata cada
+                        link.
+                      </Form.Text>
+                      {(formData.links || []).map((link, index) => (
+                        <Row key={link.id ?? `new-${index}`} className="mb-2 align-items-start">
+                          <Col xs={12} md={4}>
+                            <Form.Control
+                              type="text"
+                              placeholder="Descrição (ex.: Plantas do projeto)"
+                              maxLength={255}
+                              value={link.descricao || ''}
+                              onChange={(e) =>
+                                handleLinkChange(
+                                  index,
+                                  'descricao',
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </Col>
+                          <Col xs={9} md={6}>
+                            <Form.Control
+                              type="url"
+                              placeholder="https://..."
+                              maxLength={500}
+                              value={link.url}
+                              onChange={(e) =>
+                                handleLinkChange(index, 'url', e.target.value)
+                              }
+                            />
+                          </Col>
+                          <Col xs={3} md={2} className="text-end">
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleRemoveLink(index)}
+                            >
+                              Remover
+                            </Button>
+                          </Col>
+                        </Row>
+                      ))}
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={handleAddLink}
+                      >
+                        Adicionar link
+                      </Button>
                     </Form.Group>
                   </Tab>
                   <Tab eventKey="subtarefas" title="Subtarefas">

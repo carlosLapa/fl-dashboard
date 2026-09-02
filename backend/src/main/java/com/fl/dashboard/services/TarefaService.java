@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
+import com.fl.dashboard.entities.TarefaLink;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.NotificationType;
@@ -138,6 +139,32 @@ public class TarefaService {
             Date anchor = tarefa.getPrazoEstimado() != null ? tarefa.getPrazoEstimado() : new Date();
             tarefa.setProximaOcorrencia(shiftDate(anchor, frequencia));
         }
+    }
+
+    // Reconciles the tarefa's links with the incoming DTO list: matches by id to update/keep
+    // existing rows in place (avoiding unnecessary delete+insert churn), creates new rows for
+    // entries without an id, and drops rows no longer present — relying on orphanRemoval on
+    // Tarefa.links to delete them at flush.
+    private void syncLinks(Tarefa tarefa, List<TarefaLinkDTO> linkDTOs) {
+        Map<Long, TarefaLink> existingById = tarefa.getLinks().stream()
+                .filter(link -> link.getId() != null)
+                .collect(Collectors.toMap(TarefaLink::getId, link -> link));
+
+        List<TarefaLink> updatedLinks = new ArrayList<>();
+        if (linkDTOs != null) {
+            for (TarefaLinkDTO dto : linkDTOs) {
+                TarefaLink link = dto.getId() != null ? existingById.get(dto.getId()) : null;
+                if (link == null) {
+                    link = new TarefaLink();
+                    link.setTarefa(tarefa);
+                }
+                link.setUrl(dto.getUrl());
+                link.setDescricao(dto.getDescricao());
+                updatedLinks.add(link);
+            }
+        }
+        tarefa.getLinks().clear();
+        tarefa.getLinks().addAll(updatedLinks);
     }
 
     @Transactional(readOnly = true)
@@ -405,6 +432,8 @@ public class TarefaService {
             }
         });
 
+        syncLinks(tarefa, dto.getLinks());
+
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
@@ -458,6 +487,8 @@ public class TarefaService {
                     .collect(Collectors.toSet());
             tarefa.setExternos(externos);
         }
+
+        syncLinks(tarefa, dto.getLinks());
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
 
