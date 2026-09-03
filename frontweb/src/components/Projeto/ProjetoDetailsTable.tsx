@@ -103,6 +103,22 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
               <th>Colaboradores Externos</th>
               <td colSpan={3}>{renderExternoNames(projeto.externos)}</td>
             </tr>
+            {projeto.links && projeto.links.length > 0 && (
+              <tr>
+                <th>Links partilhados</th>
+                <td colSpan={3}>
+                  <ul className="mb-0 ps-3">
+                    {projeto.links.map((link) => (
+                      <li key={link.id}>
+                        <a href={link.url} target="_blank" rel="noreferrer">
+                          {link.descricao || link.url}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </td>
+              </tr>
+            )}
           </tbody>
         </Table>
       </div>

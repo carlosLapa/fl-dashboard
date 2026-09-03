@@ -35,6 +35,10 @@ public class Projeto {
     @OneToMany(mappedBy = "projeto", fetch = FetchType.LAZY)
     private Set<Tarefa> tarefas = new HashSet<>();
 
+    @JsonBackReference
+    @OneToMany(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjetoLink> links = new ArrayList<>();
+
     // BatchSize turns "1 lazy-load query per Projeto in the result" (e.g. UserWithProjetosDTO/
     // ClienteWithProjetosDTO mapping each project's externos individually) into one batched
     // "WHERE projeto_id IN (...)" query per page, without joining externos into the main query
@@ -222,6 +226,14 @@ public class Projeto {
 
     public void setColunas(List<Coluna> colunas) {
         this.colunas = colunas;
+    }
+
+    public List<ProjetoLink> getLinks() {
+        return links;
+    }
+
+    public void setLinks(List<ProjetoLink> links) {
+        this.links = links;
     }
 
     public Cliente getCliente() {

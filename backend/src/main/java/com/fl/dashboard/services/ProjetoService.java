@@ -3,6 +3,7 @@ package com.fl.dashboard.services;
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.entities.ProjetoLink;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
@@ -121,6 +122,8 @@ public class ProjetoService {
 
         projetoDTOMapper.copyDTOtoEntity(projetoDTO, entity);
 
+        syncLinks(entity, projetoDTO.getLinks());
+
         // Save and flush to ensure the entity is persisted
         Projeto savedEntity = projetoRepository.save(entity);
         projetoRepository.flush();
@@ -202,6 +205,8 @@ public class ProjetoService {
             // Restaurar a lista de externoIds no DTO (caso precise ser usada posteriormente)
             projetoDTO.setExternoIds(externoIdsSaved);
 
+            syncLinks(entity, projetoDTO.getLinks());
+
             Projeto savedEntity = projetoRepository.save(entity);
             projetoRepository.flush();
 
@@ -257,6 +262,32 @@ public class ProjetoService {
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Recurso não encontrado");
         }
+    }
+
+    // Reconciles the projeto's links with the incoming DTO list: matches by id to update/keep
+    // existing rows in place (avoiding unnecessary delete+insert churn), creates new rows for
+    // entries without an id, and drops rows no longer present — relying on orphanRemoval on
+    // Projeto.links to delete them at flush.
+    private void syncLinks(Projeto projeto, List<ProjetoLinkDTO> linkDTOs) {
+        Map<Long, ProjetoLink> existingById = projeto.getLinks().stream()
+                .filter(link -> link.getId() != null)
+                .collect(Collectors.toMap(ProjetoLink::getId, link -> link));
+
+        List<ProjetoLink> updatedLinks = new ArrayList<>();
+        if (linkDTOs != null) {
+            for (ProjetoLinkDTO dto : linkDTOs) {
+                ProjetoLink link = dto.getId() != null ? existingById.get(dto.getId()) : null;
+                if (link == null) {
+                    link = new ProjetoLink();
+                    link.setProjeto(projeto);
+                }
+                link.setUrl(dto.getUrl());
+                link.setDescricao(dto.getDescricao());
+                updatedLinks.add(link);
+            }
+        }
+        projeto.getLinks().clear();
+        projeto.getLinks().addAll(updatedLinks);
     }
 
     private NotificationType determineNotificationType(String oldStatus, String newStatus) {
