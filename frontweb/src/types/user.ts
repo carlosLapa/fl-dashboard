@@ -11,7 +11,9 @@ export type User = {
   funcao: string;
   cargo: string;
   email: string;
-  password: string;
+  // Only ever meaningful as an outbound value (setting/changing a password on create).
+  // The API no longer returns the password hash on any GET, so this is always empty on read.
+  password?: string;
   profileImage: string; // ou Blob, se aceitarmos ficheiros maiores
   ativo: boolean;
   roles?: Role[];
@@ -23,7 +25,8 @@ export type UserDTO = {
   funcao: string;
   cargo: string;
   email: string;
-  password: string;
+  // See User.password above — outbound-only, never populated by a GET response.
+  password?: string;
   profileImage: string;
   ativo: boolean;
   projetos: any[]; // Replaced ProjetoDTO with any[] since ProjetoDTO is not defined

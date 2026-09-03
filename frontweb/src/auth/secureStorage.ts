@@ -1,5 +1,12 @@
 /**
- * Enhanced secure storage utility with additional security measures
+ * localStorage wrapper for auth tokens.
+ *
+ * NOTE: simpleEncrypt/simpleDecrypt XOR-obfuscate values with a key that ships
+ * inside this app's public bundle (see REACT_APP_SECURITY_KEY fallback below).
+ * That stops a casual glance at raw localStorage from recognizing a JWT, but
+ * it is not encryption — it provides no protection against XSS or DevTools
+ * access, since anyone running as the app can call this same code to decrypt.
+ * Do not treat this as a security boundary.
  */
 const secureStorage = {
   // Store values with encryption for sensitive keys

@@ -93,6 +93,7 @@ const TarefaFilterPanel: React.FC<TarefaFilterPanelProps> = ({
             placeholder="Filtrar por descrição"
             value={filters.descricao}
             onChange={(e) => updateFilter('descricao', e.target.value)}
+            maxLength={255}
           />
         </Form.Group>
       </Col>

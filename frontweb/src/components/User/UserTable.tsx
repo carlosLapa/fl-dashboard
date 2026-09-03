@@ -116,7 +116,6 @@ const UserTable: React.FC<UserTableProps> = ({
           <tbody>
             {Array.isArray(users) && users.length > 0 ? (
               users.map((rowUser) => {
-                console.log('Row user:', rowUser.name, rowUser.roles);
                 const isOwnRow = user?.id === rowUser.id;
                 const isCurrentUserManager = user?.roles?.some(
                   (role: any) =>

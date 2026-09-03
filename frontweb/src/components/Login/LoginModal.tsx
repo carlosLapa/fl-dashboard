@@ -88,6 +88,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
               placeholder="Enter email"
               value={email}
               onChange={handleEmailChange}
+              maxLength={255}
               isInvalid={!!errors.email}
               disabled={isSubmitting}
             />
@@ -102,6 +103,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide }) => {
               placeholder="Password"
               value={password}
               onChange={handlePasswordChange}
+              maxLength={100}
               isInvalid={!!errors.password}
               disabled={isSubmitting}
             />

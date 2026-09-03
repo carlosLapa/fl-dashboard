@@ -336,84 +336,41 @@ export const getProjetosWithFiltersAPI = async (
   sort: string = 'id,asc'
 ): Promise<any> => {
   try {
-    // Log para debug
-    console.log('getProjetosWithFiltersAPI - Received filters:', JSON.stringify(filters, null, 2));
-    
-    let url = `${getApiUrl()}/projetos/filter?page=${page}&size=${size}&sort=${sort}`;
-    
-    // Somente adicionar parâmetros se tiverem valor real
-    if (filters.designacao) {
-      url += `&designacao=${encodeURIComponent(filters.designacao)}`;
-    }
-    
-    // Verificar explicitamente se clienteId é um número válido
+    // Only include a filter param when it carries a real value, mirroring the
+    // previous string-concatenation logic's conditions exactly.
+    const params: Record<string, string | number> = { page, size, sort };
+
+    if (filters.designacao) params.designacao = filters.designacao;
     if (filters.clienteId !== undefined && filters.clienteId !== null) {
-      url += `&clienteId=${filters.clienteId}`;
+      params.clienteId = filters.clienteId;
     }
-    
-    // Importante: só adicionar clienteName se existir e não for vazio
     if (filters.clienteName && filters.clienteName.trim() !== '') {
-      url += `&clienteName=${encodeURIComponent(filters.clienteName)}`;
+      params.clienteName = filters.clienteName;
     }
-    
-    // Outros filtros...
     if (filters.prioridade && filters.prioridade.trim() !== '') {
-      url += `&prioridade=${encodeURIComponent(filters.prioridade)}`;
+      params.prioridade = filters.prioridade;
     }
-    
     if (filters.status && filters.status !== 'ALL') {
-      url += `&status=${filters.status}`;
+      params.status = filters.status;
     }
-
-    if (filters.startDate) {
-      url += `&startDate=${encodeURIComponent(filters.startDate)}`;
-    }
-
-    if (filters.endDate) {
-      url += `&endDate=${encodeURIComponent(filters.endDate)}`;
-    }
-
-    if (filters.coordenadorId) {
-      url += `&coordenadorId=${filters.coordenadorId}`;
-    }
-
+    if (filters.startDate) params.startDate = filters.startDate;
+    if (filters.endDate) params.endDate = filters.endDate;
+    if (filters.coordenadorId) params.coordenadorId = filters.coordenadorId;
     if (filters.propostaStartDate) {
-      url += `&propostaStartDate=${encodeURIComponent(
-        filters.propostaStartDate
-      )}`;
+      params.propostaStartDate = filters.propostaStartDate;
     }
-
     if (filters.propostaEndDate) {
-      url += `&propostaEndDate=${encodeURIComponent(filters.propostaEndDate)}`;
+      params.propostaEndDate = filters.propostaEndDate;
     }
-
     if (filters.adjudicacaoStartDate) {
-      url += `&adjudicacaoStartDate=${encodeURIComponent(
-        filters.adjudicacaoStartDate
-      )}`;
+      params.adjudicacaoStartDate = filters.adjudicacaoStartDate;
     }
-
     if (filters.adjudicacaoEndDate) {
-      url += `&adjudicacaoEndDate=${encodeURIComponent(
-        filters.adjudicacaoEndDate
-      )}`;
+      params.adjudicacaoEndDate = filters.adjudicacaoEndDate;
     }
+    if (filters.tipo) params.tipo = filters.tipo;
 
-    if (filters.tipo) {
-      url += `&tipo=${encodeURIComponent(filters.tipo)}`;
-    }
-
-    console.log("Requesting URL:", url);
-
-    const response = await axios.get(url);
-    
-    // Log da resposta para debug
-    console.log("Response status:", response.status);
-    console.log("Response has data:", !!response.data);
-    if (response.data && response.data.content) {
-      console.log("Response content length:", response.data.content.length);
-    }
-    
+    const response = await axios.get(`${getApiUrl()}/projetos/filter`, { params });
     return response;
   } catch (error) {
     console.error('Error fetching projetos with filters:', error);

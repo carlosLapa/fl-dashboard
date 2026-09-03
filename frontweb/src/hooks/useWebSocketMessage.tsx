@@ -81,9 +81,7 @@ const useWebSocket = (userId: number) => {
   const handleMessage = useCallback(
     (message: Message) => {
       try {
-        console.log('Raw message received:', message.body);
         const parsedMessage = JSON.parse(message.body);
-        console.log('Parsed message:', parsedMessage);
         updateConnectionStats('received');
 
         // Handle both direct notification objects and wrapped messages
@@ -235,7 +233,6 @@ const useWebSocket = (userId: number) => {
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
-      debug: (str) => console.log('STOMP:', str),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

@@ -8,6 +8,7 @@ import {
 } from 'types/externo';
 import { createExternoAPI } from 'api/externoApi';
 import Select, { MultiValue } from 'react-select';
+import { EMAIL_REGEX } from 'utils/validation';
 
 interface AddExternoModalProps {
   show: boolean;
@@ -21,7 +22,6 @@ interface EspecialidadeOption {
   label: string;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEMOVEL_REGEX = /^[\d\s+()-]{9,20}$/;
 
 type FormErrors = Partial<Record<'name' | 'email' | 'telemovel' | 'preco', string>>;

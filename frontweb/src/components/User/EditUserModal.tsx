@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { User } from 'types/user';
 import { updateUserAPI } from 'api/requestsApi';
+import { EMAIL_REGEX } from 'utils/validation';
 
 interface EditUserModalProps {
   show: boolean;
@@ -11,9 +12,10 @@ interface EditUserModalProps {
   onUserSaved: (savedUser: User) => void;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB, mirrors the backend limit
 
-type FormErrors = Partial<Record<'name' | 'email', string>>;
+type FormErrors = Partial<Record<'name' | 'email' | 'profileImage', string>>;
 
 const EditUserModal: React.FC<EditUserModalProps> = ({
   show,
@@ -46,7 +48,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         funcao: user.funcao,
         cargo: user.cargo,
         email: user.email,
-        password: user.password,
+        // This modal never edits the password — never seed it from the API response.
+        password: '',
         profileImage: formattedProfileImage || user.profileImage,
         ativo: user.ativo,
       });
@@ -64,7 +67,24 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    setProfileImage(file || null);
+    if (!file) {
+      setProfileImage(null);
+      return;
+    }
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, profileImage: 'Ficheiro inválido. São permitidos JPEG e PNG' }));
+      e.target.value = '';
+      setProfileImage(null);
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setErrors((prev) => ({ ...prev, profileImage: 'Tamanho do ficheiro excede o limite de 2MB' }));
+      e.target.value = '';
+      setProfileImage(null);
+      return;
+    }
+    setErrors((prev) => ({ ...prev, profileImage: undefined }));
+    setProfileImage(file);
   };
 
   const validateForm = (): boolean => {
@@ -91,12 +111,14 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
     const formDataObj = new FormData();
 
-    // Append all form data except profileImage
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'profileImage' && value !== undefined) {
-        formDataObj.append(key, value.toString());
-      }
-    });
+    // Explicit allowlist: this modal never edits password, so it must never be
+    // re-sent — the backend treats any non-empty password field as a new password
+    // to encode, and formData.password only ever held whatever was last fetched.
+    formDataObj.append('name', formData.name);
+    formDataObj.append('funcao', formData.funcao);
+    formDataObj.append('cargo', formData.cargo);
+    formDataObj.append('email', formData.email);
+    formDataObj.append('ativo', String(formData.ativo));
 
     // If a new profileImage is selected, append it to formDataObj
     if (profileImage) {
@@ -185,7 +207,15 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
           <Form.Group controlId="formProfileImage">
             <Form.Label>Imagem de Perfil</Form.Label>
-            <Form.Control type="file" onChange={handleImageUpload} />
+            <Form.Control
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={handleImageUpload}
+              isInvalid={!!errors.profileImage}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.profileImage}
+            </Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>

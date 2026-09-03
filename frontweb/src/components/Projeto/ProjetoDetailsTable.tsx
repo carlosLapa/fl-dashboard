@@ -110,7 +110,7 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
                   <ul className="mb-0 ps-3">
                     {projeto.links.map((link) => (
                       <li key={link.id}>
-                        <a href={link.url} target="_blank" rel="noreferrer">
+                        <a href={link.url} target="_blank" rel="noopener noreferrer">
                           {link.descricao || link.url}
                         </a>
                       </li>

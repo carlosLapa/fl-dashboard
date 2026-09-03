@@ -135,7 +135,10 @@ public class UserService implements UserDetailsService {
             throw new ResourceNotFoundException("User not found: " + emailOrClientId);
         }
 
-        return new UserWithRolesDTO(user);
+        UserWithRolesDTO dto = new UserWithRolesDTO(user);
+        // GET /users/me — called on every login and session-init. No caller needs the hash back.
+        dto.setPassword(null);
+        return dto;
     }
 
     @Transactional(readOnly = true)
@@ -164,7 +167,11 @@ public class UserService implements UserDetailsService {
     public UserDTO findById(Long id) {
         User entity = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Utilizador com o id: " + id + " não encontrado"));
-        return new UserDTO(entity);
+        UserDTO dto = new UserDTO(entity);
+        // Only used to populate the edit-user form, which never edits/displays the password —
+        // no caller needs the hash back.
+        dto.setPassword(null);
+        return dto;
     }
 
     /**
@@ -196,6 +203,12 @@ public class UserService implements UserDetailsService {
                 // 10-row page into several MB of JSON. Single-user fetches (findById, used by the
                 // edit modal) still include it.
                 .peek(dto -> dto.setProfileImage(null))
+                // UserDTO's password field carries the bcrypt hash straight from the entity;
+                // unlike findAllBasicInfo (used for non-admin callers below), this path was never
+                // stripping it, so every ADMIN/MANAGER fetch of the collaborator list — including
+                // the routine Tarefa/Projeto assignment dropdowns — shipped every user's password
+                // hash to the browser.
+                .peek(dto -> dto.setPassword(null))
                 .toList();
         return new PageImpl<>(dtos, pageable, idsPage.getTotalElements());
     }
