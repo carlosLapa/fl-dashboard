@@ -21,6 +21,12 @@ export type TipoProjeto =
   | 'INOVACAO'
   | 'CONCURSOS';
 
+export interface ProjetoLink {
+  id?: number;
+  url: string;
+  descricao?: string;
+}
+
 export type Projeto = {
   id: number;
   projetoAno: number;
@@ -36,6 +42,7 @@ export type Projeto = {
   dataAdjudicacao?: string;
   externos?: Externo[];
   tipo?: TipoProjeto;
+  links?: ProjetoLink[];
   cliente?: {
     id: number;
     name: string;
@@ -58,6 +65,7 @@ export interface ProjetoFormData {
   externos?: Externo[];
   externoIds?: number[];
   tipo?: TipoProjeto;
+  links?: ProjetoLink[];
 }
 
 export interface ProjetoMinDTO {

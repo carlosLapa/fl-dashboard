@@ -42,6 +42,8 @@ public class ProjetoDTO {
     private Set<ExternoDTO> externos = new HashSet<>();
     private List<Long> externoIds = new ArrayList<>();
 
+    private List<ProjetoLinkDTO> links = new ArrayList<>();
+
     public ProjetoDTO() {
     }
 
@@ -86,6 +88,10 @@ public class ProjetoDTO {
                 this.externoIds.add(externo.getId());
             });
         }
+
+        this.links = entity.getLinks() != null
+                ? entity.getLinks().stream().map(ProjetoLinkDTO::new).toList()
+                : new ArrayList<>();
     }
 
     public ProjetoDTO(Long id, String designacao) {

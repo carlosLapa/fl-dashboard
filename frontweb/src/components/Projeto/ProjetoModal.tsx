@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Row, Col, Alert } from 'react-bootstrap';
-import { Projeto, ProjetoFormData } from '../../types/projeto';
+import { Projeto, ProjetoFormData, ProjetoLink } from '../../types/projeto';
 import { User } from 'types/user';
 import { getAllUsers } from '../../services/userService';
 import { toast } from 'react-toastify';
@@ -49,6 +49,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     coordenadorId: undefined,
     dataProposta: '',
     dataAdjudicacao: '',
+    links: [],
   });
   const [users, setUsers] = useState<User[]>([]);
   const [externos, setExternos] = useState<Externo[]>([]);
@@ -114,6 +115,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         coordenadorId: undefined,
         dataProposta: '',
         dataAdjudicacao: '',
+        links: [],
       };
       if (clienteInfo) {
         newFormData.clienteId = clienteInfo.id;
@@ -142,6 +144,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
         dataAdjudicacao: toInputDate(projeto.dataAdjudicacao),
         externos: projeto.externos || [],
         clienteId: projeto.cliente?.id || clienteInfo?.id,
+        links: projeto.links || [],
       };
 
       // If clienteInfo is provided (meaning we're adding a project from client view)
@@ -175,6 +178,34 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     setFormData((prevFormData) => ({
       ...prevFormData,
       externos: selectedExternos,
+    }));
+  };
+
+  // Handle shared links (e.g. OneDrive) attached to the projeto
+  const handleAddLink = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      links: [...(prevData.links || []), { url: '', descricao: '' }],
+    }));
+  };
+
+  const handleLinkChange = (
+    index: number,
+    field: keyof ProjetoLink,
+    value: string
+  ) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      links: (prevData.links || []).map((link, i) =>
+        i === index ? { ...link, [field]: value } : link
+      ),
+    }));
+  };
+
+  const handleRemoveLink = (index: number) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      links: (prevData.links || []).filter((_, i) => i !== index),
     }));
   };
 
@@ -213,8 +244,24 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
     setValidated(true);
     if (!validateForm()) return;
 
+    // Drop any link row the user left without a URL rather than rejecting the save,
+    // but reject a filled-in one with an unsafe scheme (e.g. javascript:) — it's
+    // rendered as a clickable link elsewhere, so only http(s) is allowed.
+    const linksToSave = (formData.links || []).filter(
+      (link) => link.url.trim() !== ''
+    );
+    const invalidLink = linksToSave.find(
+      (link) => !/^https?:\/\//i.test(link.url.trim())
+    );
+    if (invalidLink) {
+      toast.warning(
+        `O link "${invalidLink.url}" deve começar por http:// ou https://`
+      );
+      return;
+    }
+
     // Create a copy of the form data to send
-    const formDataToSave = { ...formData };
+    const formDataToSave = { ...formData, links: linksToSave };
 
     // Always include the externoIds field, even if empty
     // This will signal to the backend that we want to update the list of externals
@@ -517,6 +564,59 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
               Opcional. Poderá adicionar ou remover colaboradores externos após
               a criação do projeto.
             </Form.Text>
+          </Form.Group>
+
+          <Form.Group controlId="formLinks" className="mb-3">
+            <Form.Label>Links partilhados</Form.Label>
+            <Form.Text className="d-block text-muted mb-2">
+              Ex.: pastas do OneDrive, Google Drive, etc. Adicione uma breve
+              descrição para esclarecer o que trata cada link.
+            </Form.Text>
+            {(formData.links || []).map((link, index) => (
+              <Row
+                key={link.id ?? `new-${index}`}
+                className="mb-2 align-items-start"
+              >
+                <Col xs={12} md={4}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Descrição (ex.: Plantas do projeto)"
+                    maxLength={255}
+                    value={link.descricao || ''}
+                    onChange={(e) =>
+                      handleLinkChange(index, 'descricao', e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={9} md={6}>
+                  <Form.Control
+                    type="url"
+                    placeholder="https://..."
+                    maxLength={500}
+                    value={link.url}
+                    onChange={(e) =>
+                      handleLinkChange(index, 'url', e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs={3} md={2} className="text-end">
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleRemoveLink(index)}
+                  >
+                    Remover
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              onClick={handleAddLink}
+            >
+              Adicionar link
+            </Button>
           </Form.Group>
         </Form>
       </Modal.Body>
