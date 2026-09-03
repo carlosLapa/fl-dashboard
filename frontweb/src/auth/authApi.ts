@@ -17,25 +17,9 @@ export const login = async (email: string, password: string) => {
   });
 
   try {
-    const tokenResponse = await apiClient.post(
-      '/oauth2/token',
-      `grant_type=password&username=${encodeURIComponent(
-        email
-      )}&password=${encodeURIComponent(password)}`,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          // Use environment variables for client credentials
-          Authorization:
-            'Basic ' +
-            btoa(
-              `${process.env.REACT_APP_CLIENT_ID || 'myclientid'}:${
-                process.env.REACT_APP_CLIENT_SECRET || 'myclientsecret'
-              }`
-            ),
-        },
-      }
-    );
+    // Goes through the backend's /auth/login proxy rather than /oauth2/token directly -
+    // the OAuth2 client secret lives only server-side now, never in this bundle.
+    const tokenResponse = await apiClient.post('/auth/login', { email, password });
 
     const { access_token, refresh_token, token_type, expires_in } =
       tokenResponse.data;
@@ -78,22 +62,10 @@ export const refreshToken = async (): Promise<boolean> => {
       return false;
     }
 
-    const tokenResponse = await axios.post(
-      '/oauth2/token',
-      `grant_type=refresh_token&refresh_token=${refreshTokenStr}`,
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization:
-            'Basic ' +
-            btoa(
-              `${process.env.REACT_APP_CLIENT_ID || 'myclientid'}:${
-                process.env.REACT_APP_CLIENT_SECRET || 'myclientsecret'
-              }`
-            ),
-        },
-      }
-    );
+    // Same rationale as login() above: goes through the backend proxy, never holds the secret.
+    const tokenResponse = await axios.post('/auth/refresh', {
+      refresh_token: refreshTokenStr,
+    });
 
     const { access_token, refresh_token, token_type, expires_in } =
       tokenResponse.data;

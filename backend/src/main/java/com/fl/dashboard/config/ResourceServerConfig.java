@@ -51,6 +51,10 @@ public class ResourceServerConfig {
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                 // WebSocket endpoints
                 .requestMatchers("/ws/**").permitAll()
+                // Login/refresh proxy (AuthProxyResource) - must be reachable without a JWT,
+                // since this is how one is obtained. The OAuth2 client secret stays server-side;
+                // these just forward to /oauth2/token with it attached.
+                .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                 // All other requests require authentication
                 .anyRequest().authenticated());
         http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
