@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { User } from 'types/user';
 import { createUserAPI } from 'api/requestsApi';
+import { EMAIL_REGEX } from 'utils/validation';
 
 interface AddUserModalProps {
   show: boolean;
@@ -10,9 +11,10 @@ interface AddUserModalProps {
   onUserSaved: (savedUser: User) => void;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB, mirrors the backend limit
 
-type FormErrors = Partial<Record<'name' | 'email' | 'password', string>>;
+type FormErrors = Partial<Record<'name' | 'email' | 'password' | 'profileImage', string>>;
 
 const AddUserModal: React.FC<AddUserModalProps> = ({
   show,
@@ -62,7 +64,24 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    setProfileImage(file || null);
+    if (!file) {
+      setProfileImage(null);
+      return;
+    }
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setErrors((prev) => ({ ...prev, profileImage: 'Ficheiro inválido. São permitidos JPEG e PNG' }));
+      e.target.value = '';
+      setProfileImage(null);
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setErrors((prev) => ({ ...prev, profileImage: 'Tamanho do ficheiro excede o limite de 2MB' }));
+      e.target.value = '';
+      setProfileImage(null);
+      return;
+    }
+    setErrors((prev) => ({ ...prev, profileImage: undefined }));
+    setProfileImage(file);
   };
 
   const validateForm = (): boolean => {
@@ -192,7 +211,15 @@ const AddUserModal: React.FC<AddUserModalProps> = ({
 
           <Form.Group controlId="formProfileImage">
             <Form.Label>Imagem de Perfil</Form.Label>
-            <Form.Control type="file" onChange={handleImageUpload} />
+            <Form.Control
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={handleImageUpload}
+              isInvalid={!!errors.profileImage}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.profileImage}
+            </Form.Control.Feedback>
           </Form.Group>
         </Form>
       </Modal.Body>

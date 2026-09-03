@@ -81,9 +81,7 @@ export const reactivateUser = async (userId: number): Promise<User> => {
 
 export const getCurrentUserWithRoles = async (): Promise<User> => {
   try {
-    const userData = await getCurrentUserWithRolesAPI();
-    console.log('Current user with roles:', userData); // Debug log
-    return userData;
+    return await getCurrentUserWithRolesAPI();
   } catch (error) {
     console.error('Error fetching current user with roles:', error);
     throw error;

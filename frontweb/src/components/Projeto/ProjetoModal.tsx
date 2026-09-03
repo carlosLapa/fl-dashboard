@@ -335,6 +335,7 @@ const ProjetoModal: React.FC<ProjetoModalProps> = ({
                   value={formData.projetoAno}
                   onChange={handleInputChange}
                   min={2020}
+                  max={2100}
                   required
                 />
                 <Form.Control.Feedback type="invalid">

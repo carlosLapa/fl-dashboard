@@ -36,6 +36,10 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
     hours: 0,
     comment: '',
   });
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const MAX_HOURS = 24;
+  const MAX_COMMENT_LENGTH = 255;
   const [monthlySummary, setMonthlySummary] = useState<
     UserExtraHoursSummaryDTO[]
   >([]);
@@ -89,6 +93,7 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
       hours: entry ? entry.hours : 0,
       comment: entry ? entry.comment || '' : '',
     });
+    setFormError(null);
   };
 
   // Handle event click (existing entry)
@@ -99,10 +104,18 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
       hours: event.resource.hours,
       comment: event.resource.comment || '',
     });
+    setFormError(null);
   };
 
   const handleSave = async () => {
     if (!selectedDate) return;
+
+    if (!form.hours || Math.abs(form.hours) > MAX_HOURS) {
+      setFormError(`As horas devem estar entre -${MAX_HOURS} e ${MAX_HOURS}`);
+      return;
+    }
+    setFormError(null);
+
     const dto: UserExtraHoursDTO = {
       id: selectedEntry?.id,
       userId,
@@ -110,18 +123,29 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
       hours: form.hours,
       comment: form.comment,
     };
-    await saveUserExtraHoursAPI(dto);
-    await fetchEntries();
-    await fetchSummaries();
-    setSelectedDate(null);
-    setSelectedEntry(null);
+    try {
+      await saveUserExtraHoursAPI(dto);
+      await fetchEntries();
+      await fetchSummaries();
+      setSelectedDate(null);
+      setSelectedEntry(null);
+    } catch (error) {
+      console.error('Erro ao gravar horas extra:', error);
+      setFormError('Não foi possível gravar. Tente novamente.');
+    }
   };
 
   const handleDelete = async () => {
     if (selectedEntry?.id) {
-      await deleteUserExtraHoursAPI(selectedEntry.id);
-      await fetchEntries();
-      await fetchSummaries();
+      try {
+        await deleteUserExtraHoursAPI(selectedEntry.id);
+        await fetchEntries();
+        await fetchSummaries();
+      } catch (error) {
+        console.error('Erro ao excluir horas extra:', error);
+        setFormError('Não foi possível excluir. Tente novamente.');
+        return;
+      }
     }
     setSelectedDate(null);
     setSelectedEntry(null);
@@ -177,9 +201,13 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
       {selectedDate && (
         <div className="extra-hours-form">
           <h4>{moment(selectedDate).format('DD/MM/YYYY')}</h4>
+          {formError && <p className="extra-hours-error">{formError}</p>}
           <input
             type="number"
             value={form.hours}
+            min={-MAX_HOURS}
+            max={MAX_HOURS}
+            step={0.5}
             onChange={(e) =>
               setForm({ ...form, hours: Number(e.target.value) })
             }
@@ -188,6 +216,7 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
           <input
             type="text"
             value={form.comment}
+            maxLength={MAX_COMMENT_LENGTH}
             onChange={(e) => setForm({ ...form, comment: e.target.value })}
             placeholder="Comentário"
           />

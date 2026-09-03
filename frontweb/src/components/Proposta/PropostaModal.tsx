@@ -176,6 +176,7 @@ const PropostaModal: React.FC<PropostaModalProps> = ({
                   value={formData.propostaAno}
                   onChange={handleInputChange}
                   min={2020}
+                  max={2100}
                   required
                 />
                 <Form.Control.Feedback type="invalid">

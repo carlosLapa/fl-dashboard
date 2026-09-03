@@ -111,7 +111,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         try {
           // Try to get user with roles first
           const userData = await getCurrentUserWithRoles();
-          console.log('Initialized user with roles:', userData);
           setUser({
             ...userData,
             profileImage: userData.profileImage
@@ -177,7 +176,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // Try to get user with roles first
       try {
         const userData = await getCurrentUserWithRoles();
-        console.log('User data with roles:', userData);
         setUser({
           ...userData,
           profileImage: userData.profileImage

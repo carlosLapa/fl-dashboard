@@ -35,6 +35,7 @@ const ClienteFilterPanel: React.FC<ClienteFilterPanelProps> = ({
             placeholder="Filtrar por nome"
             value={filters.name || ''}
             onChange={(e) => updateFilter('name', e.target.value)}
+            maxLength={255}
           />
         </Form.Group>
       </Col>
@@ -46,6 +47,7 @@ const ClienteFilterPanel: React.FC<ClienteFilterPanelProps> = ({
             placeholder="Filtrar por NIF"
             value={filters.nif || ''}
             onChange={(e) => updateFilter('nif', e.target.value)}
+            maxLength={9}
           />
         </Form.Group>
       </Col>
@@ -57,6 +59,7 @@ const ClienteFilterPanel: React.FC<ClienteFilterPanelProps> = ({
             placeholder="Filtrar por morada"
             value={filters.morada || ''}
             onChange={(e) => updateFilter('morada', e.target.value)}
+            maxLength={255}
           />
         </Form.Group>
       </Col>

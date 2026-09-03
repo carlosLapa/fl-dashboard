@@ -9,6 +9,7 @@ import {
 import { updateExternoAPI } from 'api/externoApi';
 import Select, { MultiValue } from 'react-select';
 import './externoDetailsCard.scss';
+import { EMAIL_REGEX } from 'utils/validation';
 
 interface EditExternoModalProps {
   show: boolean;
@@ -23,7 +24,6 @@ interface EspecialidadeOption {
   label: string;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEMOVEL_REGEX = /^[\d\s+()-]{9,20}$/;
 
 type FormErrors = Partial<Record<'name' | 'email' | 'telemovel' | 'preco', string>>;

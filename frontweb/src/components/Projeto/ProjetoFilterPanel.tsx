@@ -58,6 +58,7 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
             placeholder="Filtrar por designação"
             value={filters.designacao}
             onChange={(e) => updateFilter('designacao', e.target.value)}
+            maxLength={255}
           />
         </Form.Group>
       </Col>

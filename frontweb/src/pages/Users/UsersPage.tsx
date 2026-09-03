@@ -46,7 +46,6 @@ const UsersPage: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await getUsers(page, pageSize);
-      console.log('Users response:', response);
       setUsers(response.content);
       setTotalPages(response.totalPages);
 
