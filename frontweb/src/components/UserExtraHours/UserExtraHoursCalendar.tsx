@@ -50,8 +50,12 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
   }, [userId]);
 
   const fetchEntries = async () => {
-    const data = await getUserExtraHoursByUser(userId);
-    setEntries(data);
+    try {
+      const data = await getUserExtraHoursByUser(userId);
+      setEntries(data);
+    } catch (error) {
+      console.error('Erro ao carregar horas extra:', error);
+    }
   };
 
   // Calendar events: one per entry
