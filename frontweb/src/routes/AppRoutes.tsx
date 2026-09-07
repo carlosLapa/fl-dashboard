@@ -67,7 +67,12 @@ const AppRoutes = () => {
       />
       <Route
         path="/users/:userId/projeto-history"
-        element={<ProtectedRoute element={<UserProjetoHistoryPage />} />}
+        element={
+          <ProtectedRoute
+            element={<UserProjetoHistoryPage />}
+            permissions={Permission.VIEW_REPORTS}
+          />
+        }
       />
       <Route
         path="/users/:userId/banco-horas"
