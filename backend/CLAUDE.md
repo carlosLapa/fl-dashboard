@@ -75,6 +75,17 @@ The custom password grant (`CustomPasswordAuthenticationProvider`) issues the JW
 
 Not having a UI link to an endpoint is not access control — every one of the bugs above was only found by hitting the backend route directly (browser URL bar or a copied JWT), bypassing the frontend entirely. Gate at the `@PreAuthorize` layer, not just by hiding the sidebar link.
 
+### Actual blast radius of the `sub`/`email` bug (audited 2026-09-07)
+
+The bug above only breaks code that reads `authentication.name` / `authentication.getName()` **directly**, because that's the one place there's no room for a workaround (it's SpEL inside an annotation, not a method body). Grepping `@PreAuthorize.*authentication\.name` across the whole codebase gives the complete list of what was actually affected:
+
+- `UserExtraHoursResource` (all 5 self-access checks) — Banco de Horas, fixed.
+- `UserResource#findById` (`GET /users/{id}`) — fixed (used by Banco de Horas' `getUserById`).
+- `UserResource#getTarefasByUser` (`GET /users/{userId}/tarefas`) — same bug, fixed by the same config change, but turned out to be **dead code**: no frontend page calls it. `UsersTarefasPage` uses `GET /tarefas/user/{userId}/full` (`TarefaResource`) instead, which was never affected (see below). Zero visible impact either way.
+- `ProjetoUserHistoryResource` / `TarefaUserDetalheResource` — same bug, but self-access was removed rather than fixed (see above).
+
+Everywhere else that needs "who is the currently authenticated user" (`ProjetoResource`'s per-user project filtering/deadline-extension, `TarefaResource`/`SubtarefaResource`'s `extractUserEmail` helper, `ProjetoMetricsSnapshotResource`, and `UserService#update` / `#getCurrentAuthenticatedUser` / `#getCurrentUserWithRoles`) was **not** affected, because that code already reads the email off the JWT directly instead of trusting the principal name — e.g. `if (authentication.getPrincipal() instanceof Jwt jwt) { userEmail = jwt.getClaim("email"); } else { userEmail = authentication.getName(); }`, or casts to `JwtAuthenticationToken` and calls `getToken().getClaimAsString("email")`. This is a pre-existing, widespread ad-hoc workaround for the exact same root cause fixed above — evidence someone hit this bug long before and patched around it locally in each call site instead of fixing `ResourceServerConfig`. Worth knowing if you're auditing "who reads the current user" code: the `extractUserEmail`/`Jwt`-cast pattern is the safe one; a bare `authentication.getName()` outside that pattern is a red flag.
+
 ## Profiles
 
 | Profile | Database | Notes |
