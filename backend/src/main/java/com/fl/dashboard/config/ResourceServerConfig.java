@@ -70,6 +70,12 @@ public class ResourceServerConfig {
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        // The "sub" claim is the OAuth2 client_id (this custom password-grant flow issues
+        // the token with the authenticated CLIENT as principal, not the resource owner - see
+        // CustomPasswordAuthenticationProvider#authenticate). "email" is the claim that actually
+        // identifies the user (set by AuthorizationServerConfig#tokenCustomizer), so every
+        // "authentication.name == ...email" self-access check needs it as the principal name.
+        jwtAuthenticationConverter.setPrincipalClaimName("email");
         return jwtAuthenticationConverter;
     }
 
