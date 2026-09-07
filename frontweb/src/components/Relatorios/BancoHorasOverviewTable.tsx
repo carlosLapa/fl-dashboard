@@ -21,7 +21,11 @@ const BancoHorasOverviewTable: React.FC<BancoHorasOverviewTableProps> = ({
 }) => {
   return (
     <div className="banco-horas-overview-table">
-      <h5 className="mb-4">Saldo por Colaborador</h5>
+      <h5 className="mb-1">Saldo por Colaborador</h5>
+      <p className="text-muted small mb-4">
+        Saldo acumulado desde sempre: valores positivos (verde) são horas
+        acumuladas, valores negativos (vermelho) são horas em falta.
+      </p>
 
       {colaboradores.length === 0 ? (
         <div className="text-center text-muted py-5">

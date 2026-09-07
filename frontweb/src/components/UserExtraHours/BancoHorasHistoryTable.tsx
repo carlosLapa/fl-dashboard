@@ -58,8 +58,14 @@ const BancoHorasHistoryTable: React.FC<BancoHorasHistoryTableProps> = ({
   return (
     <Card className="banco-horas-history-table">
       <Card.Body>
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-          <Card.Title className="mb-0">Histórico de Lançamentos</Card.Title>
+        <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+          <div>
+            <Card.Title className="mb-1">Histórico de Lançamentos</Card.Title>
+            <p className="text-muted small mb-0">
+              "Extra" (verde) são horas acumuladas, "Falta" (vermelho) são
+              horas em falta. Lançamentos em incrementos de 0,5h.
+            </p>
+          </div>
           <div className="d-flex gap-2">
             <Form.Select
               size="sm"

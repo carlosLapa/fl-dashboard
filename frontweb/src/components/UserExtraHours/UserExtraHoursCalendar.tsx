@@ -197,6 +197,11 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
             }
             placeholder="Horas (+/-)"
           />
+          <p className="extra-hours-hint">
+            Valores positivos = horas extra (ex.: 2 = +2h acumuladas).
+            Valores negativos = falta (ex.: -1.5 = 1h30 em falta). Só são
+            aceites múltiplos de 0,5h.
+          </p>
           <input
             type="text"
             value={form.comment}
