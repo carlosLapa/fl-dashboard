@@ -62,7 +62,7 @@ Access via `useAuth()` and `useNotification()` hooks.
 - OAuth2 password grant → JWT stored in encrypted localStorage (XOR + Base64 in `src/auth/secureStorage.ts`).
 - Axios instance configured in `src/api/apiConfig.ts` with base URL from `REACT_APP_API_URL` (default: `http://localhost:8080`).
 - Token refresh interceptor in `src/auth/axiosInterceptors.ts` handles 401 responses transparently.
-- Global error interceptor in `apiConfig.ts` gracefully degrades 403/404 on list endpoints (returns `{ content: [], totalPages: 0 }` instead of throwing).
+- Global error interceptor in `apiConfig.ts` gracefully degrades 403/404 on list endpoints (returns `{ content: [], totalPages: 0 }` instead of throwing). **Caveat:** the match is a plain `url.includes('/users')` (etc.), so it also swallows a 403 on a *single-entity* endpoint like `GET /users/{id}` — the caller gets back a paginated-shape object instead of a `User`, with no `id`/`name` fields and no thrown error. If a component chains that result into another request keyed by `.id`, the failure resurfaces downstream as a confusing `.../undefined` call instead of a permission error. Known, accepted tradeoff (see the security-quick-wins audit) — don't "fix" the interceptor without checking with the user; if you hit this, the real fix is almost always the backend `@PreAuthorize` needing a self-access branch (see backend `CLAUDE.md`), not this interceptor.
 
 ### Permissions
 
@@ -75,6 +75,11 @@ Permission checking:
 - Permissions are **mirrored** in backend (`Permission.java`) — both layers enforce them.
 
 Employees cannot move Kanban cards to REVIEW or DONE, and cannot access propostas or admin routes.
+
+Per-`:userId` routes fall into two intentionally different access patterns — check which one applies before adding a new one:
+
+- **Self-service** (the user should reach their own data, e.g. `/users/:userId/banco-horas`): no `permissions` prop on the route, since access is enforced backend-side by a self-or-`VIEW_REPORTS` `@PreAuthorize`.
+- **Management-only evaluation tool** (e.g. `/users/:userId/projeto-history`, a MANAGER/ADMIN assessing a collaborator): gate the route with `permissions={Permission.VIEW_REPORTS}` *and* the backend endpoint must be `VIEW_REPORTS`-only with no self-access branch — a collaborator should not see their own evaluation data. Not linking to a page from the sidebar is not access control by itself; the route/endpoint still needs the real guard for someone who navigates there directly.
 
 ### Real-time (WebSocket)
 

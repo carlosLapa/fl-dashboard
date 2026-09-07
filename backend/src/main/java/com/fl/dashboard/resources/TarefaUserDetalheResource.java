@@ -17,7 +17,8 @@ import java.util.List;
  * for the per-user report page. Distinct from UserResource#getTarefasByUser
  * (/users/{id}/tarefas), which returns the raw, unfiltered task list without
  * the project join or the deletedAt/arquivadaEm filtering used here.
- * Same self-access pattern as ProjetoUserHistoryResource.
+ * Same performance-evaluation-for-management-only scope as
+ * ProjetoUserHistoryResource - VIEW_REPORTS only, no self-access.
  */
 @RestController
 @RequestMapping(value = "/users/{id}/tarefas-detalhe")
@@ -30,7 +31,7 @@ public class TarefaUserDetalheResource {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_REPORTS') or authentication.name == @userService.findById(#id).email")
+    @PreAuthorize("hasAuthority('VIEW_REPORTS')")
     public ResponseEntity<List<TarefaUserDetalheDTO>> getTarefaDetalhe(@PathVariable Long id) {
         return ResponseEntity.ok(colaboradorReportService.getTarefaDetailsForUser(id));
     }

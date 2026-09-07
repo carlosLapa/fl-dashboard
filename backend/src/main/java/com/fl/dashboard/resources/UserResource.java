@@ -59,9 +59,11 @@ public class UserResource {
         return ResponseEntity.ok().body(dto);
     }
 
-    // Get user by ID
+    // Get user by ID - also reachable by the user viewing their own record
+    // (e.g. the Banco de Horas / projeto-history pages), same self-access
+    // idiom as TarefaUserDetalheResource.
     @GetMapping(value = "/{id}")
-    @PreAuthorize("hasAuthority('VIEW_ALL_USERS')")
+    @PreAuthorize("hasAuthority('VIEW_ALL_USERS') or authentication.name == @userService.findById(#id).email")
     public ResponseEntity<UserDTO> findById(@PathVariable Long id, Authentication authentication) {
         UserDTO userDTO = userService.findById(id);
         return ResponseEntity.ok().body(userDTO);

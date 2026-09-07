@@ -1,5 +1,6 @@
 package com.fl.dashboard.services;
 
+import com.fl.dashboard.dto.UserExtraHoursBalanceDTO;
 import com.fl.dashboard.dto.UserExtraHoursDTO;
 import com.fl.dashboard.dto.UserExtraHoursSummaryDTO;
 import com.fl.dashboard.entities.User;
@@ -9,6 +10,7 @@ import com.fl.dashboard.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.*;
 
@@ -66,15 +68,36 @@ public class UserExtraHoursService {
     }
 
     @Transactional(readOnly = true)
+    public UserExtraHoursBalanceDTO getBalance(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
+        Double total = extraHoursRepository.sumHoursByUserId(userId);
+        return new UserExtraHoursBalanceDTO(userId, user.getName(), total);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserExtraHoursBalanceDTO> getAllUserBalances() {
+        return extraHoursRepository.findAllUserBalances().stream()
+                .sorted(Comparator.comparing(UserExtraHoursBalanceDTO::getUserName))
+                .toList();
+    }
+
+    @Transactional
+    public boolean isOwner(Long id, String email) {
+        return extraHoursRepository.findById(id)
+                .map(entry -> entry.getUser().getEmail().equals(email))
+                .orElse(false);
+    }
+
+    @Transactional(readOnly = true)
     public List<UserExtraHoursSummaryDTO> getMonthlySummary(Long userId, int year) {
-        List<UserExtraHours> entries = extraHoursRepository.findByUserId(userId);
+        List<UserExtraHours> entries = extraHoursRepository.findByUserIdAndDateBetween(
+                userId, LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31));
         Map<String, Double> monthTotals = new HashMap<>();
 
         for (UserExtraHours entry : entries) {
-            if (entry.getDate().getYear() == year) {
-                String month = entry.getDate().getYear() + "-" + String.format("%02d", entry.getDate().getMonthValue());
-                monthTotals.put(month, monthTotals.getOrDefault(month, 0.0) + entry.getHours());
-            }
+            String month = entry.getDate().getYear() + "-" + String.format("%02d", entry.getDate().getMonthValue());
+            monthTotals.put(month, monthTotals.getOrDefault(month, 0.0) + entry.getHours());
         }
 
         List<UserExtraHoursSummaryDTO> result = new ArrayList<>();
@@ -90,16 +113,15 @@ public class UserExtraHoursService {
 
     @Transactional(readOnly = true)
     public List<UserExtraHoursSummaryDTO> getWeeklySummary(Long userId, int year) {
-        List<UserExtraHours> entries = extraHoursRepository.findByUserId(userId);
+        List<UserExtraHours> entries = extraHoursRepository.findByUserIdAndDateBetween(
+                userId, LocalDate.of(year, 1, 1), LocalDate.of(year, 12, 31));
         Map<String, Double> weekTotals = new HashMap<>();
         WeekFields weekFields = WeekFields.ISO;
 
         for (UserExtraHours entry : entries) {
-            if (entry.getDate().getYear() == year) {
-                int week = entry.getDate().get(weekFields.weekOfWeekBasedYear());
-                String period = entry.getDate().getYear() + "-Semana" + String.format("%02d", week);
-                weekTotals.put(period, weekTotals.getOrDefault(period, 0.0) + entry.getHours());
-            }
+            int week = entry.getDate().get(weekFields.weekOfWeekBasedYear());
+            String period = entry.getDate().getYear() + "-Semana" + String.format("%02d", week);
+            weekTotals.put(period, weekTotals.getOrDefault(period, 0.0) + entry.getHours());
         }
 
         List<UserExtraHoursSummaryDTO> result = new ArrayList<>();

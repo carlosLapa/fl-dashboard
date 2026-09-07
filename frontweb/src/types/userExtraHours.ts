@@ -8,6 +8,12 @@ export interface UserExtraHoursDTO {
 
 export interface UserExtraHoursSummaryDTO {
   userId: number;
-  period: string; // e.g. "2025-08" for month, "2025-W32" for week
+  period: string; // e.g. "2025-08" for month, "2025-Semana32" for week
   totalHours: number;
+}
+
+export interface UserExtraHoursBalanceDTO {
+  userId: number;
+  userName: string;
+  totalHours: number; // lifetime sum of all entries: the "Banco de Horas" balance
 }

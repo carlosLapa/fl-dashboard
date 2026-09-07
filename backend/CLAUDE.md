@@ -64,6 +64,17 @@ The app acts as both an **OAuth2 Authorization Server** and a **Resource Server*
 
 Key env vars: `CLIENT_ID`, `CLIENT_SECRET`, `JWT_DURATION` (seconds), `ISSUER_URI`, `CORS_ORIGINS`.
 
+### `authentication.name` resolves to the `email` claim, not `sub`
+
+The custom password grant (`CustomPasswordAuthenticationProvider`) issues the JWT with the authenticated OAuth2 **client** as principal, not the resource owner — so the default `sub` claim is the client_id, identical for every user, not their email. `ResourceServerConfig#jwtAuthenticationConverter` explicitly overrides this with `setPrincipalClaimName("email")`, since `email` (added by `AuthorizationServerConfig#tokenCustomizer`) is the claim that actually identifies the user. **Don't remove that line** — without it, `authentication.getName()` / `authentication.name` in `@PreAuthorize` silently returns the client_id for everyone, which only breaks for roles that don't also pass via `hasAuthority(...)` (i.e. it looks fine when tested as ADMIN/MANAGER and is broken for EMPLOYEE self-access). This was a real bug, found by decoding a live JWT during the Banco de Horas work.
+
+### Two `@PreAuthorize` conventions for per-`{userId}` endpoints
+
+- **Self-service** (the user is expected to reach their own data): `hasAuthority('VIEW_REPORTS') or authentication.name == @userService.findById(#id).email`. Used by `UserExtraHoursResource`, `UserResource#findById`, `UserResource#getTarefasByUser`. For an id-less endpoint (e.g. `DELETE /{id}` where the resource, not the acting user, is in the path), fetch the owner and compare instead: see `UserExtraHoursService#isOwner` + `@userExtraHoursService.isOwner(#id, authentication.name)`.
+- **Management-only** (a performance-evaluation tool where the subject should *not* see their own data): `hasAuthority('VIEW_REPORTS')` alone, deliberately with no self-access branch. Used by `ProjetoUserHistoryResource` and `TarefaUserDetalheResource` (both feed `UserProjetoHistoryPage` on the frontend). Don't copy the self-access idiom onto these without checking with the user first — it was mistakenly added once and had to be reverted.
+
+Not having a UI link to an endpoint is not access control — every one of the bugs above was only found by hitting the backend route directly (browser URL bar or a copied JWT), bypassing the frontend entirely. Gate at the `@PreAuthorize` layer, not just by hiding the sidebar link.
+
 ## Profiles
 
 | Profile | Database | Notes |

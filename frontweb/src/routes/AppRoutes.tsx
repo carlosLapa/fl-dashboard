@@ -22,6 +22,8 @@ import { Permission } from 'permissions/rolePermissions';
 import ProjetoMetricsPage from 'pages/ProjetoMetrics/ProjetoMetricsPage';
 import ColaboradorReportPage from 'pages/Relatorios/ColaboradorReportPage';
 import UserProjetoHistoryPage from 'pages/Users/UserProjetoHistoryPage';
+import BancoHorasReportPage from 'pages/Relatorios/BancoHorasReportPage';
+import UserBancoHorasPage from 'pages/Users/UserBancoHorasPage';
 
 const AppRoutes = () => {
   return (
@@ -65,7 +67,16 @@ const AppRoutes = () => {
       />
       <Route
         path="/users/:userId/projeto-history"
-        element={<ProtectedRoute element={<UserProjetoHistoryPage />} />}
+        element={
+          <ProtectedRoute
+            element={<UserProjetoHistoryPage />}
+            permissions={Permission.VIEW_REPORTS}
+          />
+        }
+      />
+      <Route
+        path="/users/:userId/banco-horas"
+        element={<ProtectedRoute element={<UserBancoHorasPage />} />}
       />
       <Route
         path="/projetos/:projetoId/details"
@@ -121,6 +132,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute
             element={<ColaboradorReportPage />}
+            permissions={Permission.VIEW_REPORTS}
+          />
+        }
+      />
+      <Route
+        path="/relatorios/banco-horas"
+        element={
+          <ProtectedRoute
+            element={<BancoHorasReportPage />}
             permissions={Permission.VIEW_REPORTS}
           />
         }

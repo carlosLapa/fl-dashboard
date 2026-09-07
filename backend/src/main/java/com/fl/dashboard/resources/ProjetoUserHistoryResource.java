@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Exposes a collaborator's project-assignment history (when they were added
- * to / removed from projects). Readable by anyone with VIEW_REPORTS
- * (management), or by the collaborator themselves about their own history -
- * same self-access pattern as UserResource#getTarefasByUser.
+ * to / removed from projects). This is a performance-evaluation tool for
+ * management, not a self-service page - readable only by VIEW_REPORTS,
+ * deliberately with no self-access exception for the collaborator being
+ * evaluated.
  */
 @RestController
 @RequestMapping(value = "/users/{id}/projeto-history")
@@ -27,7 +28,7 @@ public class ProjetoUserHistoryResource {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_REPORTS') or authentication.name == @userService.findById(#id).email")
+    @PreAuthorize("hasAuthority('VIEW_REPORTS')")
     public ResponseEntity<ProjetoUserHistoryTimelineDTO> getHistorico(@PathVariable Long id) {
         return ResponseEntity.ok(projetoUserHistoryService.getHistoricoParaUser(id));
     }
