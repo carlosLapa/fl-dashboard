@@ -2,16 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import {
-  getUserExtraHoursByUserAPI,
-  saveUserExtraHoursAPI,
-  deleteUserExtraHoursAPI,
-  getUserExtraHoursMonthlySummaryAPI,
-  getUserExtraHoursWeeklySummaryAPI,
-} from 'api/userExtraHoursApi';
-import {
-  UserExtraHoursDTO,
-  UserExtraHoursSummaryDTO,
-} from 'types/userExtraHours';
+  getUserExtraHoursByUser,
+  saveUserExtraHours,
+  deleteUserExtraHours,
+} from 'services/userExtraHoursService';
+import { UserExtraHoursDTO } from 'types/userExtraHours';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'moment/locale/pt';
 
@@ -22,10 +17,12 @@ const localizer = momentLocalizer(moment);
 
 interface UserExtraHoursCalendarProps {
   userId: number;
+  onChange?: () => void;
 }
 
 const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
   userId,
+  onChange,
 }) => {
   const [entries, setEntries] = useState<UserExtraHoursDTO[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<UserExtraHoursDTO | null>(
@@ -40,12 +37,6 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
 
   const MAX_HOURS = 24;
   const MAX_COMMENT_LENGTH = 255;
-  const [monthlySummary, setMonthlySummary] = useState<
-    UserExtraHoursSummaryDTO[]
-  >([]);
-  const [weeklySummary, setWeeklySummary] = useState<
-    UserExtraHoursSummaryDTO[]
-  >([]);
 
   // Helper: isWeekend
   const isWeekend = useCallback((date: Date): boolean => {
@@ -55,19 +46,12 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
 
   useEffect(() => {
     fetchEntries();
-    fetchSummaries();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchEntries = async () => {
-    const data = await getUserExtraHoursByUserAPI(userId);
+    const data = await getUserExtraHoursByUser(userId);
     setEntries(data);
-  };
-
-  const fetchSummaries = async () => {
-    const year = new Date().getFullYear();
-    setMonthlySummary(await getUserExtraHoursMonthlySummaryAPI(userId, year));
-    setWeeklySummary(await getUserExtraHoursWeeklySummaryAPI(userId, year));
   };
 
   // Calendar events: one per entry
@@ -124,9 +108,9 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
       comment: form.comment,
     };
     try {
-      await saveUserExtraHoursAPI(dto);
+      await saveUserExtraHours(dto);
       await fetchEntries();
-      await fetchSummaries();
+      onChange?.();
       setSelectedDate(null);
       setSelectedEntry(null);
     } catch (error) {
@@ -138,9 +122,9 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
   const handleDelete = async () => {
     if (selectedEntry?.id) {
       try {
-        await deleteUserExtraHoursAPI(selectedEntry.id);
+        await deleteUserExtraHours(selectedEntry.id);
         await fetchEntries();
-        await fetchSummaries();
+        onChange?.();
       } catch (error) {
         console.error('Erro ao excluir horas extra:', error);
         setFormError('Não foi possível excluir. Tente novamente.');
@@ -232,24 +216,6 @@ const UserExtraHoursCalendar: React.FC<UserExtraHoursCalendarProps> = ({
           </button>
         </div>
       )}
-      <div>
-        <h4>Resumo Mensal</h4>
-        <ul>
-          {monthlySummary.map((s) => (
-            <li key={s.period}>
-              {s.period}: {s.totalHours} hora(s)
-            </li>
-          ))}
-        </ul>
-        <h4>Resumo Semanal</h4>
-        <ul>
-          {weeklySummary.map((s) => (
-            <li key={s.period}>
-              {s.period}: {s.totalHours} hora(s)
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 };

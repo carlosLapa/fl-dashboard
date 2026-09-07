@@ -1,5 +1,6 @@
 import axios from 'api/apiConfig';
 import {
+  UserExtraHoursBalanceDTO,
   UserExtraHoursDTO,
   UserExtraHoursSummaryDTO,
 } from '../types/userExtraHours';
@@ -39,6 +40,20 @@ export const getUserExtraHoursWeeklySummaryAPI = async (
 ) => {
   const response = await axios.get<UserExtraHoursSummaryDTO[]>(
     `/api/user-extra-hours/user/${userId}/weekly-summary/${year}`
+  );
+  return response.data;
+};
+
+export const getUserExtraHoursBalanceAPI = async (userId: number) => {
+  const response = await axios.get<UserExtraHoursBalanceDTO>(
+    `/api/user-extra-hours/user/${userId}/balance`
+  );
+  return response.data;
+};
+
+export const getAllUserExtraHoursBalancesAPI = async () => {
+  const response = await axios.get<UserExtraHoursBalanceDTO[]>(
+    '/api/user-extra-hours/summary'
   );
   return response.data;
 };
