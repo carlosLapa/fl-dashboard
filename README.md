@@ -31,21 +31,22 @@ FL Dashboard is a full-stack internal tool designed to streamline the management
 
 ## Features
 
-- **Projects** — Create, list, and manage projects with status tracking
-- **Tasks (Tarefas)** — Full task lifecycle management with assignment and status updates
-- **Kanban Board** — Drag-and-drop task board (react-beautiful-dnd)
-- **Project Metrics** — Visual analytics with charts (Recharts)
+- **Projects** — Create, list, and manage projects with status tracking, archive/reactivate for concluded projects, and shareable public links
+- **Tasks (Tarefas)** — Full task lifecycle management with assignment, status updates, recurring tasks, archive/reactivate, and shareable public links
+- **Kanban Board** — Drag-and-drop task board (react-beautiful-dnd) with real-time multi-user synchronization over WebSockets, backed by TanStack Query
+- **Project Metrics** — Visual analytics with charts (Recharts), including historical metrics snapshots
+- **Reports (Relatórios)** — Banco de Horas (time-tracking) report and a per-collaborator task evaluation report for managers
 - **Calendar** — Task and project calendar view (React Big Calendar)
-- **Users & Clients** — Manage internal users, external collaborators, and clients
+- **Users & Clients** — Manage internal users (including deactivate/reactivate), external collaborators, and clients
 - **Proposals (Propostas)** — Manage project proposals
-- **Real-time Notifications** — WebSocket-based in-app notifications (STOMP/SockJS)
+- **Real-time Notifications** — WebSocket-based in-app notifications, with deadline warnings, pagination, and bulk mark-as-read/delete actions
 - **Slack Integration** — Automated notifications for key events, such as:
   - Task assigned 
   - Task status changed 
   - Task completed 
   - Project completed 
 - **Global Search**
-- **Authentication & Authorization** — OAuth2 Authorization Server + Resource Server (role-based permissions)
+- **Authentication & Authorization** — OAuth2 Authorization Server + Resource Server, fronted by a backend-for-frontend (BFF) proxy, with role-based permissions enforced on both frontend and backend
 
 ---
 
@@ -55,7 +56,8 @@ FL Dashboard is a full-stack internal tool designed to streamline the management
 | Technology | Purpose |
 |---|---|
 | React 18 + TypeScript | UI framework |
-| React Router v6 | Client-side routing |
+| React Router v7 | Client-side routing |
+| TanStack Query | Server-state caching & sync (Kanban board) |
 | Bootstrap 5 + React-Bootstrap | UI components & layout |
 | Tailwind CSS | Utility-first styling |
 | Axios | HTTP client |
@@ -125,6 +127,7 @@ fl-dashboard/
 │   │   │   ├── Externos/     # External collaborators
 │   │   │   ├── Propostas/    # Proposals
 │   │   │   ├── ProjetoMetrics/
+│   │   │   ├── Relatorios/    # Banco de Horas & colaborador reports
 │   │   │   ├── Users/
 │   │   │   ├── Notifications/
 │   │   │   └── Search/
