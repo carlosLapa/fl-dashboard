@@ -21,7 +21,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
     // pagination (HHH90003004), which loaded the whole active Projeto table (with users/tarefas/
     // tarefas.users/colunas joined) into heap before slicing it — root cause of a prod OOM.
-    @Query("SELECT p.id FROM Projeto p WHERE p.deletedAt IS NULL")
+    @Query("SELECT p.id FROM Projeto p WHERE p.deletedAt IS NULL AND p.arquivadaEm IS NULL")
     Page<Long> findAllActiveIds(Pageable pageable);
 
     // ProjetoWithUsersDTO (the only consumer of this method) only reads users/externos — tarefas,
@@ -94,7 +94,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             "AND (:propostaEndDate IS NULL OR p.dataProposta <= :propostaEndDate) " +
             "AND (:adjudicacaoStartDate IS NULL OR p.dataAdjudicacao >= :adjudicacaoStartDate) " +
             "AND (:adjudicacaoEndDate IS NULL OR p.dataAdjudicacao <= :adjudicacaoEndDate)" +
-            "AND (:tipo IS NULL OR p.tipo = :tipo)")
+            "AND (:tipo IS NULL OR p.tipo = :tipo) " +
+            "AND ((:arquivado = TRUE AND p.arquivadaEm IS NOT NULL) OR (:arquivado = FALSE AND p.arquivadaEm IS NULL))")
     Page<Projeto> findByFilters(
             @Param("designacao") String designacao,
             @Param("clienteId") Long clienteId,
@@ -109,6 +110,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("adjudicacaoStartDate") Date adjudicacaoStartDate,
             @Param("adjudicacaoEndDate") Date adjudicacaoEndDate,
             @Param("tipo") TipoProjeto tipo,
+            @Param("arquivado") boolean arquivado,
             Pageable pageable);
 
     List<Projeto> findByClienteId(Long id);
@@ -125,7 +127,8 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
     // deadline is a java.util.Date (matches Projeto.prazo's type), unlike Tarefa's equivalent
     // query which takes a LocalDate against a Date-typed field.
     @EntityGraph(attributePaths = {"users"})
-    @Query("SELECT p FROM Projeto p WHERE p.prazo < :deadline AND p.status <> :status AND p.deletedAt IS NULL")
+    @Query("SELECT p FROM Projeto p WHERE p.prazo < :deadline AND p.status <> :status " +
+            "AND p.deletedAt IS NULL AND p.arquivadaEm IS NULL")
     List<Projeto> findByPrazoBeforeAndStatusNot(
             @Param("deadline") Date deadline,
             @Param("status") String status);

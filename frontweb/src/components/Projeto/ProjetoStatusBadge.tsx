@@ -4,9 +4,13 @@ import { getProjetoStatusLabel } from '../../constants/projetoStatus';
 
 interface ProjetoStatusBadgeProps {
   status: string;
+  arquivado?: boolean;
 }
 
-const ProjetoStatusBadge: React.FC<ProjetoStatusBadgeProps> = ({ status }) => {
+const ProjetoStatusBadge: React.FC<ProjetoStatusBadgeProps> = ({
+  status,
+  arquivado = false,
+}) => {
   let variant = 'secondary';
 
   switch (status) {
@@ -24,7 +28,16 @@ const ProjetoStatusBadge: React.FC<ProjetoStatusBadgeProps> = ({ status }) => {
       break;
   }
 
-  return <Badge bg={variant}>{getProjetoStatusLabel(status)}</Badge>;
+  return (
+    <>
+      <Badge bg={variant}>{getProjetoStatusLabel(status)}</Badge>
+      {arquivado && (
+        <Badge bg="secondary" className="ms-1">
+          Arquivado
+        </Badge>
+      )}
+    </>
+  );
 };
 
 export default ProjetoStatusBadge;

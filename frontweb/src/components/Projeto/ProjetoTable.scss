@@ -65,6 +65,24 @@
     }
   }
 
+  .archive-icon {
+    cursor: pointer;
+    color: #6c757d;
+    padding: 2px;
+    &:hover {
+      color: #545b62;
+    }
+  }
+
+  .reactivate-icon {
+    cursor: pointer;
+    color: #28a745;
+    padding: 2px;
+    &:hover {
+      color: #1e7e34;
+    }
+  }
+
   .metrics-icon {
     color: #6f42c1; // Purple color (diferente dos outros ícones)
     cursor: pointer;

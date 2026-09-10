@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
@@ -29,6 +30,7 @@ public class ProjetoDTO {
     private Date prazo;
 
     private String status;
+    private LocalDateTime arquivadaEm;
 
     private Long coordenadorId;
     private UserSummaryDTO coordenador;
@@ -67,6 +69,7 @@ public class ProjetoDTO {
         this.observacao = entity.getObservacao();
         this.prazo = entity.getPrazo();
         this.status = entity.getStatus();
+        this.arquivadaEm = entity.getArquivadaEm();
         this.tipo = entity.getTipo();
 
         if (entity.getCoordenador() != null) {

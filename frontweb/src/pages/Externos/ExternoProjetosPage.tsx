@@ -78,6 +78,14 @@ const ExternoProjetosPage: React.FC = () => {
     console.log(`Delete projeto ${id} - Not implemented in this view`);
   };
 
+  const handleArchiveProjeto = (id: number) => {
+    console.log(`Archive projeto ${id} - Not implemented in this view`);
+  };
+
+  const handleReactivateProjeto = (id: number) => {
+    console.log(`Reactivate projeto ${id} - Not implemented in this view`);
+  };
+
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
@@ -179,6 +187,8 @@ const ExternoProjetosPage: React.FC = () => {
               projetos={externo.projetos}
               onEditProjeto={handleEditProjeto}
               onDeleteProjeto={handleDeleteProjeto}
+              onArchiveProjeto={handleArchiveProjeto}
+              onReactivateProjeto={handleReactivateProjeto}
               page={page}
               onPageChange={handlePageChange}
               totalPages={totalPages}

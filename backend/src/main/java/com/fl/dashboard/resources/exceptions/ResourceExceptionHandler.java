@@ -3,6 +3,7 @@ package com.fl.dashboard.resources.exceptions;
 import com.fl.dashboard.services.exceptions.DatabaseException;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.OptimisticLockConflictException;
+import com.fl.dashboard.services.exceptions.ProjetoArquivamentoInvalidoException;
 import com.fl.dashboard.services.exceptions.RecorrenciaInvalidaException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
@@ -122,6 +123,18 @@ public class ResourceExceptionHandler {
 
     @ExceptionHandler(TarefaArquivamentoInvalidoException.class)
     public ResponseEntity<StandardError> tarefaArquivamentoInvalido(TarefaArquivamentoInvalidoException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        StandardError err = new StandardError();
+        err.setTimestamp(Instant.now());
+        err.setStatus(status.value());
+        err.setError("Arquivamento inválido");
+        err.setMessage(e.getMessage());
+        err.setPath(request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(ProjetoArquivamentoInvalidoException.class)
+    public ResponseEntity<StandardError> projetoArquivamentoInvalido(ProjetoArquivamentoInvalidoException e, HttpServletRequest request) {
         HttpStatus status = HttpStatus.CONFLICT;
         StandardError err = new StandardError();
         err.setTimestamp(Instant.now());

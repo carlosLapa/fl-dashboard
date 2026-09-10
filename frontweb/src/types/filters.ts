@@ -21,6 +21,7 @@ export interface ProjetoFilterState {
   cliente?: string; // Nome do cliente para filtragem por texto
   clienteId?: number; // ID do cliente para filtragem exata
   tipo?: TipoProjeto | 'ALL'; // <-- mais explícito
+  arquivado?: boolean; // Mostrar apenas projetos arquivados
 }
 
 // Tarefa filter state

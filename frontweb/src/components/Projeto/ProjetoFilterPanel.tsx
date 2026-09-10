@@ -140,6 +140,21 @@ const ProjetoFilterPanel: React.FC<ProjetoFilterPanelProps> = ({
           </Form.Select>
         </Form.Group>
       </Col>
+      {/* Arquivado Filter */}
+      <Col md={6} lg={4}>
+        <Form.Group>
+          <Form.Label>&nbsp;</Form.Label>
+          <Form.Check
+            type="checkbox"
+            id="filterArquivado"
+            label="Mostrar arquivados"
+            checked={filters.arquivado === true}
+            onChange={(e) =>
+              updateFilter('arquivado', e.target.checked ? true : undefined)
+            }
+          />
+        </Form.Group>
+      </Col>
       {/* Tipo Filter */}
       <Col md={6} lg={4}>
         <Form.Group controlId="filterTipo">
