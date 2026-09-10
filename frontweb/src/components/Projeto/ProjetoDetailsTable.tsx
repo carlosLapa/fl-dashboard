@@ -91,7 +91,10 @@ const ProjetoDetailsTable: React.FC<ProjetoDetailsTableProps> = ({
                     <option value="CONCLUIDO">Concluído</option>
                     <option value="SUSPENSO">Suspenso</option>
                   </Form.Select>
-                  <ProjetoStatusBadge status={projeto.status} />
+                  <ProjetoStatusBadge
+                    status={projeto.status}
+                    arquivado={!!projeto.arquivadaEm}
+                  />
                 </div>
               </td>
             </tr>

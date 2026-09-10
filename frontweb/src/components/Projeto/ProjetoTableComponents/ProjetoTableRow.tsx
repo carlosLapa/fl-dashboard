@@ -7,24 +7,34 @@ import {
   faEye,
   faInfoCircle,
   faChartLine,
+  faBoxArchive,
+  faBoxOpen,
 } from '@fortawesome/free-solid-svg-icons';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import ProjetoStatusBadge from '../ProjetoStatusBadge';
 import ProjetoPrioridadeBadge from '../ProjetoPrioridadeBadge';
 import { formatDate } from '../../../utils/dateUtils';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { Permission } from '../../../permissions/rolePermissions';
 
 interface ProjetoTableRowProps {
   projeto: Projeto;
   onEditProjeto: (id: number) => void;
   onDeleteProjeto: (id: number) => void;
+  onArchiveProjeto: (id: number) => void;
+  onReactivateProjeto: (id: number) => void;
 }
 
 const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
   projeto,
   onEditProjeto,
   onDeleteProjeto,
+  onArchiveProjeto,
+  onReactivateProjeto,
 }) => {
+  const { hasPermission } = usePermissions();
+  const canArchive = hasPermission(Permission.EDIT_PROJECT);
   // Updated to safely handle undefined users
   const renderUserNames = () => {
     if (!projeto.users || !Array.isArray(projeto.users)) {
@@ -33,8 +43,12 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
     return projeto.users.map((user) => user.name).join(', ') || 'N/A';
   };
 
+  // Mirrors TarefaTableRow's condition for its own "Arquivar" suggestion —
+  // a CONCLUIDO project the user just hasn't gotten around to archiving yet.
+  const pendingArchive = projeto.status === 'CONCLUIDO' && !projeto.arquivadaEm;
+
   return (
-    <tr>
+    <tr className={pendingArchive ? 'table-success' : undefined}>
       <td>{projeto.projetoAno}</td>
       <td>{projeto.designacao}</td>
       <td>{projeto.cliente?.name || 'N/A'}</td>
@@ -49,7 +63,26 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
       <td>{formatDate(projeto.prazo)}</td>
       <td className="d-none d-lg-table-cell">{renderUserNames()}</td>
       <td>
-        <ProjetoStatusBadge status={projeto.status} />
+        <ProjetoStatusBadge
+          status={projeto.status}
+          arquivado={!!projeto.arquivadaEm}
+        />
+        {pendingArchive && (
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`pending-archive-tooltip-${projeto.id}`}>
+                Projeto concluído — considere arquivá-lo
+              </Tooltip>
+            }
+          >
+            <FontAwesomeIcon
+              icon={faBoxArchive}
+              className="ms-2 text-success"
+              style={{ cursor: 'pointer' }}
+            />
+          </OverlayTrigger>
+        )}
       </td>
       <td>
         <div className="action-icons">
@@ -80,6 +113,38 @@ const ProjetoTableRow: React.FC<ProjetoTableRowProps> = ({
               className="delete-icon"
             />
           </OverlayTrigger>
+
+          {/* Archive / Reactivate Project */}
+          {canArchive && !projeto.arquivadaEm && projeto.status === 'CONCLUIDO' && (
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip id={`tooltip-archive-${projeto.id}`}>Arquivar</Tooltip>
+              }
+            >
+              <FontAwesomeIcon
+                icon={faBoxArchive}
+                onClick={() => onArchiveProjeto(projeto.id)}
+                className="mr-2 archive-icon"
+              />
+            </OverlayTrigger>
+          )}
+          {canArchive && projeto.arquivadaEm && (
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip id={`tooltip-reactivate-${projeto.id}`}>
+                  Reativar
+                </Tooltip>
+              }
+            >
+              <FontAwesomeIcon
+                icon={faBoxOpen}
+                onClick={() => onReactivateProjeto(projeto.id)}
+                className="mr-2 reactivate-icon"
+              />
+            </OverlayTrigger>
+          )}
 
           {/* View Kanban Board */}
           <OverlayTrigger

@@ -6,11 +6,13 @@ import {
 } from '../types/projeto';
 import {
   addProjetoAPI,
+  arquivarProjetoAPI,
   extendProjetoPrazoAPI,
   getProjetosAPI,
   getProjetosByDateRangeAPI,
   getProjetosWithFiltersAPI,
   getProjetoWithUsersAndTarefasAPI,
+  reativarProjetoAPI,
 } from '../api/requestsApi';
 import { ProjetoFilterState } from '../types/filters';
 import { hasPermission } from '../utils/hasPermission';
@@ -54,6 +56,7 @@ export const buildApiFilters = (filters: FilterState) => {
     adjudicacaoStartDate: valueOrUndefined(filters.adjudicacaoStartDate),
     adjudicacaoEndDate: valueOrUndefined(filters.adjudicacaoEndDate),
     tipo: filters.tipo !== 'ALL' ? filters.tipo : undefined,
+    arquivado: filters.arquivado,
   };
   
   // Remove propriedades undefined para maior clareza nos logs
@@ -314,6 +317,25 @@ export const fetchProjetosForCliente = async (
     console.error(`Error fetching projetos for cliente ${clienteId}:`, error);
     throw error;
   }
+};
+
+export const arquivarProjeto = async (id: number): Promise<Projeto> => {
+  try {
+    return await arquivarProjetoAPI(id);
+  } catch (error) {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 409 &&
+      error.response?.data?.message
+    ) {
+      throw new Error(error.response.data.message);
+    }
+    throw error;
+  }
+};
+
+export const reativarProjeto = async (id: number): Promise<Projeto> => {
+  return await reativarProjetoAPI(id);
 };
 
 export const extendProjetoPrazo = async (

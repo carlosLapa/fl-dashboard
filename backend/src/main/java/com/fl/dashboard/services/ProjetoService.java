@@ -13,6 +13,7 @@ import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.UserRepository;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
+import com.fl.dashboard.services.exceptions.ProjetoArquivamentoInvalidoException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.utils.ProjetoDTOMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -387,6 +388,31 @@ public class ProjetoService {
         }
     }
 
+    @Transactional
+    public ProjetoWithUsersDTO arquivar(Long id) {
+        Projeto projeto = projetoRepository.findByIdActive(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
+
+        if (!"CONCLUIDO".equals(projeto.getStatus())) {
+            throw new ProjetoArquivamentoInvalidoException("Só é possível arquivar projetos com estado Concluído");
+        }
+        if (projeto.isArquivada()) {
+            throw new ProjetoArquivamentoInvalidoException("Este projeto já está arquivado");
+        }
+        projeto.markAsArquivada();
+        projeto = projetoRepository.save(projeto);
+        return new ProjetoWithUsersDTO(projeto, projeto.getUsers());
+    }
+
+    @Transactional
+    public ProjetoWithUsersDTO reativar(Long id) {
+        Projeto projeto = projetoRepository.findByIdActive(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
+        projeto.markAsDesarquivada();
+        projeto = projetoRepository.save(projeto);
+        return new ProjetoWithUsersDTO(projeto, projeto.getUsers());
+    }
+
     @Transactional(readOnly = true)
     public List<ProjetoWithUsersAndTarefasDTO> searchProjetos(String query) {
         String searchQuery = "%" + query.toLowerCase() + "%";
@@ -423,7 +449,7 @@ public class ProjetoService {
             Date propostaEndDate,
             Date adjudicacaoStartDate,
             Date adjudicacaoEndDate,
-            TipoProjeto tipo, Pageable pageable) {
+            TipoProjeto tipo, Boolean arquivado, Pageable pageable) {
 
         // Adjust end dates to be inclusive
         Date adjustedEndDate = adjustEndDate(endDate);
@@ -436,7 +462,8 @@ public class ProjetoService {
         Page<Projeto> result = projetoRepository.findByFilters(
                 designacao, clienteId, clienteName, prioridade, startDate, adjustedEndDate, statusFilter,
                 coordenadorId, propostaStartDate, adjustedPropostaEndDate,
-                adjudicacaoStartDate, adjustedAdjudicacaoEndDate, tipo, pageable);
+                adjudicacaoStartDate, adjustedAdjudicacaoEndDate, tipo,
+                Boolean.TRUE.equals(arquivado), pageable);
 
         return result.map(projeto -> new ProjetoWithUsersDTO(projeto, projeto.getUsers()));
     }
@@ -508,7 +535,7 @@ public class ProjetoService {
         // IMPORTANT: Filter out deleted projects
         List<Projeto> list = new ArrayList<>();
         for (Projeto userProject : userProjects) {
-            if (!userProject.isDeleted()) {
+            if (!userProject.isDeleted() && !userProject.isArquivada()) {
                 list.add(userProject);
             }
         }
@@ -577,7 +604,7 @@ public class ProjetoService {
             Date propostaEndDate,
             Date adjudicacaoStartDate,
             Date adjudicacaoEndDate,
-            TipoProjeto tipo, String userEmail,
+            TipoProjeto tipo, String userEmail, Boolean arquivado,
             Pageable pageable) {
 
         User user = userRepository.findByEmail(userEmail);
@@ -595,10 +622,12 @@ public class ProjetoService {
 
         // Only pass status if it's not "ALL"
         String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
+        boolean arquivadoFilter = Boolean.TRUE.equals(arquivado);
 
         // Filter the user's projects manually
         List<Projeto> filteredProjects = userProjects.stream()
                 .filter(projeto -> !projeto.isDeleted()) // Use isDeleted() method
+                .filter(projeto -> projeto.isArquivada() == arquivadoFilter)
                 .filter(projeto ->
                         (designacao == null || projeto.getDesignacao().toLowerCase().contains(designacao.toLowerCase())) &&
                                 (clienteId == null || (projeto.getCliente() != null && projeto.getCliente().getId().equals(clienteId))) &&

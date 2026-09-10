@@ -3,6 +3,8 @@ import { Projeto, ProjetoFormData } from '../../types/projeto';
 import {
   fetchProjetosWithFilters,
   checkOrphanedTarefasAfterPrazoChange,
+  arquivarProjeto,
+  reativarProjeto,
 } from '../../services/projetoService';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { Button } from 'react-bootstrap';
@@ -17,7 +19,11 @@ import {
 import { usePermissions } from 'hooks/usePermissions'; // Add this import
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPlus,
+  faBoxArchive,
+  faBoxOpen,
+} from '@fortawesome/free-solid-svg-icons';
 import { useProjetoFilters } from '../../hooks/useFilterState';
 import { Badge } from 'react-bootstrap';
 import { hasActiveFilters } from '../../components/Projeto/utils/filterUtils';
@@ -45,6 +51,9 @@ const ProjetosPage: React.FC = () => {
     updateFilter,
     applyFilters,
     clearFilters,
+    setFilters,
+    setAppliedFilters,
+    setIsFiltered,
   } = useProjetoFilters();
 
   // Data state
@@ -210,6 +219,29 @@ const ProjetosPage: React.FC = () => {
     setSearchQuery('');
   }, [filters, applyFilters, appliedFilters]);
 
+  // Quick toggle for archived projects, bypassing the (collapsed by default)
+  // filter panel — reactivating an archived project is common enough that
+  // it needed a one-click path, not just the panel checkbox.
+  const showingArquivados = appliedFilters.arquivado === true;
+
+  const handleToggleArquivados = useCallback(() => {
+    const nextFilters = {
+      ...filters,
+      arquivado: showingArquivados ? undefined : true,
+    };
+    setFilters(nextFilters);
+    setAppliedFilters(nextFilters);
+    setIsFiltered(hasActiveFilters(nextFilters));
+    setPage(0);
+    setSearchQuery('');
+  }, [
+    filters,
+    showingArquivados,
+    setFilters,
+    setAppliedFilters,
+    setIsFiltered,
+  ]);
+
   // CRUD operations
   const handleEditProjeto = useCallback(
     (id: number) => {
@@ -243,6 +275,44 @@ const ProjetosPage: React.FC = () => {
       } catch (error) {
         console.error('Error deleting project:', error);
         toast.error('Erro ao excluir projeto');
+      }
+    },
+    [isFiltered, fetchFilteredProjetos, fetchProjetos]
+  );
+
+  const handleArchiveProjeto = useCallback(
+    async (id: number) => {
+      try {
+        await arquivarProjeto(id);
+        if (isFiltered) {
+          await fetchFilteredProjetos();
+        } else {
+          await fetchProjetos();
+        }
+        toast.success('Projeto arquivado com sucesso');
+      } catch (error) {
+        console.error('Error archiving project:', error);
+        const message =
+          error instanceof Error ? error.message : 'Erro ao arquivar projeto';
+        toast.error(message);
+      }
+    },
+    [isFiltered, fetchFilteredProjetos, fetchProjetos]
+  );
+
+  const handleReactivateProjeto = useCallback(
+    async (id: number) => {
+      try {
+        await reativarProjeto(id);
+        if (isFiltered) {
+          await fetchFilteredProjetos();
+        } else {
+          await fetchProjetos();
+        }
+        toast.success('Projeto reativado com sucesso');
+      } catch (error) {
+        console.error('Error reactivating project:', error);
+        toast.error('Erro ao reativar projeto');
       }
     },
     [isFiltered, fetchFilteredProjetos, fetchProjetos]
@@ -324,6 +394,16 @@ const ProjetosPage: React.FC = () => {
               <FontAwesomeIcon icon={faPlus} className="me-2" />
               Adicionar Projeto
             </Button>
+            <Button
+              variant={showingArquivados ? 'secondary' : 'outline-secondary'}
+              onClick={handleToggleArquivados}
+            >
+              <FontAwesomeIcon
+                icon={showingArquivados ? faBoxOpen : faBoxArchive}
+                className="me-2"
+              />
+              {showingArquivados ? 'Ver Ativos' : 'Ver Arquivados'}
+            </Button>
           </div>
         </div>
         {/* Table wrapped in a div with the same width */}
@@ -332,6 +412,8 @@ const ProjetosPage: React.FC = () => {
             projetos={projetos}
             onEditProjeto={handleEditProjeto}
             onDeleteProjeto={handleDeleteProjeto}
+            onArchiveProjeto={handleArchiveProjeto}
+            onReactivateProjeto={handleReactivateProjeto}
             page={page}
             onPageChange={setPage}
             totalPages={totalPages}

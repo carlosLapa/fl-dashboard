@@ -17,6 +17,8 @@ interface ProjetoTableProps {
   projetos: Projeto[];
   onEditProjeto: (id: number) => void;
   onDeleteProjeto: (id: number) => void;
+  onArchiveProjeto: (id: number) => void;
+  onReactivateProjeto: (id: number) => void;
   page: number;
   onPageChange: (page: number) => void;
   totalPages: number;
@@ -34,6 +36,8 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
   projetos = [], // Define default value as empty array
   onEditProjeto,
   onDeleteProjeto,
+  onArchiveProjeto,
+  onReactivateProjeto,
   page,
   onPageChange,
   totalPages,
@@ -99,6 +103,8 @@ const ProjetoTable: React.FC<ProjetoTableProps> = ({
                   projeto={projeto}
                   onEditProjeto={onEditProjeto}
                   onDeleteProjeto={onDeleteProjeto}
+                  onArchiveProjeto={onArchiveProjeto}
+                  onReactivateProjeto={onReactivateProjeto}
                 />
               ))}
             </tbody>

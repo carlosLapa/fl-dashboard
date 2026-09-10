@@ -17,16 +17,26 @@ import {
   TarefaUpdateFormData,
 } from 'types/tarefa';
 import { addTarefa, updateTarefa } from 'services/tarefaService';
+import { arquivarProjeto, reativarProjeto } from 'services/projetoService';
 import { toast } from 'react-toastify';
 import BackButton from 'components/Shared/BackButton/BackButton';
 import ProjetoExternosManager from 'components/Projeto/ProjetoExternosManager';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faColumns } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPlus,
+  faColumns,
+  faBoxArchive,
+  faBoxOpen,
+} from '@fortawesome/free-solid-svg-icons';
+import { usePermissions } from 'hooks/usePermissions';
+import { Permission } from 'permissions/rolePermissions';
 import './projetoDetailsPage.scss';
 
 const ProjetoDetailsPage: React.FC = () => {
   const { projetoId } = useParams<{ projetoId: string }>();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const canArchive = hasPermission(Permission.EDIT_PROJECT);
   const [projeto, setProjeto] = useState<ProjetoWithUsersAndTarefasDTO | null>(
     null
   );
@@ -123,6 +133,32 @@ const ProjetoDetailsPage: React.FC = () => {
     }
   };
 
+  const handleArchiveProjeto = async () => {
+    if (!projetoId) return;
+    try {
+      await arquivarProjeto(Number(projetoId));
+      await fetchProjeto();
+      toast.success('Projeto arquivado com sucesso');
+    } catch (error) {
+      console.error('Error archiving project:', error);
+      const message =
+        error instanceof Error ? error.message : 'Erro ao arquivar projeto';
+      toast.error(message);
+    }
+  };
+
+  const handleReactivateProjeto = async () => {
+    if (!projetoId) return;
+    try {
+      await reativarProjeto(Number(projetoId));
+      await fetchProjeto();
+      toast.success('Projeto reativado com sucesso');
+    } catch (error) {
+      console.error('Error reactivating project:', error);
+      toast.error('Erro ao reativar projeto');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
@@ -170,6 +206,18 @@ const ProjetoDetailsPage: React.FC = () => {
               <FontAwesomeIcon icon={faColumns} className="me-2" />
               Kanban
             </Button>
+            {canArchive && !projeto.arquivadaEm && projeto.status === 'CONCLUIDO' && (
+              <Button variant="outline-secondary" onClick={handleArchiveProjeto}>
+                <FontAwesomeIcon icon={faBoxArchive} className="me-2" />
+                Arquivar
+              </Button>
+            )}
+            {canArchive && projeto.arquivadaEm && (
+              <Button variant="outline-secondary" onClick={handleReactivateProjeto}>
+                <FontAwesomeIcon icon={faBoxOpen} className="me-2" />
+                Reativar
+              </Button>
+            )}
           </div>
         </div>
 

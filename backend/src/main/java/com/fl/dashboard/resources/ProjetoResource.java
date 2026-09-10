@@ -190,6 +190,20 @@ public class ProjetoResource {
         }
     }
 
+    @PutMapping("/{id}/archive")
+    @PreAuthorize("hasAuthority('EDIT_PROJECT')")
+    public ResponseEntity<ProjetoWithUsersDTO> archive(@PathVariable Long id) {
+        ProjetoWithUsersDTO updatedProjeto = projetoService.arquivar(id);
+        return ResponseEntity.ok().body(updatedProjeto);
+    }
+
+    @PutMapping("/{id}/unarchive")
+    @PreAuthorize("hasAuthority('EDIT_PROJECT')")
+    public ResponseEntity<ProjetoWithUsersDTO> unarchive(@PathVariable Long id) {
+        ProjetoWithUsersDTO updatedProjeto = projetoService.reativar(id);
+        return ResponseEntity.ok().body(updatedProjeto);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<?> searchProjetos(@RequestParam String query, Authentication authentication) {
         boolean canViewAll = authentication.getAuthorities().stream()
@@ -239,6 +253,7 @@ public class ProjetoResource {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date adjudicacaoStartDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date adjudicacaoEndDate,
             @RequestParam(required = false) TipoProjeto tipo,
+            @RequestParam(required = false) Boolean arquivado,
             Pageable pageable,
             Authentication authentication) {
 
@@ -249,7 +264,7 @@ public class ProjetoResource {
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetos(
                     designacao, clienteId, clienteName, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
-                    adjudicacaoStartDate, adjudicacaoEndDate, tipo, pageable);
+                    adjudicacaoStartDate, adjudicacaoEndDate, tipo, arquivado, pageable);
             return ResponseEntity.ok().body(result);
         } else {
             String userEmail;
@@ -261,7 +276,7 @@ public class ProjetoResource {
             Page<ProjetoWithUsersDTO> result = projetoService.filterProjetosForUser(
                     designacao, clienteId, clienteName, prioridade, startDate, endDate, status,
                     coordenadorId, propostaStartDate, propostaEndDate,
-                    adjudicacaoStartDate, adjudicacaoEndDate, tipo, userEmail, pageable);
+                    adjudicacaoStartDate, adjudicacaoEndDate, tipo, userEmail, arquivado, pageable);
             return ResponseEntity.ok().body(result);
         }
     }

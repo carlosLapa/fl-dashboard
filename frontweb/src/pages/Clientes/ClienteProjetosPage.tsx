@@ -23,7 +23,11 @@ import { Projeto, ProjetoFormData } from '../../types/projeto';
 import ProjetoTable from '../../components/Projeto/ProjetoTable';
 import { ProjetoFilterState } from '../../types/filters';
 import ProjetoModal from '../../components/Projeto/ProjetoModal';
-import { checkOrphanedTarefasAfterPrazoChange } from '../../services/projetoService';
+import {
+  checkOrphanedTarefasAfterPrazoChange,
+  arquivarProjeto,
+  reativarProjeto,
+} from '../../services/projetoService';
 import { toast } from 'react-toastify';
 import './clienteStyles.scss';
 
@@ -223,6 +227,34 @@ const ClienteProjetosPage: React.FC = () => {
         console.error('Error deleting projeto:', error);
         toast.error('Erro ao excluir projeto');
       }
+    }
+  };
+
+  const handleArchiveProjeto = async (projetoId: number) => {
+    try {
+      await arquivarProjeto(projetoId);
+      toast.success('Projeto arquivado com sucesso!');
+      if (clienteId) {
+        await fetchClienteData(parseInt(clienteId), true);
+      }
+    } catch (error) {
+      console.error('Error archiving projeto:', error);
+      const message =
+        error instanceof Error ? error.message : 'Erro ao arquivar projeto';
+      toast.error(message);
+    }
+  };
+
+  const handleReactivateProjeto = async (projetoId: number) => {
+    try {
+      await reativarProjeto(projetoId);
+      toast.success('Projeto reativado com sucesso!');
+      if (clienteId) {
+        await fetchClienteData(parseInt(clienteId), true);
+      }
+    } catch (error) {
+      console.error('Error reactivating projeto:', error);
+      toast.error('Erro ao reativar projeto');
     }
   };
 
@@ -525,6 +557,8 @@ const ClienteProjetosPage: React.FC = () => {
               projetos={projetos}
               onEditProjeto={handleEditProjeto}
               onDeleteProjeto={handleDeleteProjeto}
+              onArchiveProjeto={handleArchiveProjeto}
+              onReactivateProjeto={handleReactivateProjeto}
               isLoading={false}
               page={page}
               totalPages={totalPages}

@@ -206,6 +206,18 @@ export const deleteProjetoAPI = async (id: number): Promise<void> => {
   }
 };
 
+export const arquivarProjetoAPI = async (projetoId: number) => {
+  const response = await axios.put<Projeto>(`/projetos/${projetoId}/archive`);
+  return response.data;
+};
+
+export const reativarProjetoAPI = async (projetoId: number) => {
+  const response = await axios.put<Projeto>(
+    `/projetos/${projetoId}/unarchive`
+  );
+  return response.data;
+};
+
 export const getProjetoWithUsersAndTarefasAPI = async (
   id: number
 ): Promise<ProjetoWithUsersAndTarefasDTO> => {
@@ -330,6 +342,7 @@ export const getProjetosWithFiltersAPI = async (
     adjudicacaoStartDate?: string;
     adjudicacaoEndDate?: string;
     tipo?: string;
+    arquivado?: boolean;
   },
   page: number = 0,
   size: number = 10,
@@ -338,7 +351,7 @@ export const getProjetosWithFiltersAPI = async (
   try {
     // Only include a filter param when it carries a real value, mirroring the
     // previous string-concatenation logic's conditions exactly.
-    const params: Record<string, string | number> = { page, size, sort };
+    const params: Record<string, string | number | boolean> = { page, size, sort };
 
     if (filters.designacao) params.designacao = filters.designacao;
     if (filters.clienteId !== undefined && filters.clienteId !== null) {
@@ -369,6 +382,7 @@ export const getProjetosWithFiltersAPI = async (
       params.adjudicacaoEndDate = filters.adjudicacaoEndDate;
     }
     if (filters.tipo) params.tipo = filters.tipo;
+    if (filters.arquivado) params.arquivado = filters.arquivado;
 
     const response = await axios.get(`${getApiUrl()}/projetos/filter`, { params });
     return response;

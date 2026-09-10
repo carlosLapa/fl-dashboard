@@ -37,6 +37,7 @@ export type Projeto = {
   prazo: string;
   users: User[];
   status: string;
+  arquivadaEm?: string | null;
   coordenador?: User;
   dataProposta?: string;
   dataAdjudicacao?: string;

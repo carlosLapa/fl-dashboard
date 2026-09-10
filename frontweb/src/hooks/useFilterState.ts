@@ -16,6 +16,7 @@ const defaultProjetoFilterState: ProjetoFilterState = {
   startDate: '',
   endDate: '',
   tipo: undefined,
+  arquivado: undefined,
 };
 
 const defaultClienteFilterState: ClienteFilterState = {

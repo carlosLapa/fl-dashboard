@@ -78,6 +78,9 @@ public class Projeto {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "arquivada_em")
+    private LocalDateTime arquivadaEm;
+
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date dataProposta;
 
@@ -110,6 +113,26 @@ public class Projeto {
 
     public boolean isDeleted() {
         return deletedAt != null;
+    }
+
+    public LocalDateTime getArquivadaEm() {
+        return arquivadaEm;
+    }
+
+    public void setArquivadaEm(LocalDateTime arquivadaEm) {
+        this.arquivadaEm = arquivadaEm;
+    }
+
+    public void markAsArquivada() {
+        this.arquivadaEm = LocalDateTime.now();
+    }
+
+    public void markAsDesarquivada() {
+        this.arquivadaEm = null;
+    }
+
+    public boolean isArquivada() {
+        return arquivadaEm != null;
     }
 
     public Set<User> getUsers() {
