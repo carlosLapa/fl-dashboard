@@ -7,6 +7,7 @@ import com.fl.dashboard.entities.ProjetoLink;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.ProjetoUserHistoryAction;
 import com.fl.dashboard.enums.TipoProjeto;
 import com.fl.dashboard.repositories.ExternoRepository;
@@ -152,7 +153,7 @@ public class ProjetoService {
             Projeto entity = projetoRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com ID: " + id));
 
-            String oldStatus = entity.getStatus();
+            ProjetoStatus oldStatus = entity.getStatus();
             Set<User> oldUsers = new HashSet<>(entity.getUsers());
 
             /*
@@ -291,23 +292,23 @@ public class ProjetoService {
         projeto.getLinks().addAll(updatedLinks);
     }
 
-    private NotificationType determineNotificationType(String oldStatus, String newStatus) {
-        if ("CONCLUIDO".equals(newStatus) && !newStatus.equals(oldStatus)) {
+    private NotificationType determineNotificationType(ProjetoStatus oldStatus, ProjetoStatus newStatus) {
+        if (newStatus == ProjetoStatus.CONCLUIDO && newStatus != oldStatus) {
             return NotificationType.PROJETO_CONCLUIDO;
-        } else if (!newStatus.equals(oldStatus)) {
+        } else if (newStatus != oldStatus) {
             return NotificationType.PROJETO_STATUS_ALTERADO;
         }
         return NotificationType.PROJETO_EDITADO;
     }
 
     @Transactional
-    public ProjetoWithUsersDTO updateStatus(Long id, String status) {
+    public ProjetoWithUsersDTO updateStatus(Long id, ProjetoStatus status) {
         Projeto entity = projetoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
         entity.setStatus(status);
         Projeto savedEntity = projetoRepository.save(entity);
 
-        NotificationType notificationType = status.equals("CONCLUIDO")
+        NotificationType notificationType = status == ProjetoStatus.CONCLUIDO
                 ? NotificationType.PROJETO_CONCLUIDO
                 : NotificationType.PROJETO_STATUS_ALTERADO;  // Changed from PROJETO_ATUALIZADO
 
@@ -393,7 +394,7 @@ public class ProjetoService {
         Projeto projeto = projetoRepository.findByIdActive(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto não foi encontrado"));
 
-        if (!"CONCLUIDO".equals(projeto.getStatus())) {
+        if (projeto.getStatus() != ProjetoStatus.CONCLUIDO) {
             throw new ProjetoArquivamentoInvalidoException("Só é possível arquivar projetos com estado Concluído");
         }
         if (projeto.isArquivada()) {
@@ -457,7 +458,7 @@ public class ProjetoService {
         Date adjustedAdjudicacaoEndDate = adjustEndDate(adjudicacaoEndDate);
 
         // Only pass status if it's not "ALL"
-        String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
+        ProjetoStatus statusFilter = (status != null && !status.equals("ALL")) ? ProjetoStatus.valueOf(status) : null;
 
         Page<Projeto> result = projetoRepository.findByFilters(
                 designacao, clienteId, clienteName, prioridade, startDate, adjustedEndDate, statusFilter,
@@ -621,7 +622,7 @@ public class ProjetoService {
         Date adjustedAdjudicacaoEndDate = adjustEndDate(adjudicacaoEndDate);
 
         // Only pass status if it's not "ALL"
-        String statusFilter = (status != null && !status.equals("ALL")) ? status : null;
+        ProjetoStatus statusFilter = (status != null && !status.equals("ALL")) ? ProjetoStatus.valueOf(status) : null;
         boolean arquivadoFilter = Boolean.TRUE.equals(arquivado);
 
         // Filter the user's projects manually

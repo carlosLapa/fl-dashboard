@@ -4,6 +4,7 @@ import com.fl.dashboard.dto.NotificationInsertDTO;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.enums.NotificationType;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.TarefaStatus;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
@@ -25,7 +26,6 @@ import java.util.List;
 public class DeadlineNotificationScheduler {
 
     private static final Logger logger = LoggerFactory.getLogger(DeadlineNotificationScheduler.class);
-    private static final String PROJETO_STATUS_CONCLUIDO = "CONCLUIDO";
 
     @Autowired
     private TarefaRepository tarefaRepository;
@@ -80,7 +80,7 @@ public class DeadlineNotificationScheduler {
     private int checkProjetoDeadlines(Date warningDate) {
         List<Projeto> nearDeadlineProjetos = projetoRepository.findByPrazoBeforeAndStatusNot(
                 warningDate,
-                PROJETO_STATUS_CONCLUIDO
+                ProjetoStatus.CONCLUIDO
         );
 
         int[] sent = {0};

@@ -1,13 +1,14 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.ProjetoStatus;
 import lombok.Data;
 
 @Data
 public class ProjetoMinDTO {
     private Long id;
     private String designacao;
-    private String status;
+    private ProjetoStatus status;
 
     public ProjetoMinDTO() {
     }

@@ -1,6 +1,7 @@
 package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.Proposta;
+import com.fl.dashboard.enums.PropostaStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -63,7 +64,7 @@ public interface PropostaRepository extends JpaRepository<Proposta, Long> {
             @Param("prioridade") String prioridade,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
-            @Param("status") String status,
+            @Param("status") PropostaStatus status,
             @Param("propostaStartDate") Date propostaStartDate,
             @Param("propostaEndDate") Date propostaEndDate,
             @Param("adjudicacaoStartDate") Date adjudicacaoStartDate,

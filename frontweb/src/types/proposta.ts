@@ -26,7 +26,7 @@ export type Proposta = {
   prioridade: string;
   observacao: string;
   prazo: string;
-  status: string;
+  status: PropostaStatus;
   dataProposta?: string;
   dataAdjudicacao?: string;
   tipo?: TipoProposta;
@@ -40,7 +40,7 @@ export interface PropostaFormData {
   prioridade: string;
   observacao: string;
   prazo: string;
-  status: string;
+  status: PropostaStatus;
   dataProposta?: string;
   dataAdjudicacao?: string;
   tipo?: TipoProposta;
@@ -50,7 +50,7 @@ export interface PropostaFormData {
 export interface PropostaMinDTO {
   id: number;
   designacao: string;
-  status: string;
+  status: PropostaStatus;
 }
 
 export interface PaginatedPropostas {

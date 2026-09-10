@@ -1,6 +1,7 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Proposta;
+import com.fl.dashboard.enums.PropostaStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,7 +21,7 @@ public class PropostaDTO {
     private String prioridade;
     private String observacao;
     private Date prazo;
-    private String status;
+    private PropostaStatus status;
     private Date dataProposta;
     private Date dataAdjudicacao;
     private String tipo;

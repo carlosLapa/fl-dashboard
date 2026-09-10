@@ -10,9 +10,7 @@ import {
   addPropostaAPI,
   updatePropostaAPI,
   deletePropostaAPI,
-  adjudicarPropostaAPI,
   converterParaProjetoAPI,
-  updatePropostaStatusAPI,
 } from '../api/propostaApi';
 import axios from 'axios';
 import { hasPermission } from '../utils/hasPermission';
@@ -154,38 +152,12 @@ export const deleteProposta = async (id: number): Promise<void> => {
   }
 };
 
-export const adjudicarProposta = async (id: number): Promise<any> => {
-  try {
-    const result = await adjudicarPropostaAPI(id);
-    return result;
-  } catch (error) {
-    console.error('Erro ao adjudicar proposta:', error);
-    throw error;
-  }
-};
-
 export const converterParaProjeto = async (id: number): Promise<any> => {
   try {
     const result = await converterParaProjetoAPI(id);
     return result;
   } catch (error) {
     console.error('Erro ao converter proposta para projeto:', error);
-    throw error;
-  }
-};
-
-export const updatePropostaStatus = async (
-  id: number,
-  status: string
-): Promise<Proposta | null> => {
-  try {
-    if (!canEditProposta()) {
-      throw new Error('Você não tem permissão para editar propostas');
-    }
-    const proposta = await updatePropostaStatusAPI(id, status);
-    return proposta;
-  } catch (error) {
-    console.error('Erro ao atualizar status da proposta:', error);
     throw error;
   }
 };

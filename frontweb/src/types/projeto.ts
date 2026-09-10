@@ -36,7 +36,7 @@ export type Projeto = {
   observacao: string;
   prazo: string;
   users: User[];
-  status: string;
+  status: ProjetoStatus;
   arquivadaEm?: string | null;
   coordenador?: User;
   dataProposta?: string;
@@ -58,7 +58,7 @@ export interface ProjetoFormData {
   observacao: string;
   prazo: string;
   users: User[];
-  status: string;
+  status: ProjetoStatus;
   clienteId?: number;
   coordenadorId?: number;
   dataProposta?: string;

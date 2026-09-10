@@ -1,9 +1,10 @@
 import React from 'react';
 import { Badge } from 'react-bootstrap';
 import { getProjetoStatusLabel } from '../../constants/projetoStatus';
+import { ProjetoStatus } from '../../types/projeto';
 
 interface ProjetoStatusBadgeProps {
-  status: string;
+  status: ProjetoStatus;
   arquivado?: boolean;
 }
 
