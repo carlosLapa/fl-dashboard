@@ -2,6 +2,7 @@ package com.fl.dashboard.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.TipoProjeto;
 import jakarta.persistence.*;
 import org.hibernate.annotations.BatchSize;
@@ -73,8 +74,9 @@ public class Projeto {
     private String observacao;
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
+    @Enumerated(EnumType.STRING)
     @Column
-    private String status;
+    private ProjetoStatus status;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -203,11 +205,11 @@ public class Projeto {
         this.prazo = prazo;
     }
 
-    public String getStatus() {
+    public ProjetoStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ProjetoStatus status) {
         this.status = status;
     }
 

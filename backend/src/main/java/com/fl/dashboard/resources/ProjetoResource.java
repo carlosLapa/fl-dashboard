@@ -2,6 +2,7 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.TipoProjeto;
 import com.fl.dashboard.services.ProjetoService;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
@@ -228,7 +229,7 @@ public class ProjetoResource {
     @PreAuthorize("hasAuthority('EDIT_PROJECT')")
     public ResponseEntity<ProjetoWithUsersDTO> updateStatus(
             @PathVariable Long id,
-            @RequestParam String status
+            @RequestParam ProjetoStatus status
     ) {
         try {
             ProjetoWithUsersDTO updatedProjeto = projetoService.updateStatus(id, status);

@@ -7,6 +7,7 @@ import com.fl.dashboard.dto.PropostaWithClientesDTO;
 import com.fl.dashboard.entities.Cliente;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Proposta;
+import com.fl.dashboard.enums.PropostaStatus;
 import com.fl.dashboard.repositories.ClienteRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.PropostaRepository;
@@ -112,8 +113,10 @@ public class PropostaService {
             String tipo,
             Pageable pageable) {
 
+        PropostaStatus statusFilter = status != null ? PropostaStatus.valueOf(status) : null;
+
         Page<Proposta> result = propostaRepository.findByFilters(
-                designacao, prioridade, startDate, endDate, status,
+                designacao, prioridade, startDate, endDate, statusFilter,
                 propostaStartDate, propostaEndDate,
                 adjudicacaoStartDate, adjudicacaoEndDate, tipo, pageable);
 
@@ -175,14 +178,6 @@ public class PropostaService {
         propostaRepository.save(proposta);
 
         return projetoDTOMapper.toDTO(projeto);
-    }
-
-    @Transactional
-    public void atualizarStatusAdjudicada(Long propostaId) {
-        Proposta proposta = propostaRepository.findByIdActive(propostaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Proposta não encontrada"));
-        proposta.setStatus("ADJUDICADA");
-        propostaRepository.save(proposta);
     }
 
     // Utilitário para copiar dados do DTO para a entidade

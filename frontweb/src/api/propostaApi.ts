@@ -60,22 +60,7 @@ export const deletePropostaAPI = async (id: number): Promise<void> => {
   await axios.delete(`/propostas/${id}`);
 };
 
-export const adjudicarPropostaAPI = async (id: number): Promise<any> => {
-  const response = await axios.post(`/propostas/${id}/adjudicar`);
-  return response.data;
-};
-
 export const converterParaProjetoAPI = async (id: number): Promise<Projeto> => {
   const response = await axios.post(`/propostas/${id}/adjudicar`);
-  return response.data;
-};
-
-export const updatePropostaStatusAPI = async (
-  id: number,
-  status: string
-): Promise<Proposta> => {
-  const response = await axios.patch(
-    `/propostas/${id}/status?status=${status}`
-  );
   return response.data;
 };

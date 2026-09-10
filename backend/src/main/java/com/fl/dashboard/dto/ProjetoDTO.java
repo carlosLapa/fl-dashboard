@@ -1,6 +1,7 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.TipoProjeto;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -29,7 +30,7 @@ public class ProjetoDTO {
     @FutureOrPresent(message = "Data deve ser no presente ou futuro")
     private Date prazo;
 
-    private String status;
+    private ProjetoStatus status;
     private LocalDateTime arquivadaEm;
 
     private Long coordenadorId;
@@ -49,7 +50,7 @@ public class ProjetoDTO {
     public ProjetoDTO() {
     }
 
-    public ProjetoDTO(Long id, Integer projetoAno, String designacao, String entidade, String prioridade, String observacao, Date prazo, String status) {
+    public ProjetoDTO(Long id, Integer projetoAno, String designacao, String entidade, String prioridade, String observacao, Date prazo, ProjetoStatus status) {
         this.id = id;
         this.projetoAno = projetoAno;
         this.designacao = designacao;

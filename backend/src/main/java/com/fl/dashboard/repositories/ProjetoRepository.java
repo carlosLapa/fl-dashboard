@@ -2,6 +2,7 @@ package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.TipoProjeto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -103,7 +104,7 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             @Param("prioridade") String prioridade,
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
-            @Param("status") String status,
+            @Param("status") ProjetoStatus status,
             @Param("coordenadorId") Long coordenadorId,
             @Param("propostaStartDate") Date propostaStartDate,
             @Param("propostaEndDate") Date propostaEndDate,
@@ -131,5 +132,5 @@ public interface ProjetoRepository extends JpaRepository<Projeto, Long> {
             "AND p.deletedAt IS NULL AND p.arquivadaEm IS NULL")
     List<Projeto> findByPrazoBeforeAndStatusNot(
             @Param("deadline") Date deadline,
-            @Param("status") String status);
+            @Param("status") ProjetoStatus status);
 }

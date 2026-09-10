@@ -1,6 +1,7 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Proposta;
+import com.fl.dashboard.enums.PropostaStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class PropostaMinDTO {
     private Long id;
     private String designacao;
-    private String status;
+    private PropostaStatus status;
 
     public PropostaMinDTO(Proposta entity) {
         this.id = entity.getId();

@@ -3,6 +3,7 @@ package com.fl.dashboard.utils;
 import com.fl.dashboard.dto.PropostaDTO;
 import com.fl.dashboard.entities.Proposta;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.enums.ProjetoStatus;
 import com.fl.dashboard.enums.TipoProjeto;
 
 public class PropostaProjetoMapperUtil {
@@ -14,7 +15,7 @@ public class PropostaProjetoMapperUtil {
         projeto.setPrioridade(proposta.getPrioridade());
         projeto.setObservacao(proposta.getObservacao());
         projeto.setPrazo(proposta.getPrazo());
-        projeto.setStatus(proposta.getStatus());
+        projeto.setStatus(ProjetoStatus.ATIVO); // proposta adjudicada nasce como projeto ativo
         projeto.setDataProposta(proposta.getDataProposta());
         projeto.setDataAdjudicacao(proposta.getDataAdjudicacao());
         projeto.setTipo(proposta.getTipo() != null ? TipoProjeto.valueOf(proposta.getTipo()) : null);

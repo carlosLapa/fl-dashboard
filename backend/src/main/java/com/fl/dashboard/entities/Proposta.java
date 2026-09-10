@@ -1,5 +1,6 @@
 package com.fl.dashboard.entities;
 
+import com.fl.dashboard.enums.PropostaStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,8 +34,9 @@ public class Proposta {
     @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
     private Date prazo;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String status;
+    private PropostaStatus status;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
