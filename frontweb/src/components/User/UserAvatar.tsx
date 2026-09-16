@@ -4,6 +4,8 @@ import axios from 'api/apiConfig';
 interface UserAvatarProps {
   userId: number;
   name: string;
+  size?: number;
+  rounded?: boolean;
 }
 
 // Deterministic per-name color so the same person always gets the same placeholder color.
@@ -39,8 +41,14 @@ const getColorForName = (name: string): string => {
 // base64 in the users list response. Shows an initials placeholder immediately — both while the
 // photo is loading and as the permanent fallback when there is none — so the cell is never blank
 // while waiting on the network.
-const UserAvatar: React.FC<UserAvatarProps> = ({ userId, name }) => {
+const UserAvatar: React.FC<UserAvatarProps> = ({
+  userId,
+  name,
+  size,
+  rounded = false,
+}) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const sizeStyle = size ? { width: `${size}px`, height: `${size}px` } : {};
 
   useEffect(() => {
     let objectUrl: string | null = null;
@@ -73,17 +81,19 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ userId, name }) => {
     };
   }, [userId]);
 
+  // The 25% left margin centers the avatar within a wider table cell — only relevant when no
+  // explicit size is given (the table-row use case); sized instances (navbar, page headers) sit
+  // in their own container and shouldn't inherit that offset.
+  const imgStyle = {
+    ...sizeStyle,
+    ...(size ? {} : { marginLeft: '25%' }),
+    ...(rounded ? { borderRadius: '50%' } : {}),
+  };
+
   if (imageUrl) {
     return (
       <div className="profile-image-cell">
-        <img
-          src={imageUrl}
-          alt={name}
-          className="profile-image"
-          style={{
-            marginLeft: '25%',
-          }}
-        />
+        <img src={imageUrl} alt={name} className="profile-image" style={imgStyle} />
       </div>
     );
   }
@@ -93,8 +103,8 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ userId, name }) => {
       <div
         className="profile-image profile-image-placeholder"
         style={{
+          ...imgStyle,
           backgroundColor: getColorForName(name),
-          marginLeft: '25%',
         }}
         aria-label={name}
       >

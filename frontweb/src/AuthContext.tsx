@@ -111,12 +111,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         try {
           // Try to get user with roles first
           const userData = await getCurrentUserWithRoles();
-          setUser({
-            ...userData,
-            profileImage: userData.profileImage
-              ? `data:image/jpeg;base64,${userData.profileImage}`
-              : userData.profileImage,
-          });
+          setUser(userData);
         } catch (error) {
           console.warn(
             'Failed to initialize user with roles, falling back:',
@@ -129,10 +124,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           const currentUser = users?.find((u: User) => u.email === email);
 
           if (currentUser) {
-            setUser({
-              ...currentUser,
-              profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
-            });
+            setUser(currentUser);
           } else {
             // Clear invalid session
             clearTokenData();
@@ -176,12 +168,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // Try to get user with roles first
       try {
         const userData = await getCurrentUserWithRoles();
-        setUser({
-          ...userData,
-          profileImage: userData.profileImage
-            ? `data:image/jpeg;base64,${userData.profileImage}`
-            : userData.profileImage,
-        });
+        setUser(userData);
         navigate(`/users/${userData.id}/tarefas`);
       } catch (error) {
         console.warn(
@@ -194,10 +181,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const currentUser = users?.find((u: User) => u.email === email);
 
         if (currentUser) {
-          setUser({
-            ...currentUser,
-            profileImage: `data:image/jpeg;base64,${currentUser.profileImage}`,
-          });
+          setUser(currentUser);
           navigate(`/users/${currentUser.id}/tarefas`);
         } else {
           throw new Error('User not found');
