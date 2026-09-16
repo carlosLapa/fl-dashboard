@@ -14,6 +14,7 @@ import {
   TarefaStatus,
 } from 'types/tarefa';
 import UserTarefaTable from 'components/User/UserTarefaTable';
+import UserAvatar from 'components/User/UserAvatar';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
 import Button from 'react-bootstrap/Button';
@@ -102,13 +103,7 @@ const UsersTarefasPage: React.FC = () => {
           userData = await getUserById(parsedUserId);
         }
 
-        setUser({
-          ...userData,
-          profileImage:
-            userData.profileImage && userData.profileImage.trim() !== ''
-              ? userData.profileImage
-              : '',
-        });
+        setUser(userData);
       } catch (err) {
         setError('Failed to fetch user data or tarefas');
         console.error('Error fetching data:', err);
@@ -250,33 +245,7 @@ const UsersTarefasPage: React.FC = () => {
               className="user-image-container"
               style={{ marginRight: '1.5rem' }}
             >
-              {user.profileImage && user.profileImage.trim() !== '' ? (
-                <img
-                  src={`data:image/jpeg;base64,${user.profileImage}`}
-                  alt={`${user.name}`}
-                  className="user-profile-image"
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    borderRadius: '50%',
-                  }}
-                />
-              ) : (
-                <div
-                  className="user-profile-placeholder"
-                  style={{
-                    width: '100px',
-                    height: '100px',
-                    borderRadius: '50%',
-                    backgroundColor: '#e9ecef',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  No Image
-                </div>
-              )}
+              <UserAvatar userId={user.id} name={user.name} size={100} rounded />
             </div>
             <div className="user-details">
               <h2

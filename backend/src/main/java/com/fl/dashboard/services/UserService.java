@@ -136,8 +136,12 @@ public class UserService implements UserDetailsService {
         }
 
         UserWithRolesDTO dto = new UserWithRolesDTO(user);
-        // GET /users/me — called on every login and session-init. No caller needs the hash back.
+        // GET /users/me — called on every login and session-init, before any authenticated UI
+        // renders. No caller needs the password hash back, and embedding the base64 photo here
+        // meant every app bootstrap paid for a multi-hundred-KB transfer; the photo belongs
+        // behind GET /users/{id}/profile-image (see findAllPagedWithRoles).
         dto.setPassword(null);
+        dto.setProfileImage(null);
         return dto;
     }
 
@@ -168,9 +172,12 @@ public class UserService implements UserDetailsService {
         User entity = userRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Utilizador com o id: " + id + " não encontrado"));
         UserDTO dto = new UserDTO(entity);
-        // Only used to populate the edit-user form, which never edits/displays the password —
-        // no caller needs the hash back.
+        // Used to populate the edit-user form and various page headers (name/email only) — no
+        // caller needs the password hash back, and the photo belongs behind
+        // GET /users/{id}/profile-image (see findAllPagedWithRoles) rather than embedded here;
+        // embedding it turned a single-user fetch into a multi-second, multi-hundred-KB response.
         dto.setPassword(null);
+        dto.setProfileImage(null);
         return dto;
     }
 
@@ -286,11 +293,7 @@ public class UserService implements UserDetailsService {
         assignDefaultRole(entity);
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                entity.setProfileImage(imageFile.getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException("Error processing image file", e);
-            }
+            processImageFile(entity, imageFile);
         }
         entity = userRepository.save(entity);
         return new UserDTO(entity);
@@ -326,11 +329,11 @@ public class UserService implements UserDetailsService {
                 entity.setPassword(currentPassword);
             }
             if (imageFile != null && !imageFile.isEmpty()) {
-                entity.setProfileImage(imageFile.getBytes());
+                processImageFile(entity, imageFile);
             }
             entity = userRepository.save(entity);
             return new UserDTO(entity);
-        } catch (EntityNotFoundException | IOException e) {
+        } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }
     }

@@ -38,10 +38,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
 
   useEffect(() => {
     if (user) {
-      const formattedProfileImage = user.profileImage
-        ? `data:image/jpeg;base64,${user.profileImage}`
-        : '';
-
       setFormData({
         id: user.id,
         name: user.name,
@@ -50,7 +46,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
         email: user.email,
         // This modal never edits the password — never seed it from the API response.
         password: '',
-        profileImage: formattedProfileImage || user.profileImage,
+        // The backend no longer sends the photo on this response (see GET /users/{id});
+        // an unchanged photo is left untouched server-side when no new file is uploaded,
+        // so there's nothing to round-trip here.
+        profileImage: '',
         ativo: user.ativo,
       });
       setProfileImage(null);
@@ -120,21 +119,10 @@ const EditUserModal: React.FC<EditUserModalProps> = ({
     formDataObj.append('email', formData.email);
     formDataObj.append('ativo', String(formData.ativo));
 
-    // If a new profileImage is selected, append it to formDataObj
+    // Only send an image if the user picked a new one — the backend leaves the
+    // existing stored photo untouched when no file is uploaded.
     if (profileImage) {
       formDataObj.append('image', profileImage);
-    } else if (formData.profileImage) {
-      // If no new profileImage is selected, convert the existing profileImage to a File object and append it
-      const base64Data = formData.profileImage.split(',')[1];
-      const binaryData = atob(base64Data);
-      const bytes = new Uint8Array(binaryData.length);
-      for (let i = 0; i < binaryData.length; i++) {
-        bytes[i] = binaryData.charCodeAt(i);
-      }
-      const file = new File([bytes], 'existing-image.jpg', {
-        type: 'image/jpeg',
-      });
-      formDataObj.append('image', file);
     }
 
     try {
