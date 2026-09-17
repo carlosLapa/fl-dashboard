@@ -52,6 +52,14 @@
   height: auto;
   max-height: 40vh;
   object-fit: contain;
+  /* Hidden until fully loaded (see onLoad in WelcomePage.tsx) so a slow connection shows
+     nothing rather than the image painting in top-down, half-loaded. */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.logo-image--loaded {
+  opacity: 1;
 }
 
 .hero-overlay {
