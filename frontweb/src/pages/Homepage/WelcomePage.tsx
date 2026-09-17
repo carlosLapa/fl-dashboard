@@ -14,6 +14,7 @@ const WelcomePage = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [videoTimedOut, setVideoTimedOut] = useState(false);
+  const [logoLoaded, setLogoLoaded] = useState(false);
   const videoReadyRef = useRef(false);
 
   // Check if we're on a mobile device
@@ -78,7 +79,12 @@ const WelcomePage = () => {
         ) : (
           /* Show logo container on mobile, or on desktop when the video timed out */
           <div className="mobile-logo-container">
-            <img src={logoImage} alt="Ferreira Lapa" className="logo-image" />
+            <img
+              src={logoImage}
+              alt="Ferreira Lapa"
+              className={`logo-image${logoLoaded ? ' logo-image--loaded' : ''}`}
+              onLoad={() => setLogoLoaded(true)}
+            />
           </div>
         )}
 
