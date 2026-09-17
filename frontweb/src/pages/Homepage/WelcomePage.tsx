@@ -8,7 +8,7 @@ import './styles.scss';
 // If the hero video hasn't become playable within this window (e.g. a degraded connection —
 // see the VPN/HTTP3 investigation), we stop waiting and fall back to the static logo instead
 // of leaving visitors staring at a blank/frozen hero area.
-const VIDEO_READY_TIMEOUT_MS = 4000;
+const VIDEO_READY_TIMEOUT_MS = 2000;
 
 const WelcomePage = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
