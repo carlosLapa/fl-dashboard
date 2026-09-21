@@ -221,6 +221,7 @@ public class ProjetoMetricsService {
                     colabMetrics.setTarefasEmProgresso(tarefasEmProgresso);
                     colabMetrics.setTarefasPendentes(tarefasPendentes);
                     colabMetrics.setTempoMedioDias(calculateAverageWorkingDays(tarefasDoUser));
+                    colabMetrics.setTempoTotalDias(TarefaMetricsCalculator.sumWorkingDays(tarefasDoUser));
 
                     // Calculate status distribution for this collaborator
                     Map<String, Integer> statusDist = tarefasDoUser.stream()
@@ -236,6 +237,18 @@ public class ProjetoMetricsService {
                 .toList();
 
         metrics.setColaboradores(colaboradores);
+
+        // Project total = sum of the per-collaborator column, so the card can always
+        // be checked against the table (person-days: shared tasks count for each person)
+        metrics.setTempoTotalDias(colaboradores.stream()
+                .mapToInt(CollaboratorMetricsDTO::getTempoTotalDias)
+                .sum());
+
+        // Tasks that contribute nothing to the total: no working days (missing dates)
+        // or no assigned collaborator - surfaced so the total isn't silently understated
+        metrics.setTarefasNaoContadas((int) tarefas.stream()
+                .filter(t -> t.getWorkingDays() == null || t.getUsers().isEmpty())
+                .count());
     }
 
     /**

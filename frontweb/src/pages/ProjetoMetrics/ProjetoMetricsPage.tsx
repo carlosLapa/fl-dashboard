@@ -8,6 +8,7 @@ import {
   faCheckCircle,
   faSpinner,
   faClock,
+  faHourglassHalf,
   faPrint,
   faCamera,
 } from '@fortawesome/free-solid-svg-icons';
@@ -206,7 +207,7 @@ const ProjetoMetricsPage: React.FC = () => {
 
         {/* KPI Cards */}
         <Row className="g-3 mb-4">
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Total de Tarefas"
               value={metrics.totalTarefas}
@@ -214,7 +215,7 @@ const ProjetoMetricsPage: React.FC = () => {
             />
           </Col>
 
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Tarefas Concluídas"
               value={metrics.tarefasConcluidas}
@@ -227,7 +228,7 @@ const ProjetoMetricsPage: React.FC = () => {
             />
           </Col>
 
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Em Execução"
               value={metrics.tarefasEmProgresso}
@@ -236,13 +237,31 @@ const ProjetoMetricsPage: React.FC = () => {
             />
           </Col>
 
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Tempo Médio"
               value={metrics.tempoMedioDias.toFixed(1)}
               variant="info"
               footer="dias úteis"
               icon={<FontAwesomeIcon icon={faClock} />}
+            />
+          </Col>
+
+          <Col xs={12} sm={6} lg>
+            <MetricsKpiCard
+              label="Tempo Total"
+              value={metrics.tempoTotalDias}
+              variant="info"
+              footer={
+                metrics.tarefasNaoContadas > 0
+                  ? `dias-pessoa · ${metrics.tarefasNaoContadas} ${
+                      metrics.tarefasNaoContadas === 1
+                        ? 'tarefa não contada'
+                        : 'tarefas não contadas'
+                    } (sem datas ou sem colaborador)`
+                  : 'dias-pessoa'
+              }
+              icon={<FontAwesomeIcon icon={faHourglassHalf} />}
             />
           </Col>
         </Row>

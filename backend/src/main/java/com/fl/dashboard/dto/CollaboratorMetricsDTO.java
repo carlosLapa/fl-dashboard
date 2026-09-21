@@ -62,6 +62,13 @@ public class CollaboratorMetricsDTO {
     private Double tempoMedioDias;
 
     /**
+     * Total working days across all of this collaborator's tasks in the project,
+     * whatever their status. Tasks without workingDays contribute 0.
+     * Shared tasks count in full for each assigned collaborator (person-days).
+     */
+    private Integer tempoTotalDias;
+
+    /**
      * Distribution of tasks by status
      * Map key: status name (BACKLOG, TODO, IN_PROGRESS, IN_REVIEW, DONE)
      * Map value: count of tasks in that status
@@ -83,5 +90,6 @@ public class CollaboratorMetricsDTO {
         this.tarefasEmProgresso = 0;
         this.tarefasPendentes = 0; // Initialize to 0
         this.tempoMedioDias = 0.0;
+        this.tempoTotalDias = 0;
     }
 }

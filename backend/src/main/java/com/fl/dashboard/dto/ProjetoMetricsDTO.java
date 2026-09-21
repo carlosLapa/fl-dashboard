@@ -25,6 +25,12 @@ public class ProjetoMetricsDTO {
     private Double tempoMedioDias;
     private Double taxaConclusao; // Percentagem (0-100)
 
+    // Total project time in person-days: each task's working days times its assigned
+    // collaborators (equals the sum of the per-collaborator tempoTotalDias column)
+    private Integer tempoTotalDias;
+    // Tasks left out of the total: no dates (null workingDays) or no assigned collaborator
+    private Integer tarefasNaoContadas;
+
     // Datas do projeto
     private LocalDate primeiraDataInicio; // Data da primeira tarefa
     private LocalDate ultimaDataConclusao; // Data da última tarefa concluída

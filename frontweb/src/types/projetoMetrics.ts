@@ -25,6 +25,7 @@ export interface CollaboratorMetricsDTO {
   tarefasEmProgresso: number;
   tarefasPendentes: number;
   tempoMedioDias: number;
+  tempoTotalDias: number; // Total working days across this collaborator's tasks
   tarefasPorStatus: Record<string, number>; // Map of status -> count
 }
 
@@ -46,6 +47,8 @@ export interface ProjetoMetricsDTO {
   tarefasPendentes: number;
   tempoMedioDias: number;
   taxaConclusao: number; // Percentage (0-100)
+  tempoTotalDias: number; // Person-days: sum of the per-collaborator tempoTotalDias
+  tarefasNaoContadas: number; // Tasks left out of the total (no dates or no collaborator)
 
   // Status distribution
   tarefasPorStatus: Record<string, number>; // Map of status -> count
