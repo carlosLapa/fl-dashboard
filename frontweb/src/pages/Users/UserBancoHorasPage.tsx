@@ -15,6 +15,7 @@ import { UserExtraHoursDTO } from 'types/userExtraHours';
 import UserExtraHoursCalendar from 'components/UserExtraHours/UserExtraHoursCalendar';
 import BancoHorasSummaryCards from 'components/UserExtraHours/BancoHorasSummaryCards';
 import BancoHorasHistoryTable from 'components/UserExtraHours/BancoHorasHistoryTable';
+import ExtraHoursEntryForm from 'components/UserExtraHours/ExtraHoursEntryForm';
 import 'assets/styles/layout.scss';
 
 const currentMonthPeriod = () => {
@@ -51,6 +52,11 @@ const UserBancoHorasPage: React.FC = () => {
   const [totalSemanaAtual, setTotalSemanaAtual] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Entry form target, shared by the calendar and the history table
+  const [formTarget, setFormTarget] = useState<{
+    date: string;
+    entry: UserExtraHoursDTO | null;
+  } | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!userId) {
@@ -97,6 +103,13 @@ const UserBancoHorasPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleSelectDate = useCallback(
+    (date: string, entry: UserExtraHoursDTO | null) => {
+      setFormTarget({ date, entry });
+    },
+    [],
+  );
 
   const handleGoBack = useCallback(() => {
     navigate('/users');
@@ -171,12 +184,29 @@ const UserBancoHorasPage: React.FC = () => {
         </div>
 
         <div style={{ width: '100%', marginTop: '2rem' }}>
-          <UserExtraHoursCalendar userId={user.id} onChange={fetchData} />
+          <UserExtraHoursCalendar
+            entries={entries}
+            onSelectDate={handleSelectDate}
+          />
         </div>
 
         <div style={{ width: '100%', marginTop: '2rem' }}>
-          <BancoHorasHistoryTable entries={entries} />
+          <BancoHorasHistoryTable
+            entries={entries}
+            onEntryClick={(entry) => handleSelectDate(entry.date, entry)}
+          />
         </div>
+
+        {formTarget && (
+          <ExtraHoursEntryForm
+            key={formTarget.date}
+            userId={user.id}
+            date={formTarget.date}
+            entry={formTarget.entry}
+            onClose={() => setFormTarget(null)}
+            onSaved={fetchData}
+          />
+        )}
       </div>
     </div>
   );

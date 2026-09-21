@@ -5,6 +5,8 @@ import './BancoHorasHistoryTable.scss';
 
 interface BancoHorasHistoryTableProps {
   entries: UserExtraHoursDTO[];
+  /** When provided, rows become clickable to open that entry for editing. */
+  onEntryClick?: (entry: UserExtraHoursDTO) => void;
 }
 
 const MONTH_LABELS = [
@@ -26,12 +28,12 @@ const ALL_MONTHS = 'all';
 
 /**
  * Chronological, filterable listing of every entry logged for a collaborator.
- * Read-only: launching/editing entries stays in UserExtraHoursCalendar, this
- * is purely the "detailed, listed and organized" history view that was
- * missing before.
+ * Launching/editing happens in ExtraHoursEntryForm, owned by the page: this
+ * table only reports which row was clicked via `onEntryClick`.
  */
 const BancoHorasHistoryTable: React.FC<BancoHorasHistoryTableProps> = ({
   entries,
+  onEntryClick,
 }) => {
   const availableYears = useMemo(() => {
     const years = new Set(entries.map((e) => Number(e.date.slice(0, 4))));
@@ -112,7 +114,23 @@ const BancoHorasHistoryTable: React.FC<BancoHorasHistoryTableProps> = ({
               </thead>
               <tbody>
                 {filteredEntries.map((entry) => (
-                  <tr key={entry.id}>
+                  <tr
+                    key={entry.id}
+                    className={onEntryClick ? 'clickable-row' : undefined}
+                    onClick={onEntryClick && (() => onEntryClick(entry))}
+                    onKeyDown={
+                      onEntryClick &&
+                      ((e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onEntryClick(entry);
+                        }
+                      })
+                    }
+                    tabIndex={onEntryClick ? 0 : undefined}
+                    role={onEntryClick ? 'button' : undefined}
+                    title={onEntryClick ? 'Clique para editar' : undefined}
+                  >
                     <td>
                       {new Date(`${entry.date}T00:00:00`).toLocaleDateString(
                         'pt-PT',
