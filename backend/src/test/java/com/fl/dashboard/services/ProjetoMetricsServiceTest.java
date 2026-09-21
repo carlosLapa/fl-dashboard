@@ -2,6 +2,7 @@ package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.CollaboratorMetricsDTO;
 import com.fl.dashboard.dto.ProjetoMetricsDTO;
+import com.fl.dashboard.dto.TarefaNaoContadaDTO;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.User;
@@ -22,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @Tag("unit")
@@ -83,7 +86,7 @@ class ProjetoMetricsServiceTest {
         ProjetoMetricsDTO metrics = projetoMetricsService.getProjetoMetrics(1L);
 
         assertEquals(13, metrics.getTempoTotalDias());
-        assertEquals(0, metrics.getTarefasNaoContadas());
+        assertTrue(metrics.getTarefasNaoContadas().isEmpty());
 
         int columnSum = metrics.getColaboradores().stream()
                 .mapToInt(CollaboratorMetricsDTO::getTempoTotalDias)
@@ -97,22 +100,38 @@ class ProjetoMetricsServiceTest {
     }
 
     @Test
-    @DisplayName("Tasks without dates or without collaborators add 0 and are counted as not counted")
-    void tasksWithoutDatesOrCollaboratorsAreReportedNotCounted() {
+    @DisplayName("Tasks without dates or without collaborators add 0 and are listed with the reason")
+    void tasksWithoutDatesOrCollaboratorsAreListedWithReason() {
         Projeto projeto = projeto(1L);
         User ana = user(10L, "Ana");
 
         Tarefa counted = tarefa(1L, projeto, 4, ana);
         Tarefa noDates = tarefa(2L, projeto, null, ana);
         Tarefa noCollaborator = tarefa(3L, projeto, 7);
+        Tarefa neither = tarefa(4L, projeto, null);
 
         when(projetoRepository.findById(1L)).thenReturn(Optional.of(projeto));
-        when(tarefaRepository.findAllActive()).thenReturn(List.of(counted, noDates, noCollaborator));
+        when(tarefaRepository.findAllActive()).thenReturn(List.of(neither, counted, noCollaborator, noDates));
 
         ProjetoMetricsDTO metrics = projetoMetricsService.getProjetoMetrics(1L);
 
         assertEquals(4, metrics.getTempoTotalDias());
-        assertEquals(2, metrics.getTarefasNaoContadas());
+
+        List<TarefaNaoContadaDTO> naoContadas = metrics.getTarefasNaoContadas();
+        assertEquals(3, naoContadas.size());
+
+        // Sorted by task id; the counted task (id 1) is not in the list
+        assertEquals(2L, naoContadas.get(0).getTarefaId());
+        assertTrue(naoContadas.get(0).isSemDatas());
+        assertFalse(naoContadas.get(0).isSemColaborador());
+
+        assertEquals(3L, naoContadas.get(1).getTarefaId());
+        assertFalse(naoContadas.get(1).isSemDatas());
+        assertTrue(naoContadas.get(1).isSemColaborador());
+
+        assertEquals(4L, naoContadas.get(2).getTarefaId());
+        assertTrue(naoContadas.get(2).isSemDatas());
+        assertTrue(naoContadas.get(2).isSemColaborador());
     }
 
     @Test
@@ -126,6 +145,6 @@ class ProjetoMetricsServiceTest {
         ProjetoMetricsDTO metrics = projetoMetricsService.getProjetoMetrics(1L);
 
         assertEquals(0, metrics.getTempoTotalDias());
-        assertEquals(0, metrics.getTarefasNaoContadas());
+        assertTrue(metrics.getTarefasNaoContadas().isEmpty());
     }
 }

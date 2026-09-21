@@ -14,15 +14,21 @@ import { ProjetoMetricsDTO } from '../types/projetoMetrics';
  * - Project timeline (first start date, last completion date)
  *
  * @param projetoId The ID of the project to fetch metrics for
+ * @param bypassCache The backend sends Cache-Control: max-age=30 for this
+ *   endpoint, so a refresh right after editing a task would get the stale
+ *   response. A throwaway query param makes the browser treat it as a new URL
+ *   (changing the headers instead would break CORS).
  * @returns Promise<ProjetoMetricsDTO> Complete metrics data
  * @throws Error if user doesn't have permission or project not found
  */
 export const getProjetoMetricsAPI = async (
   projetoId: number,
+  bypassCache = false,
 ): Promise<ProjetoMetricsDTO> => {
   try {
     const response = await axios.get<ProjetoMetricsDTO>(
       `/projetos/${projetoId}/metrics`,
+      bypassCache ? { params: { _: Date.now() } } : undefined,
     );
 
     return response.data;

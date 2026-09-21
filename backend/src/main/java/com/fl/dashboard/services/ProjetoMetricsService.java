@@ -2,6 +2,7 @@ package com.fl.dashboard.services;
 
 import com.fl.dashboard.dto.CollaboratorMetricsDTO;
 import com.fl.dashboard.dto.ProjetoMetricsDTO;
+import com.fl.dashboard.dto.TarefaNaoContadaDTO;
 import com.fl.dashboard.dto.TaskMetricsDTO;
 import com.fl.dashboard.entities.Projeto;
 import com.fl.dashboard.entities.Tarefa;
@@ -246,9 +247,15 @@ public class ProjetoMetricsService {
 
         // Tasks that contribute nothing to the total: no working days (missing dates)
         // or no assigned collaborator - surfaced so the total isn't silently understated
-        metrics.setTarefasNaoContadas((int) tarefas.stream()
+        metrics.setTarefasNaoContadas(tarefas.stream()
                 .filter(t -> t.getWorkingDays() == null || t.getUsers().isEmpty())
-                .count());
+                .map(t -> new TarefaNaoContadaDTO(
+                        t.getId(),
+                        t.getDescricao(),
+                        t.getWorkingDays() == null,
+                        t.getUsers().isEmpty()))
+                .sorted(Comparator.comparing(TarefaNaoContadaDTO::getTarefaId))
+                .toList());
     }
 
     /**

@@ -28,8 +28,8 @@ public class ProjetoMetricsDTO {
     // Total project time in person-days: each task's working days times its assigned
     // collaborators (equals the sum of the per-collaborator tempoTotalDias column)
     private Integer tempoTotalDias;
-    // Tasks left out of the total: no dates (null workingDays) or no assigned collaborator
-    private Integer tarefasNaoContadas;
+    // Tasks left out of the total (no dates or no assigned collaborator), with the reason
+    private List<TarefaNaoContadaDTO> tarefasNaoContadas;
 
     // Datas do projeto
     private LocalDate primeiraDataInicio; // Data da primeira tarefa

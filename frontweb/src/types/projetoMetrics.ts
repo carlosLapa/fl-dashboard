@@ -15,6 +15,16 @@ export interface TaskMetricsDTO {
 }
 
 /**
+ * A project task that adds nothing to the project's total time, and why
+ */
+export interface TarefaNaoContadaDTO {
+  tarefaId: number;
+  descricao: string;
+  semDatas: boolean; // prazoEstimado and/or prazoReal missing
+  semColaborador: boolean; // no assigned collaborator
+}
+
+/**
  * DTO for metrics aggregated by collaborator
  */
 export interface CollaboratorMetricsDTO {
@@ -48,7 +58,7 @@ export interface ProjetoMetricsDTO {
   tempoMedioDias: number;
   taxaConclusao: number; // Percentage (0-100)
   tempoTotalDias: number; // Person-days: sum of the per-collaborator tempoTotalDias
-  tarefasNaoContadas: number; // Tasks left out of the total (no dates or no collaborator)
+  tarefasNaoContadas: TarefaNaoContadaDTO[]; // Tasks left out of the total, with the reason
 
   // Status distribution
   tarefasPorStatus: Record<string, number>; // Map of status -> count

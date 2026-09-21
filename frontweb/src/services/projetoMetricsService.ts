@@ -18,14 +18,16 @@ import { getTarefaStatusLabel } from '../constants/tarefaStatus';
  * - Project timeline information
  *
  * @param projetoId The ID of the project to fetch metrics for
+ * @param bypassCache Skip the browser's 30s cache (use after editing a task)
  * @returns Promise<ProjetoMetricsDTO> Complete project metrics
  * @throws Error if API call fails (403, 404, network error, etc.)
  */
 export const getProjetoMetrics = async (
   projetoId: number,
+  bypassCache = false,
 ): Promise<ProjetoMetricsDTO> => {
   try {
-    const metrics = await getProjetoMetricsAPI(projetoId);
+    const metrics = await getProjetoMetricsAPI(projetoId, bypassCache);
 
     return metrics;
   } catch (error) {
