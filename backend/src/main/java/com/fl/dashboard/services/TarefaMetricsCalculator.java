@@ -32,4 +32,16 @@ final class TarefaMetricsCalculator {
 
         return average.isPresent() ? average.getAsDouble() : 0.0;
     }
+
+    /**
+     * Sum of working days across the given tasks, whatever their status.
+     * Tasks without workingDays (missing prazoEstimado/prazoReal) contribute 0,
+     * so callers that show a total should also surface how many were skipped.
+     */
+    static int sumWorkingDays(List<Tarefa> tarefas) {
+        return tarefas.stream()
+                .filter(t -> t.getWorkingDays() != null)
+                .mapToInt(Tarefa::getWorkingDays)
+                .sum();
+    }
 }

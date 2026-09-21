@@ -62,6 +62,7 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
                   <th className="text-center">Pendentes</th>
                   <th className="text-center">Taxa de Conclusão</th>
                   <th className="text-center">Tempo Médio (dias úteis)</th>
+                  <th className="text-center">Tempo Total (dias úteis)</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,6 +107,9 @@ const CollaboratorMetricsTable: React.FC<CollaboratorMetricsTableProps> = ({
                       </td>
                       <td className="text-center numeric-cell">
                         {col.tempoMedioDias.toFixed(1)}
+                      </td>
+                      <td className="text-center numeric-cell">
+                        {col.tempoTotalDias}
                       </td>
                     </tr>
                   );

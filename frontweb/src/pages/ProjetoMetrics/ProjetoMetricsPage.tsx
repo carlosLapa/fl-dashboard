@@ -8,13 +8,29 @@ import {
   faCheckCircle,
   faSpinner,
   faClock,
+  faHourglassHalf,
+  faExclamationTriangle,
   faPrint,
   faCamera,
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { ProjetoMetricsDTO } from '../../types/projetoMetrics';
+import {
+  ProjetoMetricsDTO,
+  TarefaNaoContadaDTO,
+} from '../../types/projetoMetrics';
 import { ProjetoMetricsSnapshotDTO } from '../../types/projetoMetricsSnapshot';
+import {
+  TarefaUpdateFormData,
+  TarefaWithUserAndProjetoDTO,
+} from '../../types/tarefa';
 import { getProjetoMetrics } from '../../services/projetoMetricsService';
+import {
+  getTarefaWithUsersAndProjeto,
+  updateTarefa,
+} from '../../services/tarefaService';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
+import TarefaModal from '../../components/Tarefa/TarefaModal';
 import {
   createProjetoMetricsSnapshot,
   getProjetoMetricsSnapshots,
@@ -28,6 +44,15 @@ import MetricsHistoryChart from '../../components/ProjetoMetrics/MetricsHistoryC
 import MetricsComparisonPanel from '../../components/ProjetoMetrics/MetricsComparisonPanel';
 import './ProjetoMetricsPage.scss';
 
+const getNaoContadaReason = (tarefa: TarefaNaoContadaDTO): string => {
+  if (tarefa.semDatas && tarefa.semColaborador) {
+    return 'sem datas e sem colaborador';
+  }
+  return tarefa.semDatas
+    ? 'sem datas (prazo estimado e/ou real em falta)'
+    : 'sem colaborador atribuído';
+};
+
 const ProjetoMetricsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,6 +63,10 @@ const ProjetoMetricsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [snapshots, setSnapshots] = useState<ProjetoMetricsSnapshotDTO[]>([]);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
+  const [tarefaToEdit, setTarefaToEdit] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
+  const { hasPermission } = usePermissions();
+  const canEditTarefas = hasPermission(Permission.EDIT_TASK);
 
   // Fetch metrics data
   const fetchMetrics = useCallback(async () => {
@@ -60,6 +89,22 @@ const ProjetoMetricsPage: React.FC = () => {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  }, [id]);
+
+  // Re-fetch metrics after a task edit without the full-page spinner (which would
+  // unmount everything and reset the scroll); bypasses the 30s HTTP cache
+  const refreshMetrics = useCallback(async () => {
+    if (!id) {
+      return;
+    }
+
+    try {
+      setMetrics(await getProjetoMetrics(Number(id), true));
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao atualizar métricas';
+      toast.error(errorMessage);
     }
   }, [id]);
 
@@ -101,6 +146,35 @@ const ProjetoMetricsPage: React.FC = () => {
       setIsCreatingSnapshot(false);
     }
   }, [id, fetchSnapshots]);
+
+  // The list only carries id/name/reason; TarefaModal needs the full task
+  // (users, projeto, version), so load it on click
+  const handleEditNaoContada = useCallback(async (tarefaId: number) => {
+    try {
+      setTarefaToEdit(await getTarefaWithUsersAndProjeto(tarefaId));
+    } catch (err) {
+      toast.error('Erro ao carregar a tarefa');
+    }
+  }, []);
+
+  const handleUpdateTarefa = useCallback(
+    async (formData: TarefaUpdateFormData) => {
+      try {
+        await updateTarefa(formData.id, formData);
+        toast.success('Tarefa atualizada com sucesso!');
+        setTarefaToEdit(null);
+        await refreshMetrics();
+      } catch (err) {
+        console.error('Erro ao atualizar tarefa:', err);
+        if (err instanceof Error && err.message.includes('prazo')) {
+          toast.error(err.message);
+        } else {
+          toast.error('Erro ao atualizar tarefa');
+        }
+      }
+    },
+    [refreshMetrics],
+  );
 
   // Navigation handlers
   const handleGoBack = useCallback(() => {
@@ -154,6 +228,8 @@ const ProjetoMetricsPage: React.FC = () => {
   }
 
   // Success state - render metrics
+  const naoContadas = metrics.tarefasNaoContadas;
+
   return (
     <div className="page-container" style={{ marginTop: '2rem' }}>
       <div className="metrics-content">
@@ -206,7 +282,7 @@ const ProjetoMetricsPage: React.FC = () => {
 
         {/* KPI Cards */}
         <Row className="g-3 mb-4">
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Total de Tarefas"
               value={metrics.totalTarefas}
@@ -214,7 +290,7 @@ const ProjetoMetricsPage: React.FC = () => {
             />
           </Col>
 
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Tarefas Concluídas"
               value={metrics.tarefasConcluidas}
@@ -227,7 +303,7 @@ const ProjetoMetricsPage: React.FC = () => {
             />
           </Col>
 
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Em Execução"
               value={metrics.tarefasEmProgresso}
@@ -236,7 +312,7 @@ const ProjetoMetricsPage: React.FC = () => {
             />
           </Col>
 
-          <Col xs={12} sm={6} lg={3}>
+          <Col xs={12} sm={6} lg>
             <MetricsKpiCard
               label="Tempo Médio"
               value={metrics.tempoMedioDias.toFixed(1)}
@@ -245,7 +321,66 @@ const ProjetoMetricsPage: React.FC = () => {
               icon={<FontAwesomeIcon icon={faClock} />}
             />
           </Col>
+
+          <Col xs={12} sm={6} lg>
+            <MetricsKpiCard
+              label="Tempo Total"
+              value={metrics.tempoTotalDias}
+              variant="info"
+              footer={
+                naoContadas.length > 0
+                  ? `dias úteis · soma dos dias de cada colaborador · ${naoContadas.length} ${
+                      naoContadas.length === 1
+                        ? 'tarefa não contada'
+                        : 'tarefas não contadas'
+                    } (ver abaixo)`
+                  : 'dias úteis · soma dos dias de cada colaborador'
+              }
+              icon={<FontAwesomeIcon icon={faHourglassHalf} />}
+            />
+          </Col>
         </Row>
+
+        {naoContadas.length > 0 && (
+          <Alert variant="warning" className="metrics-uncounted-tasks mb-4">
+            <details>
+              <summary>
+                <FontAwesomeIcon
+                  icon={faExclamationTriangle}
+                  className="me-2"
+                />
+                {naoContadas.length === 1
+                  ? '1 tarefa não contada no Tempo Total'
+                  : `${naoContadas.length} tarefas não contadas no Tempo Total`}
+                {' — '}clica para ver quais
+              </summary>
+              <p className="mt-3 mb-2">
+                Estas tarefas não somam dias ao total.{' '}
+                {canEditTarefas
+                  ? 'Clica numa tarefa para preencher as datas ou atribuir um colaborador.'
+                  : 'Falta preencher as datas ou atribuir um colaborador.'}
+              </p>
+              <ul className="mb-0">
+                {naoContadas.map((tarefa) => (
+                  <li key={tarefa.tarefaId}>
+                    {canEditTarefas ? (
+                      <Button
+                        variant="link"
+                        className="alert-link p-0 align-baseline text-start"
+                        onClick={() => handleEditNaoContada(tarefa.tarefaId)}
+                      >
+                        {tarefa.descricao}
+                      </Button>
+                    ) : (
+                      <strong>{tarefa.descricao}</strong>
+                    )}{' '}
+                    — {getNaoContadaReason(tarefa)}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </Alert>
+        )}
 
         {/* Charts Row */}
         <Row className="g-3 mb-4">
@@ -280,6 +415,18 @@ const ProjetoMetricsPage: React.FC = () => {
           </Col>
         </Row>
       </div>
+
+      {tarefaToEdit && (
+        <TarefaModal
+          show={!!tarefaToEdit}
+          onHide={() => setTarefaToEdit(null)}
+          onSave={(formData) =>
+            handleUpdateTarefa(formData as TarefaUpdateFormData)
+          }
+          isEditing
+          tarefa={tarefaToEdit}
+        />
+      )}
     </div>
   );
 };
