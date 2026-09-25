@@ -58,5 +58,8 @@ public enum Permission {
     // System permissions
     VIEW_REPORTS,
     EXPORT_DATA,
-    SYSTEM_SETTINGS
+    SYSTEM_SETTINGS,
+
+    // Banco de Horas permissions
+    APPROVE_EXTRA_HOURS
 }

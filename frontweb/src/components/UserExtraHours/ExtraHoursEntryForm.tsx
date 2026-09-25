@@ -4,12 +4,19 @@ import {
   saveUserExtraHours,
   deleteUserExtraHours,
 } from 'services/userExtraHoursService';
-import { UserExtraHoursDTO } from 'types/userExtraHours';
+import { UserExtraHoursDTO, UserExtraHoursStatus } from 'types/userExtraHours';
+import { usePermissions } from 'hooks/usePermissions';
 
 import './ExtraHoursEntryForm.scss';
 
 const MAX_HOURS = 24;
 const MAX_COMMENT_LENGTH = 255;
+
+const STATUS_LABELS: Record<UserExtraHoursStatus, string> = {
+  [UserExtraHoursStatus.PENDING]: 'Aguarda aprovação',
+  [UserExtraHoursStatus.APPROVED]: 'Aprovado',
+  [UserExtraHoursStatus.REJECTED]: 'Rejeitado',
+};
 
 interface ExtraHoursEntryFormProps {
   userId: number;
@@ -40,6 +47,13 @@ const ExtraHoursEntryForm: React.FC<ExtraHoursEntryFormProps> = ({
     comment: entry?.comment || '',
   });
   const [formError, setFormError] = useState<string | null>(null);
+  const { isAdmin } = usePermissions();
+
+  // Once an ADMIN has approved an entry, only an ADMIN can still change it —
+  // everyone else (including the owner) sees it read-only. A REJECTED entry
+  // stays editable so the owner can correct and resubmit it.
+  const isLocked =
+    !!entry && entry.status === UserExtraHoursStatus.APPROVED && !isAdmin();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,6 +102,14 @@ const ExtraHoursEntryForm: React.FC<ExtraHoursEntryFormProps> = ({
   return (
     <div className="extra-hours-form">
       <h4>{moment(date, 'YYYY-MM-DD').format('DD/MM/YYYY')}</h4>
+      {entry?.status && (
+        <p className={`extra-hours-status status-${entry.status.toLowerCase()}`}>
+          {STATUS_LABELS[entry.status]}
+        </p>
+      )}
+      {entry?.status === UserExtraHoursStatus.REJECTED && entry.rejectionReason && (
+        <p className="extra-hours-hint">Motivo: {entry.rejectionReason}</p>
+      )}
       {formError && <p className="extra-hours-error">{formError}</p>}
       <input
         type="number"
@@ -95,6 +117,7 @@ const ExtraHoursEntryForm: React.FC<ExtraHoursEntryFormProps> = ({
         min={-MAX_HOURS}
         max={MAX_HOURS}
         step={0.5}
+        disabled={isLocked}
         onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })}
         placeholder="Horas (+/-)"
       />
@@ -107,11 +130,18 @@ const ExtraHoursEntryForm: React.FC<ExtraHoursEntryFormProps> = ({
         type="text"
         value={form.comment}
         maxLength={MAX_COMMENT_LENGTH}
+        disabled={isLocked}
         onChange={(e) => setForm({ ...form, comment: e.target.value })}
         placeholder="Comentário"
       />
-      <button onClick={handleSave}>Gravar</button>
-      {entry && <button onClick={handleDelete}>Excluir</button>}
+      {isLocked ? (
+        <p className="extra-hours-hint">
+          Lançamento já aprovado. Peça a um administrador para o alterar.
+        </p>
+      ) : (
+        <button onClick={handleSave}>Gravar</button>
+      )}
+      {entry && !isLocked && <button onClick={handleDelete}>Excluir</button>}
       <button onClick={onClose}>Cancelar</button>
     </div>
   );

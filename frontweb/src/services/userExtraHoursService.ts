@@ -1,6 +1,9 @@
 import axios from 'axios';
 import {
   getAllUserExtraHoursBalancesAPI,
+  getPendingUserExtraHoursAPI,
+  approveUserExtraHoursAPI,
+  rejectUserExtraHoursAPI,
   getUserExtraHoursBalanceAPI,
   getUserExtraHoursByUserAPI,
   getUserExtraHoursMonthlySummaryAPI,
@@ -25,9 +28,28 @@ const withPermissionError = async <T>(request: () => Promise<T>): Promise<T> => 
   }
 };
 
+// Like withPermissionError, but also surfaces the backend's own message on a
+// 409 (the approval-workflow conflicts raised by UserExtraHoursApprovalException,
+// e.g. editing/deleting an entry an admin already approved).
+const withApprovalError = async <T>(request: () => Promise<T>): Promise<T> => {
+  try {
+    return await request();
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 403) {
+        throw new Error('Não tem permissão para aceder a este banco de horas');
+      }
+      if (error.response?.status === 409 && error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+    }
+    throw error;
+  }
+};
+
 export const saveUserExtraHours = async (
   data: UserExtraHoursDTO,
-): Promise<UserExtraHoursDTO> => withPermissionError(() => saveUserExtraHoursAPI(data));
+): Promise<UserExtraHoursDTO> => withApprovalError(() => saveUserExtraHoursAPI(data));
 
 export const getUserExtraHoursByUser = async (
   userId: number,
@@ -35,7 +57,7 @@ export const getUserExtraHoursByUser = async (
   withPermissionError(() => getUserExtraHoursByUserAPI(userId));
 
 export const deleteUserExtraHours = async (id: number): Promise<void> =>
-  withPermissionError(() => deleteUserExtraHoursAPI(id));
+  withApprovalError(() => deleteUserExtraHoursAPI(id));
 
 export const getUserExtraHoursMonthlySummary = async (
   userId: number,
@@ -57,3 +79,17 @@ export const getUserExtraHoursBalance = async (
 export const getAllUserExtraHoursBalances = async (): Promise<
   UserExtraHoursBalanceDTO[]
 > => withPermissionError(() => getAllUserExtraHoursBalancesAPI());
+
+export const getPendingUserExtraHours = async (): Promise<
+  UserExtraHoursDTO[]
+> => withPermissionError(() => getPendingUserExtraHoursAPI());
+
+export const approveUserExtraHours = async (
+  id: number,
+): Promise<UserExtraHoursDTO> => withPermissionError(() => approveUserExtraHoursAPI(id));
+
+export const rejectUserExtraHours = async (
+  id: number,
+  reason?: string,
+): Promise<UserExtraHoursDTO> =>
+  withPermissionError(() => rejectUserExtraHoursAPI(id, reason));

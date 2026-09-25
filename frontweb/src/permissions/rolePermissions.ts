@@ -57,6 +57,9 @@ export enum Permission {
   VIEW_REPORTS = 'VIEW_REPORTS',
   EXPORT_DATA = 'EXPORT_DATA',
   SYSTEM_SETTINGS = 'SYSTEM_SETTINGS',
+
+  // Banco de Horas permissions
+  APPROVE_EXTRA_HOURS = 'APPROVE_EXTRA_HOURS',
 }
 
 // Map role types to their permissions

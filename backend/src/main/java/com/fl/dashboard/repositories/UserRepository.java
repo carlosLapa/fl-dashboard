@@ -1,6 +1,7 @@
 package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.User;
+import com.fl.dashboard.enums.RoleType;
 import com.fl.dashboard.projections.UserDetailsProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @EntityGraph(attributePaths = {"roles"})
     User findByEmail(String email);
+
+    // Used to fan out Banco de Horas approval notifications to every ADMIN.
+    List<User> findByRoles_Name(RoleType name);
 
     // IDs-only + fetch-by-id split avoids Hibernate's "collection fetch + pagination" in-memory
     // pagination (HHH90003004), which loaded the whole User table (with roles joined) into heap

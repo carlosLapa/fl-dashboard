@@ -23,6 +23,7 @@ import ProjetoMetricsPage from 'pages/ProjetoMetrics/ProjetoMetricsPage';
 import ColaboradorReportPage from 'pages/Relatorios/ColaboradorReportPage';
 import UserProjetoHistoryPage from 'pages/Users/UserProjetoHistoryPage';
 import BancoHorasReportPage from 'pages/Relatorios/BancoHorasReportPage';
+import BancoHorasApprovalsPage from 'pages/Relatorios/BancoHorasApprovalsPage';
 import UserBancoHorasPage from 'pages/Users/UserBancoHorasPage';
 
 const AppRoutes = () => {
@@ -142,6 +143,15 @@ const AppRoutes = () => {
           <ProtectedRoute
             element={<BancoHorasReportPage />}
             permissions={Permission.VIEW_REPORTS}
+          />
+        }
+      />
+      <Route
+        path="/relatorios/banco-horas/aprovacoes"
+        element={
+          <ProtectedRoute
+            element={<BancoHorasApprovalsPage />}
+            permissions={Permission.APPROVE_EXTRA_HOURS}
           />
         }
       />

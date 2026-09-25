@@ -57,3 +57,25 @@ export const getAllUserExtraHoursBalancesAPI = async () => {
   );
   return response.data;
 };
+
+export const getPendingUserExtraHoursAPI = async () => {
+  const response = await axios.get<UserExtraHoursDTO[]>(
+    '/api/user-extra-hours/pending'
+  );
+  return response.data;
+};
+
+export const approveUserExtraHoursAPI = async (id: number) => {
+  const response = await axios.patch<UserExtraHoursDTO>(
+    `/api/user-extra-hours/${id}/approve`
+  );
+  return response.data;
+};
+
+export const rejectUserExtraHoursAPI = async (id: number, reason?: string) => {
+  const response = await axios.patch<UserExtraHoursDTO>(
+    `/api/user-extra-hours/${id}/reject`,
+    { reason }
+  );
+  return response.data;
+};
