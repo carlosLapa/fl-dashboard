@@ -9,6 +9,7 @@ import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.SubtarefasIncompletasException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
+import com.fl.dashboard.services.exceptions.UserExtraHoursApprovalException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -140,6 +141,18 @@ public class ResourceExceptionHandler {
         err.setTimestamp(Instant.now());
         err.setStatus(status.value());
         err.setError("Arquivamento inválido");
+        err.setMessage(e.getMessage());
+        err.setPath(request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(UserExtraHoursApprovalException.class)
+    public ResponseEntity<StandardError> userExtraHoursApproval(UserExtraHoursApprovalException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        StandardError err = new StandardError();
+        err.setTimestamp(Instant.now());
+        err.setStatus(status.value());
+        err.setError("Lançamento já revisto");
         err.setMessage(e.getMessage());
         err.setPath(request.getRequestURI());
         return ResponseEntity.status(status).body(err);

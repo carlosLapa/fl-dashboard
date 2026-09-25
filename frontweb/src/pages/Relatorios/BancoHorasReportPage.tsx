@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Alert, Spinner, Button } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
 import { UserExtraHoursBalanceDTO } from '../../types/userExtraHours';
 import { getAllUserExtraHoursBalances } from '../../services/userExtraHoursService';
 import BancoHorasOverviewTable from '../../components/Relatorios/BancoHorasOverviewTable';
+import PermissionGate from '../../components/Permissions/PermissionGate';
+import { Permission } from '../../permissions/rolePermissions';
 import 'assets/styles/layout.scss';
 
 const BancoHorasReportPage: React.FC = () => {
@@ -80,13 +84,22 @@ const BancoHorasReportPage: React.FC = () => {
   return (
     <div className="page-container">
       <div className="page-shell">
-        <div className="page-title-container">
+        <div className="page-title-container d-flex justify-content-between align-items-start flex-wrap gap-2">
           <div>
             <h2 className="page-title mb-1">Banco de Horas</h2>
             <p className="text-muted mb-0">
               Saldo acumulado de horas extra e faltas por colaborador
             </p>
           </div>
+          <PermissionGate permissions={Permission.APPROVE_EXTRA_HOURS}>
+            <Button
+              variant="outline-primary"
+              onClick={() => navigate('/relatorios/banco-horas/aprovacoes')}
+            >
+              <FontAwesomeIcon icon={faClipboardCheck} className="me-2" />
+              Aprovações Pendentes
+            </Button>
+          </PermissionGate>
         </div>
 
         <div style={{ width: '100%', marginTop: '3rem' }}>

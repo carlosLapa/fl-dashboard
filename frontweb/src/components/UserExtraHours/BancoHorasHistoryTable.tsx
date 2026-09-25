@@ -1,7 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { Badge, Card, Form, Table } from 'react-bootstrap';
-import { UserExtraHoursDTO } from 'types/userExtraHours';
+import { UserExtraHoursDTO, UserExtraHoursStatus } from 'types/userExtraHours';
 import './BancoHorasHistoryTable.scss';
+
+const STATUS_BADGE: Record<
+  UserExtraHoursStatus,
+  { label: string; bg: string }
+> = {
+  [UserExtraHoursStatus.PENDING]: { label: 'Pendente', bg: 'warning' },
+  [UserExtraHoursStatus.APPROVED]: { label: 'Aprovado', bg: 'success' },
+  [UserExtraHoursStatus.REJECTED]: { label: 'Rejeitado', bg: 'danger' },
+};
 
 interface BancoHorasHistoryTableProps {
   entries: UserExtraHoursDTO[];
@@ -65,7 +74,8 @@ const BancoHorasHistoryTable: React.FC<BancoHorasHistoryTableProps> = ({
             <Card.Title className="mb-1">Histórico de Lançamentos</Card.Title>
             <p className="text-muted small mb-0">
               "Extra" (verde) são horas acumuladas, "Falta" (vermelho) são
-              horas em falta. Lançamentos em incrementos de 0,5h.
+              horas em falta. Lançamentos em incrementos de 0,5h. Só os
+              lançamentos "Aprovado" contam para o saldo.
             </p>
           </div>
           <div className="d-flex gap-2">
@@ -110,6 +120,7 @@ const BancoHorasHistoryTable: React.FC<BancoHorasHistoryTableProps> = ({
                   <th className="text-center">Tipo</th>
                   <th className="text-center">Horas</th>
                   <th>Comentário</th>
+                  <th className="text-center">Estado</th>
                 </tr>
               </thead>
               <tbody>
@@ -146,6 +157,13 @@ const BancoHorasHistoryTable: React.FC<BancoHorasHistoryTableProps> = ({
                       {entry.hours}h
                     </td>
                     <td>{entry.comment || '—'}</td>
+                    <td className="text-center">
+                      {entry.status && (
+                        <Badge bg={STATUS_BADGE[entry.status].bg}>
+                          {STATUS_BADGE[entry.status].label}
+                        </Badge>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

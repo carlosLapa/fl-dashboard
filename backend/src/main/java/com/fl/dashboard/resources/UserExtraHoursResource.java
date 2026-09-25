@@ -2,6 +2,7 @@ package com.fl.dashboard.resources;
 
 import com.fl.dashboard.dto.UserExtraHoursBalanceDTO;
 import com.fl.dashboard.dto.UserExtraHoursDTO;
+import com.fl.dashboard.dto.UserExtraHoursRejectDTO;
 import com.fl.dashboard.dto.UserExtraHoursSummaryDTO;
 import com.fl.dashboard.services.UserExtraHoursService;
 import org.springframework.http.ResponseEntity;
@@ -62,5 +63,23 @@ public class UserExtraHoursResource {
     @PreAuthorize("hasAuthority('VIEW_REPORTS')")
     public ResponseEntity<List<UserExtraHoursBalanceDTO>> getAllUserBalances() {
         return ResponseEntity.ok(service.getAllUserBalances());
+    }
+
+    @GetMapping("/pending")
+    @PreAuthorize("hasAuthority('APPROVE_EXTRA_HOURS')")
+    public ResponseEntity<List<UserExtraHoursDTO>> findPending() {
+        return ResponseEntity.ok(service.findPending());
+    }
+
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAuthority('APPROVE_EXTRA_HOURS')")
+    public ResponseEntity<UserExtraHoursDTO> approve(@PathVariable Long id) {
+        return ResponseEntity.ok(service.approve(id));
+    }
+
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasAuthority('APPROVE_EXTRA_HOURS')")
+    public ResponseEntity<UserExtraHoursDTO> reject(@PathVariable Long id, @RequestBody UserExtraHoursRejectDTO body) {
+        return ResponseEntity.ok(service.reject(id, body.getReason()));
     }
 }
