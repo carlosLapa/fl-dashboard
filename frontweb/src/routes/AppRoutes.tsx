@@ -26,6 +26,7 @@ import BancoHorasReportPage from 'pages/Relatorios/BancoHorasReportPage';
 import BancoHorasApprovalsPage from 'pages/Relatorios/BancoHorasApprovalsPage';
 import UserBancoHorasPage from 'pages/Users/UserBancoHorasPage';
 import UnauthorizedPage from 'pages/Unauthorized/UnauthorizedPage';
+import NotFoundPage from 'pages/NotFound/NotFoundPage';
 
 const AppRoutes = () => {
   return (
@@ -168,6 +169,10 @@ const AppRoutes = () => {
             permissions={Permission.MANAGE_USER_PASSWORDS}
           />
         }
+      />
+      <Route
+        path="*"
+        element={<ProtectedRoute element={<NotFoundPage />} />}
       />
     </Routes>
   );
