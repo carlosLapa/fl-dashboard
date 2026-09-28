@@ -103,6 +103,12 @@ export const createUser = async (
 export const getUserById = async (userId: number): Promise<User> => {
   try {
     const userData = await getUserByIdAPI(userId);
+    // The global 403 interceptor swallows a forbidden GET /users/{id} and resolves with a
+    // paginated-shape object ({ content: [], ... }) instead of throwing. A real User always
+    // has an id, so its absence means access was denied.
+    if (userData?.id == null) {
+      throw new Error('Não tem permissão para aceder a este colaborador');
+    }
     return userData;
   } catch (error) {
     console.error('Erro ao buscar colaborador:', error);
