@@ -75,9 +75,13 @@ axios.interceptors.response.use(
           });
         }
 
-        // For other endpoints, show warning toast
+        // For other endpoints, show warning toast. The fixed toastId makes react-toastify
+        // skip a new toast while one is still visible, so a page firing several requests
+        // in parallel that all get 403 shows a single warning instead of a stack.
         if (toast) {
-          toast.warning('Você não tem permissão para esta operação');
+          toast.warning('Você não tem permissão para esta operação', {
+            toastId: 'permission-denied',
+          });
         }
       }
 
