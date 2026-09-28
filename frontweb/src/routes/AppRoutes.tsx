@@ -25,11 +25,16 @@ import UserProjetoHistoryPage from 'pages/Users/UserProjetoHistoryPage';
 import BancoHorasReportPage from 'pages/Relatorios/BancoHorasReportPage';
 import BancoHorasApprovalsPage from 'pages/Relatorios/BancoHorasApprovalsPage';
 import UserBancoHorasPage from 'pages/Users/UserBancoHorasPage';
+import UnauthorizedPage from 'pages/Unauthorized/UnauthorizedPage';
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<WelcomePage />} />
+      <Route
+        path="/unauthorized"
+        element={<ProtectedRoute element={<UnauthorizedPage />} />}
+      />
       <Route
         path="/projetos"
         element={<ProtectedRoute element={<ProjetosPage />} />}
