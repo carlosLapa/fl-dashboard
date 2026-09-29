@@ -116,6 +116,22 @@ In prod, `ddl-auto=validate` means Hibernate only validates against the schema �
 
 Duplicate suppression is in-memory with a 10-second window for simple messages and 30-second window for grouped notifications.
 
+## Mattermost Integration
+
+Independent of the Slack integration (both can run at once). Posts **one message per Tarefa/Projeto change** to a channel via a Mattermost incoming webhook — unlike `NotificationType`, which is per-recipient in-app notifications.
+
+- `ChatNotificationPublisher` — called from `TarefaService`/`ProjetoService` inside the transaction; snapshots the entity (lazy associations, since `open-in-view=false`) into a `ChatNotificationEvent` and publishes it. Picks the event type from `ChatEventType` (e.g. a save that changes status *and* users is typed as a status change, with the user changes listed as fields). Never throws.
+- `MattermostService` — `@TransactionalEventListener(AFTER_COMMIT)`, so rolled-back changes post nothing; sends with `HttpClient.sendAsync` and 5s/10s timeouts, so a slow/unreachable Mattermost never delays the request. Failures are only logged.
+- Mattermost renders standard Markdown: bold is `**x**` (Slack's `*x*` shows as italic).
+- To notify on a new kind of change, add a `ChatEventType` value and a publisher method, call it from the service after the save, and add the type to the `mattermost.notification-types` default if it should be on.
+
+Env vars:
+- `MATTERMOST_ENABLED` — boolean toggle (default `false`)
+- `MATTERMOST_WEBHOOK_URL` — incoming webhook URL. **Secret** (anyone holding it can post to the channel) — env var only, never commit or log it. The webhook should be created with "Lock to this channel".
+- `MATTERMOST_NOTIFICATION_TYPES` — comma-separated `ChatEventType` names; empty = all. Default leaves out `TAREFA_EDITADA`/`PROJETO_EDITADO` (they fire on every save).
+- `APP_URL` — frontend base URL used for links in messages (prod default `https://ferreiralapa-dashboard.pt`)
+- `MATTERMOST_USERNAME` — display name (default `FL Dashboard`); only honored if "Enable integrations to override usernames" is on in the Mattermost System Console.
+
 ## DTO Conventions
 
 Each domain entity typically has several DTO variants:

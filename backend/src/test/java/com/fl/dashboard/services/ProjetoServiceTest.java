@@ -52,6 +52,9 @@ class ProjetoServiceTest {
     @Mock
     private ProjetoUserHistoryService projetoUserHistoryService;
 
+    @Mock
+    private ChatNotificationPublisher chatNotificationPublisher;
+
     @InjectMocks
     private ProjetoService projetoService;
 

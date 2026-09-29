@@ -46,11 +46,12 @@ public class TarefaService {
     private final NotificationService notificationService;
     private final SlackNotificationManagerService slackNotificationManagerService;
     private final SubtarefaService subtarefaService;
+    private final ChatNotificationPublisher chatNotificationPublisher;
 
     public TarefaService(TarefaRepository tarefaRepository, ProjetoRepository projetoRepository,
                          UserRepository userRepository, ExternoRepository externoRepository,
                          NotificationService notificationService, SlackNotificationManagerService slackNotificationManagerService,
-                         SubtarefaService subtarefaService) {
+                         SubtarefaService subtarefaService, ChatNotificationPublisher chatNotificationPublisher) {
         this.tarefaRepository = tarefaRepository;
         this.projetoRepository = projetoRepository;
         this.userRepository = userRepository;
@@ -58,6 +59,7 @@ public class TarefaService {
         this.notificationService = notificationService;
         this.slackNotificationManagerService = slackNotificationManagerService;
         this.subtarefaService = subtarefaService;
+        this.chatNotificationPublisher = chatNotificationPublisher;
     }
 
     // Method to calculate working days
@@ -228,6 +230,7 @@ public class TarefaService {
         validateTarefaDeadline(entity);
 
         entity = tarefaRepository.save(entity);
+        chatNotificationPublisher.tarefaCriada(entity);
         return new TarefaDTO(entity);
     }
 
@@ -236,6 +239,8 @@ public class TarefaService {
         try {
             Tarefa entity = tarefaRepository.findByIdActive(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Id: " + id + " não foi encontrado"));
+            Set<User> previousUsers = new HashSet<>(entity.getUsers());
+            Date previousPrazo = entity.getPrazoReal();
             copyDTOtoEntity(tarefaDTO, entity);
 
             // Calculate working days if both dates are available
@@ -247,6 +252,7 @@ public class TarefaService {
             validateTarefaDeadline(entity);
 
             entity = tarefaRepository.save(entity);
+            chatNotificationPublisher.tarefaAtualizada(entity, previousPrazo, previousUsers);
             return new TarefaDTO(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
@@ -312,6 +318,7 @@ public class TarefaService {
         });
 
         tarefaRepository.save(tarefa);
+        chatNotificationPublisher.tarefaAtualizada(tarefa, tarefa.getPrazoReal(), previousUsers);
     }
 
     @Transactional
@@ -342,6 +349,7 @@ public class TarefaService {
 
         Set<User> previousUsers = new HashSet<>(tarefa.getUsers());
         Set<Externo> previousExternos = new HashSet<>(tarefa.getExternos()); // Add this line
+        Date previousPrazo = tarefa.getPrazoReal();
 
         tarefa.setDescricao(dto.getDescricao());
         tarefa.setPrioridade(dto.getPrioridade());
@@ -435,6 +443,7 @@ public class TarefaService {
         syncLinks(tarefa, dto.getLinks());
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
+        chatNotificationPublisher.tarefaAtualizada(savedTarefa, previousPrazo, previousUsers);
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
 
@@ -491,6 +500,7 @@ public class TarefaService {
         syncLinks(tarefa, dto.getLinks());
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
+        chatNotificationPublisher.tarefaCriada(savedTarefa);
 
         // Criar notificações na aplicação para cada user individualmente
         List<User> notifiedUsers = new ArrayList<>();
@@ -587,6 +597,7 @@ public class TarefaService {
         }
 
         Tarefa savedNova = tarefaRepository.save(nova);
+        chatNotificationPublisher.tarefaRecorrenteCriada(savedNova);
 
         List<User> notifiedUsers = new ArrayList<>(savedNova.getUsers());
         notifiedUsers.forEach(user -> {
@@ -725,6 +736,7 @@ public class TarefaService {
         }
 
         tarefa = tarefaRepository.save(tarefa);
+        chatNotificationPublisher.tarefaEstadoAlterado(tarefa, previousStatus);
         //logger.info("Status da tarefa atualizado com sucesso no banco de dados");
 
         return new TarefaDTO(tarefa);
@@ -795,6 +807,7 @@ public class TarefaService {
 
             tarefa.markAsDeleted();
             tarefaRepository.save(tarefa);
+            chatNotificationPublisher.tarefaRemovida(tarefa);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }

@@ -45,6 +45,7 @@ FL Dashboard is a full-stack internal tool designed to streamline the management
   - Task status changed 
   - Task completed 
   - Project completed 
+- **Mattermost Integration** — Posts task and project changes (created, status changed/completed, collaborators changed, deadline changed, removed) to a team channel via an incoming webhook
 - **Global Search**
 - **Authentication & Authorization** — OAuth2 Authorization Server + Resource Server, fronted by a backend-for-frontend (BFF) proxy, with role-based permissions enforced on both frontend and backend
 
@@ -222,6 +223,10 @@ Copy `backend/.env.template` to `backend/.env` and fill in the required values:
 | `SLACK_ENABLED` | Enable/disable Slack notifications (`true`/`false`) |
 | `SLACK_DEFAULT_CHANNEL` | Default Slack channel (e.g. `#notifications`) |
 | `SLACK_NOTIFICATION_TYPES` | Comma-separated notification types to send |
+| `MATTERMOST_ENABLED` | Enable/disable Mattermost notifications (`true`/`false`, default `false`) |
+| `MATTERMOST_WEBHOOK_URL` | Mattermost incoming webhook URL (secret) |
+| `MATTERMOST_NOTIFICATION_TYPES` | Comma-separated `ChatEventType` names to send (empty = all) |
+| `APP_URL` | Frontend base URL used for links in Mattermost messages |
 
 ---
 
