@@ -37,6 +37,7 @@ public class ProjetoService {
     private final ProjetoDTOMapper projetoDTOMapper;
     private final NotificationService notificationService;
     private final ProjetoUserHistoryService projetoUserHistoryService;
+    private final ChatNotificationPublisher chatNotificationPublisher;
 
     public ProjetoService(
             ProjetoRepository projetoRepository,
@@ -44,13 +45,15 @@ public class ProjetoService {
             ExternoRepository externoRepository,
             ProjetoDTOMapper projetoDTOMapper,
             NotificationService notificationService,
-            ProjetoUserHistoryService projetoUserHistoryService) {
+            ProjetoUserHistoryService projetoUserHistoryService,
+            ChatNotificationPublisher chatNotificationPublisher) {
         this.projetoRepository = projetoRepository;
         this.userRepository = userRepository;
         this.externoRepository = externoRepository;
         this.projetoDTOMapper = projetoDTOMapper;
         this.notificationService = notificationService;
         this.projetoUserHistoryService = projetoUserHistoryService;
+        this.chatNotificationPublisher = chatNotificationPublisher;
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +134,7 @@ public class ProjetoService {
         projetoRepository.flush();
 
         ProjetoWithUsersDTO savedDTO = new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
+        chatNotificationPublisher.projetoCriado(savedEntity);
 
         // Only create notification if project was saved successfully and has users
         if (savedEntity.getId() != null && !savedEntity.getUsers().isEmpty()) {
@@ -154,6 +158,7 @@ public class ProjetoService {
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com ID: " + id));
 
             ProjetoStatus oldStatus = entity.getStatus();
+            Date oldPrazo = entity.getPrazo();
             Set<User> oldUsers = new HashSet<>(entity.getUsers());
 
             /*
@@ -259,6 +264,7 @@ public class ProjetoService {
                         new UserSummaryDTO(user)
                 );
             }
+            chatNotificationPublisher.projetoAtualizado(savedEntity, oldStatus, oldPrazo, oldUsers);
 
             return new ProjetoWithUsersDTO(savedEntity, savedEntity.getUsers());
         } catch (EntityNotFoundException e) {
@@ -305,8 +311,11 @@ public class ProjetoService {
     public ProjetoWithUsersDTO updateStatus(Long id, ProjetoStatus status) {
         Projeto entity = projetoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+        ProjetoStatus oldStatus = entity.getStatus();
         entity.setStatus(status);
         Projeto savedEntity = projetoRepository.save(entity);
+        chatNotificationPublisher.projetoAtualizado(
+                savedEntity, oldStatus, savedEntity.getPrazo(), new HashSet<>(savedEntity.getUsers()));
 
         NotificationType notificationType = status == ProjetoStatus.CONCLUIDO
                 ? NotificationType.PROJETO_CONCLUIDO
@@ -328,8 +337,12 @@ public class ProjetoService {
         try {
             Projeto entity = projetoRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Projeto not found: " + id));
+            ProjetoStatus oldStatus = entity.getStatus();
+            Date oldPrazo = entity.getPrazo();
+            Set<User> oldUsers = new HashSet<>(entity.getUsers());
             projetoDTOMapper.copyBasicDTOtoEntity(projetoDTO, entity);
             entity = projetoRepository.save(entity);
+            chatNotificationPublisher.projetoAtualizado(entity, oldStatus, oldPrazo, oldUsers);
             return new ProjetoDTO(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
@@ -352,6 +365,7 @@ public class ProjetoService {
 
         entity.setPrazo(novoPrazo);
         Projeto savedEntity = projetoRepository.save(entity);
+        chatNotificationPublisher.projetoPrazoProrrogado(savedEntity, prazoAtual);
 
         User requestingUser = requestingUserEmail != null ? userRepository.findByEmail(requestingUserEmail) : null;
 
@@ -384,6 +398,7 @@ public class ProjetoService {
             projetoUserHistoryService.registarEventos(projeto, projeto.getUsers(), ProjetoUserHistoryAction.REMOVED);
             projeto.markAsDeleted();
             projetoRepository.save(projeto);
+            chatNotificationPublisher.projetoRemovido(projeto);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id: " + id + " não foi encontrado");
         }

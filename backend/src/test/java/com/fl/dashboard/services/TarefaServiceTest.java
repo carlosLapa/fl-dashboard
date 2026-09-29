@@ -62,6 +62,9 @@ class TarefaServiceTest {
     @Mock
     private SubtarefaService subtarefaService;
 
+    @Mock
+    private ChatNotificationPublisher chatNotificationPublisher;
+
     @InjectMocks
     private TarefaService tarefaService;
 
