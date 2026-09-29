@@ -17,8 +17,13 @@ import UserTarefaTable from 'components/User/UserTarefaTable';
 import UserAvatar from 'components/User/UserAvatar';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
+import NotificationBadge from 'components/NotificationBox/NotificationBadge';
 import Button from 'react-bootstrap/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBell, faClock } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../../AuthContext'; // Add this import
+import { useNotification } from 'NotificationContext';
+import { getUnreadCountsAPI } from 'api/notificationsApi';
 import { useUserTarefaFilters } from 'hooks/useFilterState';
 import { toast } from 'react-toastify';
 import './userStyles.scss';
@@ -29,7 +34,9 @@ const UsersTarefasPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuth(); // Get current user from context
+  const { loadStoredNotifications } = useNotification();
   const [user, setUser] = useState<User | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [tarefas, setTarefas] = useState<TarefaWithUserAndProjetoDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [tasksLoading, setTasksLoading] = useState<boolean>(true);
@@ -114,6 +121,20 @@ const UsersTarefasPage: React.FC = () => {
     fetchUser();
   }, [userId, currentUser]);
 
+  // Fetch unread notification count for this user
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!userId) return;
+      try {
+        const counts = await getUnreadCountsAPI([parseInt(userId, 10)]);
+        setUnreadCount(counts[parseInt(userId, 10)] ?? 0);
+      } catch (err) {
+        console.error('Error fetching unread count:', err);
+      }
+    };
+    fetchUnreadCount();
+  }, [userId]);
+
   // Fetch tarefas whenever the user, page or applied filters change
   useEffect(() => {
     if (!userId) return;
@@ -140,6 +161,17 @@ const UsersTarefasPage: React.FC = () => {
 
   const handleNavigateToProjetoHistory = () => {
     navigate(`/users/${userId}/projeto-history`);
+  };
+
+  const handleNavigateToNotifications = async () => {
+    if (!userId) return;
+    const parsedUserId = parseInt(userId, 10);
+    await loadStoredNotifications(parsedUserId);
+    navigate(`/notifications/${parsedUserId}`);
+  };
+
+  const handleNavigateToBancoHoras = () => {
+    navigate(`/users/${userId}/banco-horas`);
   };
 
   const handleEditTarefa = (tarefaId: number) => {
@@ -271,6 +303,23 @@ const UsersTarefasPage: React.FC = () => {
               onClick={handleNavigateToProjetoHistory}
             >
               Ver Histórico de Desempenho
+            </Button>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <Button
+                variant="outline-primary"
+                onClick={handleNavigateToNotifications}
+              >
+                <FontAwesomeIcon icon={faBell} className="me-2" />
+                Ver Notificações
+              </Button>
+              <NotificationBadge unreadCount={unreadCount} />
+            </div>
+            <Button
+              variant="outline-primary"
+              onClick={handleNavigateToBancoHoras}
+            >
+              <FontAwesomeIcon icon={faClock} className="me-2" />
+              Banco de Horas
             </Button>
           </div>
         </div>
