@@ -21,3 +21,7 @@
   background-color: white;
   color: #343a40;
 }
+
+.user-avatar-link {
+  cursor: pointer;
+}
