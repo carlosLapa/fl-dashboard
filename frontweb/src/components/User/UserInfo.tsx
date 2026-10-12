@@ -15,7 +15,13 @@ const UserInfo: React.FC = () => {
 
   return (
     <div className="user-info">
-      <span className="user-welcome">Bem vindo/a, {user.name}</span>
+      <Link
+        to={`/users/${user.id}/tarefas`}
+        className="user-welcome"
+        title="As minhas tarefas"
+      >
+        Bem vindo/a, {user.name}
+      </Link>
       <Button
         variant="outline-secondary"
         size="sm"

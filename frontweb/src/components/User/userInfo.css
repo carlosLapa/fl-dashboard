@@ -9,6 +9,12 @@
   margin-right: 10px;
   display: flex;
   align-items: center;
+  text-decoration: none;
+}
+
+.user-welcome:hover {
+  color: white;
+  text-decoration: underline;
 }
 
 .logout-button {
