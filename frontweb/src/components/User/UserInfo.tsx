@@ -22,23 +22,23 @@ const UserInfo: React.FC = () => {
       >
         Bem vindo/a, {user.name}
       </Link>
-      <Button
-        variant="outline-secondary"
-        size="sm"
-        onClick={logout}
-        className="logout-button"
-      >
-        Logout
-      </Button>
       <Nav.Link
         as={Link}
         to={`/users/${user.id}/tarefas`}
-        className="me-3 user-avatar-link"
+        className="user-avatar-link"
         title="As minhas tarefas"
         aria-label="As minhas tarefas"
       >
         <UserAvatar userId={user.id} name={user.name} size={35} rounded />
       </Nav.Link>
+      <Button
+        variant="outline-secondary"
+        size="sm"
+        onClick={logout}
+        className="logout-button me-3"
+      >
+        Logout
+      </Button>
     </div>
   );
 };
