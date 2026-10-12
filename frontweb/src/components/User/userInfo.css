@@ -9,6 +9,12 @@
   margin-right: 10px;
   display: flex;
   align-items: center;
+  text-decoration: none;
+}
+
+.user-welcome:hover {
+  color: white;
+  text-decoration: underline;
 }
 
 .logout-button {
@@ -20,4 +26,8 @@
 .logout-button:hover {
   background-color: white;
   color: #343a40;
+}
+
+.user-avatar-link {
+  cursor: pointer;
 }
