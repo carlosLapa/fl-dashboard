@@ -24,6 +24,9 @@
     "@babel/plugin-transform-modules-systemjs": ">=7.29.4",
     "serialize-javascript": ">=7.0.5",
     "shell-quote": "^1.11.0",
+    "proxy-addr": "^2.0.8",
+    "source-map-js": "^1.2.2",
+    "compression": "^1.8.2",
     "websocket-driver": ">=0.7.5",
     "jsdom": {
       "ws": "^7.5.11"
