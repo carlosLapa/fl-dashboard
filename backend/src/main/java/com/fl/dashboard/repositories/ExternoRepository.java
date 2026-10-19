@@ -1,6 +1,7 @@
 package com.fl.dashboard.repositories;
 
 import com.fl.dashboard.entities.Externo;
+import com.fl.dashboard.enums.ProjetoStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +30,16 @@ public interface ExternoRepository extends JpaRepository<Externo, Long> {
 
     @Query("SELECT e FROM Externo e WHERE e.deletedAt IS NULL")
     List<Externo> findAllActive();
+
+    // One row per Externo that has at least one non-deleted Projeto: [externoId, activeProjetoCount].
+    // Externos with no row have never been assigned to a (non-deleted) Projeto. Archived Projetos
+    // count as history but never as active, regardless of their status.
+    @Query("SELECT e.id, SUM(CASE WHEN p.status IN :activeStatuses AND p.arquivadaEm IS NULL THEN 1 ELSE 0 END) " +
+            "FROM Externo e JOIN e.projetos p " +
+            "WHERE e.id IN :externoIds AND p.deletedAt IS NULL " +
+            "GROUP BY e.id")
+    List<Object[]> countActiveProjetosByExternoIds(@Param("externoIds") Collection<Long> externoIds,
+                                                   @Param("activeStatuses") Collection<ProjetoStatus> activeStatuses);
 
     @EntityGraph(attributePaths = {"projetos"})
     @Query("SELECT e FROM Externo e WHERE e.deletedAt IS NULL")

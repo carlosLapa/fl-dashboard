@@ -15,8 +15,13 @@ import {
   faProjectDiagram,
   faTasks,
   faInfoCircle,
+  faCircle,
 } from '@fortawesome/free-solid-svg-icons';
-import { ExternoDTO, FaseProjeto } from 'types/externo';
+import {
+  ExternoDTO,
+  ExternoEstadoAtividade,
+  FaseProjeto,
+} from 'types/externo';
 import { useNavigate } from 'react-router-dom';
 import './externoTableStyles.scss';
 
@@ -34,6 +39,30 @@ interface ExternoTableProps {
   simplified?: boolean; 
   shouldDisableActions?: boolean; // Add this new prop to the interface
 }
+
+const ESTADO_ATIVIDADE_INFO: Record<
+  ExternoEstadoAtividade,
+  { label: string; description: string }
+> = {
+  ATIVO: {
+    label: 'Ativo',
+    description: 'Envolvido em Projetos Ativos ou Em Progresso',
+  },
+  INATIVO: {
+    label: 'Inativo',
+    description: 'Sem Projetos ativos de momento',
+  },
+  SEM_PROJETOS: {
+    label: 'Sem projetos',
+    description: 'Nunca foi atribuído a nenhum Projeto',
+  },
+};
+
+const ESTADOS_ATIVIDADE: ExternoEstadoAtividade[] = [
+  'ATIVO',
+  'INATIVO',
+  'SEM_PROJETOS',
+];
 
 const ExternoTable: React.FC<ExternoTableProps> = ({
   externos,
@@ -122,6 +151,52 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
     }
     return <Badge bg={variant}>{fase.replace('_', ' ')}</Badge>;
   };
+
+  const renderEstadoAtividade = (externo: ExternoDTO) => {
+    const estado = externo.estadoAtividade;
+    if (!estado) return null;
+    const info = ESTADO_ATIVIDADE_INFO[estado];
+    return (
+      <OverlayTrigger
+        placement="right"
+        overlay={
+          <Tooltip id={`estado-tooltip-${externo.id}`}>
+            <strong>{info.label}</strong>
+            <br />
+            {info.description}
+          </Tooltip>
+        }
+      >
+        <span
+          className={`estado-atividade-icon estado-atividade-icon--${estado.toLowerCase()}`}
+          role="img"
+          aria-label={`${info.label}: ${info.description}`}
+        >
+          <FontAwesomeIcon icon={faCircle} />
+        </span>
+      </OverlayTrigger>
+    );
+  };
+
+  const renderEstadoAtividadeLegend = () => (
+    <div className="estado-atividade-legend" aria-label="Legenda do estado">
+      <span className="estado-atividade-legend__title">Estado:</span>
+      {ESTADOS_ATIVIDADE.map((estado) => (
+        <span key={estado} className="estado-atividade-legend__item">
+          <span
+            className={`estado-atividade-icon estado-atividade-icon--${estado.toLowerCase()}`}
+            aria-hidden="true"
+          >
+            <FontAwesomeIcon icon={faCircle} />
+          </span>
+          <strong>{ESTADO_ATIVIDADE_INFO[estado].label}</strong>
+          <span className="estado-atividade-legend__desc">
+            {ESTADO_ATIVIDADE_INFO[estado].description}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
 
   const renderEspecialidades = (especialidades: string[]) => {
     return especialidades.map((esp, index) => (
@@ -226,10 +301,16 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
 
   return (
     <div className={simplified ? "" : "externo-table-container"}>
+      {!simplified && renderEstadoAtividadeLegend()}
       <div className="table-responsive">
         <Table striped bordered hover className="externo-table">
           <thead>
             <tr>
+              {!simplified && (
+                <th className="estado-atividade-col" aria-label="Estado">
+                  Estado
+                </th>
+              )}
               <th>Nome</th>
               <th>Email</th>
               <th>Telemóvel</th>
@@ -243,6 +324,11 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
             {externos.length > 0 ? (
               externos.map((externo) => (
                 <tr key={externo.id}>
+                  {!simplified && (
+                    <td className="estado-atividade-col">
+                      {renderEstadoAtividade(externo)}
+                    </td>
+                  )}
                   <td>{externo.name}</td>
                   <td>{externo.email}</td>
                   <td>{externo.telemovel}</td>
@@ -386,7 +472,7 @@ const ExternoTable: React.FC<ExternoTableProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="text-center py-3">
+                <td colSpan={simplified ? 7 : 8} className="text-center py-3">
                   Não há colaboradores externos associados a este projeto.
                 </td>
               </tr>

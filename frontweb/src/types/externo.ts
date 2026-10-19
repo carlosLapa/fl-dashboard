@@ -28,6 +28,9 @@ export type FaseProjeto =
   | 'ESTUDO_PREVIO'
   | 'PEDIDO_INFORMACAO_PREVIO';
 
+// Derived activity status, computed by the backend from the Externo's Projetos
+export type ExternoEstadoAtividade = 'ATIVO' | 'INATIVO' | 'SEM_PROJETOS';
+
 // Base Externo type
 export interface Externo {
   id: number;
@@ -49,6 +52,7 @@ export interface ExternoDTO {
   preco: number;
   faseProjeto: FaseProjeto;
   especialidades: EspecialidadesExterno[];
+  estadoAtividade?: ExternoEstadoAtividade; // Only set by the paged list endpoint
 }
 
 // DTO for inserting a new Externo
