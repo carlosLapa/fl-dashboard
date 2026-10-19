@@ -2,6 +2,7 @@ package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.enums.EspecialidadesExterno;
+import com.fl.dashboard.enums.ExternoEstadoAtividade;
 import com.fl.dashboard.enums.FaseProjeto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -33,6 +34,8 @@ public class ExternoDTO {
     private BigDecimal preco;
     private FaseProjeto faseProjeto;
     private Set<EspecialidadesExterno> especialidades = new HashSet<>();
+    // Only populated by list endpoints that compute it (ExternoService.findAllPaged); null elsewhere.
+    private ExternoEstadoAtividade estadoAtividade;
 
     public ExternoDTO() {
     }
