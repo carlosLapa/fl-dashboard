@@ -416,13 +416,18 @@ public class UserService implements UserDetailsService {
         return userRepository.findByEmail(email);
     }
 
+    // Deliberately does NOT touch profileImage: since no read endpoint sends the photo back
+    // (see findById/getCurrentUserWithRoles/findAllPaged* all nulling it out) and the frontend
+    // no longer round-trips it either, userDTO.getProfileImage() is always null here — copying
+    // it over the entity used to silently wipe the stored photo on every edit that didn't also
+    // upload a new file (e.g. changing just the cargo). Image changes go exclusively through
+    // processImageFile(), called separately by each insert/update method when imageFile is set.
     private void copyDTOtoEntity(UserDTO userDTO, User entity) {
         entity.setName(userDTO.getName());
         entity.setFuncao(userDTO.getFuncao());
         entity.setCargo(userDTO.getCargo());
         entity.setEmail(userDTO.getEmail());
         entity.setPassword(userDTO.getPassword());
-        entity.setProfileImage(userDTO.getProfileImage());
     }
 
     private void copyProjetosToEntity(UserWithProjetosDTO userDTO, User entity) {
