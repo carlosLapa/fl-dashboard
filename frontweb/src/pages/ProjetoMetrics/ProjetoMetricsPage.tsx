@@ -25,6 +25,7 @@ import {
 } from '../../types/tarefa';
 import { getProjetoMetrics } from '../../services/projetoMetricsService';
 import {
+  arquivarTarefa,
   getTarefaWithUsersAndProjeto,
   updateTarefa,
 } from '../../services/tarefaService';
@@ -171,6 +172,25 @@ const ProjetoMetricsPage: React.FC = () => {
         } else {
           toast.error('Erro ao atualizar tarefa');
         }
+      }
+    },
+    [refreshMetrics],
+  );
+
+  // Archived tasks still count towards the metrics, so the refresh is only
+  // to keep the page consistent with the backend after the change
+  const handleArchiveTarefa = useCallback(
+    async (tarefaId: number) => {
+      try {
+        await arquivarTarefa(tarefaId);
+        toast.success('Tarefa arquivada com sucesso!');
+        setTarefaToEdit(null);
+        await refreshMetrics();
+      } catch (err) {
+        console.error('Erro ao arquivar tarefa:', err);
+        toast.error(
+          err instanceof Error ? err.message : 'Erro ao arquivar tarefa'
+        );
       }
     },
     [refreshMetrics],
@@ -423,6 +443,7 @@ const ProjetoMetricsPage: React.FC = () => {
           onSave={(formData) =>
             handleUpdateTarefa(formData as TarefaUpdateFormData)
           }
+          onArchive={handleArchiveTarefa}
           isEditing
           tarefa={tarefaToEdit}
         />
