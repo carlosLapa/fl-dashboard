@@ -12,11 +12,16 @@ import ProjetoTarefasArquivadasTable from 'components/Projeto/ProjetoTarefasArqu
 import ProjetoTarefaModal from 'components/Tarefa/ProjetoTarefaModal';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import {
-  Tarefa,
   TarefaInsertFormData,
   TarefaUpdateFormData,
+  TarefaWithUserAndProjetoDTO,
 } from 'types/tarefa';
-import { addTarefa, updateTarefa } from 'services/tarefaService';
+import {
+  addTarefa,
+  arquivarTarefa,
+  getTarefaWithUsersAndProjeto,
+  updateTarefa,
+} from 'services/tarefaService';
 import { arquivarProjeto, reativarProjeto } from 'services/projetoService';
 import { toast } from 'react-toastify';
 import BackButton from 'components/Shared/BackButton/BackButton';
@@ -48,7 +53,8 @@ const ProjetoDetailsPage: React.FC = () => {
 
   // Estados para o modal de edição de tarefa
   const [showEditTarefaModal, setShowEditTarefaModal] = useState(false);
-  const [tarefaToEdit, setTarefaToEdit] = useState<Tarefa | null>(null);
+  const [tarefaToEdit, setTarefaToEdit] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
 
   const fetchProjeto = async () => {
     if (projetoId) {
@@ -94,11 +100,15 @@ const ProjetoDetailsPage: React.FC = () => {
   };
 
   // Handler para abrir o modal de edição de uma tarefa existente
-  const handleEditTarefa = (tarefaId: number) => {
-    const tarefa = projeto?.tarefas.find((t) => t.id === tarefaId);
-    if (tarefa) {
-      setTarefaToEdit(tarefa);
+  // /projetos/{id}/full embeds plain TarefaDTOs (no users/projeto), despite
+  // being typed as Tarefa[]; TarefaModal needs the full task, so load it on click
+  const handleEditTarefa = async (tarefaId: number) => {
+    try {
+      setTarefaToEdit(await getTarefaWithUsersAndProjeto(tarefaId));
       setShowEditTarefaModal(true);
+    } catch (error) {
+      console.error('Erro ao carregar tarefa:', error);
+      toast.error('Erro ao carregar a tarefa');
     }
   };
 
@@ -117,6 +127,24 @@ const ProjetoDetailsPage: React.FC = () => {
       } else {
         toast.error('Erro ao atualizar tarefa');
       }
+    }
+  };
+
+  // Archive a DONE tarefa from the edit modal. fetchProjeto shows the
+  // full-page spinner, which remounts ProjetoTarefasArquivadasTable so it
+  // re-fetches and lists the newly archived tarefa
+  const handleArchiveTarefa = async (tarefaId: number) => {
+    try {
+      await arquivarTarefa(tarefaId);
+      toast.success('Tarefa arquivada com sucesso!');
+      setShowEditTarefaModal(false);
+      setTarefaToEdit(null);
+      await fetchProjeto();
+    } catch (error) {
+      console.error('Erro ao arquivar tarefa:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao arquivar tarefa'
+      );
     }
   };
 
@@ -288,6 +316,7 @@ const ProjetoDetailsPage: React.FC = () => {
           onSave={(formData) =>
             handleUpdateTarefa(formData as TarefaUpdateFormData)
           }
+          onArchive={handleArchiveTarefa}
           isEditing
           tarefa={tarefaToEdit}
         />
