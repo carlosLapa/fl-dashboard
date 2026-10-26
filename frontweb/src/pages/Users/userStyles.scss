@@ -212,66 +212,6 @@
   }
 }
 
-.calendar-button-container {
-  margin-bottom: 1rem;
-  @include respond-from('md') {
-    margin-bottom: 0;
-  }
-}
-
-// UserCalendarPage styles
-.my-calendar-container {
-  width: 100%;
-  padding: 1rem;
-  height: calc(100vh - 120px); // Adjust based on your header/navbar height
-  display: flex;
-  flex-direction: column;
-  @include respond-from('md') {
-    padding: 1.5rem;
-    height: calc(100vh - 140px);
-  }
-}
-
-.my-calendar-text-title {
-  font-size: 1.25rem;
-  @include respond-from('md') {
-    font-size: 1.5rem;
-  }
-}
-
-.calendar-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  overflow-x: auto;
-  overflow-y: hidden;
-  flex: 1; // Take remaining vertical space
-  min-height: 650px; // Minimum height to show calendar properly
-  & > div {
-    width: 100%;
-    margin-left: 0 !important;
-    padding-left: 0 !important;
-  }
-  // Target the FullCalendar component
-  .fc {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0 !important;
-    height: 100%; // Make calendar take full height of wrapper
-    overflow-y: hidden;
-  }
-  // Target the calendar container
-  .fc-view-container {
-    margin-left: 0 !important;
-    height: 100%;
-    overflow-y: hidden;
-  }
-  // Ensure the calendar view takes full height
-  .fc-view {
-    height: 100%;
-  }
-}
-
 // Loading, error, and not found states
 .loading-container,
 .error-container,
