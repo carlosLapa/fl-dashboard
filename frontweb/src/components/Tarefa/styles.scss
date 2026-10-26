@@ -101,7 +101,7 @@
 }
 
 .calendar-wrapper {
-  height: 600px;
+  height: 650px;
   max-width: 100%;
   margin: 0 auto;
 }
@@ -346,11 +346,6 @@
 
 /* Responsive styles */
 @include respond-to('md') {
-  /* Calendar responsive styles */
-  .calendar-wrapper {
-    height: 500px;
-  }
-
   /* Adjust calendar toolbar for mobile */
   .rbc-toolbar {
     flex-direction: column;

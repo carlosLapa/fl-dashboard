@@ -14,7 +14,7 @@
 }
 
 .calendar-wrapper {
-  height: 600px;
+  height: 650px;
   max-width: 100%;
   margin: 0 auto;
 }
@@ -50,11 +50,4 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Responsive styles */
-@include respond-to('md') {
-  .calendar-wrapper {
-    height: 500px;
-  }
 }
