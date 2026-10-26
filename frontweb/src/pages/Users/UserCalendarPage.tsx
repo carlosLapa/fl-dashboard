@@ -62,11 +62,11 @@ const UserCalendarPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Calendar wrapped in a div with the same width */}
+        {/* TarefasCalendar renders its own .calendar-wrapper; wrapping it in a
+            second one nests two fixed-height, overflow-y: hidden boxes and the
+            outer one clips the bottom of the calendar by the title's height. */}
         <div style={{ width: '100%', marginTop: '3rem' }}>
-          <div className="calendar-wrapper">
-            <TarefasCalendar tarefas={userTarefas} />
-          </div>
+          <TarefasCalendar tarefas={userTarefas} />
         </div>
       </div>
     </div>
