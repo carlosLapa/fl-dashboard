@@ -8,6 +8,9 @@ import {
   faPencilAlt,
   faTrashAlt,
   faInfoCircle,
+  faSort,
+  faSortDown,
+  faSortUp,
 } from '@fortawesome/free-solid-svg-icons';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
@@ -30,6 +33,9 @@ interface UserTarefaTableProps {
   onApplyFilters: () => void;
   onClearFilters: () => void;
   isFiltered?: boolean;
+  sortField: string;
+  sortDirection: 'ASC' | 'DESC';
+  onSort: (field: string) => void;
 }
 
 const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
@@ -46,8 +52,37 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
   onApplyFilters,
   onClearFilters,
   isFiltered = false,
+  sortField,
+  sortDirection,
+  onSort,
 }) => {
   const [showFilters, setShowFilters] = useState(false);
+
+  const renderSortableHeader = (
+    field: string,
+    label: string,
+    className?: string
+  ) => (
+    <th
+      className={className || ''}
+      onClick={() => onSort(field)}
+      style={{ cursor: 'pointer' }}
+    >
+      <div className="d-flex align-items-center justify-content-between">
+        <span>{label}</span>
+        <span className="ms-1">
+          {sortField === field ? (
+            <FontAwesomeIcon
+              icon={sortDirection === 'ASC' ? faSortUp : faSortDown}
+              size="sm"
+            />
+          ) : (
+            <FontAwesomeIcon icon={faSort} size="sm" opacity={0.3} />
+          )}
+        </span>
+      </div>
+    </th>
+  );
 
   return (
     <div className="tarefa-table-container">
@@ -71,13 +106,37 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
             <Table striped bordered hover className="tarefa-table">
               <thead>
                 <tr>
-                  <th>Descrição</th>
-                  <th className="d-none d-md-table-cell">Estado</th>
-                  <th className="d-none d-md-table-cell">Prioridade</th>
-                  <th className="d-none d-md-table-cell">Ínicio</th>
-                  <th className="d-none d-lg-table-cell">Prazo</th>
-                  <th className="d-none d-lg-table-cell">Duração (dias úteis)</th>
-                  <th className="d-none d-lg-table-cell">Projeto</th>
+                  {renderSortableHeader('descricao', 'Descrição')}
+                  {renderSortableHeader(
+                    'status',
+                    'Estado',
+                    'd-none d-md-table-cell'
+                  )}
+                  {renderSortableHeader(
+                    'prioridade',
+                    'Prioridade',
+                    'd-none d-md-table-cell'
+                  )}
+                  {renderSortableHeader(
+                    'prazoEstimado',
+                    'Ínicio',
+                    'd-none d-md-table-cell'
+                  )}
+                  {renderSortableHeader(
+                    'prazoReal',
+                    'Prazo',
+                    'd-none d-lg-table-cell'
+                  )}
+                  {renderSortableHeader(
+                    'workingDays',
+                    'Duração (dias úteis)',
+                    'd-none d-lg-table-cell'
+                  )}
+                  {renderSortableHeader(
+                    'projeto.designacao',
+                    'Projeto',
+                    'd-none d-lg-table-cell'
+                  )}
                   <th>Ações</th>
                 </tr>
               </thead>

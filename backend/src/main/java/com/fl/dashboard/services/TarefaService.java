@@ -828,10 +828,24 @@ public class TarefaService {
         return tarefas.stream().map(TarefaWithUserAndProjetoDTO::new).toList();
     }
 
+    private static final Set<String> USER_TAREFA_SORT_FIELDS = Set.of(
+            "id", "descricao", "status", "prioridade", "prazoEstimado", "prazoReal", "workingDays",
+            "projeto.designacao");
+
+    // Unknown fields fall back to id instead of surfacing a 500 from Hibernate; id is always
+    // appended as a tie-breaker so pages stay stable when the primary field has duplicates.
+    private static Sort buildUserTarefaSort(String sortField, String sortDirection) {
+        String field = USER_TAREFA_SORT_FIELDS.contains(sortField) ? sortField : "id";
+        Sort.Direction direction = "DESC".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, field);
+        return "id".equals(field) ? sort : sort.and(Sort.by(Sort.Direction.ASC, "id"));
+    }
+
     @Transactional(readOnly = true)
-    public Page<TarefaWithUserAndProjetoDTO> findAllActiveByUserIdPaginated(Long userId, int page, int size) {
+    public Page<TarefaWithUserAndProjetoDTO> findAllActiveByUserIdPaginated(
+            Long userId, int page, int size, String sortField, String sortDirection) {
         // Get paginated tasks without eager loading collections
-        PageRequest pageRequest = PageRequest.of(page, size);
+        PageRequest pageRequest = PageRequest.of(page, size, buildUserTarefaSort(sortField, sortDirection));
         // Use a query that doesn't trigger the in-memory pagination warning
         Page<Tarefa> tarefaPage = tarefaRepository.findAllActiveByUserIdPaginated(userId, pageRequest);
         if (tarefaPage.isEmpty()) {
@@ -859,8 +873,10 @@ public class TarefaService {
             String prioridade,
             String projetoDesignacao,
             int page,
-            int size) {
-        PageRequest pageRequest = PageRequest.of(page, size);
+            int size,
+            String sortField,
+            String sortDirection) {
+        PageRequest pageRequest = PageRequest.of(page, size, buildUserTarefaSort(sortField, sortDirection));
         Page<Tarefa> tarefaPage = tarefaRepository.findByUserIdWithFilters(
                 userId, descricao, status, prioridade, projetoDesignacao, pageRequest);
         if (tarefaPage.isEmpty()) {

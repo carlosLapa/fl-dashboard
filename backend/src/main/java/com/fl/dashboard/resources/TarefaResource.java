@@ -196,11 +196,13 @@ public class TarefaResource {
             @RequestParam(required = false) String prioridade,
             @RequestParam(required = false) String projeto,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sort,
+            @RequestParam(defaultValue = "ASC") String direction) {
         boolean hasFilters = descricao != null || status != null || prioridade != null || projeto != null;
         Page<TarefaWithUserAndProjetoDTO> taskPage = hasFilters
-                ? tarefaService.findByUserIdWithFilters(userId, descricao, status, prioridade, projeto, page, size)
-                : tarefaService.findAllActiveByUserIdPaginated(userId, page, size);
+                ? tarefaService.findByUserIdWithFilters(userId, descricao, status, prioridade, projeto, page, size, sort, direction)
+                : tarefaService.findAllActiveByUserIdPaginated(userId, page, size, sort, direction);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(10, TimeUnit.SECONDS))
                 .body(taskPage);

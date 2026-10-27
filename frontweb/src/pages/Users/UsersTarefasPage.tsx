@@ -49,6 +49,8 @@ const UsersTarefasPage: React.FC = () => {
     useState<TarefaWithUserAndProjetoDTO | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [sortField, setSortField] = useState<string>('id');
+  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('ASC');
 
   const {
     filters,
@@ -67,7 +69,9 @@ const UsersTarefasPage: React.FC = () => {
           parsedUserId,
           page,
           PAGE_SIZE,
-          isFiltered ? appliedFilters : undefined
+          isFiltered ? appliedFilters : undefined,
+          sortField,
+          sortDirection
         );
         setTarefas(userTarefas.content);
         setTotalPages(userTarefas.totalPages);
@@ -78,7 +82,7 @@ const UsersTarefasPage: React.FC = () => {
         setTasksLoading(false);
       }
     },
-    [page, isFiltered, appliedFilters]
+    [page, isFiltered, appliedFilters, sortField, sortDirection]
   );
 
   // Fetch user profile once per userId
@@ -154,6 +158,19 @@ const UsersTarefasPage: React.FC = () => {
     clearFilters();
     setPage(0);
   }, [clearFilters]);
+
+  const handleSort = useCallback(
+    (field: string) => {
+      if (sortField === field) {
+        setSortDirection((prev) => (prev === 'ASC' ? 'DESC' : 'ASC'));
+      } else {
+        setSortField(field);
+        setSortDirection('ASC');
+      }
+      setPage(0);
+    },
+    [sortField]
+  );
 
   const handleNavigateToCalendar = () => {
     navigate(`/user-calendar/${userId}`);
@@ -355,6 +372,9 @@ const UsersTarefasPage: React.FC = () => {
               onApplyFilters={handleApplyFilters}
               onClearFilters={handleClearFilters}
               isFiltered={isFiltered}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
             />
           </div>
         </div>
