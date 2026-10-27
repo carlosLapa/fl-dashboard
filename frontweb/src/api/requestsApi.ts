@@ -583,9 +583,11 @@ export const getTarefasWithUsersAndProjetoByUser = async (
     status?: string;
     prioridade?: string;
     projeto?: string;
-  }
+  },
+  sort: string = 'id',
+  direction: 'ASC' | 'DESC' = 'ASC'
 ): Promise<PaginatedTarefas> => {
-  const requestKey = `user_${userId}_page_${page}_size_${size}_${JSON.stringify(
+  const requestKey = `user_${userId}_page_${page}_size_${size}_sort_${sort}_${direction}_${JSON.stringify(
     filters || {}
   )}`;
 
@@ -610,6 +612,8 @@ export const getTarefasWithUsersAndProjetoByUser = async (
         status: filters?.status || undefined,
         prioridade: filters?.prioridade || undefined,
         projeto: filters?.projeto || undefined,
+        sort,
+        direction,
         // This endpoint sets a 10s Cache-Control: max-age on the backend (to dedupe rapid
         // incidental re-fetches) — but that also makes the browser serve a stale response
         // when the caller deliberately re-fetches right after a mutation (e.g. TarefaModal
