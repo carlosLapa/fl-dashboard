@@ -51,11 +51,6 @@ public interface ExternoRepository extends JpaRepository<Externo, Long> {
     @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
     Optional<Externo> findByIdWithProjetos(@Param("id") Long id);
 
-    // ExternoWithTarefasDTO only reads tarefas, never projetos.
-    @EntityGraph(attributePaths = {"tarefas"})
-    @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
-    Optional<Externo> findByIdWithTarefas(@Param("id") Long id);
-
     @Query("SELECT e FROM Externo e WHERE e.id = :id AND e.deletedAt IS NULL")
     Optional<Externo> findByIdAndActiveStatus(@Param("id") Long id);
 

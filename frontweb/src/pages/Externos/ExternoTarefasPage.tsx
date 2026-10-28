@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spinner, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,9 +8,21 @@ import { ExternoWithTarefasDTO } from 'types/externo';
 import TarefaTable from 'components/Tarefa/TarefaTable';
 import ExternoDetailsCard from 'components/Externo/ExternoDetailsCard';
 import './externosStyles.scss'; // Using your existing styles
-import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
+import {
+  TarefaWithUserAndProjetoDTO,
+  TarefaUpdateFormData,
+  TarefaInsertFormData,
+  TarefaStatus,
+} from 'types/tarefa';
 import { useTarefaFilters } from 'hooks/useTarefaFilters';
-import { deleteTarefa } from 'services/tarefaService';
+import {
+  arquivarTarefa,
+  deleteTarefa,
+  updateTarefa,
+  updateTarefaStatus,
+} from 'services/tarefaService';
+import TarefaModal from 'components/Tarefa/TarefaModal';
+import TarefaDetailsCard from 'components/Tarefa/TarefaDetailsCard';
 import { confirmTarefaDelete } from 'components/Tarefa/confirmTarefaDelete';
 import { toast } from 'react-toastify';
 
@@ -22,34 +34,41 @@ const ExternoTarefasPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTarefa, setSelectedTarefa] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
+  const [tarefaForDetails, setTarefaForDetails] =
+    useState<TarefaWithUserAndProjetoDTO | null>(null);
 
   // Use our new hook for filter management
   const { filters, updateFilter, applyFilters, clearFilters } =
     useTarefaFilters();
 
-  useEffect(() => {
-    const fetchExternoWithTarefas = async () => {
-      if (externoId) {
-        setIsLoading(true);
-        try {
-          const externoData = await getExternoWithTarefasById(
-            Number(externoId)
-          );
-          setExterno(externoData);
-          setError(null);
-        } catch (err) {
-          console.error('Error loading externo with tarefas:', err);
-          setError(
-            'Falha ao carregar as tarefas do colaborador externo. Por favor, tente novamente.'
-          );
-        } finally {
-          setIsLoading(false);
-        }
+  // showSpinner is false on post-mutation refreshes so the table doesn't flash
+  const fetchExternoWithTarefas = useCallback(
+    async (showSpinner = true) => {
+      if (!externoId) return;
+      if (showSpinner) setIsLoading(true);
+      try {
+        const externoData = await getExternoWithTarefasById(
+          Number(externoId)
+        );
+        setExterno(externoData);
+        setError(null);
+      } catch (err) {
+        console.error('Error loading externo with tarefas:', err);
+        setError(
+          'Falha ao carregar as tarefas do colaborador externo. Por favor, tente novamente.'
+        );
+      } finally {
+        if (showSpinner) setIsLoading(false);
       }
-    };
+    },
+    [externoId]
+  );
 
+  useEffect(() => {
     fetchExternoWithTarefas();
-  }, [externoId]);
+  }, [fetchExternoWithTarefas]);
 
   const handleGoBack = () => {
     navigate('/externos');
@@ -63,9 +82,60 @@ const ExternoTarefasPage: React.FC = () => {
     setShowDetails(false);
   };
 
-  // Empty handlers for TarefaTable props
+  const findTarefa = (tarefaId: number) =>
+    externo?.tarefas.find((t) => t.id === tarefaId) ?? null;
+
   const handleEditTarefa = (tarefaId: number) => {
-    console.log(`Edit tarefa ${tarefaId} - Not implemented in this view`);
+    setSelectedTarefa(findTarefa(tarefaId));
+  };
+
+  const handleCloseTarefaModal = () => {
+    setSelectedTarefa(null);
+  };
+
+  const handleSaveTarefa = async (
+    formData: TarefaInsertFormData | TarefaUpdateFormData
+  ) => {
+    if (!('id' in formData)) return;
+    try {
+      await updateTarefa(formData.id, formData);
+      handleCloseTarefaModal();
+      toast.success('Tarefa atualizada com sucesso!');
+      await fetchExternoWithTarefas(false);
+    } catch (error) {
+      console.error('Erro ao atualizar tarefa:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao atualizar tarefa'
+      );
+    }
+  };
+
+  const handleStatusChange = async (
+    tarefaId: number,
+    newStatus: TarefaStatus
+  ) => {
+    try {
+      await updateTarefaStatus(tarefaId, newStatus);
+      toast.success('Status da tarefa atualizado com sucesso!');
+      await fetchExternoWithTarefas(false);
+    } catch (error) {
+      console.error('Erro ao atualizar status da tarefa:', error);
+      toast.error('Erro ao atualizar status da tarefa');
+    }
+  };
+
+  const handleArchiveTarefa = async (tarefaId: number) => {
+    try {
+      await arquivarTarefa(tarefaId);
+      handleCloseTarefaModal();
+      toast.success('Tarefa arquivada com sucesso!');
+      await fetchExternoWithTarefas(false);
+    } catch (error) {
+      console.error('Erro ao arquivar tarefa:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao arquivar tarefa'
+      );
+    }
   };
 
   const handleDeleteTarefa = async (tarefaId: number) => {
@@ -87,9 +157,7 @@ const ExternoTarefasPage: React.FC = () => {
   };
 
   const handleViewDetails = (tarefaId: number) => {
-    console.log(
-      `View tarefa details ${tarefaId} - Not implemented in this view`
-    );
+    setTarefaForDetails(findTarefa(tarefaId));
   };
 
   // Handler for applying filters
@@ -169,7 +237,7 @@ const ExternoTarefasPage: React.FC = () => {
         <div style={{ width: '100%', marginTop: '3rem' }}>
           {externo.tarefas && externo.tarefas.length > 0 ? (
             <TarefaTable
-              tarefas={externo.tarefas as TarefaWithUserAndProjetoDTO[]}
+              tarefas={externo.tarefas}
               onEditTarefa={handleEditTarefa}
               onDeleteTarefa={handleDeleteTarefa}
               onViewDetails={handleViewDetails}
@@ -199,6 +267,23 @@ const ExternoTarefasPage: React.FC = () => {
       </div>
       {showDetails && externo && (
         <ExternoDetailsCard externo={externo} onClose={handleCloseDetails} />
+      )}
+      {selectedTarefa && (
+        <TarefaModal
+          show={true}
+          onHide={handleCloseTarefaModal}
+          tarefa={selectedTarefa}
+          onSave={handleSaveTarefa}
+          onStatusChange={handleStatusChange}
+          onArchive={handleArchiveTarefa}
+          isEditing={true}
+        />
+      )}
+      {tarefaForDetails && (
+        <TarefaDetailsCard
+          tarefa={tarefaForDetails}
+          onClose={() => setTarefaForDetails(null)}
+        />
       )}
     </div>
   );

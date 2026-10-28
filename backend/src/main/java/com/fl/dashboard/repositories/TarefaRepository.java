@@ -83,6 +83,13 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
             "AND t.deletedAt IS NULL AND t.arquivadaEm IS NULL")
     List<Tarefa> findAllActiveByUserId(@Param("userId") Long userId);
 
+    // Same active rule as the per-user list (no deleted, no archived), so the Externo tarefas page
+    // matches the collaborator page and a deleted tarefa doesn't come back on reload.
+    @EntityGraph(attributePaths = {"users", "projeto"})
+    @Query("SELECT DISTINCT t FROM Tarefa t JOIN t.externos e WHERE e.id = :externoId " +
+            "AND t.deletedAt IS NULL AND t.arquivadaEm IS NULL ORDER BY t.id")
+    List<Tarefa> findAllActiveByExternoId(@Param("externoId") Long externoId);
+
     @Query("SELECT t FROM Tarefa t WHERE t.deletedAt IS NULL AND t.arquivadaEm IS NULL AND :userId IN (SELECT u.id FROM t.users u)")
     Page<Tarefa> findAllActiveByUserIdPaginated(@Param("userId") Long userId, Pageable pageable);
 
