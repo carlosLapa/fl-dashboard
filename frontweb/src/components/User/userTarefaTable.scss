@@ -34,6 +34,23 @@
   td {
     vertical-align: middle;
   }
+
+  .projeto-kanban-link {
+    color: #007bff;
+    text-decoration: none;
+    &:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+  }
+
+  // Same colours as the Kanban (eye) icon in ProjetoTable, for consistency
+  .kanban-icon {
+    color: #17a2b8;
+    &:hover {
+      color: #138496;
+    }
+  }
 }
 
 // Action icons

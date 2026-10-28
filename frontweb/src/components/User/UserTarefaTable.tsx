@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Table from 'react-bootstrap/Table';
 import { Spinner } from 'react-bootstrap';
 import { TarefaWithUserAndProjetoDTO } from '../../types/tarefa';
@@ -8,6 +9,7 @@ import {
   faPencilAlt,
   faTrashAlt,
   faInfoCircle,
+  faEye,
   faSort,
   faSortDown,
   faSortUp,
@@ -165,7 +167,25 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                           : '-'}
                       </td>
                       <td className="d-none d-lg-table-cell">
-                        {tarefa.projeto.designacao}
+                        {tarefa.projeto?.id ? (
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={
+                              <Tooltip id={`projeto-link-tooltip-${tarefa.id}`}>
+                                Abrir Kanban do projeto
+                              </Tooltip>
+                            }
+                          >
+                            <Link
+                              to={`/projetos/${tarefa.projeto.id}/full`}
+                              className="projeto-kanban-link"
+                            >
+                              {tarefa.projeto.designacao}
+                            </Link>
+                          </OverlayTrigger>
+                        ) : (
+                          <span className="text-muted">Sem projeto</span>
+                        )}
                       </td>
                       <td>
                         <div className="action-icons">
@@ -214,6 +234,24 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                               style={{ marginLeft: '10px' }}
                             />
                           </OverlayTrigger>
+                          {tarefa.projeto?.id && (
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={
+                                <Tooltip id={`kanban-tooltip-${tarefa.id}`}>
+                                  Ver Kanban do Projeto
+                                </Tooltip>
+                              }
+                            >
+                              <Link
+                                to={`/projetos/${tarefa.projeto.id}/full`}
+                                className="action-icon kanban-icon"
+                                style={{ marginLeft: '10px' }}
+                              >
+                                <FontAwesomeIcon icon={faEye} />
+                              </Link>
+                            </OverlayTrigger>
+                          )}
                         </div>
                       </td>
                     </tr>
