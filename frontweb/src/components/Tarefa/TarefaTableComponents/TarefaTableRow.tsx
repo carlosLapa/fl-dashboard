@@ -24,6 +24,8 @@ import TarefaPrioridadeBadge from '../TarefaPrioridadeBadge';
 import { useSubtarefas } from '../../../hooks/useSubtarefas';
 import { getTarefaStatusLabel } from '../../../constants/tarefaStatus';
 import { getFrequenciaRecorrenciaLabel } from '../../../constants/frequenciaRecorrencia';
+import { usePermissions } from '../../../hooks/usePermissions';
+import { Permission } from '../../../permissions/rolePermissions';
 
 interface TarefaTableRowProps {
   tarefa: TarefaWithUserAndProjetoDTO;
@@ -41,6 +43,8 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
   onStatusChange,
 }) => {
   const { isDividida, totalPercentual } = useSubtarefas(tarefa.id);
+  const { hasPermission } = usePermissions();
+  const canDelete = hasPermission(Permission.DELETE_TASK);
 
   // A shortened project prazo can leave a task's own dates stranded after
   // it, with none of the deadline badges above catching it (they only ever
@@ -268,19 +272,21 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
               style={{ marginRight: '8px' }}
             />
           </OverlayTrigger>
-          <OverlayTrigger
-            placement="top"
-            overlay={
-              <Tooltip id={`delete-tooltip-${tarefa.id}`}>Apagar</Tooltip>
-            }
-          >
-            <FontAwesomeIcon
-              icon={faTrashAlt}
-              onClick={() => onDeleteTarefa(tarefa.id)}
-              className="action-icon delete-icon"
-              style={{ marginRight: '8px' }}
-            />
-          </OverlayTrigger>
+          {canDelete && (
+            <OverlayTrigger
+              placement="top"
+              overlay={
+                <Tooltip id={`delete-tooltip-${tarefa.id}`}>Apagar</Tooltip>
+              }
+            >
+              <FontAwesomeIcon
+                icon={faTrashAlt}
+                onClick={() => onDeleteTarefa(tarefa.id)}
+                className="action-icon delete-icon"
+                style={{ marginRight: '8px' }}
+              />
+            </OverlayTrigger>
+          )}
           <OverlayTrigger
             placement="top"
             overlay={

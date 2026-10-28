@@ -10,6 +10,9 @@ import ExternoDetailsCard from 'components/Externo/ExternoDetailsCard';
 import './externosStyles.scss'; // Using your existing styles
 import { TarefaWithUserAndProjetoDTO } from 'types/tarefa';
 import { useTarefaFilters } from 'hooks/useTarefaFilters';
+import { deleteTarefa } from 'services/tarefaService';
+import { confirmTarefaDelete } from 'components/Tarefa/confirmTarefaDelete';
+import { toast } from 'react-toastify';
 
 const ExternoTarefasPage: React.FC = () => {
   const { externoId } = useParams<{ externoId: string }>();
@@ -65,8 +68,22 @@ const ExternoTarefasPage: React.FC = () => {
     console.log(`Edit tarefa ${tarefaId} - Not implemented in this view`);
   };
 
-  const handleDeleteTarefa = (tarefaId: number) => {
-    console.log(`Delete tarefa ${tarefaId} - Not implemented in this view`);
+  const handleDeleteTarefa = async (tarefaId: number) => {
+    if (!confirmTarefaDelete()) return;
+    try {
+      await deleteTarefa(tarefaId);
+      // The externo payload is loaded once on mount; drop the row locally
+      // instead of refetching the whole externo.
+      setExterno((prev) =>
+        prev
+          ? { ...prev, tarefas: prev.tarefas.filter((t) => t.id !== tarefaId) }
+          : prev
+      );
+      toast.success('Tarefa apagada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao apagar tarefa:', error);
+      toast.error('Erro ao apagar tarefa');
+    }
   };
 
   const handleViewDetails = (tarefaId: number) => {

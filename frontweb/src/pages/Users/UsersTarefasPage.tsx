@@ -5,7 +5,12 @@ import {
   getTarefasWithUsersAndProjetoByUser,
   updateTarefaAPI,
 } from 'api/requestsApi';
-import { arquivarTarefa, updateTarefaStatus } from 'services/tarefaService';
+import {
+  arquivarTarefa,
+  deleteTarefa,
+  updateTarefaStatus,
+} from 'services/tarefaService';
+import { confirmTarefaDelete } from 'components/Tarefa/confirmTarefaDelete';
 import { User } from 'types/user';
 import {
   TarefaWithUserAndProjetoDTO,
@@ -199,8 +204,18 @@ const UsersTarefasPage: React.FC = () => {
     }
   };
 
-  const handleDeleteTarefa = (tarefaId: number) => {
-    console.log(`Delete tarefa with id: ${tarefaId}`);
+  const handleDeleteTarefa = async (tarefaId: number) => {
+    if (!confirmTarefaDelete()) return;
+    try {
+      await deleteTarefa(tarefaId);
+      toast.success('Tarefa apagada com sucesso!');
+      if (userId) {
+        await fetchTarefas(parseInt(userId, 10));
+      }
+    } catch (error) {
+      console.error('Erro ao apagar tarefa:', error);
+      toast.error('Erro ao apagar tarefa');
+    }
   };
 
   const handleViewDetails = (tarefaId: number) => {

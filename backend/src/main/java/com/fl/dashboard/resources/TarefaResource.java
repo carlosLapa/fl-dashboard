@@ -162,6 +162,7 @@ public class TarefaResource {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasAuthority('DELETE_TASK')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         tarefaService.delete(id);
         return ResponseEntity.noContent().build();
