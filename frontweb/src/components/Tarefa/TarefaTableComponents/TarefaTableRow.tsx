@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPencilAlt,
@@ -138,7 +139,21 @@ const TarefaTableRow: React.FC<TarefaTableRowProps> = ({
     <tr className={rowClassName}>
       <td>
         {tarefa.projeto ? (
-          tarefa.projeto.designacao
+          <OverlayTrigger
+            placement="top"
+            overlay={
+              <Tooltip id={`projeto-link-tooltip-${tarefa.id}`}>
+                Abrir Kanban do projeto
+              </Tooltip>
+            }
+          >
+            <Link
+              to={`/projetos/${tarefa.projeto.id}/full`}
+              className="projeto-kanban-link"
+            >
+              {tarefa.projeto.designacao}
+            </Link>
+          </OverlayTrigger>
         ) : (
           <span className="text-muted">Sem projeto</span>
         )}
