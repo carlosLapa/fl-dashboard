@@ -88,6 +88,16 @@
   }
 }
 
+// Projeto name linking to its Kanban board (same look as in UserTarefaTable)
+.projeto-kanban-link {
+  color: #007bff;
+  text-decoration: none;
+  &:hover {
+    color: #0056b3;
+    text-decoration: underline;
+  }
+}
+
 /* Calendar styles */
 .calendar-container {
   width: 100%;
