@@ -24,6 +24,7 @@ import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import './tarefaStyles.scss';
+import { confirmTarefaDelete } from 'components/Tarefa/confirmTarefaDelete';
 import { useTarefaFilters } from 'hooks/useTarefaFilters';
 
 const TarefaPage: React.FC = () => {
@@ -299,6 +300,7 @@ const TarefaPage: React.FC = () => {
   };
 
   const handleDeleteTarefa = async (tarefaId: number) => {
+    if (!confirmTarefaDelete()) return;
     try {
       await deleteTarefa(tarefaId);
       if (isFiltered) {

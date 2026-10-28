@@ -19,6 +19,8 @@ import TarefaPrioridadeBadge from '../Tarefa/TarefaPrioridadeBadge';
 import UserTarefaFilterPanel from './UserTarefaFilterPanel';
 import TarefaPagination from '../Tarefa/TarefaTableComponents/TarefaPagination';
 import { getTarefaStatusLabel } from '../../constants/tarefaStatus';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
 import './userTarefaTable.scss';
 
 interface UserTarefaTableProps {
@@ -59,6 +61,8 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
   onSort,
 }) => {
   const [showFilters, setShowFilters] = useState(false);
+  const { hasPermission } = usePermissions();
+  const canDelete = hasPermission(Permission.DELETE_TASK);
 
   const renderSortableHeader = (
     field: string,
@@ -204,21 +208,23 @@ const UserTarefaTable: React.FC<UserTarefaTableProps> = ({
                               style={{ marginRight: '10px' }}
                             />
                           </OverlayTrigger>
-                          <OverlayTrigger
-                            placement="top"
-                            overlay={
-                              <Tooltip id={`delete-tooltip-${tarefa.id}`}>
-                                Apagar
-                              </Tooltip>
-                            }
-                          >
-                            <FontAwesomeIcon
-                              icon={faTrashAlt}
-                              onClick={() => onDeleteTarefa(tarefa.id)}
-                              className="action-icon delete-icon"
-                              style={{ marginLeft: '10px' }}
-                            />
-                          </OverlayTrigger>
+                          {canDelete && (
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={
+                                <Tooltip id={`delete-tooltip-${tarefa.id}`}>
+                                  Apagar
+                                </Tooltip>
+                              }
+                            >
+                              <FontAwesomeIcon
+                                icon={faTrashAlt}
+                                onClick={() => onDeleteTarefa(tarefa.id)}
+                                className="action-icon delete-icon"
+                                style={{ marginLeft: '10px' }}
+                              />
+                            </OverlayTrigger>
+                          )}
                           <OverlayTrigger
                             placement="top"
                             overlay={
