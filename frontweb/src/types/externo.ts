@@ -1,5 +1,5 @@
 import { Projeto } from './projeto';
-import { Tarefa } from './tarefa';
+import { TarefaWithUserAndProjetoDTO } from './tarefa';
 
 // Enum for EspecialidadesExterno
 export type EspecialidadesExterno =
@@ -83,7 +83,7 @@ export interface ExternoWithProjetosDTO extends ExternoDTO {
 
 // DTO for Externo with related Tarefas
 export interface ExternoWithTarefasDTO extends ExternoDTO {
-  tarefas: Tarefa[];
+  tarefas: TarefaWithUserAndProjetoDTO[];
 }
 
 // Interface for paginated Externos response

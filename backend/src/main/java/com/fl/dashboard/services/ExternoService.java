@@ -102,9 +102,9 @@ public class ExternoService {
 
     @Transactional(readOnly = true)
     public ExternoWithTarefasDTO findByIdWithTarefas(Long id) {
-        Externo entity = externoRepository.findByIdWithTarefas(id)
+        Externo entity = externoRepository.findByIdAndActiveStatus(id)
                 .orElseThrow(() -> new ResourceNotFoundException(EXTERNO_NOT_FOUND_MSG + id + NOT_FOUND_MSG));
-        return new ExternoWithTarefasDTO(entity);
+        return new ExternoWithTarefasDTO(entity, tarefaRepository.findAllActiveByExternoId(id));
     }
 
     @Transactional

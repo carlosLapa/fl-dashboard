@@ -1,24 +1,25 @@
 package com.fl.dashboard.dto;
 
 import com.fl.dashboard.entities.Externo;
+import com.fl.dashboard.entities.Tarefa;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.Hibernate;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 public class ExternoWithTarefasDTO extends ExternoDTO {
-    private Set<TarefaDTO> tarefas = new HashSet<>();
+    // Full DTO (users + projeto + externos) so the page can open TarefaModal and link to the
+    // projeto's Kanban; the plain TarefaDTO had neither, and saving from the modal would have
+    // sent an empty user list.
+    private List<TarefaWithUserAndProjetoDTO> tarefas = new ArrayList<>();
 
-    public ExternoWithTarefasDTO(Externo entity) {
+    public ExternoWithTarefasDTO(Externo entity, List<Tarefa> activeTarefas) {
         super(entity);
-        Hibernate.initialize(entity.getTarefas()); // Ensures the tarefas collection is properly loaded
-        this.tarefas = entity.getTarefas().stream()
-                .map(TarefaDTO::new)
-                .collect(Collectors.toSet());
+        this.tarefas = activeTarefas.stream()
+                .map(TarefaWithUserAndProjetoDTO::new)
+                .toList();
     }
 }
