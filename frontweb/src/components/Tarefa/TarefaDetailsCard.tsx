@@ -5,6 +5,7 @@ import Button from 'react-bootstrap/Button';
 import ProgressBar from 'react-bootstrap/ProgressBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { format, parseISO } from 'date-fns';
 import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
 import { getTarefaStatusLabel } from '../../constants/tarefaStatus';
@@ -102,6 +103,23 @@ const TarefaDetailsCard: React.FC<TarefaDetailsCardProps> = ({
                         <a href={link.url} target="_blank" rel="noopener noreferrer">
                           {link.descricao || link.url}
                         </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {tarefa.requisicoes && tarefa.requisicoes.length > 0 && (
+                <div className="mb-2">
+                  <strong>Material requisitado:</strong>
+                  <ul className="mb-0 ps-3">
+                    {tarefa.requisicoes.map((requisicao) => (
+                      <li key={requisicao.id}>
+                        {requisicao.equipamentoNome} —{' '}
+                        {format(parseISO(requisicao.dataInicio), 'dd/MM/yyyy')} a{' '}
+                        {format(parseISO(requisicao.dataFim), 'dd/MM/yyyy')}
+                        {requisicao.observacoes
+                          ? ` (${requisicao.observacoes})`
+                          : ''}
                       </li>
                     ))}
                   </ul>

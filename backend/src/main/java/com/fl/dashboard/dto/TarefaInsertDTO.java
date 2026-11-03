@@ -28,4 +28,7 @@ public class TarefaInsertDTO {
 
     @Valid
     private List<TarefaLinkDTO> links;
+
+    @Valid
+    private List<RequisicaoEquipamentoDTO> requisicoes;
 }

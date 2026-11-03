@@ -27,6 +27,7 @@ import BancoHorasApprovalsPage from 'pages/Relatorios/BancoHorasApprovalsPage';
 import UserBancoHorasPage from 'pages/Users/UserBancoHorasPage';
 import UnauthorizedPage from 'pages/Unauthorized/UnauthorizedPage';
 import NotFoundPage from 'pages/NotFound/NotFoundPage';
+import EquipamentosPage from 'pages/Equipamentos/EquipamentosPage';
 
 const AppRoutes = () => {
   return (
@@ -120,6 +121,10 @@ const AppRoutes = () => {
       <Route
         path="/externos/:externoId/projetos"
         element={<ProtectedRoute element={<ExternoProjetosPage />} />}
+      />
+      <Route
+        path="/equipamentos"
+        element={<ProtectedRoute element={<EquipamentosPage />} />}
       />
       {/* Add routes for Clientes */}
       <Route

@@ -61,5 +61,8 @@ public enum Permission {
     SYSTEM_SETTINGS,
 
     // Banco de Horas permissions
-    APPROVE_EXTRA_HOURS
+    APPROVE_EXTRA_HOURS,
+
+    // Equipamento catalogue permissions
+    MANAGE_EQUIPAMENTOS
 }

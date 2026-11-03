@@ -30,4 +30,7 @@ public class TarefaUpdateDTO {
 
     @Valid
     private List<TarefaLinkDTO> links;
+
+    @Valid
+    private List<RequisicaoEquipamentoDTO> requisicoes;
 }

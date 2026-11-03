@@ -34,6 +34,9 @@ import { dividirSubtarefas } from '../../services/subtarefaService';
 import { getAllUsers } from '../../services/userService';
 import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 import { FREQUENCIA_RECORRENCIA_LABELS } from '../../constants/frequenciaRecorrencia';
+import { useRequisicaoConflitos } from '../../hooks/useRequisicaoConflitos';
+import { validarRequisicoes } from '../../services/equipamentoService';
+import TarefaRequisicoesTab from './TarefaRequisicoesTab';
 
 interface TarefaModalProps {
   show: boolean;
@@ -126,6 +129,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     frequenciaRecorrencia: undefined,
     dataFimRecorrencia: '',
     links: [],
+    requisicoes: [],
   });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -151,6 +155,15 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     Record<number, string>
   >({});
   const [divideOnCreate, setDivideOnCreate] = useState(false);
+  // A finished tarefa no longer holds its material, so there's nothing to warn about.
+  const requisicaoConflitos = useRequisicaoConflitos(
+    formData.requisicoes,
+    isEditing ? tarefa?.id : undefined,
+    show && formData.status !== 'DONE',
+  );
+  const totalConflitos = Object.values(requisicaoConflitos).filter(
+    (conflitos) => conflitos.length > 0,
+  ).length;
 
   // Fetch users and externos when modal opens
   useEffect(() => {
@@ -210,6 +223,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
           ? tarefa.dataFimRecorrencia.split('T')[0]
           : '',
         links: tarefa.links ?? [],
+        // Left undefined if this screen's tarefa came without the field: the
+        // backend then keeps the saved requisições instead of clearing them.
+        requisicoes: tarefa.requisicoes,
       });
       setSelectedProjectName(tarefa.projeto.designacao);
       setWorkingDays(
@@ -238,6 +254,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         frequenciaRecorrencia: undefined,
         dataFimRecorrencia: '',
         links: [],
+        requisicoes: [],
       });
       setSelectedProjectName('');
       setWorkingDays(0);
@@ -486,6 +503,13 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
       toast.warning(
         `O link "${invalidLink.url}" deve começar por http:// ou https://`
       );
+      return;
+    }
+
+    const requisicaoInvalida = validarRequisicoes(formData.requisicoes || []);
+    if (requisicaoInvalida) {
+      toast.warning(requisicaoInvalida);
+      setActiveTab('material');
       return;
     }
 
@@ -954,6 +978,37 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                         Adicionar link
                       </Button>
                     </Form.Group>
+                  </Tab>
+                  <Tab
+                    eventKey="material"
+                    title={
+                      <>
+                        Material
+                        {totalConflitos > 0 && (
+                          <Badge
+                            bg="warning"
+                            text="dark"
+                            className="ms-1"
+                            title="Material já requisitado nestes dias"
+                          >
+                            {totalConflitos}
+                          </Badge>
+                        )}
+                      </>
+                    }
+                  >
+                    <TarefaRequisicoesTab
+                      requisicoes={formData.requisicoes || []}
+                      conflitos={requisicaoConflitos}
+                      prazoEstimado={formData.prazoEstimado}
+                      prazoReal={formData.prazoReal}
+                      onChange={(requisicoes) =>
+                        setFormData((prevData) => ({
+                          ...prevData,
+                          requisicoes,
+                        }))
+                      }
+                    />
                   </Tab>
                   <Tab eventKey="subtarefas" title="Subtarefas">
                     <div className="mb-3">

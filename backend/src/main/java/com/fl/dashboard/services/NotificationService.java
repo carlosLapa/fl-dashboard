@@ -373,7 +373,8 @@ public class NotificationService {
         return NotificationType.valueOf(type) == NotificationType.TAREFA_STATUS_ALTERADO ||
                 NotificationType.valueOf(type) == NotificationType.TAREFA_ATRIBUIDA ||
                 NotificationType.valueOf(type) == NotificationType.TAREFA_CONCLUIDA ||
-                NotificationType.valueOf(type) == NotificationType.TAREFA_PRAZO_PROXIMO;
+                NotificationType.valueOf(type) == NotificationType.TAREFA_PRAZO_PROXIMO ||
+                NotificationType.valueOf(type) == NotificationType.REQUISICAO_CONFLITO;
     }
 
     private void copyUpdateDtoToEntity(NotificationUpdateDTO dto, Notification entity) {

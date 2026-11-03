@@ -131,6 +131,18 @@ const SidebarFL: React.FC<SidebarProps> = ({
           <Nav.Item>
             <div
               className={`sidebar-link text-light mb-4 ${
+                location.pathname.startsWith('/equipamentos') ? 'active' : ''
+              }`}
+              onClick={() => handleNavigation('/equipamentos')}
+              role="button"
+              tabIndex={0}
+            >
+              Equipamentos
+            </div>
+          </Nav.Item>
+          <Nav.Item>
+            <div
+              className={`sidebar-link text-light mb-4 ${
                 location.pathname.startsWith('/clientes') ? 'active' : ''
               }`}
               onClick={() => handleNavigation('/clientes')}
