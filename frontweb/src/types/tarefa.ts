@@ -1,6 +1,7 @@
 import { User } from './user';
 import { Projeto } from './projeto';
 import { ExternoDTO } from './externo';
+import { RequisicaoEquipamento } from './equipamento';
 
 export type TarefaStatus =
   | 'BACKLOG'
@@ -30,6 +31,7 @@ export interface Tarefa {
   prazoReal: string;
   status: TarefaStatus;
   links?: TarefaLink[];
+  requisicoes?: RequisicaoEquipamento[];
   // Calculated field: number of working days between prazoEstimado and prazoReal (excludes weekends)
   workingDays?: number;
   arquivadaEm?: string | null;
@@ -84,6 +86,7 @@ export interface TarefaInsertFormData {
   frequenciaRecorrencia?: FrequenciaRecorrencia;
   dataFimRecorrencia?: string;
   links?: TarefaLink[];
+  requisicoes?: RequisicaoEquipamento[];
 }
 
 export interface TarefaUpdateFormData {
@@ -102,6 +105,7 @@ export interface TarefaUpdateFormData {
   frequenciaRecorrencia?: FrequenciaRecorrencia;
   dataFimRecorrencia?: string;
   links?: TarefaLink[];
+  requisicoes?: RequisicaoEquipamento[];
 }
 
 export type TarefaWithUserAndProjetoDTO = Tarefa & {

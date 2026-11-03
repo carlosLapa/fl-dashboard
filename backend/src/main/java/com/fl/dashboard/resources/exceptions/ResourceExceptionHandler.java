@@ -5,6 +5,7 @@ import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.OptimisticLockConflictException;
 import com.fl.dashboard.services.exceptions.ProjetoArquivamentoInvalidoException;
 import com.fl.dashboard.services.exceptions.RecorrenciaInvalidaException;
+import com.fl.dashboard.services.exceptions.RequisicaoInvalidaException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.SubtarefasIncompletasException;
@@ -165,6 +166,18 @@ public class ResourceExceptionHandler {
         err.setTimestamp(Instant.now());
         err.setStatus(status.value());
         err.setError("Recorrência inválida");
+        err.setMessage(e.getMessage());
+        err.setPath(request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(RequisicaoInvalidaException.class)
+    public ResponseEntity<StandardError> requisicaoInvalida(RequisicaoInvalidaException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        StandardError err = new StandardError();
+        err.setTimestamp(Instant.now());
+        err.setStatus(status.value());
+        err.setError("Requisição inválida");
         err.setMessage(e.getMessage());
         err.setPath(request.getRequestURI());
         return ResponseEntity.status(status).body(err);

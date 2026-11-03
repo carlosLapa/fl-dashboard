@@ -62,7 +62,10 @@ public class PermissionMapper {
                 Permission.VIEW_ALL_EXTERNALS,
 
                 // Reports
-                Permission.VIEW_REPORTS
+                Permission.VIEW_REPORTS,
+
+                // Equipamento catalogue
+                Permission.MANAGE_EQUIPAMENTOS
         ));
         ROLE_PERMISSIONS.put(RoleType.MANAGER, managerPermissions);
 

@@ -60,6 +60,9 @@ export enum Permission {
 
   // Banco de Horas permissions
   APPROVE_EXTRA_HOURS = 'APPROVE_EXTRA_HOURS',
+
+  // Equipamento catalogue permissions
+  MANAGE_EQUIPAMENTOS = 'MANAGE_EQUIPAMENTOS',
 }
 
 // Map role types to their permissions
@@ -108,6 +111,9 @@ const rolePermissions: Record<string, Permission[]> = {
     
     // Reports
     Permission.VIEW_REPORTS,
+
+    // Equipamento catalogue
+    Permission.MANAGE_EQUIPAMENTOS,
   ],
 
   EMPLOYEE: [

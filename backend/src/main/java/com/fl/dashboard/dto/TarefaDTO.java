@@ -54,6 +54,8 @@ public class TarefaDTO {
 
     private List<TarefaLinkDTO> links = new ArrayList<>();
 
+    private List<RequisicaoEquipamentoDTO> requisicoes = new ArrayList<>();
+
     public TarefaDTO() {
     }
 
@@ -94,6 +96,9 @@ public class TarefaDTO {
         this.tarefaOrigemId = entity.getTarefaOrigemId();
         this.links = entity.getLinks() != null
                 ? entity.getLinks().stream().map(TarefaLinkDTO::new).toList()
+                : new ArrayList<>();
+        this.requisicoes = entity.getRequisicoes() != null
+                ? entity.getRequisicoes().stream().map(RequisicaoEquipamentoDTO::new).toList()
                 : new ArrayList<>();
     }
 

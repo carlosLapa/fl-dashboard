@@ -30,6 +30,7 @@ const getNotificationColor = (type: string) => {
     PROJETO_REMOVIDO: '#FECACA',
     SUBTAREFA_ATRIBUIDA: '#BFDBFE',
     SUBTAREFA_CONCLUIDA: '#BBF7D0',
+    REQUISICAO_CONFLITO: '#FDE68A',
   };
   return colors[type] || '#E2E8F0';
 };
@@ -62,6 +63,7 @@ const getNotificationTitle = (type: string) => {
     PROJETO_REMOVIDO: 'Removido do Projeto',
     SUBTAREFA_ATRIBUIDA: 'Nova Subtarefa Atribuída',
     SUBTAREFA_CONCLUIDA: 'Subtarefa Concluída',
+    REQUISICAO_CONFLITO: 'Conflito de Equipamento',
   };
   return titles[type] || type;
 };

@@ -3,6 +3,7 @@ package com.fl.dashboard.services;
 import com.fl.dashboard.dto.*;
 import com.fl.dashboard.entities.Externo;
 import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.entities.RequisicaoEquipamento;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.TarefaLink;
 import com.fl.dashboard.entities.User;
@@ -47,11 +48,13 @@ public class TarefaService {
     private final SlackNotificationManagerService slackNotificationManagerService;
     private final SubtarefaService subtarefaService;
     private final ChatNotificationPublisher chatNotificationPublisher;
+    private final RequisicaoEquipamentoService requisicaoEquipamentoService;
 
     public TarefaService(TarefaRepository tarefaRepository, ProjetoRepository projetoRepository,
                          UserRepository userRepository, ExternoRepository externoRepository,
                          NotificationService notificationService, SlackNotificationManagerService slackNotificationManagerService,
-                         SubtarefaService subtarefaService, ChatNotificationPublisher chatNotificationPublisher) {
+                         SubtarefaService subtarefaService, ChatNotificationPublisher chatNotificationPublisher,
+                         RequisicaoEquipamentoService requisicaoEquipamentoService) {
         this.tarefaRepository = tarefaRepository;
         this.projetoRepository = projetoRepository;
         this.userRepository = userRepository;
@@ -60,6 +63,7 @@ public class TarefaService {
         this.slackNotificationManagerService = slackNotificationManagerService;
         this.subtarefaService = subtarefaService;
         this.chatNotificationPublisher = chatNotificationPublisher;
+        this.requisicaoEquipamentoService = requisicaoEquipamentoService;
     }
 
     // Method to calculate working days
@@ -441,8 +445,11 @@ public class TarefaService {
         });
 
         syncLinks(tarefa, dto.getLinks());
+        List<RequisicaoEquipamento> requisicoesAlteradas =
+                requisicaoEquipamentoService.syncRequisicoes(tarefa, dto.getRequisicoes());
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
+        requisicaoEquipamentoService.notificarConflitos(savedTarefa, requisicoesAlteradas);
         chatNotificationPublisher.tarefaAtualizada(savedTarefa, previousPrazo, previousUsers);
         return new TarefaWithUserAndProjetoDTO(savedTarefa);
     }
@@ -498,8 +505,11 @@ public class TarefaService {
         }
 
         syncLinks(tarefa, dto.getLinks());
+        List<RequisicaoEquipamento> requisicoesAlteradas =
+                requisicaoEquipamentoService.syncRequisicoes(tarefa, dto.getRequisicoes());
 
         Tarefa savedTarefa = tarefaRepository.save(tarefa);
+        requisicaoEquipamentoService.notificarConflitos(savedTarefa, requisicoesAlteradas);
         chatNotificationPublisher.tarefaCriada(savedTarefa);
 
         // Criar notificações na aplicação para cada user individualmente
