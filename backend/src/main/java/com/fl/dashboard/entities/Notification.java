@@ -39,4 +39,22 @@ public class Notification {
     @JoinColumn(name = "projeto_id")
     private Projeto projeto;
 
+    // tb_notification.content is varchar(255), but messages embed tarefa descriptions and projeto
+    // names that can themselves be up to 255 chars. An overlong value made the whole insert fail
+    // (MysqlDataTruncation), which inside a tarefa save rolled the save back too, so cut it here.
+    public static final int CONTENT_MAX_LENGTH = 255;
+
+    public void setContent(String content) {
+        if (content == null || content.length() <= CONTENT_MAX_LENGTH) {
+            this.content = content;
+            return;
+        }
+        int end = CONTENT_MAX_LENGTH - 1;
+        // Don't split a surrogate pair (e.g. an emoji) in half.
+        if (Character.isHighSurrogate(content.charAt(end - 1))) {
+            end--;
+        }
+        this.content = content.substring(0, end) + "…";
+    }
+
 }
