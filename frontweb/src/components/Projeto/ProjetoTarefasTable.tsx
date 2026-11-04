@@ -9,17 +9,25 @@ import {
   TarefaWithUserAndProjetoDTO,
 } from '../../types/tarefa';
 import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
+import { ProjetoFase } from '../../types/projetoFase';
 import '../Tarefa/styles.scss';
 
 interface ProjetoTarefasTableProps {
   tarefas: Tarefa[] | TarefaWithUserAndProjetoDTO[];
   onEditTarefa?: (tarefaId: number) => void;
+  // When the projeto has phases, a "Fase" column shows each tarefa's phase.
+  fases?: ProjetoFase[];
 }
 
 const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
   tarefas,
   onEditTarefa,
+  fases,
 }) => {
+  const mostrarFase = !!fases && fases.length > 0;
+  const nomeFase = (faseId?: number | null) =>
+    fases?.find((fase) => fase.id === faseId)?.nome ?? '—';
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-PT', {
@@ -71,6 +79,7 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
             <thead>
               <tr>
                 <th>Descrição</th>
+                {mostrarFase && <th>Fase</th>}
                 <th>Status</th>
                 <th>Prioridade</th>
                 <th>Prazo Estimado</th>
@@ -84,6 +93,7 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
                 tarefasSafe.map((tarefa) => (
                   <tr key={tarefa.id}>
                     <td>{tarefa.descricao}</td>
+                    {mostrarFase && <td>{nomeFase(tarefa.faseId)}</td>}
                     <td>{getStatusBadge(tarefa.status)}</td>
                     <td><TarefaPrioridadeBadge prioridade={tarefa.prioridade} /></td>
                     <td>{formatDate(tarefa.prazoEstimado)}</td>
@@ -119,7 +129,10 @@ const ProjetoTarefasTable: React.FC<ProjetoTarefasTableProps> = ({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={onEditTarefa ? 7 : 6} className="text-center">
+                  <td
+                    colSpan={6 + (onEditTarefa ? 1 : 0) + (mostrarFase ? 1 : 0)}
+                    className="text-center"
+                  >
                     Não existem tarefas associadas a este projeto.
                   </td>
                 </tr>
