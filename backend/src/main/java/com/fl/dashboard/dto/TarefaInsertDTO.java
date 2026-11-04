@@ -25,6 +25,7 @@ public class TarefaInsertDTO {
     private Boolean recorrente;
     private FrequenciaRecorrencia frequenciaRecorrencia;
     private Date dataFimRecorrencia;
+    private Long faseId;
 
     @Valid
     private List<TarefaLinkDTO> links;

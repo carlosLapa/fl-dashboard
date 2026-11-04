@@ -1,5 +1,7 @@
 package com.fl.dashboard.services;
 
+import com.fl.dashboard.entities.Projeto;
+import com.fl.dashboard.entities.ProjetoFase;
 import com.fl.dashboard.entities.Tarefa;
 import com.fl.dashboard.entities.TarefaLink;
 import com.fl.dashboard.entities.User;
@@ -67,6 +69,9 @@ class TarefaServiceTest {
 
     @Mock
     private RequisicaoEquipamentoService requisicaoEquipamentoService;
+
+    @Mock
+    private ProjetoFaseService projetoFaseService;
 
     @InjectMocks
     private TarefaService tarefaService;
@@ -211,6 +216,75 @@ class TarefaServiceTest {
                         && l.getDescricao().equals("updated desc")));
         assertTrue(links.stream().anyMatch(l -> l.getId() == null && l.getUrl().equals("https://brand-new")));
         assertTrue(links.stream().noneMatch(l -> Objects.equals(l.getId(), 20L)));
+    }
+
+    // --- fase (projeto timeline phase) ---
+
+    private Projeto projeto(Long id) {
+        Projeto projeto = new Projeto();
+        projeto.setId(id);
+        return projeto;
+    }
+
+    private ProjetoFase faseDe(Projeto projeto) {
+        ProjetoFase fase = new ProjetoFase();
+        fase.setId(50L);
+        fase.setProjeto(projeto);
+        fase.setNome("Design Freeze");
+        return fase;
+    }
+
+    private TarefaUpdateDTO updateDto(Long projetoId) {
+        TarefaUpdateDTO dto = new TarefaUpdateDTO();
+        dto.setId(1L);
+        dto.setDescricao("Updated Task");
+        dto.setProjetoId(projetoId);
+        return dto;
+    }
+
+    @Test
+    void updateWithAssociationsShouldKeepFaseWhenFaseIdNotSent() {
+        Projeto projeto = projeto(5L);
+        ProjetoFase fase = faseDe(projeto);
+        tarefa.setProjeto(projeto);
+        tarefa.setFase(fase);
+        when(projetoRepository.findById(5L)).thenReturn(Optional.of(projeto));
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tarefaService.updateWithAssociations(updateDto(5L));
+
+        assertSame(fase, tarefa.getFase());
+        verify(projetoFaseService, never()).resolverFaseParaTarefa(any(), any());
+    }
+
+    @Test
+    void updateWithAssociationsShouldClearFaseWhenFaseIdSentAsNull() {
+        Projeto projeto = projeto(5L);
+        tarefa.setProjeto(projeto);
+        tarefa.setFase(faseDe(projeto));
+        when(projetoRepository.findById(5L)).thenReturn(Optional.of(projeto));
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TarefaUpdateDTO dto = updateDto(5L);
+        dto.setFaseId(null);
+        tarefaService.updateWithAssociations(dto);
+
+        assertNull(tarefa.getFase());
+        verify(projetoFaseService).resolverFaseParaTarefa(tarefa, null);
+    }
+
+    @Test
+    void updateWithAssociationsShouldDropFaseWhenProjetoChangesAndFaseIdNotSent() {
+        Projeto antigo = projeto(5L);
+        Projeto novo = projeto(6L);
+        tarefa.setProjeto(antigo);
+        tarefa.setFase(faseDe(antigo));
+        when(projetoRepository.findById(6L)).thenReturn(Optional.of(novo));
+        when(tarefaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        tarefaService.updateWithAssociations(updateDto(6L));
+
+        assertNull(tarefa.getFase());
     }
 
     // --- arquivar / reativar ---
