@@ -45,6 +45,8 @@ export interface Tarefa {
   proximaOcorrencia?: string | null;
   // Set only on tasks generated automatically by the recurrence scheduler; points back to the template.
   tarefaOrigemId?: number | null;
+  // Phase of the projeto's timeline (see types/projetoFase); null = "sem fase".
+  faseId?: number | null;
   projeto: {
     id: number;
     designacao: string;
@@ -85,6 +87,7 @@ export interface TarefaInsertFormData {
   recorrente?: boolean;
   frequenciaRecorrencia?: FrequenciaRecorrencia;
   dataFimRecorrencia?: string;
+  faseId?: number | null;
   links?: TarefaLink[];
   requisicoes?: RequisicaoEquipamento[];
 }
@@ -104,6 +107,9 @@ export interface TarefaUpdateFormData {
   recorrente?: boolean;
   frequenciaRecorrencia?: FrequenciaRecorrencia;
   dataFimRecorrencia?: string;
+  // Leave undefined to keep the saved phase (the key is then left out of the JSON);
+  // send null to remove it. The backend tells the two apart.
+  faseId?: number | null;
   links?: TarefaLink[];
   requisicoes?: RequisicaoEquipamento[];
 }

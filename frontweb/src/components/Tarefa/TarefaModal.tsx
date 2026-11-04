@@ -37,6 +37,7 @@ import { FREQUENCIA_RECORRENCIA_LABELS } from '../../constants/frequenciaRecorre
 import { useRequisicaoConflitos } from '../../hooks/useRequisicaoConflitos';
 import { validarRequisicoes } from '../../services/equipamentoService';
 import TarefaRequisicoesTab from './TarefaRequisicoesTab';
+import TarefaFaseSelect from './TarefaFaseSelect';
 
 interface TarefaModalProps {
   show: boolean;
@@ -130,6 +131,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     dataFimRecorrencia: '',
     links: [],
     requisicoes: [],
+    faseId: null,
   });
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -226,6 +228,8 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         // Left undefined if this screen's tarefa came without the field: the
         // backend then keeps the saved requisições instead of clearing them.
         requisicoes: tarefa.requisicoes,
+        // Same idea: undefined (screen didn't load it) keeps the saved phase.
+        faseId: tarefa.faseId,
       });
       setSelectedProjectName(tarefa.projeto.designacao);
       setWorkingDays(
@@ -255,6 +259,7 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
         dataFimRecorrencia: '',
         links: [],
         requisicoes: [],
+        faseId: null,
       });
       setSelectedProjectName('');
       setWorkingDays(0);
@@ -400,6 +405,9 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
     setFormData((prevData) => ({
       ...prevData,
       projetoId: projeto.id,
+      // A phase belongs to one projeto: switching projeto clears it (explicit null,
+      // so the backend removes it rather than keeping it).
+      faseId: projeto.id === prevData.projetoId ? prevData.faseId : null,
     }));
     setSelectedProjectName(projeto.designacao);
     setProjectSearchResults([]);
@@ -833,6 +841,17 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     </div>
                   )}
                 </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col xs={12} md={6}>
+                <TarefaFaseSelect
+                  projetoId={formData.projetoId}
+                  value={formData.faseId}
+                  onChange={(faseId) =>
+                    setFormData((prevData) => ({ ...prevData, faseId }))
+                  }
+                />
               </Col>
             </Row>
             {/* Users and Externos Tabs */}

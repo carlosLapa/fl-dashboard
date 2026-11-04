@@ -26,6 +26,9 @@ import { arquivarProjeto, reativarProjeto } from 'services/projetoService';
 import { toast } from 'react-toastify';
 import BackButton from 'components/Shared/BackButton/BackButton';
 import ProjetoExternosManager from 'components/Projeto/ProjetoExternosManager';
+import ProjetoFasesManager from 'components/Projeto/ProjetoFasesManager';
+import { ProjetoFase } from 'types/projetoFase';
+import { getFasesByProjeto } from 'services/projetoFaseService';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus,
@@ -47,6 +50,7 @@ const ProjetoDetailsPage: React.FC = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fases, setFases] = useState<ProjetoFase[]>([]);
 
   // Estados para o modal de nova tarefa
   const [showTarefaModal, setShowTarefaModal] = useState(false);
@@ -79,6 +83,31 @@ const ProjetoDetailsPage: React.FC = () => {
     fetchProjeto();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projetoId]);
+
+  // Loaded apart from fetchProjeto, so phase edits don't trigger its full-page spinner.
+  useEffect(() => {
+    if (!projetoId) return;
+    getFasesByProjeto(Number(projetoId))
+      .then(setFases)
+      .catch((error) => {
+        console.error('Erro ao carregar fases:', error);
+        setFases([]);
+      });
+  }, [projetoId]);
+
+  // Mirrors the backend: deleting a phase sends its tarefas back to "sem fase".
+  const handleFaseDeleted = (faseId: number) => {
+    setProjeto((prev) =>
+      prev
+        ? {
+            ...prev,
+            tarefas: prev.tarefas.map((tarefa) =>
+              tarefa.faseId === faseId ? { ...tarefa, faseId: null } : tarefa
+            ),
+          }
+        : prev
+    );
+  };
 
   // Handler para adicionar nova tarefa
   const handleAddTarefa = async (formData: TarefaInsertFormData) => {
@@ -259,6 +288,19 @@ const ProjetoDetailsPage: React.FC = () => {
         </div>
 
         <div className="mb-4">
+          <ProjetoFasesManager
+            projetoId={projeto.id}
+            prazoProjeto={projeto.prazo}
+            fases={fases}
+            tarefas={projeto.tarefas ?? []}
+            canEdit={canArchive}
+            onFasesChange={setFases}
+            onFaseDeleted={handleFaseDeleted}
+            onEditTarefa={handleEditTarefa}
+          />
+        </div>
+
+        <div className="mb-4">
           <Card>
             <Card.Header as="h5">Tarefas Associadas</Card.Header>
             <Card.Body className="p-0">
@@ -266,6 +308,7 @@ const ProjetoDetailsPage: React.FC = () => {
                 <ProjetoTarefasTable
                   tarefas={projeto.tarefas}
                   onEditTarefa={handleEditTarefa}
+                  fases={fases}
                 />
               </div>
             </Card.Body>

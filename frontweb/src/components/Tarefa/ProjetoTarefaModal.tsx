@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getAllUsers } from '../../services/userService';
 import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
+import TarefaFaseSelect from './TarefaFaseSelect';
 
 interface ProjetoTarefaModalProps {
   show: boolean;
@@ -66,6 +67,7 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
     projetoId: projetoId, // Inicializa com o ID do projeto
     userIds: [],
     externoIds: [], // Garantir que sempre seja inicializado como array vazio
+    faseId: null,
   });
 
   const [users, setUsers] = useState<User[]>([]);
@@ -143,6 +145,7 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
         projetoId: projetoId,
         userIds: [],
         externoIds: [], // Garantir que sempre seja inicializado como array vazio
+        faseId: null,
       });
       setWorkingDays(0);
       setIsDeadlineValid(true);
@@ -415,6 +418,17 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
                     disabled
                   />
                 </Form.Group>
+              </Col>
+            </Row>
+            <Row>
+              <Col xs={12} md={6}>
+                <TarefaFaseSelect
+                  projetoId={projetoId}
+                  value={formData.faseId}
+                  onChange={(faseId) =>
+                    setFormData((prev) => ({ ...prev, faseId }))
+                  }
+                />
               </Col>
             </Row>
 
