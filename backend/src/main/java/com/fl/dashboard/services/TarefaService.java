@@ -49,12 +49,14 @@ public class TarefaService {
     private final SubtarefaService subtarefaService;
     private final ChatNotificationPublisher chatNotificationPublisher;
     private final RequisicaoEquipamentoService requisicaoEquipamentoService;
+    private final ProjetoFaseService projetoFaseService;
 
     public TarefaService(TarefaRepository tarefaRepository, ProjetoRepository projetoRepository,
                          UserRepository userRepository, ExternoRepository externoRepository,
                          NotificationService notificationService, SlackNotificationManagerService slackNotificationManagerService,
                          SubtarefaService subtarefaService, ChatNotificationPublisher chatNotificationPublisher,
-                         RequisicaoEquipamentoService requisicaoEquipamentoService) {
+                         RequisicaoEquipamentoService requisicaoEquipamentoService,
+                         ProjetoFaseService projetoFaseService) {
         this.tarefaRepository = tarefaRepository;
         this.projetoRepository = projetoRepository;
         this.userRepository = userRepository;
@@ -64,6 +66,7 @@ public class TarefaService {
         this.subtarefaService = subtarefaService;
         this.chatNotificationPublisher = chatNotificationPublisher;
         this.requisicaoEquipamentoService = requisicaoEquipamentoService;
+        this.projetoFaseService = projetoFaseService;
     }
 
     // Method to calculate working days
@@ -378,6 +381,15 @@ public class TarefaService {
             tarefa.setProjeto(null);  // Remove projeto association if projetoId is null
         }
 
+        // Only touch the phase when the client sent faseId (see TarefaUpdateDTO). If it didn't but the
+        // tarefa moved to another projeto, the old phase no longer applies and is dropped.
+        if (dto.isFaseIdEnviado()) {
+            tarefa.setFase(projetoFaseService.resolverFaseParaTarefa(tarefa, dto.getFaseId()));
+        } else if (tarefa.getFase() != null && (tarefa.getProjeto() == null
+                || !tarefa.getFase().getProjeto().getId().equals(tarefa.getProjeto().getId()))) {
+            tarefa.setFase(null);
+        }
+
         // Update user associations with notifications
         tarefa.getUsers().clear();
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
@@ -485,6 +497,8 @@ public class TarefaService {
 
             validateTarefaDeadline(tarefa);
         }
+
+        tarefa.setFase(projetoFaseService.resolverFaseParaTarefa(tarefa, dto.getFaseId()));
 
         // Associate Users only if userIds are provided
         if (dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
@@ -598,6 +612,7 @@ public class TarefaService {
         nova.setStatus(TarefaStatus.BACKLOG);
         nova.setProjeto(template.getProjeto());
         nova.setColuna(template.getColuna());
+        nova.setFase(template.getFase());
         nova.setUsers(new HashSet<>(template.getUsers()));
         nova.setExternos(new HashSet<>(template.getExternos()));
         nova.setTarefaOrigemId(template.getId());

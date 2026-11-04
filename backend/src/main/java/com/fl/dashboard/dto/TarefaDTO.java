@@ -52,6 +52,8 @@ public class TarefaDTO {
 
     private Long tarefaOrigemId;
 
+    private Long faseId;
+
     private List<TarefaLinkDTO> links = new ArrayList<>();
 
     private List<RequisicaoEquipamentoDTO> requisicoes = new ArrayList<>();
@@ -94,6 +96,7 @@ public class TarefaDTO {
         this.dataFimRecorrencia = entity.getDataFimRecorrencia();
         this.proximaOcorrencia = entity.getProximaOcorrencia();
         this.tarefaOrigemId = entity.getTarefaOrigemId();
+        this.faseId = entity.getFase() != null ? entity.getFase().getId() : null;
         this.links = entity.getLinks() != null
                 ? entity.getLinks().stream().map(TarefaLinkDTO::new).toList()
                 : new ArrayList<>();

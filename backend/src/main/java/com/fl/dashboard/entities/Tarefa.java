@@ -1,6 +1,7 @@
 package com.fl.dashboard.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.persistence.*;
@@ -44,6 +45,13 @@ public class Tarefa {
     @ManyToOne
     @JoinColumn(name = "coluna_id")
     private Coluna coluna;
+
+    // Optional phase of the projeto's timeline. Must belong to the same projeto (checked in
+    // ProjetoFaseService.resolverFaseParaTarefa). Lazy: DTOs only read its id, which needs no query.
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fase_id")
+    private ProjetoFase fase;
 
     @ManyToMany
     @JoinTable(name = "tb_tarefa_user",
