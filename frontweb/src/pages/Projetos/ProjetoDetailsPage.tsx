@@ -35,6 +35,7 @@ import {
   faColumns,
   faBoxArchive,
   faBoxOpen,
+  faBarsProgress,
 } from '@fortawesome/free-solid-svg-icons';
 import { usePermissions } from 'hooks/usePermissions';
 import { Permission } from 'permissions/rolePermissions';
@@ -262,6 +263,13 @@ const ProjetoDetailsPage: React.FC = () => {
             >
               <FontAwesomeIcon icon={faColumns} className="me-2" />
               Kanban
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={() => navigate(`/projetos/${projetoId}/timeline`)}
+            >
+              <FontAwesomeIcon icon={faBarsProgress} className="me-2" />
+              Timeline
             </Button>
             {canArchive && !projeto.arquivadaEm && projeto.status === 'CONCLUIDO' && (
               <Button variant="outline-secondary" onClick={handleArchiveProjeto}>

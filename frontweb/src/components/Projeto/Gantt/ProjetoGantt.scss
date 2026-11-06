@@ -1,0 +1,304 @@
+// Everything is nested under .projeto-gantt on purpose: this file must never
+// style anything outside the timeline (see past global-CSS leaks in this app).
+// It deliberately does not import _variables.scss, which pulls in all of
+// Bootstrap; Bootstrap's CSS custom properties are used instead.
+
+.projeto-gantt {
+  --pg-label-width: 280px;
+  --pg-ink: #263238;
+  --pg-muted: #6c757d;
+  --pg-grid: #e1e0d9;
+  --pg-surface: #ffffff;
+
+  // Status colours (reserved: never reused for anything else in the chart).
+  .pg-estado--CONCLUIDA { --pg-cor: #0ca30c; --pg-tint: rgba(12, 163, 12, 0.22); }
+  .pg-estado--EM_RISCO { --pg-cor: #fab219; --pg-tint: rgba(250, 178, 25, 0.3); }
+  .pg-estado--ATRASADA { --pg-cor: #d03b3b; --pg-tint: rgba(208, 59, 59, 0.22); }
+  .pg-estado--EM_CURSO { --pg-cor: var(--bs-primary, #81a6f0); --pg-tint: rgba(129, 166, 240, 0.3); }
+  .pg-estado--NAO_INICIADA,
+  .pg-estado--SEM_TAREFAS { --pg-cor: #9e9e9e; --pg-tint: rgba(158, 158, 158, 0.25); }
+
+  // Tarefa bars follow the tarefa's own status, kept neutral except DONE.
+  .pg-tarefa--DONE { --pg-cor: #0ca30c; }
+  .pg-tarefa--IN_PROGRESS,
+  .pg-tarefa--IN_REVIEW { --pg-cor: var(--bs-primary, #81a6f0); }
+  .pg-tarefa--TODO,
+  .pg-tarefa--BACKLOG { --pg-cor: #9e9e9e; }
+
+  .pg-legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+    color: var(--pg-muted);
+    margin-bottom: 0.75rem;
+
+    .pg-legenda-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .pg-amostra {
+      display: inline-block;
+      width: 18px;
+      height: 10px;
+      border-radius: 4px;
+      background: var(--pg-cor);
+    }
+
+    .pg-amostra--real {
+      height: 4px;
+      background: var(--pg-muted);
+    }
+
+    .pg-amostra--derivada {
+      background: transparent;
+      border: 1px dashed var(--pg-muted);
+    }
+
+    .pg-amostra--hoje {
+      width: 2px;
+      height: 14px;
+      border-radius: 0;
+      background: var(--pg-ink);
+    }
+
+    .pg-amostra--prazo {
+      width: 0;
+      height: 14px;
+      border-radius: 0;
+      border-left: 2px dashed var(--pg-muted);
+      background: transparent;
+    }
+  }
+
+  .pg-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--pg-grid);
+    border-radius: 6px;
+    background: var(--pg-surface);
+  }
+
+  .pg-row {
+    display: grid;
+    grid-template-columns: var(--pg-label-width) 1fr;
+    border-bottom: 1px solid var(--pg-grid);
+    min-height: 44px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .pg-row--cabecalho {
+    min-height: 32px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--pg-muted);
+    background: #fafaf8;
+  }
+
+  .pg-row--global {
+    background: #fafaf8;
+  }
+
+  .pg-row--tarefa {
+    min-height: 30px;
+    font-size: 0.85rem;
+  }
+
+  .pg-label {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    padding: 0.3rem 0.6rem;
+    background: inherit;
+    background-color: var(--pg-surface);
+    border-right: 1px solid var(--pg-grid);
+    color: var(--pg-ink);
+  }
+
+  .pg-row--cabecalho .pg-label,
+  .pg-row--global .pg-label {
+    background-color: #fafaf8;
+  }
+
+  .pg-row--tarefa .pg-label {
+    padding-left: 2.1rem;
+  }
+
+  .pg-nome {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pg-toggle {
+    flex: none;
+    width: 1.4rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--pg-muted);
+    line-height: 1;
+
+    &:disabled {
+      visibility: hidden;
+    }
+  }
+
+  .pg-link {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--pg-ink);
+    text-align: left;
+    text-decoration: underline dotted;
+
+
+    &:hover {
+      color: var(--bs-primary, #81a6f0);
+    }
+  }
+
+  // Inside the truncated label column the button itself must clip, otherwise
+  // long names are cut off without the ellipsis.
+  .pg-nome > .pg-link {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pg-estado {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--pg-muted);
+    white-space: nowrap;
+
+    .pg-estado-icone {
+      color: var(--pg-cor);
+    }
+  }
+
+  .pg-track {
+    position: relative;
+    min-height: inherit;
+  }
+
+  .pg-gridline {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--pg-grid);
+  }
+
+  .pg-mes {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding-left: 0.35rem;
+    white-space: nowrap;
+  }
+
+  .pg-hoje,
+  .pg-prazo {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .pg-hoje {
+    width: 2px;
+    background: var(--pg-ink);
+    opacity: 0.7;
+  }
+
+  .pg-prazo {
+    width: 0;
+    border-left: 2px dashed var(--pg-muted);
+  }
+
+  .pg-bar {
+    position: absolute;
+    top: 9px;
+    height: 16px;
+    min-width: 4px;
+    border-radius: 4px;
+    background: var(--pg-tint);
+    overflow: hidden;
+    cursor: default;
+
+    &:focus-visible {
+      outline: 2px solid var(--pg-ink);
+      outline-offset: 1px;
+    }
+  }
+
+  .pg-bar-fill {
+    height: 100%;
+    background: var(--pg-cor);
+  }
+
+  .pg-bar--derivada {
+    background: transparent;
+    border: 1px dashed var(--pg-cor);
+
+    .pg-bar-fill {
+      opacity: 0.6;
+    }
+  }
+
+  .pg-real {
+    position: absolute;
+    top: 31px;
+    height: 4px;
+    min-width: 4px;
+    border-radius: 2px;
+    background: var(--pg-muted);
+    opacity: 0.6;
+  }
+
+  .pg-pct {
+    position: absolute;
+    top: 8px;
+    padding-left: 6px;
+    font-size: 0.75rem;
+    line-height: 18px;
+    color: var(--pg-ink);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .pg-bar--tarefa {
+    top: 10px;
+    height: 10px;
+    background: var(--pg-cor);
+  }
+
+  .pg-sem-datas {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--pg-muted);
+  }
+}
+
+@media print {
+  .projeto-gantt .pg-scroll {
+    overflow: visible;
+  }
+}

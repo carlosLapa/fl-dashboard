@@ -9,6 +9,7 @@ import KanbanBoardPage from 'pages/KanbanBoard/KanbanBoardPage';
 import UsersTarefasPage from 'pages/Users/UsersTarefasPage';
 import UserCalendarPage from 'pages/Users/UserCalendarPage';
 import ProjetoDetailsPage from 'pages/Projetos/ProjetoDetailsPage';
+import ProjetoTimelinePage from 'pages/Projetos/ProjetoTimelinePage';
 import PropostaDetailsPage from 'pages/Propostas/PropostaDetailsPage';
 import NotificationsPage from 'pages/Notifications/NotificationsPage';
 import SearchResultsPage from 'pages/Search/SearchResultsPage';
@@ -89,6 +90,10 @@ const AppRoutes = () => {
       <Route
         path="/projetos/:projetoId/details"
         element={<ProtectedRoute element={<ProjetoDetailsPage />} />}
+      />
+      <Route
+        path="/projetos/:projetoId/timeline"
+        element={<ProtectedRoute element={<ProjetoTimelinePage />} />}
       />
       <Route
         path="/propostas/:propostaId/details"
