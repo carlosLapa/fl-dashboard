@@ -68,7 +68,7 @@ const KanbanBoardPage: React.FC = () => {
           <Row className="mb-4">
             <Col>
               <div className="d-flex align-items-center">
-                <BackButton to="/projetos" />
+                <BackButton to={`/projetos/${projetoId}/details`} />
                 <h1 className="kanban-board-title mb-0">
                   {isLoading
                     ? 'Carregando...'
