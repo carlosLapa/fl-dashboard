@@ -13,8 +13,10 @@ import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
+import com.fl.dashboard.services.exceptions.ConclusaoNaoPermitidaException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -26,6 +28,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashSet;
 import java.util.List;
@@ -335,4 +340,81 @@ class TarefaServiceTest {
         assertNull(captor.getValue().getArquivadaEm());
     }
 
+
+    // --- Only MOVE_CARD_TO_DONE may mark a tarefa as DONE (was enforced by the Kanban UI only) ---
+
+    private static void autenticarCom(String... authorities) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                "user@test", null, java.util.Arrays.stream(authorities).map(SimpleGrantedAuthority::new).toList()));
+    }
+
+    @AfterEach
+    void limparSeguranca() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private Tarefa tarefaEmRevisao() {
+        Tarefa t = new Tarefa();
+        t.setId(50L);
+        t.setDescricao("Rever desenhos");
+        t.setStatus(TarefaStatus.IN_REVIEW);
+        when(tarefaRepository.findByIdActive(50L)).thenReturn(Optional.of(t));
+        when(tarefaRepository.save(any(Tarefa.class))).thenAnswer(inv -> inv.getArgument(0));
+        return t;
+    }
+
+    @Test
+    @DisplayName("updateStatus: an employee cannot move a tarefa to DONE")
+    void updateStatus_employeeCannotComplete() {
+        autenticarCom("MOVE_CARD_TO_REVIEW", "MOVE_CARD_TO_IN_PROGRESS");
+        Tarefa t = tarefaEmRevisao();
+
+        assertThrows(ConclusaoNaoPermitidaException.class,
+                () -> tarefaService.updateStatus(50L, TarefaStatus.DONE));
+        assertEquals(TarefaStatus.IN_REVIEW, t.getStatus());
+        verify(tarefaRepository, never()).save(any(Tarefa.class));
+    }
+
+    @Test
+    @DisplayName("updateStatus: an employee can still send work back or hand it over for review")
+    void updateStatus_employeeCanMoveOutsideDone() {
+        autenticarCom("MOVE_CARD_TO_REVIEW", "MOVE_CARD_TO_IN_PROGRESS");
+        Tarefa t = tarefaEmRevisao();
+
+        assertDoesNotThrow(() -> tarefaService.updateStatus(50L, TarefaStatus.IN_PROGRESS));
+        assertEquals(TarefaStatus.IN_PROGRESS, t.getStatus());
+    }
+
+    @Test
+    @DisplayName("updateStatus: a manager can approve a tarefa (DONE)")
+    void updateStatus_managerCanComplete() {
+        autenticarCom("MOVE_CARD_TO_DONE");
+        Tarefa t = tarefaEmRevisao();
+
+        assertDoesNotThrow(() -> tarefaService.updateStatus(50L, TarefaStatus.DONE));
+        assertEquals(TarefaStatus.DONE, t.getStatus());
+    }
+
+    @Test
+    @DisplayName("updateStatus: without an authenticated user, DONE is refused")
+    void updateStatus_noAuthenticationCannotComplete() {
+        SecurityContextHolder.clearContext();
+        tarefaEmRevisao();
+
+        assertThrows(ConclusaoNaoPermitidaException.class,
+                () -> tarefaService.updateStatus(50L, TarefaStatus.DONE));
+    }
+
+    @Test
+    @DisplayName("insertWithAssociations: an employee cannot create a tarefa already DONE")
+    void insert_employeeCannotCreateDone() {
+        autenticarCom("CREATE_TASK");
+        TarefaInsertDTO dto = new TarefaInsertDTO();
+        dto.setDescricao("Nova tarefa feita");
+        dto.setPrioridade("MEDIA");
+        dto.setStatus(TarefaStatus.DONE);
+
+        assertThrows(ConclusaoNaoPermitidaException.class, () -> tarefaService.insertWithAssociations(dto));
+        verify(tarefaRepository, never()).save(any(Tarefa.class));
+    }
 }

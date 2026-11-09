@@ -9,8 +9,10 @@ import { getAllExternosAPI } from '../../api/externoApi';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getAllUsers } from '../../services/userService';
-import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 import TarefaFaseSelect from './TarefaFaseSelect';
+import TarefaStatusOptions from './TarefaStatusOptions';
+import { usePermissions } from '../../hooks/usePermissions';
+import { Permission } from '../../permissions/rolePermissions';
 
 interface ProjetoTarefaModalProps {
   show: boolean;
@@ -58,6 +60,7 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
   onSave,
   projetoId,
 }) => {
+  const { hasPermission, isAdmin } = usePermissions();
   const [formData, setFormData] = useState<TarefaInsertFormData>({
     descricao: '',
     prioridade: '',
@@ -333,13 +336,9 @@ const ProjetoTarefaModal: React.FC<ProjetoTarefaModalProps> = ({
                     value={formData.status}
                     onChange={handleInputChange}
                   >
-                    {Object.entries(TAREFA_STATUS_LABELS).map(
-                      ([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      )
-                    )}
+                    <TarefaStatusOptions
+                      podeConcluir={isAdmin() || hasPermission(Permission.MOVE_CARD_TO_DONE)}
+                    />
                   </Form.Select>
                 </Form.Group>
               </Col>

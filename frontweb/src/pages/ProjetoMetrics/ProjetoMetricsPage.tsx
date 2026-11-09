@@ -13,6 +13,7 @@ import {
   faPrint,
   faCamera,
 } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
 import { toast } from 'react-toastify';
 import {
   ProjetoMetricsDTO,
@@ -20,6 +21,7 @@ import {
 } from '../../types/projetoMetrics';
 import { ProjetoMetricsSnapshotDTO } from '../../types/projetoMetricsSnapshot';
 import {
+  TarefaStatus,
   TarefaUpdateFormData,
   TarefaWithUserAndProjetoDTO,
 } from '../../types/tarefa';
@@ -28,6 +30,7 @@ import {
   arquivarTarefa,
   getTarefaWithUsersAndProjeto,
   updateTarefa,
+  updateTarefaStatus,
 } from '../../services/tarefaService';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
@@ -190,6 +193,26 @@ const ProjetoMetricsPage: React.FC = () => {
         console.error('Erro ao arquivar tarefa:', err);
         toast.error(
           err instanceof Error ? err.message : 'Erro ao arquivar tarefa'
+        );
+      }
+    },
+    [refreshMetrics],
+  );
+
+  // The modal's status dropdown saves immediately through this handler (its
+  // own "Atualizar" doesn't send the status). Without it the change was lost.
+  const handleTarefaStatusChange = useCallback(
+    async (tarefaId: number, newStatus: TarefaStatus) => {
+      try {
+        await updateTarefaStatus(tarefaId, newStatus);
+        toast.success('Estado da tarefa atualizado');
+        await refreshMetrics();
+      } catch (err) {
+        console.error('Erro ao atualizar o estado da tarefa:', err);
+        toast.error(
+          err instanceof Error && !axios.isAxiosError(err)
+            ? err.message
+            : 'Erro ao atualizar o estado da tarefa'
         );
       }
     },
@@ -444,6 +467,7 @@ const ProjetoMetricsPage: React.FC = () => {
             handleUpdateTarefa(formData as TarefaUpdateFormData)
           }
           onArchive={handleArchiveTarefa}
+          onStatusChange={handleTarefaStatusChange}
           isEditing
           tarefa={tarefaToEdit}
         />

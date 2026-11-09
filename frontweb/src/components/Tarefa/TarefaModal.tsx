@@ -29,10 +29,10 @@ import { format } from 'date-fns';
 import { useAuth } from '../../AuthContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { Permission } from '../../permissions/rolePermissions';
+import TarefaStatusOptions from './TarefaStatusOptions';
 import { useSubtarefas } from '../../hooks/useSubtarefas';
 import { dividirSubtarefas } from '../../services/subtarefaService';
 import { getAllUsers } from '../../services/userService';
-import { TAREFA_STATUS_LABELS } from '../../constants/tarefaStatus';
 import { FREQUENCIA_RECORRENCIA_LABELS } from '../../constants/frequenciaRecorrencia';
 import { useRequisicaoConflitos } from '../../hooks/useRequisicaoConflitos';
 import { validarRequisicoes } from '../../services/equipamentoService';
@@ -618,13 +618,10 @@ const TarefaModal: React.FC<TarefaModalProps> = ({
                     value={formData.status}
                     onChange={handleInputChange}
                   >
-                    {Object.entries(TAREFA_STATUS_LABELS).map(
-                      ([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      )
-                    )}
+                    <TarefaStatusOptions
+                      podeConcluir={isAdmin() || hasPermission(Permission.MOVE_CARD_TO_DONE)}
+                      estadoAtual={tarefa?.status}
+                    />
                   </Form.Select>
                   {isEditing && (
                     <Form.Text className="text-muted">

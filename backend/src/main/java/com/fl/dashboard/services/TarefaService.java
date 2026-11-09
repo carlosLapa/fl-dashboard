@@ -18,6 +18,7 @@ import com.fl.dashboard.utils.DiasUteis;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.OptimisticLockConflictException;
 import com.fl.dashboard.services.exceptions.RecorrenciaInvalidaException;
+import com.fl.dashboard.services.exceptions.ConclusaoNaoPermitidaException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
@@ -27,6 +28,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +71,22 @@ public class TarefaService {
         this.chatNotificationPublisher = chatNotificationPublisher;
         this.requisicaoEquipamentoService = requisicaoEquipamentoService;
         this.projetoFaseService = projetoFaseService;
+    }
+
+    // Only managers and admins approve work (DONE). This used to be enforced only by the Kanban UI;
+    // the status endpoint and the create form let anyone do it, which also skipped the review step
+    // that the timeline's review-time count relies on. Leaving DONE is not restricted here.
+    private void assertPodeConcluir(TarefaStatus anterior, TarefaStatus novo) {
+        if (novo != TarefaStatus.DONE || anterior == TarefaStatus.DONE) {
+            return;
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean pode = auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "MOVE_CARD_TO_DONE".equals(a.getAuthority()));
+        if (!pode) {
+            throw new ConclusaoNaoPermitidaException(
+                    "Só um gestor ou administrador pode marcar uma tarefa como concluída. Mova-a para \"Em Revisão\".");
+        }
     }
 
     // Method to calculate working days
@@ -444,6 +463,7 @@ public class TarefaService {
         tarefa.setPrazoReal(dto.getPrazoReal());
 
         if (dto.getStatus() != null) {
+            assertPodeConcluir(null, dto.getStatus());
             tarefa.setStatus(dto.getStatus());
         }
 
@@ -641,6 +661,7 @@ public class TarefaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não foi encontrada"));
 
         subtarefaService.assertCanTransitionStatus(id, newStatus);
+        assertPodeConcluir(tarefa.getStatus(), newStatus);
 
         TarefaStatus previousStatus = tarefa.getStatus();
         String descricao = tarefa.getDescricao();
