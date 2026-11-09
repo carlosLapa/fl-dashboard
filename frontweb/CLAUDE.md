@@ -74,7 +74,7 @@ Permission checking:
 - `ProtectedRoute` / `PermissionProtectedRoute` — route-level guards.
 - Permissions are **mirrored** in backend (`Permission.java`) — both layers enforce them.
 
-Employees can move Kanban cards up to IN_REVIEW (handing work over for review starts the review-time count used by the timeline's deviation) but not to DONE, and cannot access propostas or admin routes. **Caveat:** the DONE restriction is enforced only in the Kanban UI. The TarefaModal status dropdown offers every status, and the backend `PUT /tarefas/{id}/status` has no `@PreAuthorize`.
+Employees can move Kanban cards up to IN_REVIEW (handing work over for review starts the review-time count used by the timeline's deviation) but not to DONE, and cannot access propostas or admin routes. The DONE rule is enforced in the backend (`TarefaService.assertPodeConcluir`, on status changes and on create) and mirrored in the UI (Kanban drop targets, `TarefaStatusOptions` in the tarefa modals). The backend refuses with **409, not 403**, because the global interceptor turns a 403 on any `/tarefas` URL into an empty success response. Any screen that opens `TarefaModal` in edit mode must pass `onStatusChange`: the modal's status dropdown saves only through it (`PUT /tarefas/with-associations` ignores `status`).
 
 Per-`:userId` routes fall into two intentionally different access patterns — check which one applies before adding a new one:
 

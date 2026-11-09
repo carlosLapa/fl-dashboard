@@ -10,6 +10,7 @@ import com.fl.dashboard.services.exceptions.RequisicaoInvalidaException;
 import com.fl.dashboard.services.exceptions.ResourceNotFoundException;
 import com.fl.dashboard.services.exceptions.SubtarefaDivisaoInvalidaException;
 import com.fl.dashboard.services.exceptions.SubtarefasIncompletasException;
+import com.fl.dashboard.services.exceptions.ConclusaoNaoPermitidaException;
 import com.fl.dashboard.services.exceptions.TarefaArquivamentoInvalidoException;
 import com.fl.dashboard.services.exceptions.UserExtraHoursApprovalException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -119,6 +120,18 @@ public class ResourceExceptionHandler {
         err.setTimestamp(Instant.now());
         err.setStatus(status.value());
         err.setError("Conflito de edição");
+        err.setMessage(e.getMessage());
+        err.setPath(request.getRequestURI());
+        return ResponseEntity.status(status).body(err);
+    }
+
+    @ExceptionHandler(ConclusaoNaoPermitidaException.class)
+    public ResponseEntity<StandardError> conclusaoNaoPermitida(ConclusaoNaoPermitidaException e, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.CONFLICT;
+        StandardError err = new StandardError();
+        err.setTimestamp(Instant.now());
+        err.setStatus(status.value());
+        err.setError("Conclusão não permitida");
         err.setMessage(e.getMessage());
         err.setPath(request.getRequestURI());
         return ResponseEntity.status(status).body(err);

@@ -13,6 +13,7 @@ import ProjetoTarefaModal from 'components/Tarefa/ProjetoTarefaModal';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import {
   TarefaInsertFormData,
+  TarefaStatus,
   TarefaUpdateFormData,
   TarefaWithUserAndProjetoDTO,
 } from 'types/tarefa';
@@ -21,8 +22,10 @@ import {
   arquivarTarefa,
   getTarefaWithUsersAndProjeto,
   updateTarefa,
+  updateTarefaStatus,
 } from 'services/tarefaService';
 import { arquivarProjeto, reativarProjeto } from 'services/projetoService';
+import axios from 'axios';
 import { toast } from 'react-toastify';
 import BackButton from 'components/Shared/BackButton/BackButton';
 import ProjetoExternosManager from 'components/Projeto/ProjetoExternosManager';
@@ -157,6 +160,33 @@ const ProjetoDetailsPage: React.FC = () => {
       } else {
         toast.error('Erro ao atualizar tarefa');
       }
+    }
+  };
+
+  // The modal's status dropdown saves immediately through this handler (its
+  // own "Atualizar" doesn't send the status). Without it the change was lost.
+  // Updated in place: fetchProjeto's full-page spinner would close the modal.
+  const handleTarefaStatusChange = async (tarefaId: number, newStatus: TarefaStatus) => {
+    try {
+      const atualizada = await updateTarefaStatus(tarefaId, newStatus);
+      setProjeto((prev) =>
+        prev
+          ? {
+              ...prev,
+              tarefas: prev.tarefas.map((t) =>
+                t.id === tarefaId ? { ...t, ...atualizada, status: newStatus } : t
+              ),
+            }
+          : prev
+      );
+      toast.success('Estado da tarefa atualizado');
+    } catch (error) {
+      console.error('Erro ao atualizar o estado da tarefa:', error);
+      toast.error(
+        error instanceof Error && !axios.isAxiosError(error)
+          ? error.message
+          : 'Erro ao atualizar o estado da tarefa'
+      );
     }
   };
 
@@ -368,6 +398,7 @@ const ProjetoDetailsPage: React.FC = () => {
             handleUpdateTarefa(formData as TarefaUpdateFormData)
           }
           onArchive={handleArchiveTarefa}
+          onStatusChange={handleTarefaStatusChange}
           isEditing
           tarefa={tarefaToEdit}
         />

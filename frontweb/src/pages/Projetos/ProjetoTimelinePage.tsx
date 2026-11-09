@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Card, Form, Spinner } from 'react-bootstrap';
+import axios from 'axios';
 import { toast } from 'react-toastify';
 import { getProjetoWithUsersAndTarefasAPI } from 'api/requestsApi';
 import BackButton from 'components/Shared/BackButton/BackButton';
@@ -8,13 +9,19 @@ import ProjetoGantt from 'components/Projeto/Gantt/ProjetoGantt';
 import TarefaModal from 'components/Tarefa/TarefaModal';
 import { ProjetoWithUsersAndTarefasDTO } from 'types/projeto';
 import { ProjetoFase } from 'types/projetoFase';
-import { Tarefa, TarefaUpdateFormData, TarefaWithUserAndProjetoDTO } from 'types/tarefa';
+import {
+  Tarefa,
+  TarefaStatus,
+  TarefaUpdateFormData,
+  TarefaWithUserAndProjetoDTO,
+} from 'types/tarefa';
 import { getFasesByProjeto } from 'services/projetoFaseService';
 import {
   arquivarTarefa,
   getTarefasArquivadasByProjeto,
   getTarefaWithUsersAndProjeto,
   updateTarefa,
+  updateTarefaStatus,
 } from 'services/tarefaService';
 import {
   arquivadasVisiveisPorDefeito,
@@ -112,6 +119,23 @@ const ProjetoTimelinePage: React.FC = () => {
     }
   };
 
+  // The modal's status dropdown saves immediately through this handler (its
+  // own "Atualizar" doesn't send the status). Without it the change was lost.
+  const handleTarefaStatusChange = async (tarefaId: number, newStatus: TarefaStatus) => {
+    try {
+      await updateTarefaStatus(tarefaId, newStatus);
+      toast.success('Estado da tarefa atualizado');
+      await carregar();
+    } catch (e) {
+      console.error('Erro ao atualizar o estado da tarefa:', e);
+      toast.error(
+        e instanceof Error && !axios.isAxiosError(e)
+          ? e.message
+          : 'Erro ao atualizar o estado da tarefa',
+      );
+    }
+  };
+
   const handleArchiveTarefa = async (tarefaId: number) => {
     try {
       await arquivarTarefa(tarefaId);
@@ -189,6 +213,7 @@ const ProjetoTimelinePage: React.FC = () => {
           onHide={() => setTarefaToEdit(null)}
           onSave={(formData) => handleUpdateTarefa(formData as TarefaUpdateFormData)}
           onArchive={handleArchiveTarefa}
+          onStatusChange={handleTarefaStatusChange}
           isEditing
           tarefa={tarefaToEdit}
         />
