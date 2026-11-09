@@ -47,6 +47,18 @@ export interface Tarefa {
   tarefaOrigemId?: number | null;
   // Phase of the projeto's timeline (see types/projetoFase); null = "sem fase".
   faseId?: number | null;
+  // Read-only deviation data, recorded by the backend. diasEstimados is the plan frozen when
+  // the tarefa first had both dates; dataConclusao is when it last moved to DONE; diasReais is
+  // the working days from prazoEstimado to dataConclusao (null until DONE).
+  diasEstimados?: number | null;
+  dataConclusao?: string | null;
+  diasReais?: number | null;
+  // Review time kept apart from work time (diasTrabalho = diasReais - diasEmRevisao);
+  // the deviation is measured on diasTrabalho. devolucoes = times sent back from review.
+  entradaRevisao?: string | null;
+  diasEmRevisao?: number;
+  devolucoes?: number;
+  diasTrabalho?: number | null;
   projeto: {
     id: number;
     designacao: string;

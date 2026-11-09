@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fl.dashboard.enums.FrequenciaRecorrencia;
 import com.fl.dashboard.enums.TarefaStatus;
+import com.fl.dashboard.utils.DiasUteis;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
@@ -110,6 +112,73 @@ public class Tarefa {
 
     public boolean isArquivada() {
         return arquivadaEm != null;
+    }
+
+    // Working days planned when the tarefa first had both dates. Frozen afterwards, so a later
+    // change to the dates shows up as deviation instead of silently rewriting the plan.
+    @Column(name = "dias_estimados")
+    private Integer diasEstimados;
+
+    // When the tarefa last moved to DONE (whoever moved it, from any screen); null while not DONE.
+    @Column(name = "data_conclusao")
+    private LocalDateTime dataConclusao;
+
+    // When the tarefa last entered IN_REVIEW; null while it is not in review.
+    @Column(name = "entrada_revisao")
+    private LocalDateTime entradaRevisao;
+
+    // Working days spent in IN_REVIEW, added up over every review round, so the time a finished
+    // tarefa waits for (or is under) review is kept apart from the time spent doing it.
+    @Column(name = "dias_em_revisao")
+    private Integer diasEmRevisao = 0;
+
+    // Times the tarefa left review without being approved (sent back to rework).
+    @Column(name = "devolucoes")
+    private Integer devolucoes = 0;
+
+    // Status as loaded from the database, to detect transitions (into review, out of it, to DONE). Without it, editing a
+    // tarefa that was already DONE before data_conclusao existed would stamp a fake completion date.
+    @Transient
+    @JsonIgnore
+    @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
+    private TarefaStatus statusCarregado;
+
+    @PostLoad
+    void lembrarStatusCarregado() {
+        this.statusCarregado = this.status;
+    }
+
+    // Single place that records the deviation data, so every path that saves a tarefa (edit modal,
+    // Kanban drag, recurrence scheduler) stays consistent.
+    @PrePersist
+    @PreUpdate
+    void registarTempos() {
+        LocalDateTime agora = LocalDateTime.now();
+        if (diasEstimados == null && workingDays != null) {
+            diasEstimados = workingDays;
+        }
+        if (statusCarregado == TarefaStatus.IN_REVIEW && status != TarefaStatus.IN_REVIEW) {
+            if (entradaRevisao != null) {
+                diasEmRevisao = (diasEmRevisao == null ? 0 : diasEmRevisao)
+                        + DiasUteis.decorridos(entradaRevisao, agora);
+            }
+            entradaRevisao = null;
+            if (status != TarefaStatus.DONE) {
+                devolucoes = (devolucoes == null ? 0 : devolucoes) + 1;
+            }
+        }
+        if (status == TarefaStatus.IN_REVIEW && statusCarregado != TarefaStatus.IN_REVIEW) {
+            entradaRevisao = agora;
+        }
+        if (status == TarefaStatus.DONE) {
+            if (statusCarregado != TarefaStatus.DONE && dataConclusao == null) {
+                dataConclusao = agora;
+            }
+        } else {
+            dataConclusao = null;
+        }
+        statusCarregado = status;
     }
 
     private Boolean recorrente = false;

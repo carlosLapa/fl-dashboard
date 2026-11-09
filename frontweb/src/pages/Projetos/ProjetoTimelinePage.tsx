@@ -18,7 +18,6 @@ import {
 } from 'services/tarefaService';
 import {
   arquivadasVisiveisPorDefeito,
-  filtrarTarefasGantt,
   GANTT_CONFIG,
 } from 'utils/ganttUtils';
 
@@ -86,7 +85,7 @@ const ProjetoTimelinePage: React.FC = () => {
   }, [mostrarArquivadas, id]);
 
   const tarefas = useMemo(
-    () => filtrarTarefasGantt([...(projeto?.tarefas ?? []), ...arquivadas]),
+    () => [...(projeto?.tarefas ?? []), ...arquivadas],
     [projeto, arquivadas],
   );
 
@@ -175,8 +174,8 @@ const ProjetoTimelinePage: React.FC = () => {
               />
               {GANTT_CONFIG.esconderOcorrenciasRecorrentes && (
                 <div className="small text-muted mt-2">
-                  As ocorrências geradas por tarefas recorrentes não são mostradas; aparece apenas a
-                  tarefa recorrente original.
+                  As ocorrências das tarefas recorrentes não têm linha própria: contam no progresso
+                  e no desvio da fase, e o resumo aparece na tarefa recorrente original.
                 </div>
               )}
             </Card.Body>

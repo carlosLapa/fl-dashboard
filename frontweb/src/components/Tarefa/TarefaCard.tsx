@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import TarefaPrioridadeBadge from './TarefaPrioridadeBadge';
+import TarefaDevolucoesBadge from './TarefaDevolucoesBadge';
 import {
   KanbanTarefa,
   KanbanTarefaWithProjectDeadline,
@@ -178,6 +179,7 @@ const TarefaCard: React.FC<TarefaCardProps> = React.memo(({ tarefa, index, onCli
                     </span>
                   </OverlayTrigger>
                 )}
+                <TarefaDevolucoesBadge tarefaId={tarefa.id} devolucoes={tarefa.devolucoes} />
               </div>
               <span className="tarefa-date">
                 <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
