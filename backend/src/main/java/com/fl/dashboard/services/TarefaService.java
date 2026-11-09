@@ -14,6 +14,7 @@ import com.fl.dashboard.repositories.ExternoRepository;
 import com.fl.dashboard.repositories.ProjetoRepository;
 import com.fl.dashboard.repositories.TarefaRepository;
 import com.fl.dashboard.repositories.UserRepository;
+import com.fl.dashboard.utils.DiasUteis;
 import com.fl.dashboard.services.exceptions.DeadlineValidationException;
 import com.fl.dashboard.services.exceptions.OptimisticLockConflictException;
 import com.fl.dashboard.services.exceptions.RecorrenciaInvalidaException;
@@ -71,39 +72,7 @@ public class TarefaService {
 
     // Method to calculate working days
     private Integer calculateWorkingDays(Date startDate, Date endDate) {
-        if (startDate == null || endDate == null) {
-            return null;
-        }
-
-        Calendar start = Calendar.getInstance();
-        start.setTime(startDate);
-
-        Calendar end = Calendar.getInstance();
-        end.setTime(endDate);
-
-        int workingDays = 0;
-
-        // Set both calendars to midnight to ensure we're only comparing dates
-        start.set(Calendar.HOUR_OF_DAY, 0);
-        start.set(Calendar.MINUTE, 0);
-        start.set(Calendar.SECOND, 0);
-        start.set(Calendar.MILLISECOND, 0);
-
-        end.set(Calendar.HOUR_OF_DAY, 0);
-        end.set(Calendar.MINUTE, 0);
-        end.set(Calendar.SECOND, 0);
-        end.set(Calendar.MILLISECOND, 0);
-
-        // Count working days
-        while (!start.after(end)) {
-            int dayOfWeek = start.get(Calendar.DAY_OF_WEEK);
-            if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
-                workingDays++;
-            }
-            start.add(Calendar.DATE, 1);
-        }
-
-        return workingDays;
+        return DiasUteis.contar(startDate, endDate);
     }
 
     // Advances a Date by one period of the given recurrence frequency, via LocalDate arithmetic

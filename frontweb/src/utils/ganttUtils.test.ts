@@ -1,4 +1,9 @@
 import {
+  resumoRevisao,
+  desvioTarefa,
+  resumoDesvio,
+  textoDesvio,
+  textoDesvioCurto,
   arquivadasVisiveisPorDefeito,
   diasFase,
   construirEixo,
@@ -158,5 +163,57 @@ describe('arquivadasVisiveisPorDefeito', () => {
     expect(arquivadasVisiveisPorDefeito({ status: 'CONCLUIDO' })).toBe(true);
     expect(arquivadasVisiveisPorDefeito({ status: 'ATIVO', arquivadaEm: '2026-11-01T10:00:00' })).toBe(true);
     expect(arquivadasVisiveisPorDefeito({ status: 'EM_PROGRESSO', arquivadaEm: null })).toBe(false);
+  });
+});
+
+describe('desvio', () => {
+  it('measures only DONE tarefas with a recorded completion', () => {
+    expect(desvioTarefa(tarefa({ status: 'DONE', diasEstimados: 2, diasReais: 4 }))).toBe(2);
+    expect(desvioTarefa(tarefa({ status: 'DONE', diasEstimados: 3, diasReais: 2 }))).toBe(-1);
+    // Done before data_conclusao existed: no real duration, no deviation.
+    expect(desvioTarefa(tarefa({ status: 'DONE', diasEstimados: 2, diasReais: null }))).toBeNull();
+    expect(desvioTarefa(tarefa({ status: 'IN_PROGRESS', diasEstimados: 2, diasReais: 4 }))).toBeNull();
+  });
+
+  it('measures the deviation on work time, leaving review time out', () => {
+    expect(
+      desvioTarefa(
+        tarefa({ status: 'DONE', diasEstimados: 2, diasReais: 5, diasEmRevisao: 2, diasTrabalho: 3 }),
+      ),
+    ).toBe(1);
+  });
+
+  it('adds up review days and returns across the group', () => {
+    expect(
+      resumoRevisao([
+        tarefa({ diasEmRevisao: 2, devolucoes: 1 }),
+        tarefa({ diasEmRevisao: 1, devolucoes: 0 }),
+        tarefa({}),
+      ]),
+    ).toEqual({ dias: 3, devolucoes: 1 });
+    expect(resumoRevisao([tarefa({ diasEmRevisao: 0, devolucoes: 0 })])).toBeNull();
+  });
+
+  it('falls back to the current duration when no frozen estimate exists', () => {
+    expect(desvioTarefa(tarefa({ status: 'DONE', workingDays: 2, diasReais: 3 }))).toBe(1);
+  });
+
+  it('summarises total, average and worst overrun', () => {
+    expect(
+      resumoDesvio([
+        tarefa({ status: 'DONE', diasEstimados: 2, diasReais: 5 }),
+        tarefa({ status: 'DONE', diasEstimados: 2, diasReais: 2 }),
+        tarefa({ status: 'DONE', diasEstimados: 3, diasReais: 2 }),
+        tarefa({ status: 'TODO', diasEstimados: 3 }),
+      ]),
+    ).toEqual({ medidas: 3, total: 2, medio: 0.7, pior: 3 });
+    expect(resumoDesvio([tarefa({ status: 'TODO' })])).toBeNull();
+  });
+
+  it('formats with sign, singular and decimal comma', () => {
+    expect(textoDesvio(2)).toBe('+2 dias');
+    expect(textoDesvio(-1)).toBe('-1 dia');
+    expect(textoDesvio(0.7)).toBe('+0,7 dias');
+    expect(textoDesvioCurto(-2)).toBe('-2 d');
   });
 });

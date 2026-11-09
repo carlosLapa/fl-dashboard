@@ -31,6 +31,24 @@ const tarefas: Tarefa[] = [
   tarefa({ id: 14, descricao: 'Sem datas', faseId: 2 }),
 ];
 
+describe('ProjetoGantt with deviation and recurring occurrences', () => {
+  const comRecorrencia: Tarefa[] = [
+    tarefa({ id: 20, descricao: 'Relatório semanal', faseId: 1, recorrente: true, devolucoes: 2, prazoEstimado: '2027-01-01', prazoReal: '2027-01-01', workingDays: 1 }),
+    tarefa({ id: 21, descricao: 'Relatório semanal', faseId: 1, tarefaOrigemId: 20, status: 'DONE', devolucoes: 0, prazoEstimado: '2027-01-04', prazoReal: '2027-01-04', diasEstimados: 1, diasReais: 3, dataConclusao: '2027-01-06T10:00:00' }),
+  ];
+
+  it('gives occurrences no row but counts them in progress and deviation', () => {
+    render(<ProjetoGantt designacao="P" fases={fases} tarefas={comRecorrencia} hoje={new Date(2027, 0, 8)} />);
+    // Template TODO + occurrence DONE, 1 working day each -> 50%; occurrence ran 2 days over.
+    expect(
+      screen.getByRole('img', { name: /Design Freeze: 50% concluído, .*desvio \+2 dias/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Mostrar as tarefas de Design Freeze'));
+    expect(screen.getAllByText('Relatório semanal')).toHaveLength(1);
+    expect(screen.getByLabelText('Devolvida da revisão 2 vezes')).toBeInTheDocument();
+  });
+});
+
 const renderGantt = (onAbrirTarefa?: (id: number) => void) =>
   render(
     <ProjetoGantt

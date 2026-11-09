@@ -74,7 +74,7 @@ Permission checking:
 - `ProtectedRoute` / `PermissionProtectedRoute` — route-level guards.
 - Permissions are **mirrored** in backend (`Permission.java`) — both layers enforce them.
 
-Employees cannot move Kanban cards to REVIEW or DONE, and cannot access propostas or admin routes.
+Employees can move Kanban cards up to IN_REVIEW (handing work over for review starts the review-time count used by the timeline's deviation) but not to DONE, and cannot access propostas or admin routes. **Caveat:** the DONE restriction is enforced only in the Kanban UI. The TarefaModal status dropdown offers every status, and the backend `PUT /tarefas/{id}/status` has no `@PreAuthorize`.
 
 Per-`:userId` routes fall into two intentionally different access patterns — check which one applies before adding a new one:
 

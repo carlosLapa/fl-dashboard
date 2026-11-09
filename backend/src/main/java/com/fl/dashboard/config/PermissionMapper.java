@@ -71,10 +71,12 @@ public class PermissionMapper {
 
         // Employee permissions
         Set<Permission> employeePermissions = new HashSet<>(Arrays.asList(
-                // Limited Kanban permissions
+                // Limited Kanban permissions: an employee hands work over for review (which starts
+                // the review-time count), only a manager approves it (DONE)
                 Permission.MOVE_CARD_TO_BACKLOG,
                 Permission.MOVE_CARD_TO_TODO,
                 Permission.MOVE_CARD_TO_IN_PROGRESS,
+                Permission.MOVE_CARD_TO_REVIEW,
 
                 // Limited project access
                 Permission.VIEW_ASSIGNED_PROJECTS,

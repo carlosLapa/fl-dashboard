@@ -121,7 +121,9 @@ const rolePermissions: Record<string, Permission[]> = {
     Permission.MOVE_CARD_TO_BACKLOG,
     Permission.MOVE_CARD_TO_TODO,
     Permission.MOVE_CARD_TO_IN_PROGRESS,
-    // Note: Employees can't move cards to REVIEW or DONE
+    // Employees hand work over for review (this starts the review-time count);
+    // only a manager or admin can move a card to DONE.
+    Permission.MOVE_CARD_TO_REVIEW,
     
     // Limited project access
     Permission.VIEW_ASSIGNED_PROJECTS,

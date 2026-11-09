@@ -6,6 +6,7 @@ import com.fl.dashboard.enums.TarefaStatus;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.fl.dashboard.utils.DiasUteis;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -54,6 +55,18 @@ public class TarefaDTO {
 
     private Long faseId;
 
+    // Deviation data (read-only, see Tarefa#registarTempos). diasReais is the working days from
+    // prazoEstimado to dataConclusao, counted like workingDays; null until the tarefa is DONE.
+    private Integer diasEstimados;
+    private LocalDateTime dataConclusao;
+    private Integer diasReais;
+    // Review time kept apart from work time: diasTrabalho = diasReais - diasEmRevisao (never
+    // negative), and the deviation is measured on diasTrabalho.
+    private LocalDateTime entradaRevisao;
+    private Integer diasEmRevisao;
+    private Integer devolucoes;
+    private Integer diasTrabalho;
+
     private List<TarefaLinkDTO> links = new ArrayList<>();
 
     private List<RequisicaoEquipamentoDTO> requisicoes = new ArrayList<>();
@@ -97,6 +110,13 @@ public class TarefaDTO {
         this.proximaOcorrencia = entity.getProximaOcorrencia();
         this.tarefaOrigemId = entity.getTarefaOrigemId();
         this.faseId = entity.getFase() != null ? entity.getFase().getId() : null;
+        this.diasEstimados = entity.getDiasEstimados();
+        this.dataConclusao = entity.getDataConclusao();
+        this.diasReais = DiasUteis.contar(entity.getPrazoEstimado(), entity.getDataConclusao());
+        this.entradaRevisao = entity.getEntradaRevisao();
+        this.diasEmRevisao = entity.getDiasEmRevisao() != null ? entity.getDiasEmRevisao() : 0;
+        this.devolucoes = entity.getDevolucoes() != null ? entity.getDevolucoes() : 0;
+        this.diasTrabalho = this.diasReais != null ? Math.max(this.diasReais - this.diasEmRevisao, 0) : null;
         this.links = entity.getLinks() != null
                 ? entity.getLinks().stream().map(TarefaLinkDTO::new).toList()
                 : new ArrayList<>();

@@ -15,13 +15,19 @@ import {
 import { ProjetoFase } from 'types/projetoFase';
 import { Tarefa } from 'types/tarefa';
 import { TAREFA_STATUS_LABELS } from 'constants/tarefaStatus';
+import TarefaDevolucoesBadge from 'components/Tarefa/TarefaDevolucoesBadge';
 import {
   construirEixo,
+  desvioTarefa,
+  diasEstimadosTarefa,
   diasFase,
+  DiasFase,
+  diasTrabalhoTarefa,
   ESTADO_FASE_LABELS,
   EstadoFase,
   estadoFase,
   EixoTemporal,
+  filtrarTarefasGantt,
   formatarDia,
   inicioDoDia,
   parseDia,
@@ -32,7 +38,14 @@ import {
   posicaoDia,
   posicaoNoEixo,
   progressoFase,
+  resumoDesvio,
+  ResumoDesvio,
+  resumoRevisao,
+  ResumoRevisao,
   tempoDecorrido,
+  textoDesvio,
+  textoDesvioCurto,
+  textoDevolucoes,
   textoDias,
 } from 'utils/ganttUtils';
 import './ProjetoGantt.scss';
@@ -54,6 +67,8 @@ interface ProjetoGanttProps {
   prazoProjeto?: string;
   dataAdjudicacao?: string;
   fases: ProjetoFase[];
+  // Every tarefa, recurring occurrences included: they get no row of their own but
+  // count in progress and deviation (see GANTT_CONFIG.esconderOcorrenciasRecorrentes).
   tarefas: Tarefa[];
   onAbrirTarefa?: (tarefaId: number) => void;
   hoje?: Date;
@@ -63,7 +78,13 @@ interface Grupo {
   chave: string;
   nome: string;
   descricao?: string | null;
+  // Tarefas shown as rows (recurring occurrences left out).
   tarefas: Tarefa[];
+  // The numbers below cover every tarefa of the group, occurrences included.
+  numTarefas: number;
+  dias: DiasFase;
+  desvio: ResumoDesvio | null;
+  revisao: ResumoRevisao | null;
   planeado: Periodo | null;
   real: Periodo | null;
   progresso: number;
@@ -84,7 +105,11 @@ const construirGrupo = (
     chave,
     nome,
     descricao,
-    tarefas: [...tarefas].sort(
+    numTarefas: tarefas.length,
+    dias: diasFase(tarefas),
+    desvio: resumoDesvio(tarefas),
+    revisao: resumoRevisao(tarefas),
+    tarefas: filtrarTarefasGantt(tarefas).sort(
       (a, b) =>
         (periodoTarefa(a)?.inicio.getTime() ?? Infinity) -
         (periodoTarefa(b)?.inicio.getTime() ?? Infinity),
@@ -158,6 +183,16 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
   const hoje = useMemo(() => inicioDoDia(hojeProp ?? new Date()), [hojeProp]);
   const [abertos, setAbertos] = useState<Set<string>>(new Set());
 
+  // Occurrences of each recurring template, for the summary on the template's row.
+  const ocorrencias = useMemo(() => {
+    const mapa = new Map<number, Tarefa[]>();
+    tarefas.forEach((t) => {
+      if (!t.tarefaOrigemId) return;
+      mapa.set(t.tarefaOrigemId, [...(mapa.get(t.tarefaOrigemId) ?? []), t]);
+    });
+    return mapa;
+  }, [tarefas]);
+
   const { global, grupos, semDatas, eixo, prazo } = useMemo(() => {
     const idsFases = new Set(fases.map((f) => f.id));
     const grupos: Grupo[] = fases.map((fase) =>
@@ -200,7 +235,7 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
     return {
       global,
       grupos,
-      semDatas: tarefas.filter((t) => !periodoTarefa(t)),
+      semDatas: filtrarTarefasGantt(tarefas).filter((t) => !periodoTarefa(t)),
       eixo,
       prazo,
     };
@@ -224,19 +259,32 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
     if (!periodo) return null;
     const pos = posicaoNoEixo(periodo, eixo);
     const derivada = !grupo.planeado;
-    const dias = diasFase(grupo.tarefas);
+    const { dias, desvio, revisao } = grupo;
     const conteudo = (
       <>
         <strong>{grupo.nome}</strong>
         <div>Planeado: {textoPeriodo(grupo.planeado)}</div>
         <div>Real (tarefas): {textoPeriodo(grupo.real)}</div>
         <div>
-          Progresso: {grupo.progresso}% · {grupo.tarefas.length}{' '}
-          {grupo.tarefas.length === 1 ? 'tarefa' : 'tarefas'}
+          Progresso: {grupo.progresso}% · {grupo.numTarefas}{' '}
+          {grupo.numTarefas === 1 ? 'tarefa' : 'tarefas'}
         </div>
         {dias.estimados > 0 && (
           <div>
             Estimado: {textoDias(dias.estimados)} · concluídos {dias.concluidos}
+          </div>
+        )}
+        {desvio && (
+          <div>
+            Desvio (trabalho): {textoDesvio(desvio.total)} em {desvio.medidas}{' '}
+            {desvio.medidas === 1 ? 'tarefa concluída' : 'tarefas concluídas'} · pior{' '}
+            {textoDesvio(desvio.pior)}
+          </div>
+        )}
+        {revisao && (
+          <div>
+            Em revisão: {textoDias(revisao.dias)}
+            {revisao.devolucoes > 0 && ` · ${textoDevolucoes(revisao.devolucoes)}`}
           </div>
         )}
         {dias.semEstimativa > 0 && (
@@ -260,14 +308,17 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
             style={pos}
             tabIndex={0}
             role="img"
-            aria-label={`${grupo.nome}: ${grupo.progresso}% concluído, ${ESTADO_FASE_LABELS[grupo.estado]}`}
+            aria-label={`${grupo.nome}: ${grupo.progresso}% concluído, ${ESTADO_FASE_LABELS[grupo.estado]}${
+              desvio ? `, desvio ${textoDesvio(desvio.total)}` : ''
+            }`}
           >
             <div className="pg-bar-fill" style={{ width: `${grupo.progresso}%` }} />
           </div>
         </Dica>
-        {grupo.tarefas.length > 0 && (
+        {grupo.numTarefas > 0 && (
           <span className="pg-pct" style={{ left: `calc(${pos.left} + ${pos.width})` }}>
             {grupo.progresso}%
+            {desvio && desvio.total !== 0 && ` · ${textoDesvioCurto(desvio.total)}`}
           </span>
         )}
         {grupo.planeado && grupo.real && (
@@ -277,9 +328,23 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
     );
   };
 
+  const posicaoFim = (periodo: Periodo) => {
+    const pos = posicaoNoEixo(periodo, eixo);
+    return `calc(${pos.left} + ${pos.width})`;
+  };
+
   const linhaTarefa = (grupo: Grupo, tarefa: Tarefa) => {
     const periodo = periodoTarefa(tarefa);
     const estado = TAREFA_STATUS_LABELS[tarefa.status];
+    const estimados = diasEstimadosTarefa(tarefa);
+    const desvio = desvioTarefa(tarefa);
+    const conclusao = parseDia(tarefa.dataConclusao);
+    const entradaRevisao = parseDia(tarefa.entradaRevisao);
+    const diasRevisao = tarefa.diasEmRevisao ?? 0;
+    const trabalho = diasTrabalhoTarefa(tarefa);
+    const repeticoes = ocorrencias.get(tarefa.id) ?? [];
+    const resumoRepeticoes = resumoDesvio(repeticoes);
+    const repeticoesConcluidas = repeticoes.filter((t) => t.status === 'DONE').length;
     return (
       <div className="pg-row pg-row--tarefa" key={`${grupo.chave}-${tarefa.id}`}>
         <div className="pg-label" title={tarefa.descricao}>
@@ -292,6 +357,11 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
               tarefa.descricao
             )}
           </span>
+          <TarefaDevolucoesBadge
+            tarefaId={tarefa.id}
+            devolucoes={tarefa.devolucoes}
+            className="flex-shrink-0"
+          />
           <span className="pg-estado">{estado}</span>
         </div>
         <div className="pg-track">
@@ -304,7 +374,37 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
                   <strong>{tarefa.descricao}</strong>
                   <div>{textoPeriodo(periodo)}</div>
                   <div>Estado: {estado}</div>
-                  {tarefa.workingDays != null && <div>Estimado: {textoDias(tarefa.workingDays)}</div>}
+                  {estimados != null && <div>Estimado: {textoDias(estimados)}</div>}
+                  {conclusao && <div>Concluída a {formatarDia(conclusao)}</div>}
+                  {tarefa.diasReais != null && (
+                    <div>
+                      Real: {textoDias(tarefa.diasReais)}
+                      {diasRevisao > 0 &&
+                        trabalho != null &&
+                        ` = ${trabalho} de trabalho + ${diasRevisao} em revisão`}
+                    </div>
+                  )}
+                  {tarefa.diasReais == null && diasRevisao > 0 && (
+                    <div>Em revisão até agora: {textoDias(diasRevisao)}</div>
+                  )}
+                  {entradaRevisao && <div>Em revisão desde {formatarDia(entradaRevisao)}</div>}
+                  {desvio != null && <div>Desvio (trabalho): {textoDesvio(desvio)}</div>}
+                  {(tarefa.devolucoes ?? 0) > 0 && (
+                    <div>
+                      Devolvida {tarefa.devolucoes} {tarefa.devolucoes === 1 ? 'vez' : 'vezes'}
+                    </div>
+                  )}
+                  {repeticoes.length > 0 && (
+                    <div>
+                      {repeticoesConcluidas}{' '}
+                      {repeticoesConcluidas === 1 ? 'ocorrência concluída' : 'ocorrências concluídas'}
+                      {repeticoes.length > repeticoesConcluidas && ` de ${repeticoes.length}`}
+                      {resumoRepeticoes &&
+                        ` · desvio médio ${textoDesvio(resumoRepeticoes.medio)} · pior ${textoDesvio(
+                          resumoRepeticoes.pior,
+                        )}`}
+                    </div>
+                  )}
                   {tarefa.arquivadaEm && <div className="fst-italic">Arquivada</div>}
                 </>
               }
@@ -314,9 +414,16 @@ const ProjetoGantt: React.FC<ProjetoGanttProps> = ({
                 style={posicaoNoEixo(periodo, eixo)}
                 tabIndex={0}
                 role="img"
-                aria-label={`${tarefa.descricao}: ${textoPeriodo(periodo)}, ${estado}`}
+                aria-label={`${tarefa.descricao}: ${textoPeriodo(periodo)}, ${estado}${
+                  desvio != null ? `, desvio ${textoDesvio(desvio)}` : ''
+                }`}
               />
             </Dica>
+          )}
+          {periodo && desvio != null && desvio !== 0 && (
+            <span className="pg-pct pg-pct--tarefa" style={{ left: posicaoFim(periodo) }}>
+              {textoDesvioCurto(desvio)}
+            </span>
           )}
         </div>
       </div>
