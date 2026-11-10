@@ -141,7 +141,9 @@ const ProjetoDetailsPage: React.FC = () => {
       setShowEditTarefaModal(true);
     } catch (error) {
       console.error('Erro ao carregar tarefa:', error);
-      toast.error('Erro ao carregar a tarefa');
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao carregar a tarefa'
+      );
     }
   };
 

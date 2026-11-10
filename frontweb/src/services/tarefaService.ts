@@ -265,6 +265,12 @@ export const getTarefaWithUsersAndProjeto = async (
 ): Promise<TarefaWithUserAndProjetoDTO> => {
   try {
     const tarefaData = await getTarefaWithUsersAndProjetoAPI(id);
+    // The global 403 interceptor swallows a forbidden GET /tarefas/{id}/full (an
+    // EMPLOYEE opening a tarefa they are not assigned to) and resolves with a
+    // paginated-shape object instead of throwing. A real tarefa always has an id.
+    if (tarefaData?.id == null) {
+      throw new Error('Não tem permissão para aceder a esta tarefa');
+    }
     if (tarefaData.prazoEstimado && tarefaData.prazoReal) {
       return {
         ...tarefaData,

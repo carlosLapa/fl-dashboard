@@ -82,7 +82,11 @@ const ProjetoKanbanBoard: React.FC<ProjetoKanbanBoardProps> = ({ projeto }) => {
       setShowEditModal(true);
     } catch (error) {
       console.error('Erro ao carregar dados da tarefa:', error);
-      toast.error('Erro ao carregar dados da tarefa');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Erro ao carregar dados da tarefa'
+      );
     }
   }, []);
 

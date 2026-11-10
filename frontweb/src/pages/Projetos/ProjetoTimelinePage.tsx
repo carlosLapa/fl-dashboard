@@ -101,7 +101,7 @@ const ProjetoTimelinePage: React.FC = () => {
       setTarefaToEdit(await getTarefaWithUsersAndProjeto(tarefaId));
     } catch (e) {
       console.error('Erro ao carregar tarefa:', e);
-      toast.error('Erro ao carregar a tarefa');
+      toast.error(e instanceof Error ? e.message : 'Erro ao carregar a tarefa');
     }
   };
 
