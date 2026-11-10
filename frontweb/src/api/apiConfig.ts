@@ -17,67 +17,54 @@ export const getWebSocketUrl = () => {
   return `${API_URL}/ws`;
 };
 
+// Paginated-shape empty result used to degrade list fetches gracefully.
+const emptyPage = () =>
+  Promise.resolve({
+    data: {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      size: 10,
+      number: 0,
+    },
+  });
+
+// URLs whose forbidden/not-found reads degrade to an empty list. The nested
+// subtarefas sub-resource is excluded: it needs real 403s to propagate.
+const isDegradableUrl = (url?: string) =>
+  !!url &&
+  (url.includes('/users') ||
+    url.includes('/projetos') ||
+    (url.includes('/tarefas') && !url.includes('/subtarefas')));
+
+// Only reads may be degraded. A refused write (POST/PUT/PATCH/DELETE) must
+// reject, otherwise the UI reports "saved successfully" for a change the
+// backend never applied.
+const isReadRequest = (method?: string) =>
+  (method ?? 'get').toLowerCase() === 'get';
+
 // response interceptor for global error handling
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const degradable =
+        isReadRequest(error.config?.method) &&
+        isDegradableUrl(error.config?.url);
+
       // Handle 403 Forbidden errors
-      if (error.response?.status === 403) {
-        //console.warn('Permission denied for this operation');
-
-        // For user-related endpoints
-        if (error.config?.url?.includes('/users')) {
-          //console.log('Handling 403 for users endpoint');
-          // Return empty result instead of throwing
-          return Promise.resolve({
-            data: {
-              content: [],
-              totalPages: 0,
-              totalElements: 0,
-              size: 10,
-              number: 0,
-            },
-          });
+      if (status === 403) {
+        // For reads on users/tarefas/projetos, return an empty result instead
+        // of throwing (e.g. an EMPLOYEE sees an empty list, not an error).
+        if (degradable) {
+          return emptyPage();
         }
 
-        // For tarefas-related endpoints (list/board fetches only — not the
-        // nested subtarefas sub-resource, which needs real 403s to propagate)
-        if (
-          error.config?.url?.includes('/tarefas') &&
-          !error.config?.url?.includes('/subtarefas')
-        ) {
-          console.log('Handling 403 for tarefas endpoint');
-          // Return empty result instead of throwing
-          return Promise.resolve({
-            data: {
-              content: [],
-              totalPages: 0,
-              totalElements: 0,
-              size: 10,
-              number: 0,
-            },
-          });
-        }
-
-        // For projetos-related endpoints
-        if (error.config?.url?.includes('/projetos')) {
-          //console.log('Handling 403 for projetos endpoint');
-          // Return empty result instead of throwing
-          return Promise.resolve({
-            data: {
-              content: [],
-              totalPages: 0,
-              totalElements: 0,
-              size: 10,
-              number: 0,
-            },
-          });
-        }
-
-        // For other endpoints, show warning toast. The fixed toastId makes react-toastify
-        // skip a new toast while one is still visible, so a page firing several requests
-        // in parallel that all get 403 shows a single warning instead of a stack.
+        // For other endpoints (and every refused write), show a warning toast.
+        // The fixed toastId makes react-toastify skip a new toast while one is
+        // still visible, so a page firing several requests in parallel that all
+        // get 403 shows a single warning instead of a stack.
         if (toast) {
           toast.warning('Você não tem permissão para esta operação', {
             toastId: 'permission-denied',
@@ -85,31 +72,13 @@ axios.interceptors.response.use(
         }
       }
 
-      // Handle 404 errors
-      if (error.response?.status === 404) {
-        //console.warn('Resource not found');
-
-        // For endpoints that return paginated data
-        if (
-          error.config?.url?.includes('/projetos') ||
-          error.config?.url?.includes('/users') ||
-          (error.config?.url?.includes('/tarefas') &&
-            !error.config?.url?.includes('/subtarefas'))
-        ) {
-          return Promise.resolve({
-            data: {
-              content: [],
-              totalPages: 0,
-              totalElements: 0,
-              size: 10,
-              number: 0,
-            },
-          });
-        }
+      // Handle 404 errors: same read-only degrade for paginated endpoints.
+      if (status === 404 && degradable) {
+        return emptyPage();
       }
 
       // Handle 401 Unauthorized errors (e.g., token expired)
-      if (error.response?.status === 401) {
+      if (status === 401) {
         //console.error('Authentication error - session may have expired');
         if (toast) {
           toast.error('Sua sessão expirou. Por favor, faça login novamente.');
